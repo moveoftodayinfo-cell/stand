@@ -1,0 +1,43 @@
+# Built application files
+*.apk
+*.ap_
+*.aab
+
+# Files for the ART/Dalvik VM
+*.dex
+
+# Java class files
+*.class
+
+# Generated files
+bin/
+gen/
+out/
+build/
+
+# Gradle files
+.gradle/
+gradle/
+gradlew
+gradlew.bat
+
+# Local configuration file
+local.properties
+
+# Android Studio
+.idea/
+*.iml
+.DS_Store
+
+# Keystore files
+*.jks
+*.keystore
+keystore.properties
+
+# Google Services
+google-services.json
+
+# App files - exclude everything except privacy policy
+app/
+settings.gradle.kts
+libs.versions.toml
