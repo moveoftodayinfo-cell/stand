@@ -14,12 +14,11 @@ bin/
 gen/
 out/
 build/
+app/build/
 
 # Gradle files
 .gradle/
-gradle/
-gradlew
-gradlew.bat
+.kotlin/
 
 # Local configuration file
 local.properties
@@ -33,11 +32,28 @@ local.properties
 *.jks
 *.keystore
 keystore.properties
+upload-keystore
 
-# Google Services
+# Google Services (contains API keys)
 google-services.json
 
-# App files - exclude everything except privacy policy
-app/
-settings.gradle.kts
-libs.versions.toml
+# Credentials and secrets
+*.pem
+*.p12
+credentials.json
+
+# Error logs
+hs_err_pid*.log
+
+# Misc
+nul
+*.html
+!privacy-policy.html
+
+# Claude
+.claude/
+
+# Images and screenshots (optional - large files)
+public image/
+screenshot/
+*.png

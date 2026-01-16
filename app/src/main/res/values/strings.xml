@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">Stand</string>
+    <string name="accessibility_service_description">목표 걸음 수 미달 시 선택한 앱을 제한합니다.</string>
+    <string name="widget_description">오늘의 걸음 수를 표시합니다</string>
+</resources>
