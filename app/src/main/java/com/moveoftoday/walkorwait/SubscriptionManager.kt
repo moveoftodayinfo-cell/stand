@@ -12,43 +12,38 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 /**
- * Stand 구독 데이터
+ * Stand 결제 데이터
  *
- * 구독 타입:
- * - PAID: 직접 결제한 사용자 (Host)
- * - GUEST: 결제자의 친구 (1달 무료, Host 구독 종료 시 같이 종료)
+ * 사용자 타입:
+ * - PAID: 4,900원 결제한 사용자
+ * - GUEST: 친구 초대로 1달 무료 이용 중
  *
- * 크레딧 시스템 (PAID 전용):
- * - Google Play 구독: 4,900원/월 고정
- * - 달성률에 따라 Stand 크레딧 지급
- * - 95% 이상: +4,900 크레딧 (실질 무료)
- * - 80~94%: +2,400 크레딧 (실질 2,500원)
- * - 80% 미만: 크레딧 없음 (정가 4,900원)
+ * 심플 시스템:
+ * - 모든 사용자: 매달 4,900원 결제
+ * - 95% 이상 달성 → 친구 초대 쿠폰 1장 획득
  */
 data class SubscriptionData(
     val monthId: String = "",
     val isPaid: Boolean = false,
     val isActive: Boolean = false,
-    val subscriptionType: String = "PAID", // PAID or GUEST
-    val basePrice: Int = SubscriptionModel.BASE_PRICE,
+    val userType: String = "PAID", // PAID, GUEST
+    val price: Int = SubscriptionModel.MONTHLY_PRICE,
     val purchaseToken: String? = null,
     val orderId: String? = null,
     val totalDays: Int = 0,
     val successDays: Int = 0,
     val achievementRate: Float = 0f,
-    val tier: String = "PENALTY", // FREE, DISCOUNT, PENALTY
-    val creditEarned: Int = 0, // 이번 달 획득 크레딧
-    val creditBalance: Int = 0, // 누적 크레딧 잔액
-    val effectivePrice: Int = SubscriptionModel.BASE_PRICE, // 실질 부담 금액
-    val consecutiveSuccessCount: Int = 0,
+    val earnedFriendCoupon: Boolean = false, // 이번 달 친구 쿠폰 획득 여부
+    val availableFriendCoupons: Int = 0, // 사용 가능한 친구 쿠폰 수
+    val consecutiveSuccessCount: Int = 0, // 연속 성공 횟수
     val goal: Int = 8000,
     val controlDays: List<Int> = emptyList(),
     val startDate: Date? = null,
     val endDate: Date? = null,
-    val inviteCode: String? = null, // 친구 초대용 코드 (Host만)
+    val inviteCode: String? = null, // 친구 초대용 코드
     val hostId: String? = null, // Guest인 경우 Host의 userId
     val guestId: String? = null, // Host가 초대한 친구의 userId
-    val guestExpiresAt: Date? = null, // Guest 구독 만료 시간
+    val guestExpiresAt: Date? = null, // Guest 만료 시간
     val createdAt: Date = Date(),
     val updatedAt: Date = Date()
 )
@@ -118,17 +113,15 @@ class SubscriptionManager(private val context: Context) {
                 monthId = monthId,
                 isPaid = true,
                 isActive = true,
-                subscriptionType = "PAID",
-                basePrice = SubscriptionModel.BASE_PRICE,
+                userType = "PAID",
+                price = SubscriptionModel.MONTHLY_PRICE,
                 purchaseToken = purchase.purchaseToken,
                 orderId = purchase.orderId,
                 totalDays = 0,
                 successDays = 0,
                 achievementRate = 0f,
-                tier = "PENALTY",
-                creditEarned = 0,
-                creditBalance = 0,
-                effectivePrice = SubscriptionModel.BASE_PRICE,
+                earnedFriendCoupon = false,
+                availableFriendCoupons = 0,
                 consecutiveSuccessCount = 0,
                 goal = goal,
                 controlDays = controlDays,
@@ -221,17 +214,15 @@ class SubscriptionManager(private val context: Context) {
                 monthId = monthId,
                 isPaid = false, // Guest는 무료
                 isActive = true,
-                subscriptionType = "GUEST",
-                basePrice = 0,
+                userType = "GUEST",
+                price = 0,
                 purchaseToken = null,
                 orderId = null,
                 totalDays = 0,
                 successDays = 0,
                 achievementRate = 0f,
-                tier = "PENALTY",
-                creditEarned = 0,
-                creditBalance = 0,
-                effectivePrice = 0,
+                earnedFriendCoupon = false,
+                availableFriendCoupons = 0,
                 consecutiveSuccessCount = 0,
                 goal = goal,
                 controlDays = controlDays,
@@ -289,12 +280,12 @@ class SubscriptionManager(private val context: Context) {
                 ?: return false
 
             // PAID 구독자는 항상 유효 (Google Play 구독 상태에 따름)
-            if (subscription.subscriptionType == "PAID") {
+            if (subscription.userType == "PAID") {
                 return subscription.isActive
             }
 
             // GUEST인 경우
-            if (subscription.subscriptionType == "GUEST") {
+            if (subscription.userType == "GUEST") {
                 val hostId = subscription.hostId ?: return false
 
                 // 만료 시간 확인
@@ -404,12 +395,12 @@ class SubscriptionManager(private val context: Context) {
     }
 
     /**
-     * 월말 정산 및 크레딧 지급
+     * 월말 정산 (심플 시스템)
      *
-     * 크레딧 시스템:
-     * 🏆 95% 이상 → +4,900 크레딧 (실질 무료)
-     * ✅ 80~94% → +2,400 크레딧 (실질 2,500원)
-     * ❌ 80% 미만 → 크레딧 없음 (정가 4,900원)
+     * 🏆 95% 이상 → 친구 초대 쿠폰 1장 획득
+     * ❌ 95% 미만 → 쿠폰 없음
+     *
+     * 모든 사용자는 다음 달에도 4,900원 결제 필요
      */
     suspend fun processMonthlyResult(
         currentMonthId: String,
@@ -420,13 +411,9 @@ class SubscriptionManager(private val context: Context) {
 
         try {
             val achievementRate = if (totalDays > 0) (successDays.toFloat() / totalDays * 100) else 0f
+            val earnedCoupon = SubscriptionModel.earnsFriendCoupon(achievementRate)
 
-            // 티어 판정 및 크레딧 계산
-            val tier = SubscriptionModel.getTier(achievementRate)
-            val creditEarned = SubscriptionModel.getCreditAmount(achievementRate)
-            val effectivePrice = SubscriptionModel.getEffectivePrice(achievementRate)
-
-            // 현재 월 구독 정보 가져오기 (크레딧 잔액 확인용)
+            // 현재 월 구독 정보 가져오기
             val currentSubscription = db.collection("users")
                 .document(userId)
                 .collection("subscriptions")
@@ -436,8 +423,19 @@ class SubscriptionManager(private val context: Context) {
                 .toObject(SubscriptionData::class.java)
                 ?: return Result.failure(Exception("Current subscription not found"))
 
-            // 새 크레딧 잔액 계산
-            val newCreditBalance = (currentSubscription.creditBalance + creditEarned).coerceAtLeast(0)
+            // 쿠폰 획득 시 누적
+            val newCouponCount = if (earnedCoupon) {
+                currentSubscription.availableFriendCoupons + 1
+            } else {
+                currentSubscription.availableFriendCoupons
+            }
+
+            // 연속 성공 카운트 (95% 이상만)
+            val consecutiveCount = if (earnedCoupon) {
+                currentSubscription.consecutiveSuccessCount + 1
+            } else {
+                0
+            }
 
             // 현재 월 업데이트
             db.collection("users")
@@ -449,67 +447,15 @@ class SubscriptionManager(private val context: Context) {
                         "totalDays" to totalDays,
                         "successDays" to successDays,
                         "achievementRate" to achievementRate,
-                        "tier" to tier.name,
-                        "creditEarned" to creditEarned,
-                        "creditBalance" to newCreditBalance,
-                        "effectivePrice" to effectivePrice,
+                        "earnedFriendCoupon" to earnedCoupon,
+                        "availableFriendCoupons" to newCouponCount,
+                        "consecutiveSuccessCount" to consecutiveCount,
                         "updatedAt" to Date()
                     )
                 )
                 .await()
 
-            // 다음달 구독 생성
-            val nextMonthId = getNextMonthId(currentMonthId)
-            val calendar = Calendar.getInstance()
-            calendar.add(Calendar.MONTH, 1)
-            calendar.set(Calendar.DAY_OF_MONTH, 1)
-            val nextStartDate = calendar.time
-            calendar.set(Calendar.DAY_OF_MONTH, calendar.getActualMaximum(Calendar.DAY_OF_MONTH))
-            val nextEndDate = calendar.time
-
-            // 연속 성공 카운트 (95% 이상만)
-            val consecutiveCount = if (tier == SubscriptionModel.Tier.FREE) {
-                currentSubscription.consecutiveSuccessCount + 1
-            } else {
-                0
-            }
-
-            val nextSubscription = SubscriptionData(
-                monthId = nextMonthId,
-                isPaid = true, // Google Play에서 자동 결제
-                isActive = true,
-                subscriptionType = currentSubscription.subscriptionType,
-                basePrice = SubscriptionModel.BASE_PRICE,
-                purchaseToken = currentSubscription.purchaseToken,
-                orderId = null,
-                totalDays = 0,
-                successDays = 0,
-                achievementRate = 0f,
-                tier = "PENALTY", // 다음 달 티어는 다음 달 정산 시 결정
-                creditEarned = 0,
-                creditBalance = newCreditBalance, // 이전 달 잔액 이월
-                effectivePrice = SubscriptionModel.BASE_PRICE, // 다음 달 정산 시 결정
-                consecutiveSuccessCount = consecutiveCount,
-                goal = currentSubscription.goal,
-                controlDays = currentSubscription.controlDays,
-                startDate = nextStartDate,
-                endDate = nextEndDate,
-                inviteCode = currentSubscription.inviteCode,
-                hostId = currentSubscription.hostId,
-                guestId = null, // Guest는 매월 새로 초대 필요
-                guestExpiresAt = null,
-                createdAt = Date(),
-                updatedAt = Date()
-            )
-
-            db.collection("users")
-                .document(userId)
-                .collection("subscriptions")
-                .document(nextMonthId)
-                .set(nextSubscription)
-                .await()
-
-            Log.d(TAG, "✅ Monthly result: rate=${achievementRate.toInt()}%, tier=${tier.name}, credit=$creditEarned, balance=$newCreditBalance, consecutive=$consecutiveCount")
+            Log.d(TAG, "✅ Monthly result: rate=${achievementRate.toInt()}%, earnedCoupon=$earnedCoupon, totalCoupons=$newCouponCount, consecutive=$consecutiveCount")
 
             return Result.success(Unit)
 

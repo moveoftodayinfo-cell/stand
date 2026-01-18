@@ -1,104 +1,49 @@
 package com.moveoftoday.walkorwait
 
 /**
- * Stand 구독 모델
+ * Stand 결제 모델 (심플 시스템)
  *
- * - 정가: 월 4,900원 (Google Play 고정 결제)
- * - 미션 달성률에 따라 Stand 크레딧 지급
- * - 크레딧으로 실질 구독료 할인 효과
+ * - 매달 4,700원 구독 결제 (필수)
+ * - 95% 이상 달성 시: 친구 초대 쿠폰 1장 획득
+ * - 친구는 쿠폰으로 1달 무료 이용
  *
- * 크레딧 시스템:
- * - 95% 이상: +4,900 크레딧 (실질 무료)
- * - 80-94%: +2,400 크레딧 (실질 2,500원)
- * - 80% 미만: 크레딧 없음 (실질 4,900원)
+ * 가격 기준: 염창역 스타벅스 아이스 아메리카노 (가격 변동 시 조정)
+ *
+ * 사용자 타입:
+ * - PAID: 4,700원 결제한 사용자 (95% 달성 시 친구 쿠폰 획득)
+ * - GUEST: 친구 초대로 1달 무료 이용 중
  */
 object SubscriptionModel {
 
-    // 구독 가격 (Google Play 고정)
-    const val BASE_PRICE = 4900           // 정가
-
-    // 실질 부담 금액 (크레딧 적용 후)
-    const val EFFECTIVE_PRICE_FREE = 0         // 95% 이상: 실질 무료
-    const val EFFECTIVE_PRICE_DISCOUNT = 2500  // 80-94%: 실질 2,500원
-    const val EFFECTIVE_PRICE_PENALTY = 4900   // 80% 미만: 정가 그대로
-
-    // 크레딧 지급량
-    const val CREDIT_TIER_FREE = 4900     // 95% 이상: 전액 크레딧
-    const val CREDIT_TIER_DISCOUNT = 2400 // 80-94%: 2,400 크레딧 (4900-2500)
-    const val CREDIT_TIER_PENALTY = 0     // 80% 미만: 크레딧 없음
+    // 결제 가격 (염창역 스타벅스 아이스 아메리카노 기준)
+    const val MONTHLY_PRICE = 4700        // 월 결제 금액
 
     // 달성률 기준
-    const val THRESHOLD_FREE = 95         // 무료 기준
-    const val THRESHOLD_DISCOUNT = 80     // 할인 기준
+    const val THRESHOLD_COUPON = 95       // 친구 쿠폰 획득 기준
 
     /**
-     * 달성률에 따른 크레딧 지급량 계산
+     * 친구 초대 쿠폰 획득 여부 (95% 이상)
      */
-    fun getCreditAmount(achievementRate: Float): Int {
-        return when {
-            achievementRate >= THRESHOLD_FREE -> CREDIT_TIER_FREE
-            achievementRate >= THRESHOLD_DISCOUNT -> CREDIT_TIER_DISCOUNT
-            else -> CREDIT_TIER_PENALTY
-        }
-    }
-
-    /**
-     * 달성률에 따른 실질 부담 금액 계산
-     */
-    fun getEffectivePrice(achievementRate: Float): Int {
-        return when {
-            achievementRate >= THRESHOLD_FREE -> EFFECTIVE_PRICE_FREE
-            achievementRate >= THRESHOLD_DISCOUNT -> EFFECTIVE_PRICE_DISCOUNT
-            else -> EFFECTIVE_PRICE_PENALTY
-        }
-    }
-
-    /**
-     * 달성률에 따른 다음 달 구독료 계산 (하위 호환용)
-     */
-    fun getNextMonthPrice(achievementRate: Float): Int {
-        return getEffectivePrice(achievementRate)
-    }
-
-    /**
-     * 달성률에 따른 할인 금액 계산
-     */
-    fun getDiscountAmount(achievementRate: Float): Int {
-        return BASE_PRICE - getEffectivePrice(achievementRate)
+    fun earnsFriendCoupon(achievementRate: Float): Boolean {
+        return achievementRate >= THRESHOLD_COUPON
     }
 
     /**
      * 달성률에 따른 상태 텍스트
      */
     fun getStatusText(achievementRate: Float): String {
-        return when {
-            achievementRate >= THRESHOLD_FREE -> "다음 달 무료!"
-            achievementRate >= THRESHOLD_DISCOUNT -> "다음 달 2,500원"
-            else -> "다음 달 4,900원"
+        return if (achievementRate >= THRESHOLD_COUPON) {
+            "친구 초대 쿠폰 획득!"
+        } else {
+            "95% 달성 시 친구 쿠폰"
         }
     }
 
     /**
-     * 크레딧 지급 상태 텍스트
+     * 달성률에 따른 상태 아이콘 이름
      */
-    fun getCreditStatusText(achievementRate: Float): String {
-        val credit = getCreditAmount(achievementRate)
-        return when {
-            credit > 0 -> "+${String.format("%,d", credit)} 크레딧"
-            credit < 0 -> "${String.format("%,d", credit)} 크레딧"
-            else -> "0 크레딧"
-        }
-    }
-
-    /**
-     * 달성률에 따른 상태 이모지
-     */
-    fun getStatusEmoji(achievementRate: Float): String {
-        return when {
-            achievementRate >= THRESHOLD_FREE -> "🎉"
-            achievementRate >= THRESHOLD_DISCOUNT -> "✨"
-            else -> "💪"
-        }
+    fun getStatusIconName(achievementRate: Float): String {
+        return if (achievementRate >= THRESHOLD_COUPON) "icon_trophy" else "icon_target"
     }
 
     /**
@@ -112,30 +57,11 @@ object SubscriptionModel {
     }
 
     /**
-     * 크레딧 포맷팅
+     * 사용자 타입 enum
      */
-    fun formatCredit(credit: Int): String {
-        return when {
-            credit > 0 -> "+${String.format("%,d", credit)}"
-            else -> String.format("%,d", credit)
-        }
-    }
-
-    /**
-     * 구독 티어 enum
-     */
-    enum class Tier {
-        FREE,       // 95% 이상 - 실질 0원
-        DISCOUNT,   // 80-94% - 실질 2,500원
-        PENALTY     // 80% 미만 - 정가 4,900원
-    }
-
-    fun getTier(achievementRate: Float): Tier {
-        return when {
-            achievementRate >= THRESHOLD_FREE -> Tier.FREE
-            achievementRate >= THRESHOLD_DISCOUNT -> Tier.DISCOUNT
-            else -> Tier.PENALTY
-        }
+    enum class UserType {
+        PAID,       // 결제 사용자
+        GUEST       // 친구 초대 무료
     }
 }
 

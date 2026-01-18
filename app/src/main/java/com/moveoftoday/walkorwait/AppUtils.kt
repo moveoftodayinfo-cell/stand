@@ -111,8 +111,9 @@ object AppUtils {
 
         android.util.Log.d("AppUtils", "========== 총 ${userApps.size}개 앱 발견 ==========")
 
-        // 카테고리별로 그룹화
+        // 카테고리별로 그룹화 (enum 순서대로 정렬)
         val grouped = userApps.groupBy { it.category }
+            .toSortedMap(compareBy { it.ordinal })
         grouped.forEach { (category, apps) ->
             android.util.Log.d("AppUtils", "$category: ${apps.size}개 - ${apps.map { it.appName }}")
         }

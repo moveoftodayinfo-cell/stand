@@ -179,8 +179,8 @@ class SubscriptionModelTest {
     // ===== 상수값 검증 =====
 
     @Test
-    fun `기본 가격은 4900원`() {
-        assertEquals(4900, SubscriptionModel.BASE_PRICE)
+    fun `기본 가격은 4700원`() {
+        assertEquals(4700, SubscriptionModel.MONTHLY_PRICE)
     }
 
     @Test

@@ -12,13 +12,13 @@ data class AppItem(
 )
 
 enum class AppCategory(val displayName: String) {
-    GAME("게임"),
     SOCIAL("소셜"),
     VIDEO("동영상"),
-    MUSIC_AUDIO("음악"),
+    GAME("게임"),
     ENTERTAINMENT("엔터테인먼트"),
-    PRODUCTIVITY("생산성"),
-    COMMUNICATION("통신"),
     SHOPPING("쇼핑"),
+    COMMUNICATION("통신"),
+    MUSIC_AUDIO("음악"),
+    PRODUCTIVITY("생산성"),
     OTHER("기타")
 }

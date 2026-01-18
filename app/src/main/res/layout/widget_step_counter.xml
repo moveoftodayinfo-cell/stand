@@ -4,74 +4,138 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@drawable/widget_background"
-    android:padding="12dp"
-    android:orientation="vertical"
-    android:gravity="center">
+    android:padding="6dp"
+    android:orientation="vertical">
 
-    <!-- 상단: 앱 이름 -->
-    <TextView
-        android:id="@+id/widget_title"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Stand"
-        android:textColor="#FFFFFF"
-        android:textSize="11sp"
-        android:textStyle="bold"
-        android:alpha="0.8" />
-
-    <!-- 중앙: 걸음 수 + 단위 -->
+    <!-- Header: Streak + Title -->
     <LinearLayout
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:gravity="center_vertical"
-        android:layout_marginVertical="4dp">
-
-        <TextView
-            android:id="@+id/widget_steps"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="0"
-            android:textColor="#FFFFFF"
-            android:textSize="24sp"
-            android:textStyle="bold"
-            android:fontFamily="sans-serif-medium" />
-
-        <TextView
-            android:id="@+id/widget_label"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text=" 걸음"
-            android:textColor="#FFFFFF"
-            android:textSize="12sp"
-            android:alpha="0.7"
-            android:layout_marginStart="2dp" />
-    </LinearLayout>
-
-    <!-- 하단: 진행률 + 목표 -->
-    <LinearLayout
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:gravity="center_vertical">
 
+        <!-- Streak Badge -->
+        <ImageView
+            android:id="@+id/widget_streak_icon"
+            android:layout_width="12dp"
+            android:layout_height="12dp"
+            android:src="@drawable/ic_lightning"
+            android:contentDescription="streak" />
+
+        <TextView
+            android:id="@+id/widget_streak"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="3 연속"
+            android:textColor="#222222"
+            android:textSize="10sp"
+            android:textStyle="bold"
+            android:layout_marginStart="2dp" />
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1" />
+
+        <!-- Title -->
+        <TextView
+            android:id="@+id/widget_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Stand"
+            android:textColor="#222222"
+            android:textSize="11sp"
+            android:textStyle="bold" />
+    </LinearLayout>
+
+    <!-- Divider 1 -->
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_marginTop="3dp"
+        android:layout_marginBottom="3dp"
+        android:background="#CCCCCC" />
+
+    <!-- Pet Icon + Speech Bubble -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical">
+
+        <!-- Pet Icon (grayscale) -->
+        <ImageView
+            android:id="@+id/widget_pet_icon"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:scaleType="fitCenter"
+            android:contentDescription="pet" />
+
+        <!-- Speech Bubble -->
+        <TextView
+            android:id="@+id/widget_speech"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginStart="4dp"
+            android:text="산책하자..."
+            android:textColor="#222222"
+            android:textSize="10sp"
+            android:background="@drawable/widget_speech_bubble"
+            android:paddingLeft="8dp"
+            android:paddingRight="6dp"
+            android:paddingTop="2dp"
+            android:paddingBottom="2dp"
+            android:maxLines="1"
+            android:ellipsize="end" />
+    </LinearLayout>
+
+    <!-- Divider 2 -->
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_marginTop="3dp"
+        android:layout_marginBottom="3dp"
+        android:background="#CCCCCC" />
+
+    <!-- Bottom: Steps + Progress -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical">
+
+        <!-- Steps Text -->
+        <TextView
+            android:id="@+id/widget_steps_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="0/8,000"
+            android:textColor="#666666"
+            android:textSize="9sp"
+            android:textStyle="bold" />
+
+        <!-- Progress Bar -->
+        <ProgressBar
+            android:id="@+id/widget_progress_bar"
+            style="@android:style/Widget.ProgressBar.Horizontal"
+            android:layout_width="0dp"
+            android:layout_height="8dp"
+            android:layout_weight="1"
+            android:layout_marginStart="6dp"
+            android:max="100"
+            android:progress="0"
+            android:progressDrawable="@drawable/widget_progress_drawable" />
+
+        <!-- Percent -->
         <TextView
             android:id="@+id/widget_percent"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="0%"
-            android:textColor="#FFD700"
-            android:textSize="12sp"
-            android:textStyle="bold" />
-
-        <TextView
-            android:id="@+id/widget_goal"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text=" / 8,000"
-            android:textColor="#FFFFFF"
-            android:textSize="10sp"
-            android:alpha="0.6"
+            android:textColor="#222222"
+            android:textSize="9sp"
+            android:textStyle="bold"
             android:layout_marginStart="4dp" />
     </LinearLayout>
 

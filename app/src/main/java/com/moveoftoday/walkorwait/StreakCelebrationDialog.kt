@@ -11,8 +11,13 @@ import android.provider.MediaStore
 import android.widget.Toast
 import androidx.compose.animation.*
 import androidx.compose.animation.core.*
+import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
@@ -20,42 +25,61 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.draw.scale
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.graphics.layer.drawLayer
 import androidx.compose.ui.graphics.rememberGraphicsLayer
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.core.content.FileProvider
-import com.moveoftoday.walkorwait.ui.theme.StandColors
-import com.moveoftoday.walkorwait.ui.theme.StandTypography
-import com.moveoftoday.walkorwait.ui.theme.StandSpacing
+import com.moveoftoday.walkorwait.pet.*
 import kotlinx.coroutines.launch
 import java.io.File
 import java.io.FileOutputStream
 import java.text.SimpleDateFormat
 import java.util.*
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun StreakCelebrationDialog(
     streakCount: Int,
     weeklyAchievements: List<Boolean>,
     onDismiss: () -> Unit,
-    hapticManager: HapticManager? = null
+    hapticManager: HapticManager? = null,
+    petType: PetType = PetType.DOG1,
+    petName: String = "",
+    dailySteps: Int = 5000,
+    totalKm: Float = 0f,
+    screenFreeHours: Int = 0,
+    // 현재 상태 공유용 파라미터
+    isQuickShare: Boolean = false,
+    currentSpeech: String = "",
+    currentSteps: Int = 0,
+    goalSteps: Int = 0
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
-    val graphicsLayer = rememberGraphicsLayer()
+    val kenneyFont = rememberKenneyFont()
 
-    // 애니메이션
+    // Graphics layers for capture
+    val fullCardGraphicsLayer = rememberGraphicsLayer()
+    val stickerGraphicsLayer = rememberGraphicsLayer()
+
+    // Pager state for swipe navigation
+    val pagerState = rememberPagerState(pageCount = { 2 })
+
+    // Animation
     var isVisible by remember { mutableStateOf(false) }
     val scale by animateFloatAsState(
         targetValue = if (isVisible) 1f else 0.8f,
@@ -65,271 +89,673 @@ fun StreakCelebrationDialog(
 
     LaunchedEffect(Unit) {
         isVisible = true
-        hapticManager?.success()
+        if (!isQuickShare) hapticManager?.success()
     }
+
+    // Pet speech: 빠른 공유면 현재 말, 아니면 달성 축하 메시지
+    val petSpeech = remember(isQuickShare, currentSpeech, streakCount, petType, dailySteps, totalKm) {
+        if (isQuickShare && currentSpeech.isNotEmpty()) {
+            // 현재 말풍선을 AnnotatedString으로 변환 (볼드 없이 단순하게)
+            buildAnnotatedString { append(currentSpeech) }
+        } else {
+            getStreakCelebrationSpeech(petType.personality, streakCount, dailySteps, totalKm)
+        }
+    }
+
+    // Progress 계산 (빠른 공유용)
+    val progressPercent = if (goalSteps > 0) ((currentSteps.toFloat() / goalSteps) * 100).toInt().coerceIn(0, 100) else 0
+
+    // Get today's day of week (0 = Sunday, 1 = Monday, ..., 6 = Saturday)
+    val today = remember { Calendar.getInstance().get(Calendar.DAY_OF_WEEK) - 1 }
+    val dayNames = listOf("SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT")
 
     Dialog(
         onDismissRequest = onDismiss,
         properties = DialogProperties(
             dismissOnBackPress = true,
-            dismissOnClickOutside = true
+            dismissOnClickOutside = true,
+            usePlatformDefaultWidth = false
         )
     ) {
         Column(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 24.dp)
+                .scale(scale),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // 캡처할 영역
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .scale(scale)
-                    .clip(RoundedCornerShape(24.dp))
-                    .drawWithContent {
-                        graphicsLayer.record {
-                            this@drawWithContent.drawContent()
-                        }
-                        drawLayer(graphicsLayer)
-                    }
-                    .background(StandColors.DarkBackground)
-                    .padding(StandSpacing.xxl),
-                contentAlignment = Alignment.Center
-            ) {
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Spacer(modifier = Modifier.height(StandSpacing.lg))
-
-                    // 불꽃 아이콘 (Teal 그라데이션)
-                    Box(
-                        modifier = Modifier
-                            .size(120.dp)
-                            .background(
-                                brush = Brush.verticalGradient(
-                                    colors = listOf(
-                                        StandColors.Primary,
-                                        StandColors.Primary.copy(alpha = 0.7f),
-                                        Color(0xFF00897B)
-                                    )
-                                ),
-                                shape = FireShape()
-                            ),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        // 내부 밝은 불꽃
-                        Box(
-                            modifier = Modifier
-                                .size(60.dp)
-                                .offset(y = 10.dp)
-                                .background(
-                                    brush = Brush.verticalGradient(
-                                        colors = listOf(
-                                            StandColors.GlowYellow,
-                                            StandColors.Primary.copy(alpha = 0.8f)
-                                        )
-                                    ),
-                                    shape = FireShape()
-                                )
+            // Swipeable content area
+            HorizontalPager(
+                state = pagerState,
+                modifier = Modifier.fillMaxWidth()
+            ) { page ->
+                when (page) {
+                    0 -> {
+                        // Page 1: Full Card
+                        FullCardContent(
+                            streakCount = streakCount,
+                            screenFreeHours = screenFreeHours,
+                            petType = petType,
+                            petSpeech = petSpeech,
+                            today = today,
+                            dayNames = dayNames,
+                            kenneyFont = kenneyFont,
+                            graphicsLayer = fullCardGraphicsLayer,
+                            isQuickShare = isQuickShare,
+                            currentSteps = currentSteps,
+                            goalSteps = goalSteps,
+                            progressPercent = progressPercent
                         )
                     }
-
-                    Spacer(modifier = Modifier.height(StandSpacing.lg))
-
-                    // 숫자 (크게)
-                    Text(
-                        text = streakCount.toString(),
-                        fontSize = 72.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color.White
-                    )
-
-                    // "연속 달성!" 텍스트
-                    Text(
-                        text = "일 연속 달성!",
-                        fontSize = StandTypography.headlineSmall,
-                        fontWeight = FontWeight.Bold,
-                        color = StandColors.GlowYellow
-                    )
-
-                    Spacer(modifier = Modifier.height(StandSpacing.xxl))
-
-                    // 주간 달성 표시
-                    Card(
-                        modifier = Modifier.fillMaxWidth(),
-                        colors = CardDefaults.cardColors(
-                            containerColor = Color.White.copy(alpha = 0.1f)
-                        ),
-                        shape = RoundedCornerShape(16.dp)
-                    ) {
-                        Column(
-                            modifier = Modifier.padding(StandSpacing.lg),
-                            horizontalAlignment = Alignment.CenterHorizontally
-                        ) {
-                            // 요일 헤더
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceEvenly
-                            ) {
-                                listOf("일", "월", "화", "수", "목", "금", "토").forEachIndexed { index, day ->
-                                    Text(
-                                        text = day,
-                                        fontSize = StandTypography.labelLarge,
-                                        fontWeight = FontWeight.Bold,
-                                        color = if (index == 0 || index == 6)
-                                            StandColors.GlowYellow.copy(alpha = 0.8f)
-                                        else
-                                            Color.White.copy(alpha = 0.7f),
-                                        modifier = Modifier.width(36.dp),
-                                        textAlign = TextAlign.Center
-                                    )
-                                }
-                            }
-
-                            Spacer(modifier = Modifier.height(StandSpacing.md))
-
-                            // 체크마크 아이콘들
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceEvenly
-                            ) {
-                                weeklyAchievements.forEachIndexed { index, achieved ->
-                                    Box(
-                                        modifier = Modifier
-                                            .size(36.dp)
-                                            .background(
-                                                color = if (achieved) StandColors.GlowYellow else Color.White.copy(alpha = 0.2f),
-                                                shape = CircleShape
-                                            ),
-                                        contentAlignment = Alignment.Center
-                                    ) {
-                                        if (achieved) {
-                                            Text(
-                                                text = "✓",
-                                                fontSize = StandTypography.bodyLarge,
-                                                fontWeight = FontWeight.Bold,
-                                                color = StandColors.DarkBackground
-                                            )
-                                        }
-                                    }
-                                }
-                            }
-
-                            Spacer(modifier = Modifier.height(StandSpacing.lg))
-
-                            // 응원 메시지
-                            Text(
-                                text = getEncouragementMessage(streakCount),
-                                fontSize = StandTypography.bodyMedium,
-                                color = Color.White.copy(alpha = 0.8f),
-                                textAlign = TextAlign.Center
-                            )
-                        }
+                    1 -> {
+                        // Page 2: Sticker
+                        StickerContent(
+                            petType = petType,
+                            petSpeech = petSpeech,
+                            kenneyFont = kenneyFont,
+                            graphicsLayer = stickerGraphicsLayer
+                        )
                     }
-
-                    Spacer(modifier = Modifier.height(StandSpacing.lg))
-
-                    // Stand 워터마크
-                    Text(
-                        text = "Stand",
-                        fontSize = StandTypography.labelLarge,
-                        fontWeight = FontWeight.Bold,
-                        color = Color.White.copy(alpha = 0.4f)
-                    )
-
-                    Spacer(modifier = Modifier.height(StandSpacing.md))
                 }
             }
 
-            Spacer(modifier = Modifier.height(StandSpacing.lg))
+            Spacer(modifier = Modifier.height(12.dp))
 
-            // 버튼들 (캡처 영역 바깥)
+            // Page indicator dots
             Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                // 이미지 저장 버튼
-                OutlinedButton(
-                    onClick = {
-                        hapticManager?.click()
-                        scope.launch {
-                            val bitmap = graphicsLayer.toImageBitmap().asAndroidBitmap()
-                            saveImageToGallery(context, bitmap, streakCount)
-                        }
-                    },
-                    modifier = Modifier
-                        .weight(1f)
-                        .height(56.dp),
-                    shape = RoundedCornerShape(16.dp),
-                    colors = ButtonDefaults.outlinedButtonColors(
-                        contentColor = Color.White
-                    )
-                ) {
-                    Text(
-                        text = "📷 저장",
-                        fontSize = StandTypography.titleSmall,
-                        fontWeight = FontWeight.Bold
-                    )
-                }
-
-                // 공유 버튼
-                OutlinedButton(
-                    onClick = {
-                        hapticManager?.click()
-                        scope.launch {
-                            val bitmap = graphicsLayer.toImageBitmap().asAndroidBitmap()
-                            shareImage(context, bitmap, streakCount)
-                        }
-                    },
-                    modifier = Modifier
-                        .weight(1f)
-                        .height(56.dp),
-                    shape = RoundedCornerShape(16.dp),
-                    colors = ButtonDefaults.outlinedButtonColors(
-                        contentColor = Color.White
-                    )
-                ) {
-                    Text(
-                        text = "📤 공유",
-                        fontSize = StandTypography.titleSmall,
-                        fontWeight = FontWeight.Bold
+                repeat(2) { index ->
+                    Box(
+                        modifier = Modifier
+                            .size(8.dp)
+                            .clip(CircleShape)
+                            .background(
+                                if (pagerState.currentPage == index) MockupColors.Border
+                                else Color(0xFFCCCCCC)
+                            )
                     )
                 }
             }
 
-            Spacer(modifier = Modifier.height(StandSpacing.md))
+            Spacer(modifier = Modifier.height(16.dp))
 
-            // 계속하기 버튼
+            // Share button
             Button(
                 onClick = {
                     hapticManager?.click()
-                    onDismiss()
+                    scope.launch {
+                        val bitmap = if (pagerState.currentPage == 0) {
+                            fullCardGraphicsLayer.toImageBitmap().asAndroidBitmap()
+                        } else {
+                            stickerGraphicsLayer.toImageBitmap().asAndroidBitmap()
+                        }
+                        val isSticker = pagerState.currentPage == 1
+                        saveAndShareImage(context, bitmap, streakCount, isSticker)
+                    }
                 },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(56.dp),
+                    .height(52.dp),
+                shape = RoundedCornerShape(12.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = StandColors.Primary
-                ),
-                shape = RoundedCornerShape(16.dp)
+                    containerColor = MockupColors.Border
+                )
             ) {
                 Text(
-                    text = "계속하기",
-                    fontSize = StandTypography.titleSmall,
-                    fontWeight = FontWeight.Bold
+                    text = "Share",
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold,
+                    fontFamily = kenneyFont,
+                    color = Color.White
+                )
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            // Close button (text only)
+            TextButton(onClick = {
+                hapticManager?.click()
+                onDismiss()
+            }) {
+                Text(
+                    text = "Close",
+                    fontSize = 16.sp,
+                    color = MockupColors.TextMuted
                 )
             }
         }
     }
 }
 
-// 이미지 갤러리에 저장
-private fun saveImageToGallery(context: Context, bitmap: Bitmap, streakCount: Int) {
+@Composable
+private fun FullCardContent(
+    streakCount: Int,
+    screenFreeHours: Int,
+    petType: PetType,
+    petSpeech: androidx.compose.ui.text.AnnotatedString,
+    today: Int,
+    dayNames: List<String>,
+    kenneyFont: androidx.compose.ui.text.font.FontFamily,
+    graphicsLayer: androidx.compose.ui.graphics.layer.GraphicsLayer,
+    isQuickShare: Boolean = false,
+    currentSteps: Int = 0,
+    goalSteps: Int = 0,
+    progressPercent: Int = 0
+) {
+    val stripeWidth = 4.dp
+
+    // 인스타 피드용 4:5 비율
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .aspectRatio(4f / 5f)
+            .clip(RoundedCornerShape(20.dp))
+            .drawWithContent {
+                graphicsLayer.record {
+                    this@drawWithContent.drawContent()
+                }
+                drawLayer(graphicsLayer)
+            }
+            .background(Color.White)
+            .border(4.dp, MockupColors.Border, RoundedCornerShape(20.dp))
+            .padding(20.dp)
+    ) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            // 1. Title
+            Text(
+                text = "Stand",
+                fontSize = 28.sp,
+                fontFamily = kenneyFont,
+                fontWeight = FontWeight.Bold,
+                color = MockupColors.TextPrimary
+            )
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            // 2. Display Area with stripes
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(180.dp)
+                    .clip(RoundedCornerShape(16.dp))
+                    .background(Color.White)
+                    .drawBehind {
+                        val stripeHeightPx = stripeWidth.toPx()
+                        val stripeColor = Color(0xFFF0F0F0)
+                        var y = 0f
+                        while (y < size.height) {
+                            drawRect(
+                                color = stripeColor,
+                                topLeft = androidx.compose.ui.geometry.Offset(0f, y),
+                                size = androidx.compose.ui.geometry.Size(size.width, stripeHeightPx)
+                            )
+                            y += stripeHeightPx * 2
+                        }
+                    }
+                    .border(3.dp, MockupColors.Border, RoundedCornerShape(16.dp)),
+                contentAlignment = Alignment.Center
+            ) {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    // Speech bubble
+                    SpeechBubbleMultiline(text = petSpeech, fontSize = 12.sp)
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    // Pet with glow
+                    PetSpriteWithSyncedGlow(
+                        petType = petType,
+                        isWalking = false,
+                        size = 100.dp,
+                        monochrome = true,
+                        frameDurationMs = 200
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            // 3. Instruction
+            if (isQuickShare) {
+                // 빠른 공유: 현재 진행률 표시
+                Text(
+                    text = buildAnnotatedString {
+                        withStyle(SpanStyle(fontWeight = FontWeight.ExtraBold)) {
+                            append("$progressPercent")
+                        }
+                        append("% 달성 중")
+                    },
+                    fontSize = 22.sp,
+                    fontFamily = kenneyFont,
+                    fontWeight = FontWeight.Bold,
+                    color = MockupColors.TextPrimary
+                )
+                Text(
+                    text = buildAnnotatedString {
+                        withStyle(SpanStyle(fontWeight = FontWeight.Bold)) {
+                            append("%,d".format(currentSteps))
+                        }
+                        append(" / %,d 보".format(goalSteps))
+                    },
+                    fontSize = 16.sp,
+                    color = MockupColors.TextMuted
+                )
+            } else {
+                // 목표 달성: 스트릭 표시
+                Text(
+                    text = buildAnnotatedString {
+                        withStyle(SpanStyle(fontWeight = FontWeight.ExtraBold)) {
+                            append("$streakCount")
+                        }
+                        append(" day streak!")
+                    },
+                    fontSize = 22.sp,
+                    fontFamily = kenneyFont,
+                    fontWeight = FontWeight.Bold,
+                    color = MockupColors.TextPrimary
+                )
+                Text(
+                    text = buildAnnotatedString {
+                        withStyle(SpanStyle(fontWeight = FontWeight.Bold)) {
+                            append("${screenFreeHours}h")
+                        }
+                        append(" screen-free")
+                    },
+                    fontSize = 16.sp,
+                    color = MockupColors.TextMuted
+                )
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            // 4. Week Card
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(MockupColors.CardBackground)
+                    .border(3.dp, MockupColors.Border, RoundedCornerShape(12.dp))
+                    .padding(12.dp)
+            ) {
+                Column {
+                    // Day labels
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        dayNames.forEachIndexed { index, day ->
+                            Text(
+                                text = day,
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = if (index == today) MockupColors.TextPrimary else MockupColors.TextMuted,
+                                modifier = Modifier.width(32.dp),
+                                textAlign = TextAlign.Center
+                            )
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    // Stars (fill from Monday to today)
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        repeat(7) { index ->
+                            val isFilled = if (today == 0) {
+                                index == 0 // Sunday only
+                            } else {
+                                index in 1..today // Monday to today
+                            }
+
+                            Box(
+                                modifier = Modifier.size(32.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                PixelIcon(
+                                    iconName = "icon_star",
+                                    size = 24.dp,
+                                    // 채워진 별: 진한 회색, 빈 별: 연한 회색
+                                    tint = if (isFilled) Color(0xFF333333) else Color(0xFFCCCCCC)
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun StickerContent(
+    petType: PetType,
+    petSpeech: androidx.compose.ui.text.AnnotatedString,
+    kenneyFont: androidx.compose.ui.text.font.FontFamily,
+    graphicsLayer: androidx.compose.ui.graphics.layer.GraphicsLayer
+) {
+    // Dialog wrapper like Full Card
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(20.dp))
+            .background(Color.White)
+            .border(4.dp, MockupColors.Border, RoundedCornerShape(20.dp))
+            .padding(20.dp)
+    ) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            // 1. Title
+            Text(
+                text = "Stand",
+                fontSize = 28.sp,
+                fontFamily = kenneyFont,
+                fontWeight = FontWeight.Bold,
+                color = MockupColors.TextPrimary
+            )
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            // 2. Display Area with checkered background (transparency preview)
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(200.dp)
+                    .clip(RoundedCornerShape(16.dp))
+                    .drawBehind {
+                        val squareSize = 16.dp.toPx()
+                        val lightColor = Color.White
+                        val darkColor = Color(0xFFCCCCCC)
+
+                        var y = 0f
+                        var rowIndex = 0
+                        while (y < size.height) {
+                            var x = 0f
+                            var colIndex = if (rowIndex % 2 == 0) 0 else 1
+                            while (x < size.width) {
+                                drawRect(
+                                    color = if (colIndex % 2 == 0) lightColor else darkColor,
+                                    topLeft = androidx.compose.ui.geometry.Offset(x, y),
+                                    size = androidx.compose.ui.geometry.Size(squareSize, squareSize)
+                                )
+                                x += squareSize
+                                colIndex++
+                            }
+                            y += squareSize
+                            rowIndex++
+                        }
+                    }
+                    .border(3.dp, MockupColors.Border, RoundedCornerShape(16.dp)),
+                contentAlignment = Alignment.Center
+            ) {
+                // Sticker content (for capture - transparent background)
+                Box(
+                    modifier = Modifier
+                        .drawWithContent {
+                            // 명시적으로 투명 배경 그리기
+                            drawRect(Color.Transparent)
+                            graphicsLayer.record {
+                                this@drawWithContent.drawContent()
+                            }
+                            drawLayer(graphicsLayer)
+                        }
+                        .padding(20.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        modifier = Modifier.background(Color.Transparent)
+                    ) {
+                        // Speech bubble
+                        SpeechBubbleMultiline(text = petSpeech, fontSize = 11.sp)
+
+                        Spacer(modifier = Modifier.height(12.dp))
+
+                        // Pet with glow
+                        PetSpriteWithSyncedGlow(
+                            petType = petType,
+                            isWalking = false,
+                            size = 80.dp,
+                            monochrome = true,
+                            frameDurationMs = 200
+                        )
+
+                        Spacer(modifier = Modifier.height(8.dp))
+
+                        // Stand 로고 (반투명)
+                        Text(
+                            text = "Stand",
+                            fontSize = 14.sp,
+                            fontFamily = kenneyFont,
+                            fontWeight = FontWeight.Bold,
+                            color = MockupColors.TextPrimary.copy(alpha = 0.4f)
+                        )
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            // 3. Instruction
+            Text(
+                text = "Sticker",
+                fontSize = 22.sp,
+                fontFamily = kenneyFont,
+                fontWeight = FontWeight.Bold,
+                color = MockupColors.TextPrimary
+            )
+            Text(
+                text = "transparent PNG",
+                fontSize = 16.sp,
+                color = MockupColors.TextMuted
+            )
+        }
+    }
+}
+
+@Composable
+private fun SpeechBubbleMultiline(
+    text: androidx.compose.ui.text.AnnotatedString,
+    fontSize: androidx.compose.ui.unit.TextUnit = 14.sp
+) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        // 말풍선 본체
+        Box(
+            modifier = Modifier
+                .clip(RoundedCornerShape(12.dp))
+                .background(Color.White)
+                .border(2.dp, MockupColors.Border, RoundedCornerShape(12.dp))
+                .padding(horizontal = 12.dp, vertical = 8.dp)
+        ) {
+            Text(
+                text = text,
+                color = MockupColors.TextPrimary,
+                fontSize = fontSize,
+                textAlign = TextAlign.Center,
+                lineHeight = fontSize * 1.4
+            )
+        }
+
+        // 말풍선 꼬리 (삼각형)
+        Canvas(
+            modifier = Modifier
+                .size(width = 12.dp, height = 8.dp)
+                .offset(y = (-2).dp) // 테두리와 겹치게
+        ) {
+            val path = androidx.compose.ui.graphics.Path().apply {
+                moveTo(0f, 0f)
+                lineTo(size.width, 0f)
+                lineTo(size.width / 2, size.height)
+                close()
+            }
+            // 흰색 채우기
+            drawPath(path, Color.White)
+            // 테두리 (왼쪽, 오른쪽 선만)
+            drawLine(
+                color = MockupColors.Border,
+                start = androidx.compose.ui.geometry.Offset(0f, 0f),
+                end = androidx.compose.ui.geometry.Offset(size.width / 2, size.height),
+                strokeWidth = 2.dp.toPx()
+            )
+            drawLine(
+                color = MockupColors.Border,
+                start = androidx.compose.ui.geometry.Offset(size.width, 0f),
+                end = androidx.compose.ui.geometry.Offset(size.width / 2, size.height),
+                strokeWidth = 2.dp.toPx()
+            )
+        }
+    }
+}
+
+/**
+ * Get streak celebration speech based on pet personality
+ * 중요한 숫자(걸음수, km, 일수)는 볼드 처리
+ */
+private fun getStreakCelebrationSpeech(
+    personality: PetPersonality,
+    streakDays: Int,
+    dailySteps: Int,
+    totalKm: Float
+): androidx.compose.ui.text.AnnotatedString {
+    val formattedSteps = "%,d".format(dailySteps)
+    val boldStyle = SpanStyle(fontWeight = FontWeight.Bold)
+
+    return when (personality) {
+        PetPersonality.TOUGH -> if (streakDays == 1) {
+            buildAnnotatedString {
+                append("첫 날부터 ")
+                withStyle(boldStyle) { append("${formattedSteps}보") }
+                append("나\n걸었다고? 됐다. 좋은 시작이야.")
+            }
+        } else {
+            buildAnnotatedString {
+                withStyle(boldStyle) { append("${streakDays}일") }
+                append(" 동안 매일 ")
+                withStyle(boldStyle) { append("${formattedSteps}보") }
+                append("씩\n")
+                withStyle(boldStyle) { append("${totalKm}km") }
+                append("나 걸었다고?\n됐다. 잘했어.")
+            }
+        }
+
+        PetPersonality.CUTE -> if (streakDays == 1) {
+            buildAnnotatedString {
+                append("우와~! 첫 날부터\n")
+                withStyle(boldStyle) { append("${formattedSteps}보") }
+                append("나 걸었다니 대단해용!")
+            }
+        } else {
+            buildAnnotatedString {
+                append("우와~! ")
+                withStyle(boldStyle) { append("${streakDays}일") }
+                append(" 동안\n매일 ")
+                withStyle(boldStyle) { append("${formattedSteps}보") }
+                append("씩\n")
+                withStyle(boldStyle) { append("${totalKm}km") }
+                append("나 걸었다니 대단해용!")
+            }
+        }
+
+        PetPersonality.TSUNDERE -> if (streakDays == 1) {
+            buildAnnotatedString {
+                append("흥, 첫 날치고 ")
+                withStyle(boldStyle) { append("${formattedSteps}보") }
+                append("?\n뭐... 나쁘지 않네.")
+            }
+        } else {
+            buildAnnotatedString {
+                append("흥, ")
+                withStyle(boldStyle) { append("${streakDays}일") }
+                append(" 동안\n매일 ")
+                withStyle(boldStyle) { append("${formattedSteps}보") }
+                append("씩 ")
+                withStyle(boldStyle) { append("${totalKm}km") }
+                append("?\n뭐... 나쁘지 않네.")
+            }
+        }
+
+        PetPersonality.DIALECT -> if (streakDays == 1) {
+            buildAnnotatedString {
+                append("첫 날부터 ")
+                withStyle(boldStyle) { append("${formattedSteps}보") }
+                append("나\n걸었는기라! 좋은 시작이이소!")
+            }
+        } else {
+            buildAnnotatedString {
+                withStyle(boldStyle) { append("${streakDays}일") }
+                append(" 동안 매일 ")
+                withStyle(boldStyle) { append("${formattedSteps}보") }
+                append("씩\n")
+                withStyle(boldStyle) { append("${totalKm}km") }
+                append("나 걸었는기라!\n대단하이소!")
+            }
+        }
+
+        PetPersonality.TIMID -> if (streakDays == 1) {
+            buildAnnotatedString {
+                append("대, 대단해요...!\n첫 날부터 ")
+                withStyle(boldStyle) { append("${formattedSteps}보") }
+                append("나...!")
+            }
+        } else {
+            buildAnnotatedString {
+                append("대, 대단해요...! ")
+                withStyle(boldStyle) { append("${streakDays}일") }
+                append(" 동안\n매일 ")
+                withStyle(boldStyle) { append("${formattedSteps}보") }
+                append("씩\n")
+                withStyle(boldStyle) { append("${totalKm}km") }
+                append("나 걸었어요...!")
+            }
+        }
+
+        PetPersonality.POSITIVE -> if (streakDays == 1) {
+            buildAnnotatedString {
+                append("첫 날부터 ")
+                withStyle(boldStyle) { append("${formattedSteps}보") }
+                append("!\n좋은 시작! 최고야!")
+            }
+        } else {
+            buildAnnotatedString {
+                withStyle(boldStyle) { append("${streakDays}일") }
+                append(" 동안 매일 ")
+                withStyle(boldStyle) { append("${formattedSteps}보") }
+                append("!\n총 ")
+                withStyle(boldStyle) { append("${totalKm}km") }
+                append("! 최고야!")
+            }
+        }
+    }
+}
+
+/**
+ * Save image to gallery and share
+ */
+private fun saveAndShareImage(context: Context, bitmap: Bitmap, streakCount: Int, isSticker: Boolean) {
     try {
-        val filename = "Stand_${streakCount}일연속_${SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())}.png"
+        val suffix = if (isSticker) "sticker" else "card"
+        val filename = "Stand_${streakCount}day_${suffix}_${SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())}.png"
+
+        // Sticker의 경우 투명 배경 보존을 위해 ARGB_8888로 변환
+        val finalBitmap = if (isSticker && bitmap.config != Bitmap.Config.ARGB_8888) {
+            bitmap.copy(Bitmap.Config.ARGB_8888, false)
+        } else {
+            bitmap
+        }
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            // Android 10 이상
             val contentValues = ContentValues().apply {
                 put(MediaStore.Images.Media.DISPLAY_NAME, filename)
                 put(MediaStore.Images.Media.MIME_TYPE, "image/png")
@@ -339,11 +765,18 @@ private fun saveImageToGallery(context: Context, bitmap: Bitmap, streakCount: In
             val uri = context.contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues)
             uri?.let {
                 context.contentResolver.openOutputStream(it)?.use { outputStream ->
-                    bitmap.compress(Bitmap.CompressFormat.PNG, 100, outputStream)
+                    finalBitmap.compress(Bitmap.CompressFormat.PNG, 100, outputStream)
                 }
+
+                // Share the image
+                val shareIntent = Intent(Intent.ACTION_SEND).apply {
+                    type = "image/png"
+                    putExtra(Intent.EXTRA_STREAM, uri)
+                    addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                }
+                context.startActivity(Intent.createChooser(shareIntent, "Share"))
             }
         } else {
-            // Android 9 이하
             val picturesDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)
             val standDir = File(picturesDir, "Stand")
             if (!standDir.exists()) standDir.mkdirs()
@@ -353,112 +786,24 @@ private fun saveImageToGallery(context: Context, bitmap: Bitmap, streakCount: In
                 bitmap.compress(Bitmap.CompressFormat.PNG, 100, outputStream)
             }
 
-            // 갤러리에 스캔 요청
             MediaScannerConnection.scanFile(
                 context,
                 arrayOf(file.absolutePath),
-                arrayOf("image/png"),
-                null
-            )
+                arrayOf("image/png")
+            ) { _, uri ->
+                uri?.let {
+                    val shareIntent = Intent(Intent.ACTION_SEND).apply {
+                        type = "image/png"
+                        putExtra(Intent.EXTRA_STREAM, it)
+                        addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                    }
+                    context.startActivity(Intent.createChooser(shareIntent, "Share"))
+                }
+            }
         }
 
-        Toast.makeText(context, "📷 이미지가 갤러리에 저장되었습니다", Toast.LENGTH_SHORT).show()
+        Toast.makeText(context, "Saved to gallery", Toast.LENGTH_SHORT).show()
     } catch (e: Exception) {
-        Toast.makeText(context, "저장 실패: ${e.message}", Toast.LENGTH_SHORT).show()
-    }
-}
-
-// 이미지 공유
-private fun shareImage(context: Context, bitmap: Bitmap, streakCount: Int) {
-    try {
-        // 임시 파일 생성
-        val cachePath = File(context.cacheDir, "images")
-        cachePath.mkdirs()
-        val filename = "Stand_${streakCount}일연속.png"
-        val file = File(cachePath, filename)
-
-        FileOutputStream(file).use { outputStream ->
-            bitmap.compress(Bitmap.CompressFormat.PNG, 100, outputStream)
-        }
-
-        val uri = FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", file)
-
-        val shareIntent = Intent(Intent.ACTION_SEND).apply {
-            type = "image/png"
-            putExtra(Intent.EXTRA_STREAM, uri)
-            putExtra(Intent.EXTRA_TEXT, """
-🏃 Stand - ${streakCount}일 연속 달성!
-
-매일 걷기 목표를 달성하고 있어요!
-당신도 함께 걸어볼래요?
-
-📱 https://play.google.com/store/apps/details?id=com.moveoftoday.walkorwait
-            """.trimIndent())
-            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-        }
-
-        context.startActivity(Intent.createChooser(shareIntent, "달성 기록 공유하기"))
-    } catch (e: Exception) {
-        Toast.makeText(context, "공유 실패: ${e.message}", Toast.LENGTH_SHORT).show()
-    }
-}
-
-// 응원 메시지 생성
-private fun getEncouragementMessage(streakCount: Int): String {
-    return when {
-        streakCount >= 365 -> "대단해요! 1년 넘게 연속 달성 중!"
-        streakCount >= 100 -> "놀라워요! 100일 이상 연속 달성!"
-        streakCount >= 30 -> "한 달 넘게 꾸준히 걷고 있어요!"
-        streakCount >= 7 -> "일주일 연속 달성! 습관이 되어가고 있어요!"
-        streakCount >= 3 -> "잘하고 있어요! 계속 힘내세요!"
-        else -> "좋은 시작이에요! 내일도 함께해요!"
-    }
-}
-
-// 불꽃 모양 Shape
-private class FireShape : androidx.compose.ui.graphics.Shape {
-    override fun createOutline(
-        size: androidx.compose.ui.geometry.Size,
-        layoutDirection: androidx.compose.ui.unit.LayoutDirection,
-        density: androidx.compose.ui.unit.Density
-    ): androidx.compose.ui.graphics.Outline {
-        val path = androidx.compose.ui.graphics.Path().apply {
-            val width = size.width
-            val height = size.height
-
-            // 불꽃 모양 경로
-            moveTo(width * 0.5f, 0f)
-
-            // 오른쪽 위 곡선
-            cubicTo(
-                width * 0.7f, height * 0.15f,
-                width * 0.85f, height * 0.25f,
-                width * 0.9f, height * 0.45f
-            )
-
-            // 오른쪽 아래 곡선
-            cubicTo(
-                width * 0.95f, height * 0.65f,
-                width * 0.85f, height * 0.85f,
-                width * 0.5f, height
-            )
-
-            // 왼쪽 아래 곡선
-            cubicTo(
-                width * 0.15f, height * 0.85f,
-                width * 0.05f, height * 0.65f,
-                width * 0.1f, height * 0.45f
-            )
-
-            // 왼쪽 위 곡선
-            cubicTo(
-                width * 0.15f, height * 0.25f,
-                width * 0.3f, height * 0.15f,
-                width * 0.5f, 0f
-            )
-
-            close()
-        }
-        return androidx.compose.ui.graphics.Outline.Generic(path)
+        Toast.makeText(context, "Save failed: ${e.message}", Toast.LENGTH_SHORT).show()
     }
 }

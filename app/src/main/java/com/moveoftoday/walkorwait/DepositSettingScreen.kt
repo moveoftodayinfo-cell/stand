@@ -27,6 +27,8 @@ import com.moveoftoday.walkorwait.ui.theme.StandTypography
 import com.moveoftoday.walkorwait.ui.theme.StandSpacing
 import com.moveoftoday.walkorwait.ui.theme.StandSize
 import com.moveoftoday.walkorwait.ui.components.*
+import com.moveoftoday.walkorwait.pet.PixelIcon
+import com.moveoftoday.walkorwait.pet.MockupColors
 
 @Composable
 fun DepositSettingScreen(
@@ -176,12 +178,16 @@ fun DepositSettingScreen(
                     )
                 ) {
                     Column(modifier = Modifier.padding(16.dp)) {
-                        Text(
-                            text = "💡 추천: 평일(월~금)",
-                            fontSize = StandTypography.bodyMedium,
-                            fontWeight = FontWeight.Bold,
-                            color = StandColors.Primary
-                        )
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            PixelIcon(iconName = "icon_light_bulb", size = 16.dp)
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Text(
+                                text = "추천: 평일(월~금)",
+                                fontSize = StandTypography.bodyMedium,
+                                fontWeight = FontWeight.Bold,
+                                color = StandColors.Primary
+                            )
+                        }
                         Spacer(modifier = Modifier.height(4.dp))
                         Text(
                             text = "주말은 자유롭게, 평일만 제어하는 것을 추천합니다",
@@ -317,17 +323,21 @@ fun DepositSettingScreen(
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     colors = CardDefaults.cardColors(
-                        containerColor = Color(0xFFFFD700).copy(alpha = 0.15f)
+                        containerColor = MockupColors.BlueLight
                     ),
-                    border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFFFD700).copy(alpha = 0.3f))
+                    border = androidx.compose.foundation.BorderStroke(1.dp, MockupColors.Blue.copy(alpha = 0.3f))
                 ) {
                     Column(modifier = Modifier.padding(16.dp)) {
-                        Text(
-                            text = "💡 Tip",
-                            fontSize = StandTypography.bodyMedium,
-                            fontWeight = FontWeight.Bold,
-                            color = Color(0xFFFFD700)
-                        )
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            PixelIcon(iconName = "icon_light_bulb", size = 16.dp)
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Text(
+                                text = "Tip",
+                                fontSize = StandTypography.bodyMedium,
+                                fontWeight = FontWeight.Bold,
+                                color = MockupColors.Blue
+                            )
+                        }
                         Spacer(modifier = Modifier.height(4.dp))
                         Text(
                             text = "• 시간대를 선택하지 않으면 차단되지 않습니다\n• 모두 선택하면 24시간 차단됩니다",
@@ -399,10 +409,7 @@ fun DepositSettingScreen(
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         if (isPromoFree) {
-                            Text(
-                                text = "🎁",
-                                fontSize = 48.sp
-                            )
+                            PixelIcon(iconName = "icon_chest", size = 48.dp)
                             Spacer(modifier = Modifier.height(16.dp))
                             Text(
                                 text = "무료로 시작하세요",
@@ -437,11 +444,15 @@ fun DepositSettingScreen(
                                 color = Color.White.copy(alpha = 0.7f)
                             )
                             Spacer(modifier = Modifier.height(8.dp))
-                            Text(
-                                text = "🎁 지금 구독하면 친구도 무료!",
-                                fontSize = 14.sp,
-                                color = GlowGold.copy(alpha = 0.9f)
-                            )
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                PixelIcon(iconName = "icon_chest", size = 16.dp)
+                                Spacer(modifier = Modifier.width(6.dp))
+                                Text(
+                                    text = "지금 구독하면 친구도 무료!",
+                                    fontSize = 14.sp,
+                                    color = GlowGold.copy(alpha = 0.9f)
+                                )
+                            }
                         }
                     }
                 }
@@ -484,8 +495,8 @@ fun DepositSettingScreen(
                                         fontSize = 14.sp
                                     )
                                     Text(
-                                        text = if (isPromoFree) "무료" else "${SubscriptionModel.formatPrice(SubscriptionModel.BASE_PRICE)}",
-                                        color = if (isPromoFree) Color(0xFF4CAF50) else Color.White,
+                                        text = if (isPromoFree) "무료" else "${SubscriptionModel.formatPrice(SubscriptionModel.MONTHLY_PRICE)}",
+                                        color = if (isPromoFree) MockupColors.Blue else Color.White,
                                         fontSize = 24.sp,
                                         fontWeight = FontWeight.Bold
                                     )
@@ -498,7 +509,7 @@ fun DepositSettingScreen(
                                     )
                                     Text(
                                         text = "0원",
-                                        color = Color(0xFF4CAF50),
+                                        color = MockupColors.Blue,
                                         fontSize = 24.sp,
                                         fontWeight = FontWeight.Bold
                                     )
@@ -540,11 +551,18 @@ fun DepositSettingScreen(
                                     horizontalArrangement = Arrangement.SpaceBetween,
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
-                                    Text(
-                                        if (isPromoApplied) "✅ 프로모션 적용됨" else "🎁 프로모션 코드",
-                                        fontSize = 14.sp,
-                                        color = if (isPromoApplied) Color(0xFF4CAF50) else Color.White.copy(alpha = 0.7f)
-                                    )
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        PixelIcon(
+                                            iconName = if (isPromoApplied) "icon_visibility" else "icon_chest",
+                                            size = 16.dp
+                                        )
+                                        Spacer(modifier = Modifier.width(6.dp))
+                                        Text(
+                                            if (isPromoApplied) "프로모션 적용됨" else "프로모션 코드",
+                                            fontSize = 14.sp,
+                                            color = if (isPromoApplied) MockupColors.Blue else Color.White.copy(alpha = 0.7f)
+                                        )
+                                    }
                                     Text(
                                         if (showPromoInput) "▲" else "▼",
                                         color = Color.White.copy(alpha = 0.4f),
@@ -610,7 +628,7 @@ fun DepositSettingScreen(
                                         Text(
                                             promoMessage ?: "",
                                             fontSize = 12.sp,
-                                            color = if (isPromoApplied) Color(0xFF4CAF50) else Color(0xFFFF5722)
+                                            color = if (isPromoApplied) MockupColors.Blue else MockupColors.Red
                                         )
                                     }
                                 }
@@ -621,14 +639,14 @@ fun DepositSettingScreen(
                         if (errorMessage != null) {
                             Card(
                                 modifier = Modifier.fillMaxWidth(),
-                                colors = CardDefaults.cardColors(containerColor = Color(0xFFFF5722).copy(alpha = 0.2f)),
+                                colors = CardDefaults.cardColors(containerColor = MockupColors.Red.copy(alpha = 0.2f)),
                                 shape = androidx.compose.foundation.shape.RoundedCornerShape(12.dp)
                             ) {
                                 Text(
                                     text = errorMessage ?: "",
                                     modifier = Modifier.padding(16.dp),
                                     fontSize = 13.sp,
-                                    color = Color(0xFFFF5722)
+                                    color = MockupColors.Red
                                 )
                             }
                         }
@@ -711,7 +729,7 @@ fun DepositSettingScreen(
 
                                                     if (result.isSuccess) {
                                                         // 4. 로컬에도 저장 (구독 활성화 표시용)
-                                                        preferenceManager?.saveDeposit(SubscriptionModel.BASE_PRICE)
+                                                        preferenceManager?.saveDeposit(SubscriptionModel.MONTHLY_PRICE)
 
                                                         // 체험 기간 없음 - 즉시 차단 시작
                                                         val sdf2 = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
@@ -769,7 +787,7 @@ fun DepositSettingScreen(
                         .height(56.dp),
                     enabled = selectedDays.isNotEmpty() && !isProcessing,
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = if (isPromoFree) StandColors.Success else StandColors.Primary
+                        containerColor = if (isPromoFree) MockupColors.Blue else StandColors.Primary
                     )
                 ) {
                     if (isProcessing) {
@@ -815,10 +833,10 @@ fun DepositSettingScreen(
                                 },
                                 modifier = Modifier.fillMaxWidth(),
                                 colors = ButtonDefaults.outlinedButtonColors(
-                                    contentColor = Color(0xFFFF9800)
+                                    contentColor = MockupColors.TextMuted
                                 )
                             ) {
-                                Text("🧪 테스트 모드로 시작", fontWeight = FontWeight.Bold)
+                                Text("테스트 모드로 시작", fontWeight = FontWeight.Bold)
                             }
                         }
                     }

@@ -9,6 +9,7 @@ import android.provider.Settings
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.SystemBarStyle
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.core.*
@@ -42,6 +43,7 @@ import com.moveoftoday.walkorwait.ui.theme.StandSpacing
 import com.moveoftoday.walkorwait.ui.theme.StandSize
 import com.moveoftoday.walkorwait.ui.theme.WalkorWaitTheme
 import com.moveoftoday.walkorwait.ui.components.*
+import com.moveoftoday.walkorwait.pet.*
 import androidx.compose.foundation.Canvas
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.StrokeCap
@@ -100,7 +102,16 @@ class MainActivity : ComponentActivity() {
             stepSensorManager = StepSensorManager(this)
 
             Log.d(TAG, "Setting up UI")
-            enableEdgeToEdge()
+            enableEdgeToEdge(
+                statusBarStyle = SystemBarStyle.light(
+                    android.graphics.Color.WHITE,
+                    android.graphics.Color.WHITE
+                ),
+                navigationBarStyle = SystemBarStyle.light(
+                    android.graphics.Color.WHITE,
+                    android.graphics.Color.WHITE
+                )
+            )
             setContent {
                 Log.d(TAG, "Inside setContent")
                 WalkorWaitTheme {
@@ -311,77 +322,54 @@ fun WalkOrWaitScreen(
     val context = LocalContext.current
     val hapticManager = remember { HapticManager(context) }
 
+    // 설정 완료 상태 체크 - 새 16단계 통합 튜토리얼 사용
     val isTutorialCompleted = remember { preferenceManager?.isTutorialCompleted() ?: false }
     val isPaidDeposit = remember { preferenceManager?.isPaidDeposit() ?: false }
+    val needsRealGoal = remember { preferenceManager?.needsRealGoalSetup() ?: false }
 
-    var showTutorial by remember { mutableStateOf(!isTutorialCompleted) }
-    var showDepositSetting by remember { mutableStateOf(isTutorialCompleted && !isPaidDeposit) }
-    var showGoalSetting by remember { mutableStateOf(false) }
+    // 설정 플로우 상태 - 16단계 통합 튜토리얼
+    var showPetOnboarding by remember { mutableStateOf(!isTutorialCompleted) }
+    var showRealGoalSetup by remember { mutableStateOf(needsRealGoal && isTutorialCompleted) }
     var showWidgetRecommendation by remember { mutableStateOf(false) }
 
-    if (showTutorial) {
-        TutorialScreen(
-            preferenceManager = preferenceManager,
-            onComplete = {
-                showTutorial = false
-                showGoalSetting = true
-            }
+    // Get pet info for main screen - mutableState로 변경하여 튜토리얼 후 업데이트 반영
+    var petTypeName by remember { mutableStateOf(preferenceManager?.getPetType() ?: "DOG1") }
+    var petType by remember { mutableStateOf(PetType.entries.find { it.name == petTypeName } ?: PetType.DOG1) }
+    var petName by remember { mutableStateOf(preferenceManager?.getPetName() ?: "멍이") }
+
+    // 1. Pet onboarding - 16단계 통합 튜토리얼 (펫 선택부터 결제/위젯까지)
+    if (showPetOnboarding) {
+        PetOnboardingScreen(
+            onComplete = { selectedPetType, selectedPetName ->
+                preferenceManager?.savePetType(selectedPetType.name)
+                preferenceManager?.savePetName(selectedPetName)
+                preferenceManager?.savePetHappiness(3)
+                // 위젯 업데이트
+                StepWidgetProvider.updateAllWidgets(context)
+                // 선택한 펫 정보 업데이트
+                petType = selectedPetType
+                petName = selectedPetName
+                petTypeName = selectedPetType.name
+                showPetOnboarding = false
+                // 튜토리얼 완료 후 실제 목표 설정 화면 표시
+                showRealGoalSetup = true
+            },
+            hapticManager = hapticManager,
+            preferenceManager = preferenceManager
         )
         return
     }
 
-    if (showGoalSetting) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(32.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
-        ) {
-            Text(
-                text = "일일 목표 설정",
-                fontSize = StandTypography.headlineMedium,
-                fontWeight = FontWeight.Bold
-            )
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            Text(
-                text = "구독 시작 전에\n일일 걸음 목표를 먼저 설정하세요",
-                fontSize = StandTypography.bodyLarge,
-                textAlign = TextAlign.Center,
-                color = Color.Gray,
-                lineHeight = 24.sp
-            )
-
-            Spacer(modifier = Modifier.height(48.dp))
-
-            GoalSettingDialog(
-                currentGoal = preferenceManager?.getGoal() ?: 8000,
-                onDismiss = { },
-                onConfirm = { newGoal ->
-                    hapticManager.success()
-                    preferenceManager?.saveGoal(newGoal)
-                    preferenceManager?.saveTodaySteps(0)
-                    preferenceManager?.saveInitialSteps(-1)
-                    showGoalSetting = false
-                    showDepositSetting = true
-                },
-                preferenceManager = preferenceManager,
-                showDismissButton = false,
-                hapticManager = hapticManager,
-                isInitialSetup = true
-            )
-        }
-        return
-    }
-
-    if (showDepositSetting) {
-        DepositSettingScreen(
+    // 2. 실제 목표 설정 (튜토리얼 완료 후)
+    if (showRealGoalSetup) {
+        RealGoalSetupScreen(
+            petType = petType,
+            petName = petName,
             preferenceManager = preferenceManager,
+            hapticManager = hapticManager,
             onComplete = {
-                showDepositSetting = false
-                showWidgetRecommendation = true
+                preferenceManager?.setNeedsRealGoalSetup(false)
+                showRealGoalSetup = false
             }
         )
         return
@@ -530,706 +518,44 @@ fun WalkOrWaitScreen(
             onBack = { showSettingsScreen = false }
         )
     } else {
-        val isTodayControlDay = preferenceManager?.isTodayControlDay() ?: false
-        var isInBlockingPeriod by remember { mutableStateOf(preferenceManager?.isInBlockingPeriod() ?: true) }
+        // Pet Main Screen (main.png 스타일)
+        val petHappiness = remember { preferenceManager?.getPetHappiness() ?: 3 }
 
-        // 차단 시간대 실시간 체크
-        LaunchedEffect(Unit) {
-            while (true) {
-                isInBlockingPeriod = preferenceManager?.isInBlockingPeriod() ?: true
-                delay(1000)
-            }
-        }
-
-        // 제어 요일이 아니거나, 차단 시간대가 아니면 자유 화면
-        val showFreeScreen = deposit > 0 && (!isTodayControlDay || !isInBlockingPeriod)
-
-        if (showFreeScreen) {
-            // 자유 화면 메시지 결정
-            val freeMessage = when {
-                !isTodayControlDay -> "오늘은 자유로운 날!"
-                !isInBlockingPeriod -> "지금은 자유 시간!"
-                else -> "자유 시간"
-            }
-            val freeSubMessage = when {
-                !isTodayControlDay -> "제어 요일이 아니에요"
-                !isInBlockingPeriod -> "차단 시간대가 아니에요"
-                else -> "자유롭게 사용하세요"
-            }
-
-            // 프리미엄 색상 (메인 화면과 동일)
-            val TealPrimary = Color(0xFF00BFA5)
-            val TealDark = Color(0xFF008E76)
-            val NavyDark = Color(0xFF0D1B2A)
-            val NavyMid = Color(0xFF1B263B)
-            val BottomSheetBg = Color(0xFF0A0A0A)
-            val GlowGold = Color(0xFFFFD700)
-
-            Box(modifier = modifier.fillMaxSize()) {
-                // 상단 그라데이션 배경
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .fillMaxHeight(0.55f)
-                        .align(Alignment.TopCenter)
-                        .background(
-                            brush = Brush.linearGradient(
-                                colors = listOf(TealPrimary, TealDark, NavyMid, NavyDark),
-                                start = Offset(0f, 0f),
-                                end = Offset(Float.POSITIVE_INFINITY, Float.POSITIVE_INFINITY)
-                            )
-                        )
-                ) {
-                    // 설정 버튼
-                    IconButton(
-                        onClick = {
-                            hapticManager.click()
-                            showSettingsScreen = true
-                        },
-                        modifier = Modifier
-                            .align(Alignment.TopEnd)
-                            .padding(16.dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Settings,
-                            contentDescription = "설정",
-                            tint = Color.White.copy(alpha = 0.7f),
-                            modifier = Modifier.size(28.dp)
-                        )
-                    }
-
-                    // 중앙 자유 시간 표시
-                    Column(
-                        modifier = Modifier
-                            .align(Alignment.Center)
-                            .padding(bottom = 40.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        Text(
-                            text = "🎉",
-                            fontSize = 72.sp
-                        )
-                        Spacer(modifier = Modifier.height(16.dp))
-                        Text(
-                            text = freeMessage,
-                            color = GlowGold,
-                            fontSize = 28.sp,
-                            fontWeight = FontWeight.Bold
-                        )
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Text(
-                            text = freeSubMessage,
-                            color = Color.White.copy(alpha = 0.7f),
-                            fontSize = 16.sp
-                        )
-                    }
-                }
-
-                // 하단 바텀 시트
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .align(Alignment.BottomCenter)
-                        .clip(RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp))
-                        .background(BottomSheetBg)
-                        .padding(horizontal = 24.dp)
-                        .padding(top = 24.dp, bottom = 48.dp)
-                ) {
-                    Column(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalArrangement = Arrangement.spacedBy(16.dp)
-                    ) {
-                        // 오늘의 걸음 카드
-                        Card(
-                            modifier = Modifier.fillMaxWidth(),
-                            colors = CardDefaults.cardColors(
-                                containerColor = Color.White.copy(alpha = 0.05f)
-                            ),
-                            shape = RoundedCornerShape(16.dp)
-                        ) {
-                            Column(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(20.dp),
-                                horizontalAlignment = Alignment.CenterHorizontally
-                            ) {
-                                Text(
-                                    text = if (goalUnit == "km") "오늘의 거리" else "오늘의 걸음",
-                                    color = Color.White.copy(alpha = 0.6f),
-                                    fontSize = 14.sp
-                                )
-                                Spacer(modifier = Modifier.height(8.dp))
-                                Text(
-                                    text = currentText,
-                                    color = Color.White,
-                                    fontSize = 36.sp,
-                                    fontWeight = FontWeight.Bold
-                                )
-                                Text(
-                                    text = unitText,
-                                    color = Color.White.copy(alpha = 0.5f),
-                                    fontSize = 14.sp
-                                )
-                            }
-                        }
-
-                        // 구독 현황 카드
-                        if (deposit > 0 && totalDays > 0) {
-                            val expectedCredit = SubscriptionModel.getCreditAmount(achievementRate)
-                            val nextMonthPrice = SubscriptionModel.getNextMonthPrice(achievementRate)
-                            val statusEmoji = SubscriptionModel.getStatusEmoji(achievementRate)
-
-                            Card(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .clickable { showSettingsScreen = true },
-                                colors = CardDefaults.cardColors(
-                                    containerColor = Color.White.copy(alpha = 0.08f)
-                                ),
-                                shape = RoundedCornerShape(12.dp)
-                            ) {
-                                Row(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(16.dp),
-                                    horizontalArrangement = Arrangement.SpaceBetween,
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    Column {
-                                        Text(
-                                            "이번 달 ${successDays}/${totalDays}일 달성",
-                                            color = Color.White.copy(alpha = 0.6f),
-                                            fontSize = 12.sp
-                                        )
-                                        Text(
-                                            "$statusEmoji 다음 달 ${SubscriptionModel.formatPrice(nextMonthPrice)}",
-                                            color = when {
-                                                achievementRate >= 95f -> Color(0xFF4CAF50)
-                                                achievementRate >= 80f -> Color(0xFFFF9800)
-                                                else -> Color.White.copy(alpha = 0.6f)
-                                            },
-                                            fontSize = 16.sp,
-                                            fontWeight = FontWeight.Bold
-                                        )
-                                    }
-                                    Text(
-                                        "${achievementRate.toInt()}%",
-                                        color = when {
-                                            achievementRate >= 95f -> Color(0xFF4CAF50)
-                                            achievementRate >= 80f -> Color(0xFFFF9800)
-                                            else -> Color.White.copy(alpha = 0.6f)
-                                        },
-                                        fontSize = 20.sp,
-                                        fontWeight = FontWeight.Bold
-                                    )
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        } else {
-            // ========== 프리미엄 피트니스 앱 스타일 ==========
-            val TealPrimary = Color(0xFF00BFA5)
-            val TealDark = Color(0xFF008E76)
-            val NavyDark = Color(0xFF0D1B2A)
-            val NavyMid = Color(0xFF1B263B)
-            val ProgressTrack = Color(0xFF2A2A2A)
-            val ProgressTeal = Color(0xFF00D9BB)
-            val GlowGold = Color(0xFFFFD700)
-            val BottomSheetBg = Color(0xFF0A0A0A)
-
-            // Glow 설정 계산
-            val glowConfig = remember(progress) {
-                when {
-                    progress < 0.5f -> Triple(0.dp, 0f, false)
-                    progress < 0.7f -> Triple(12.dp, 0.2f, false)
-                    progress < 0.9f -> Triple(20.dp, 0.45f, false)
-                    else -> Triple(32.dp, 0.75f, true)
-                }
-            }
-
-            // Pulse 애니메이션 (90% 이상일 때)
-            val infiniteTransition = rememberInfiniteTransition(label = "mainPulse")
-            val pulseScale by infiniteTransition.animateFloat(
-                initialValue = 1f,
-                targetValue = if (glowConfig.third) 1.08f else 1f,
-                animationSpec = infiniteRepeatable(
-                    animation = tween(1500, easing = FastOutSlowInEasing),
-                    repeatMode = RepeatMode.Reverse
-                ),
-                label = "mainPulseScale"
-            )
-            val pulseAlpha by infiniteTransition.animateFloat(
-                initialValue = glowConfig.second,
-                targetValue = if (glowConfig.third) glowConfig.second * 1.3f else glowConfig.second,
-                animationSpec = infiniteRepeatable(
-                    animation = tween(1500, easing = FastOutSlowInEasing),
-                    repeatMode = RepeatMode.Reverse
-                ),
-                label = "mainPulseAlpha"
-            )
-
-            // 카운트업 애니메이션 (표시용 값 사용)
-            var displaySteps by remember { mutableIntStateOf(0) }
-            LaunchedEffect(currentProgressDisplay) {
-                val targetSteps = currentProgressDisplay.toInt()
-                val startSteps = displaySteps
-                val diff = targetSteps - startSteps
-                if (diff != 0) {
-                    val steps = 20
-                    val stepDelay = 25L
-                    for (i in 1..steps) {
-                        displaySteps = startSteps + (diff * i / steps)
-                        delay(stepDelay)
-                    }
-                    displaySteps = targetSteps
-                }
-            }
-
-            val animatedProgress by animateFloatAsState(
-                targetValue = progress,
-                animationSpec = tween(durationMillis = 800, easing = FastOutSlowInEasing),
-                label = "mainProgress"
-            )
-
-            Box(modifier = modifier.fillMaxSize()) {
-                // 상단 70% - 그라데이션 배경
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .fillMaxHeight(0.68f)
-                        .align(Alignment.TopCenter)
-                        .background(
-                            brush = Brush.linearGradient(
-                                colors = listOf(TealPrimary, TealDark, NavyMid, NavyDark),
-                                start = Offset(0f, 0f),
-                                end = Offset(Float.POSITIVE_INFINITY, Float.POSITIVE_INFINITY)
-                            )
-                        )
-                ) {
-                    // 설정 버튼 (오른쪽 상단)
-                    IconButton(
-                        onClick = {
-                            hapticManager.click()
-                            showSettingsScreen = true
-                        },
-                        modifier = Modifier
-                            .align(Alignment.TopEnd)
-                            .padding(16.dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Settings,
-                            contentDescription = "설정",
-                            tint = Color.White.copy(alpha = 0.7f),
-                            modifier = Modifier.size(28.dp)
-                        )
-                    }
-
-                    // 접근성 서비스 경고 배너
-                    if (!isAccessibilityEnabled) {
-                        Card(
-                            modifier = Modifier
-                                .align(Alignment.TopCenter)
-                                .padding(top = 60.dp, start = 16.dp, end = 16.dp)
-                                .clickable {
-                                    val intent = Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)
-                                    context.startActivity(intent)
-                                },
-                            colors = CardDefaults.cardColors(
-                                containerColor = Color(0xFFFF5722).copy(alpha = 0.9f)
-                            ),
-                            shape = RoundedCornerShape(12.dp)
-                        ) {
-                            Row(
-                                modifier = Modifier.padding(12.dp),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Text("⚠️", fontSize = 20.sp)
-                                Spacer(modifier = Modifier.width(8.dp))
-                                Column {
-                                    Text(
-                                        "Stand가 비활성화됨",
-                                        color = Color.White,
-                                        fontWeight = FontWeight.Bold,
-                                        fontSize = 14.sp
-                                    )
-                                    Text(
-                                        "탭하여 설정에서 활성화",
-                                        color = Color.White.copy(alpha = 0.8f),
-                                        fontSize = 12.sp
-                                    )
-                                }
-                            }
-                        }
-                    }
-
-                    // 원형 프로그레스 바 (중앙)
-                    Box(
-                        modifier = Modifier
-                            .align(Alignment.Center)
-                            .padding(bottom = 40.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        val progressSize = 200.dp
-                        val strokeWidth = 12.dp
-
-                        // Glow 레이어
-                        if (glowConfig.second > 0f) {
-                            Canvas(
-                                modifier = Modifier
-                                    .size(progressSize)
-                                    .scale(if (glowConfig.third) pulseScale else 1f)
-                                    .blur(glowConfig.first)
-                            ) {
-                                val sweepAngle = animatedProgress * 360f
-                                val arcSize = Size(size.width - strokeWidth.toPx(), size.height - strokeWidth.toPx())
-                                val topLeft = Offset(strokeWidth.toPx() / 2, strokeWidth.toPx() / 2)
-
-                                drawArc(
-                                    color = GlowGold.copy(alpha = if (glowConfig.third) pulseAlpha else glowConfig.second),
-                                    startAngle = -90f,
-                                    sweepAngle = sweepAngle,
-                                    useCenter = false,
-                                    topLeft = topLeft,
-                                    size = arcSize,
-                                    style = Stroke(width = strokeWidth.toPx() * 2, cap = StrokeCap.Round)
-                                )
-                            }
-                        }
-
-                        // 메인 프로그레스 바
-                        Canvas(modifier = Modifier.size(progressSize)) {
-                            val arcSize = Size(size.width - strokeWidth.toPx(), size.height - strokeWidth.toPx())
-                            val topLeft = Offset(strokeWidth.toPx() / 2, strokeWidth.toPx() / 2)
-
-                            // 트랙 (배경)
-                            drawArc(
-                                color = ProgressTrack,
-                                startAngle = 0f,
-                                sweepAngle = 360f,
-                                useCenter = false,
-                                topLeft = topLeft,
-                                size = arcSize,
-                                style = Stroke(width = strokeWidth.toPx(), cap = StrokeCap.Round)
-                            )
-
-                            // 프로그레스
-                            if (animatedProgress > 0) {
-                                drawArc(
-                                    color = ProgressTeal,
-                                    startAngle = -90f,
-                                    sweepAngle = animatedProgress * 360f,
-                                    useCenter = false,
-                                    topLeft = topLeft,
-                                    size = arcSize,
-                                    style = Stroke(width = strokeWidth.toPx(), cap = StrokeCap.Round)
-                                )
-                            }
-                        }
-
-                        // 중앙 텍스트
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Text(
-                                text = if (goalUnit == "km") String.format("%.2f", currentProgressDisplay)
-                                       else "%,d".format(displaySteps),
-                                color = Color.White,
-                                fontSize = 36.sp,
-                                fontWeight = FontWeight.Bold
-                            )
-                            Text(
-                                text = if (goalUnit == "km") "/ %.2f $unitText".format(goalDisplay)
-                                       else "/ %,d $unitText".format(goal),
-                                color = Color.White.copy(alpha = 0.6f),
-                                fontSize = 14.sp
-                            )
-                        }
-                    }
-
-                    // 상태 메시지 + 15분 휴식 버튼
-                    Column(
-                        modifier = Modifier
-                            .align(Alignment.BottomCenter)
-                            .padding(bottom = 40.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        Text(
-                            text = when {
-                                isGoalAchieved -> "목표 달성!"
-                                percentage >= 90 -> "거의 다 왔어요!"
-                                percentage >= 70 -> "조금만 더!"
-                                percentage >= 50 -> "절반 넘었어요"
-                                else -> "오늘의 목표"
-                            },
-                            color = if (isGoalAchieved) GlowGold else Color.White,
-                            fontSize = 18.sp,
-                            fontWeight = FontWeight.Bold
-                        )
-                        Spacer(modifier = Modifier.height(4.dp))
-                        Text(
-                            text = "$percentage% 달성",
-                            color = Color.White.copy(alpha = 0.6f),
-                            fontSize = 14.sp
-                        )
-
-                        // 15분 휴식 버튼 (목표 미달성 시에만 표시)
-                        if (!isGoalAchieved) {
-                            Spacer(modifier = Modifier.height(16.dp))
-                            if (isEmergencyActive) {
-                                val minutes = emergencyTimeRemaining / 60000
-                                val seconds = (emergencyTimeRemaining % 60000) / 1000
-                                Text(
-                                    "🕐 휴식 중 ${minutes}:${seconds.toString().padStart(2, '0')}",
-                                    color = GlowGold,
-                                    fontSize = 16.sp,
-                                    fontWeight = FontWeight.Bold
-                                )
-                            } else {
-                                Button(
-                                    onClick = {
-                                        hapticManager.lightClick()
-                                        showEmergencyConfirmDialog = true
-                                    },
-                                    shape = RoundedCornerShape(12.dp),
-                                    colors = ButtonDefaults.buttonColors(
-                                        containerColor = TealPrimary,
-                                        contentColor = Color.White
-                                    )
-                                ) {
-                                    Text("🕐 15분 휴식", fontWeight = FontWeight.Bold)
-                                }
-                            }
-                        }
-                    }
-                }
-
-                // 하단 바텀 시트
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .align(Alignment.BottomCenter)
-                        .clip(RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp))
-                        .background(BottomSheetBg)
-                        .padding(horizontal = 24.dp)
-                        .padding(top = 24.dp, bottom = 48.dp)
-                ) {
-                    Column(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalArrangement = Arrangement.spacedBy(16.dp)
-                    ) {
-                        // 누적 통계 섹션
-                        val totalStepsAllTime = preferenceManager?.getTotalStepsAllTime() ?: 0L
-                        val consecutiveDays = preferenceManager?.getConsecutiveDays() ?: 0
-                        val totalSavedMoney = preferenceManager?.getTotalSavedMoney() ?: 0
-
-                        Card(
-                            modifier = Modifier.fillMaxWidth(),
-                            colors = CardDefaults.cardColors(
-                                containerColor = Color.White.copy(alpha = 0.05f)
-                            ),
-                            shape = RoundedCornerShape(16.dp)
-                        ) {
-                            Column(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(16.dp)
-                            ) {
-                                Text(
-                                    text = "🏆 나의 기록",
-                                    color = Color.White,
-                                    fontSize = 14.sp,
-                                    fontWeight = FontWeight.Bold
-                                )
-                                Spacer(modifier = Modifier.height(12.dp))
-                                Row(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    horizontalArrangement = Arrangement.SpaceBetween
-                                ) {
-                                    // 총 걸음 수
-                                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                        Text(
-                                            text = "%,d".format(totalStepsAllTime),
-                                            color = Color.White,
-                                            fontSize = 18.sp,
-                                            fontWeight = FontWeight.Bold
-                                        )
-                                        Text(
-                                            text = "총 걸음",
-                                            color = Color.White.copy(alpha = 0.5f),
-                                            fontSize = 11.sp
-                                        )
-                                    }
-                                    // 연속 달성일
-                                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                        Row(verticalAlignment = Alignment.CenterVertically) {
-                                            Text(
-                                                text = "$consecutiveDays",
-                                                color = if (consecutiveDays > 0) GlowGold else Color.White,
-                                                fontSize = 18.sp,
-                                                fontWeight = FontWeight.Bold
-                                            )
-                                            if (consecutiveDays >= 3) {
-                                                Text(
-                                                    text = " 🔥",
-                                                    fontSize = 14.sp
-                                                )
-                                            }
-                                        }
-                                        Text(
-                                            text = "연속 달성",
-                                            color = Color.White.copy(alpha = 0.5f),
-                                            fontSize = 11.sp
-                                        )
-                                    }
-                                    // 총 절약 금액
-                                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                        Text(
-                                            text = "%,d원".format(totalSavedMoney),
-                                            color = if (totalSavedMoney > 0) Color(0xFF4CAF50) else Color.White,
-                                            fontSize = 18.sp,
-                                            fontWeight = FontWeight.Bold
-                                        )
-                                        Text(
-                                            text = "총 절약",
-                                            color = Color.White.copy(alpha = 0.5f),
-                                            fontSize = 11.sp
-                                        )
-                                    }
-                                }
-                            }
-                        }
-
-                        // 구독 현황
-                        if (totalDays > 0) {
-                            val nextMonthPrice = SubscriptionModel.getNextMonthPrice(achievementRate)
-                            val statusEmoji = SubscriptionModel.getStatusEmoji(achievementRate)
-
-                            Card(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .clickable { showSettingsScreen = true },
-                                colors = CardDefaults.cardColors(
-                                    containerColor = Color.White.copy(alpha = 0.08f)
-                                ),
-                                shape = RoundedCornerShape(12.dp)
-                            ) {
-                                Row(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(16.dp),
-                                    horizontalArrangement = Arrangement.SpaceBetween,
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    Column {
-                                        Text(
-                                            "이번 달 ${successDays}/${totalDays}일 달성",
-                                            color = Color.White.copy(alpha = 0.6f),
-                                            fontSize = 12.sp
-                                        )
-                                        Text(
-                                            "$statusEmoji 다음 달 ${SubscriptionModel.formatPrice(nextMonthPrice)}",
-                                            color = when {
-                                                achievementRate >= 95f -> Color(0xFF4CAF50)
-                                                achievementRate >= 80f -> Color(0xFFFF9800)
-                                                else -> Color.White.copy(alpha = 0.6f)
-                                            },
-                                            fontSize = 16.sp,
-                                            fontWeight = FontWeight.Bold
-                                        )
-                                    }
-                                    Text(
-                                        "${achievementRate.toInt()}%",
-                                        color = when {
-                                            achievementRate >= 95f -> Color(0xFF4CAF50)
-                                            achievementRate >= 80f -> Color(0xFFFF9800)
-                                            else -> Color.White.copy(alpha = 0.6f)
-                                        },
-                                        fontSize = 20.sp,
-                                        fontWeight = FontWeight.Bold
-                                    )
-                                }
-                            }
-                        }
-                    }
-                }
-
-                // 목표 달성 시 상단 Glow 효과
-                if (isGoalAchieved) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(150.dp)
-                            .align(Alignment.TopCenter)
-                            .background(
-                                brush = Brush.verticalGradient(
-                                    colors = listOf(
-                                        GlowGold.copy(alpha = 0.3f),
-                                        Color.Transparent
-                                    )
-                                )
-                            )
-                    )
-                }
-            }
-        }
-
-        // 목표 달성 축하 애니메이션
-        GoalAchievedCelebration(
-            trigger = triggerCelebration,
-            onAnimationEnd = { triggerCelebration = false }
+        PetMainScreen(
+            petType = petType,
+            petName = petName,
+            happinessLevel = petHappiness,
+            stepCount = currentProgress.toInt(),
+            goalSteps = goal,
+            streakCount = currentStreak,
+            onSettingsClick = {
+                hapticManager.click()
+                showSettingsScreen = true
+            },
+            hapticManager = hapticManager,
+            modifier = modifier
         )
-
-        // 15분 휴식 확인 다이얼로그
-        if (showEmergencyConfirmDialog) {
-            androidx.compose.material3.AlertDialog(
-                onDismissRequest = { showEmergencyConfirmDialog = false },
-                containerColor = StandColors.DarkBackground,
-                title = {
-                    Text(
-                        "15분 휴식",
-                        color = Color.White,
-                        fontWeight = FontWeight.Bold
-                    )
-                },
-                text = {
-                    Column {
-                        Text(
-                            "하루에 한 번만 사용할 수 있습니다.",
-                            color = Color.White.copy(alpha = 0.9f)
-                        )
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Text(
-                            "15분 동안 앱 차단이 해제됩니다.\n정말 사용하시겠습니까?",
-                            color = Color.White.copy(alpha = 0.7f)
-                        )
-                    }
-                },
-                confirmButton = {
-                    Button(
-                        onClick = {
-                            hapticManager.success()
-                            preferenceManager?.saveEmergencyMode(true)
-                            preferenceManager?.saveEmergencyStartTime(System.currentTimeMillis())
-                            isEmergencyActive = true
-                            showEmergencyConfirmDialog = false
-                        },
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = StandColors.Primary
-                        )
-                    ) {
-                        Text("사용하기", fontWeight = FontWeight.Bold)
-                    }
-                },
-                dismissButton = {
-                    TextButton(
-                        onClick = { showEmergencyConfirmDialog = false }
-                    ) {
-                        Text("취소", color = Color.White.copy(alpha = 0.7f))
-                    }
-                }
-            )
-        }
     }
+
+    // 목표 달성 축하 애니메이션
+    GoalAchievedCelebration(
+        trigger = triggerCelebration,
+        onAnimationEnd = { triggerCelebration = false }
+    )
+
+    // 연속 달성 축하 다이얼로그
+    if (showStreakCelebration) {
+        StreakCelebrationDialog(
+            streakCount = currentStreak,
+            weeklyAchievements = weeklyAchievements,
+            onDismiss = {
+                preferenceManager?.setStreakCelebrationSeen()
+                showStreakCelebration = false
+            },
+            hapticManager = hapticManager
+        )
+    }
+
 }
 
 @Preview(showBackground = true)

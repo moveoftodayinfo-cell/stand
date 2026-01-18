@@ -886,6 +886,116 @@ class PreferenceManager(context: Context) {
             .apply()
     }
 
+    // ===== Pet System =====
+
+    // Selected pet type
+    fun savePetType(petType: String) {
+        prefs.edit().putString("pet_type", petType).apply()
+    }
+
+    fun getPetType(): String? {
+        return prefs.getString("pet_type", null)
+    }
+
+    // Pet name
+    fun savePetName(name: String) {
+        prefs.edit().putString("pet_name", name).apply()
+    }
+
+    fun getPetName(): String {
+        return prefs.getString("pet_name", "") ?: ""
+    }
+
+    // Pet happiness level (1-5)
+    fun savePetHappiness(level: Int) {
+        prefs.edit().putInt("pet_happiness", level.coerceIn(1, 5)).apply()
+    }
+
+    fun getPetHappiness(): Int {
+        return prefs.getInt("pet_happiness", 3)
+    }
+
+    // Pet total walked steps
+    fun savePetTotalSteps(steps: Long) {
+        prefs.edit().putLong("pet_total_steps", steps).apply()
+    }
+
+    fun getPetTotalSteps(): Long {
+        return prefs.getLong("pet_total_steps", 0)
+    }
+
+    fun addPetSteps(steps: Int) {
+        val current = getPetTotalSteps()
+        savePetTotalSteps(current + steps)
+    }
+
+    // Check if pet onboarding is completed
+    fun isPetOnboardingCompleted(): Boolean {
+        return getPetType() != null && getPetName().isNotBlank()
+    }
+
+    // 튜토리얼 현재 단계 저장/불러오기
+    fun saveTutorialCurrentStep(step: Int) {
+        prefs.edit().putInt("tutorial_current_step", step).apply()
+    }
+
+    fun getTutorialCurrentStep(): Int {
+        return prefs.getInt("tutorial_current_step", 0)
+    }
+
+    fun clearTutorialCurrentStep() {
+        prefs.edit().remove("tutorial_current_step").apply()
+    }
+
+    // ===== 펫 스타일 설정 플로우 추적 =====
+
+    // 권한 설정 완료 여부
+    fun isPermissionSetupCompleted(): Boolean {
+        return prefs.getBoolean("permission_setup_completed", false)
+    }
+
+    fun setPermissionSetupCompleted(completed: Boolean) {
+        prefs.edit().putBoolean("permission_setup_completed", completed).apply()
+    }
+
+    // Health Connect 설정 완료 여부 (스킵 포함)
+    fun isHealthConnectSetupCompleted(): Boolean {
+        return prefs.getBoolean("health_connect_setup_completed", false)
+    }
+
+    fun setHealthConnectSetupCompleted(completed: Boolean) {
+        prefs.edit().putBoolean("health_connect_setup_completed", completed).apply()
+    }
+
+    // 접근성 설정 완료 여부
+    fun isAccessibilitySetupCompleted(): Boolean {
+        return prefs.getBoolean("accessibility_setup_completed", false)
+    }
+
+    fun setAccessibilitySetupCompleted(completed: Boolean) {
+        prefs.edit().putBoolean("accessibility_setup_completed", completed).apply()
+    }
+
+    // 앱 선택 완료 여부
+    fun isAppSelectionCompleted(): Boolean {
+        return prefs.getBoolean("app_selection_completed", false)
+    }
+
+    fun setAppSelectionCompleted(completed: Boolean) {
+        prefs.edit().putBoolean("app_selection_completed", completed).apply()
+    }
+
+    // Update pet happiness based on goal achievement
+    fun updatePetHappiness(goalAchieved: Boolean) {
+        val current = getPetHappiness()
+        val newLevel = if (goalAchieved) {
+            (current + 1).coerceAtMost(5)
+        } else {
+            (current - 1).coerceAtLeast(1)
+        }
+        savePetHappiness(newLevel)
+    }
+
     // ===== 연속 달성 (Streak) =====
 
     // 현재 연속 달성 일수
@@ -956,6 +1066,30 @@ class PreferenceManager(context: Context) {
         setStreak(newStreak)
         setLastAchievedDate(today)
         return newStreak
+    }
+
+    // ===== 튜토리얼 차단 테스트 상태 =====
+
+    // 차단 테스트 시작 여부 (앱 나갔다 돌아왔는지)
+    fun setBlockingTestStarted(started: Boolean) {
+        prefs.edit().putBoolean("blocking_test_started", started).apply()
+    }
+
+    fun isBlockingTestStarted(): Boolean {
+        return prefs.getBoolean("blocking_test_started", false)
+    }
+
+    fun clearBlockingTestStarted() {
+        prefs.edit().remove("blocking_test_started").apply()
+    }
+
+    // 튜토리얼 후 실제 목표 설정 필요 여부
+    fun setNeedsRealGoalSetup(needs: Boolean) {
+        prefs.edit().putBoolean("needs_real_goal_setup", needs).apply()
+    }
+
+    fun needsRealGoalSetup(): Boolean {
+        return prefs.getBoolean("needs_real_goal_setup", false)
     }
 
     // 이번 주 달성 기록 (일~토)

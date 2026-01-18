@@ -41,6 +41,8 @@ import com.moveoftoday.walkorwait.ui.theme.StandTypography
 import com.moveoftoday.walkorwait.ui.theme.StandSpacing
 import com.moveoftoday.walkorwait.ui.theme.StandSize
 import com.moveoftoday.walkorwait.ui.components.*
+import com.moveoftoday.walkorwait.pet.PixelIcon
+import com.moveoftoday.walkorwait.pet.MockupColors
 
 @Composable
 fun TutorialScreen(
@@ -487,7 +489,7 @@ fun PermissionCard(
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
-            containerColor = if (isGranted) StandColors.Success.copy(alpha = 0.15f) else Color.White.copy(alpha = 0.1f)
+            containerColor = if (isGranted) MockupColors.Blue.copy(alpha = 0.15f) else Color.White.copy(alpha = 0.1f)
         )
     ) {
         Row(
@@ -515,7 +517,7 @@ fun PermissionCard(
                 Text(
                     text = "✓",
                     fontSize = StandTypography.headlineSmall,
-                    color = StandColors.Success
+                    color = MockupColors.Blue
                 )
             } else {
                 Button(onClick = onRequest) {
@@ -666,7 +668,7 @@ fun FitnessAppConnectionTutorialStep(
                             Spacer(modifier = Modifier.width(12.dp))
                             Column {
                                 Text(text = app.appName, fontSize = StandTypography.bodyMedium, fontWeight = FontWeight.Bold, color = Color.White)
-                                Text(text = "설치됨 ✓", fontSize = StandTypography.labelMedium, color = StandColors.Success)
+                                Text(text = "설치됨 ✓", fontSize = StandTypography.labelMedium, color = MockupColors.Blue)
                             }
                         }
                     }
@@ -687,7 +689,7 @@ fun FitnessAppConnectionTutorialStep(
                         .height(48.dp),
                     enabled = !isConnecting,
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = installedApps.firstOrNull()?.color ?: StandColors.Success
+                        containerColor = installedApps.firstOrNull()?.color ?: MockupColors.Blue
                     )
                 ) {
                     Text(
@@ -701,7 +703,7 @@ fun FitnessAppConnectionTutorialStep(
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     colors = CardDefaults.cardColors(
-                        containerColor = StandColors.Warning.copy(alpha = 0.1f)
+                        containerColor = MockupColors.TextMuted.copy(alpha = 0.1f)
                     )
                 ) {
                     Column(
@@ -712,7 +714,7 @@ fun FitnessAppConnectionTutorialStep(
                             text = "⚠️ Health Connect 필요",
                             fontSize = StandTypography.bodyLarge,
                             fontWeight = FontWeight.Bold,
-                            color = StandColors.Warning
+                            color = MockupColors.TextMuted
                         )
                         Spacer(modifier = Modifier.height(8.dp))
                         Text(
@@ -726,7 +728,7 @@ fun FitnessAppConnectionTutorialStep(
                         Button(
                             onClick = { healthConnectManager.openHealthConnectPlayStore() },
                             colors = ButtonDefaults.buttonColors(
-                                containerColor = StandColors.Warning
+                                containerColor = MockupColors.TextMuted
                             )
                         ) {
                             Text("Play Store에서 설치")
@@ -771,10 +773,10 @@ fun FitnessAppConnectionTutorialStep(
 
                     // 추천 앱 목록
                     listOf(
-                        "📱 삼성 헬스",
-                        "🏃 Google Fit",
-                        "⌚ Garmin Connect",
-                        "💪 Fitbit"
+                        "삼성 헬스",
+                        "Google Fit",
+                        "Garmin Connect",
+                        "Fitbit"
                     ).forEach { appName ->
                         Text(
                             text = "• $appName",
@@ -790,12 +792,19 @@ fun FitnessAppConnectionTutorialStep(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            Text(
-                text = "💡 나중에 설정에서 연결할 수도 있어요",
-                fontSize = StandTypography.labelLarge,
-                textAlign = TextAlign.Center,
-                color = StandColors.WarmLight
-            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                PixelIcon(iconName = "icon_light_bulb", size = 16.dp)
+                Spacer(modifier = Modifier.width(6.dp))
+                Text(
+                    text = "나중에 설정에서 연결할 수도 있어요",
+                    fontSize = StandTypography.labelLarge,
+                    color = StandColors.WarmLight
+                )
+            }
         }
 
         Spacer(modifier = Modifier.weight(1f))
@@ -895,7 +904,7 @@ fun AccessibilityStep(
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     colors = CardDefaults.cardColors(
-                        containerColor = StandColors.Warning.copy(alpha = 0.15f)
+                        containerColor = MockupColors.TextMuted.copy(alpha = 0.15f)
                     )
                 ) {
                     Column(
@@ -928,7 +937,7 @@ fun AccessibilityStep(
                         .fillMaxWidth()
                         .height(56.dp),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = StandColors.Warning
+                        containerColor = MockupColors.TextMuted
                     )
                 ) {
                     Text("설정 화면으로", fontSize = StandTypography.titleSmall, fontWeight = FontWeight.Bold)
@@ -939,7 +948,7 @@ fun AccessibilityStep(
                 Text(
                     text = "⚠️ Stand ON을 해야 다음 단계로 진행됩니다",
                     fontSize = StandTypography.labelLarge,
-                    color = StandColors.Error,
+                    color = MockupColors.Red,
                     textAlign = TextAlign.Center
                 )
             }
@@ -1580,7 +1589,7 @@ fun GoalInputStep(
                     Text(
                         text = if (hasHealthConnectPermission) "피트니스 연결" else "연결 필요",
                         fontSize = StandTypography.labelLarge,
-                        color = if (hasHealthConnectPermission) Color.White.copy(alpha = 0.6f) else StandColors.Error
+                        color = if (hasHealthConnectPermission) Color.White.copy(alpha = 0.6f) else MockupColors.Red
                     )
                 }
             }
@@ -1655,12 +1664,16 @@ fun GoalInputStep(
             Column(
                 modifier = Modifier.padding(16.dp)
             ) {
-                Text(
-                    text = "💡 목표 달성하면",
-                    fontSize = StandTypography.bodyLarge,
-                    fontWeight = FontWeight.Bold,
-                    color = StandColors.WarmLightBright
-                )
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    PixelIcon(iconName = "icon_light_bulb", size = 18.dp)
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text(
+                        text = "목표 달성하면",
+                        fontSize = StandTypography.bodyLarge,
+                        fontWeight = FontWeight.Bold,
+                        color = StandColors.WarmLightBright
+                    )
+                }
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
                     text = "차단된 앱이 해제됩니다!\n다음 단계에서 직접 걸어보세요.",
@@ -1677,7 +1690,7 @@ fun GoalInputStep(
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 colors = CardDefaults.cardColors(
-                    containerColor = StandColors.Warning.copy(alpha = 0.15f)
+                    containerColor = MockupColors.TextMuted.copy(alpha = 0.15f)
                 )
             ) {
                 Column(
@@ -1687,7 +1700,7 @@ fun GoalInputStep(
                         text = "⚠️ 피트니스 앱 연결 필요",
                         fontSize = StandTypography.bodyMedium,
                         fontWeight = FontWeight.Bold,
-                        color = StandColors.Warning
+                        color = MockupColors.TextMuted
                     )
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
@@ -2033,12 +2046,16 @@ fun WalkingStep(
                     ) {
                         when {
                             isGoalAchieved && hasLeftApp -> {
-                                Text(
-                                    text = "💡 완벽해요!",
-                                    fontSize = StandTypography.bodyLarge,
-                                    fontWeight = FontWeight.Bold,
-                                    color = StandColors.WarmLightBright
-                                )
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    PixelIcon(iconName = "icon_trophy", size = 18.dp)
+                                    Spacer(modifier = Modifier.width(6.dp))
+                                    Text(
+                                        text = "완벽해요!",
+                                        fontSize = StandTypography.bodyLarge,
+                                        fontWeight = FontWeight.Bold,
+                                        color = StandColors.WarmLightBright
+                                    )
+                                }
                                 Spacer(modifier = Modifier.height(8.dp))
                                 Text(
                                     text = "목표를 달성하고 앱도 실행해보셨네요!\n이제 앱이 해제된 상태입니다.",
@@ -2049,7 +2066,7 @@ fun WalkingStep(
                             }
                             isGoalAchieved -> {
                                 Text(
-                                    text = "📱 앱을 실행해보세요!",
+                                    text = "앱을 실행해보세요!",
                                     fontSize = StandTypography.bodyLarge,
                                     fontWeight = FontWeight.Bold,
                                     color = StandColors.WarmLight
@@ -2310,12 +2327,16 @@ fun UnlockedStep(
                     Column(
                         modifier = Modifier.padding(16.dp)
                     ) {
-                        Text(
-                            text = "💡 Stand의 핵심",
-                            fontSize = StandTypography.bodyLarge,
-                            fontWeight = FontWeight.Bold,
-                            color = StandColors.WarmLightBright
-                        )
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            PixelIcon(iconName = "icon_light_bulb", size = 18.dp)
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Text(
+                                text = "Stand의 핵심",
+                                fontSize = StandTypography.bodyLarge,
+                                fontWeight = FontWeight.Bold,
+                                color = StandColors.WarmLightBright
+                            )
+                        }
                         Spacer(modifier = Modifier.height(8.dp))
                         Text(
                             text = "매일 목표를 달성하면 앱을 자유롭게!\n실패하면 차단됩니다.",
@@ -2421,12 +2442,16 @@ fun EmergencyButtonStep(
 
         Spacer(modifier = Modifier.height(32.dp))
 
-        Text(
-            text = "💡 Tip",
-            fontSize = StandTypography.bodyLarge,
-            fontWeight = FontWeight.Bold,
-            color = StandColors.WarmLight
-        )
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            PixelIcon(iconName = "icon_light_bulb", size = 18.dp)
+            Spacer(modifier = Modifier.width(6.dp))
+            Text(
+                text = "Tip",
+                fontSize = StandTypography.bodyLarge,
+                fontWeight = FontWeight.Bold,
+                color = StandColors.WarmLight
+            )
+        }
 
         Spacer(modifier = Modifier.height(8.dp))
 
