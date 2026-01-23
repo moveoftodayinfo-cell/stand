@@ -852,11 +852,14 @@ class PreferenceManager(context: Context) {
 
     // Health Connect 사용 여부 (연결 완료 시 true로 설정)
     fun setUseHealthConnect(use: Boolean) {
+        android.util.Log.d("PreferenceManager", "🔧 setUseHealthConnect: $use")
         prefs.edit().putBoolean("use_health_connect", use).apply()
     }
 
     fun useHealthConnect(): Boolean {
-        return prefs.getBoolean("use_health_connect", false)
+        val value = prefs.getBoolean("use_health_connect", false)
+        android.util.Log.d("PreferenceManager", "🔍 useHealthConnect: $value")
+        return value
     }
 
     // Health Connect 연결 상태
@@ -1122,5 +1125,133 @@ class PreferenceManager(context: Context) {
         }
 
         return achievements
+    }
+
+    // ========== 공지/팝업 ==========
+
+    // 오늘 그만보기 설정 (날짜 + 공지ID 저장)
+    fun setAnnouncementDismissedToday(announcementId: String) {
+        val today = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+        prefs.edit().putString("announcement_dismissed_date_$announcementId", today).apply()
+    }
+
+    fun isAnnouncementDismissedToday(announcementId: String): Boolean {
+        val today = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+        val dismissedDate = prefs.getString("announcement_dismissed_date_$announcementId", "") ?: ""
+        return dismissedDate == today
+    }
+
+    fun hasSeenAnnouncement(announcementId: String): Boolean {
+        val seenIds = prefs.getStringSet("seen_announcements", emptySet()) ?: emptySet()
+        return announcementId in seenIds
+    }
+
+    fun markAnnouncementSeen(announcementId: String) {
+        val seenIds = prefs.getStringSet("seen_announcements", emptySet())?.toMutableSet() ?: mutableSetOf()
+        seenIds.add(announcementId)
+        prefs.edit().putStringSet("seen_announcements", seenIds).apply()
+    }
+
+    fun clearSeenAnnouncements() {
+        prefs.edit().remove("seen_announcements").apply()
+    }
+
+    // ========== AI 채팅 일일 제한 ==========
+
+    private val AI_CHAT_DAILY_LIMIT = 30
+
+    // 오늘 AI 채팅 횟수 가져오기 (날짜가 바뀌면 자동 리셋)
+    fun getDailyAIChatCount(): Int {
+        val today = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+        val savedDate = prefs.getString("ai_chat_date", "") ?: ""
+
+        // 날짜가 바뀌면 카운트 리셋
+        if (savedDate != today) {
+            prefs.edit()
+                .putString("ai_chat_date", today)
+                .putInt("ai_chat_count", 0)
+                .apply()
+            return 0
+        }
+
+        return prefs.getInt("ai_chat_count", 0)
+    }
+
+    // AI 채팅 횟수 증가
+    fun incrementDailyAIChatCount() {
+        val today = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+        val currentCount = getDailyAIChatCount()
+        prefs.edit()
+            .putString("ai_chat_date", today)
+            .putInt("ai_chat_count", currentCount + 1)
+            .apply()
+    }
+
+    // AI 채팅 일일 제한 도달 여부
+    fun isAIChatLimitReached(): Boolean {
+        return getDailyAIChatCount() >= AI_CHAT_DAILY_LIMIT
+    }
+
+    // 남은 AI 채팅 횟수
+    fun getRemainingAIChatCount(): Int {
+        return (AI_CHAT_DAILY_LIMIT - getDailyAIChatCount()).coerceAtLeast(0)
+    }
+
+    // AI 채팅 일일 제한 값 가져오기
+    fun getAIChatDailyLimit(): Int = AI_CHAT_DAILY_LIMIT
+
+    // ========== 걸음수 마일스톤 (10% 단위) ==========
+
+    /**
+     * 오늘 표시한 마일스톤 목록 가져오기 (날짜 바뀌면 자동 리셋)
+     */
+    fun getShownMilestones(): Set<Int> {
+        val today = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+        val savedDate = prefs.getString("milestone_date", "") ?: ""
+
+        // 날짜가 바뀌면 리셋
+        if (savedDate != today) {
+            prefs.edit()
+                .putString("milestone_date", today)
+                .putStringSet("shown_milestones", emptySet())
+                .apply()
+            return emptySet()
+        }
+
+        return prefs.getStringSet("shown_milestones", emptySet())
+            ?.mapNotNull { it.toIntOrNull() }
+            ?.toSet() ?: emptySet()
+    }
+
+    /**
+     * 마일스톤 표시 완료 기록
+     */
+    fun markMilestoneShown(milestone: Int) {
+        val today = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+        val currentMilestones = getShownMilestones().toMutableSet()
+        currentMilestones.add(milestone)
+
+        prefs.edit()
+            .putString("milestone_date", today)
+            .putStringSet("shown_milestones", currentMilestones.map { it.toString() }.toSet())
+            .apply()
+    }
+
+    /**
+     * 새로 달성한 마일스톤 확인 (10% 단위)
+     * @return 새로 달성한 마일스톤 (없으면 null)
+     */
+    fun checkNewMilestone(currentPercent: Int): Int? {
+        val shownMilestones = getShownMilestones()
+
+        // 10% 단위 마일스톤 목록 (10, 20, 30, ..., 100)
+        val milestones = listOf(10, 20, 30, 40, 50, 60, 70, 80, 90, 100)
+
+        for (milestone in milestones) {
+            if (currentPercent >= milestone && !shownMilestones.contains(milestone)) {
+                return milestone
+            }
+        }
+        return null
     }
 }

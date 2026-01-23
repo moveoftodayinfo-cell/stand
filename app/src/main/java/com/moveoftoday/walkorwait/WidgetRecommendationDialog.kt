@@ -91,7 +91,7 @@ fun WidgetRecommendationDialog(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
-                            text = "Stand",
+                            text = "rebon",
                             fontSize = StandTypography.labelLarge,
                             fontWeight = FontWeight.Bold,
                             color = Color.White

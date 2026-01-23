@@ -18,8 +18,8 @@ android {
         applicationId = "com.moveoftoday.walkorwait"
         minSdk = 26
         targetSdk = 36
-        versionCode = 28
-        versionName = "1.0.27"
+        versionCode = 67
+        versionName = "1.0.67"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -80,13 +80,7 @@ android {
 }
 
 tasks.withType<JavaCompile>().configureEach {
-    options.compilerArgs.addAll(listOf("-Xlint:-deprecation", "-Xlint:-unchecked"))
-}
-
-afterEvaluate {
-    tasks.matching { it.name.contains("hiltJavaCompile") }.configureEach {
-        (this as JavaCompile).options.compilerArgs.addAll(listOf("-Xlint:-deprecation", "-Xlint:-unchecked"))
-    }
+    options.compilerArgs.addAll(listOf("-Xlint:none", "-nowarn"))
 }
 
 dependencies {
@@ -105,6 +99,11 @@ dependencies {
     implementation(libs.firebase.auth)
     implementation(libs.firebase.analytics)
 
+    // Credential Manager (Google Sign-In replacement)
+    implementation("androidx.credentials:credentials:1.3.0")
+    implementation("androidx.credentials:credentials-play-services-auth:1.3.0")
+    implementation("com.google.android.libraries.identity.googleid:googleid:1.1.1")
+
     // Google Play Billing
     implementation(libs.billing)
 
@@ -114,6 +113,9 @@ dependencies {
     // Coroutines
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3")
+
+    // Coil (Image loading)
+    implementation("io.coil-kt:coil-compose:2.5.0")
 
     // Hilt
     implementation(libs.hilt.android)

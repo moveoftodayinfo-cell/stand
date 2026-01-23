@@ -64,8 +64,11 @@ class StepSensorManager(private val context: Context) : SensorEventListener {
         // 데이터 소스 우선순위에 따라 선택
         // 1. 사용자가 Health Connect 연결을 설정했는지 확인
         val useHealthConnect = prefs.useHealthConnect()
+        val isHCAvailable = healthConnectManager.isAvailable()
 
-        if (useHealthConnect && healthConnectManager.isAvailable()) {
+        Log.d(TAG, "🔍 initializeDataSource - useHealthConnect: $useHealthConnect, isAvailable: $isHCAvailable")
+
+        if (useHealthConnect && isHCAvailable) {
             // Health Connect를 사용하도록 설정된 경우에만 사용
             sensorType = SensorType.HEALTH_CONNECT
             Log.d(TAG, "🏃 Health Connect enabled by user, will use Health Connect")
@@ -172,10 +175,10 @@ class StepSensorManager(private val context: Context) : SensorEventListener {
                             onStepCountChanged?.invoke(initialSteps)
                             onDistanceChanged?.invoke(initialDistance)
 
-                            // 주기적으로 업데이트 (30초마다)
+                            // 주기적으로 업데이트 (5초마다)
                             healthConnectJob = scope.launch {
                                 while (isActive) {
-                                    delay(30000) // 30초 대기
+                                    delay(5000) // 5초 대기
                                     try {
                                         val steps = healthConnectManager.getTodaySteps()
                                         val distance = healthConnectManager.getTodayDistance() / 1000.0 // 미터 -> km

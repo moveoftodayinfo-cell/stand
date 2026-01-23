@@ -14,7 +14,7 @@ import java.util.*
  * 프로모션 코드 관리
  *
  * 코드 종류:
- * 1. 친구 초대 코드 (STAND-XXXXXX): 1달 무료
+ * 1. 친구 초대 코드 (REBON-XXXXXX): 1달 무료
  * 2. 이벤트 코드 (EVENT-XXXXXX): 특별 혜택
  * 3. 테스트 코드 (TEST-FREE): 테스트용
  */
@@ -57,16 +57,16 @@ class PromoCodeManager(private val context: Context) {
         }
 
         return when {
-            trimmedCode.startsWith("STAND-") -> validateFriendInviteCode(trimmedCode)
+            trimmedCode.startsWith("REBON-") -> validateFriendInviteCode(trimmedCode)
             trimmedCode.startsWith("EVENT-") -> validateEventCode(trimmedCode)
             trimmedCode == "TEST-FREE" -> applyTestCode()
-            trimmedCode == "STANDFREE" -> applyStandFreeCode()
+            trimmedCode == "REBONFREE" -> applyRebonFreeCode()
             else -> PromoResult.Error("유효하지 않은 코드입니다")
         }
     }
 
     /**
-     * 친구 초대 코드 검증 (STAND-XXXXXX)
+     * 친구 초대 코드 검증 (REBON-XXXXXX)
      */
     private suspend fun validateFriendInviteCode(code: String): PromoResult {
         val currentUserId = auth.currentUser?.uid
@@ -100,10 +100,24 @@ class PromoCodeManager(private val context: Context) {
                 return PromoResult.Error("이미 사용된 초대 코드입니다")
             }
 
+            // Firebase에 guestId 및 사용 정보 업데이트 (중복 사용 방지)
+            val guestEmail = FirebaseAuth.getInstance().currentUser?.email ?: ""
+            hostDoc.reference.update(
+                mapOf(
+                    "guestId" to currentUserId,
+                    "guestUsedAt" to com.google.firebase.Timestamp.now(),
+                    "guestEmail" to guestEmail
+                )
+            ).await()
+
             // 코드 사용 기록 저장
             preferenceManager.saveUsedPromoCode(code)
             preferenceManager.savePromoCodeType("FRIEND_INVITE")
             preferenceManager.savePromoHostId(hostId)
+
+            // Analytics: 친구 초대 코드 사용 추적
+            AnalyticsManager.trackPromoCodeUsed("FRIEND_INVITE")
+            AnalyticsManager.trackSubscriptionStart("friend_invite")
 
             return PromoResult.Success(
                 type = PromoType.FRIEND_INVITE,
@@ -162,6 +176,10 @@ class PromoCodeManager(private val context: Context) {
             preferenceManager.saveUsedPromoCode(code)
             preferenceManager.savePromoCodeType("EVENT")
 
+            // Analytics: 이벤트 코드 사용 추적
+            AnalyticsManager.trackPromoCodeUsed("EVENT")
+            AnalyticsManager.trackSubscriptionStart("event_code")
+
             return PromoResult.Success(
                 type = PromoType.EVENT_CODE,
                 message = description,
@@ -182,6 +200,10 @@ class PromoCodeManager(private val context: Context) {
         preferenceManager.saveUsedPromoCode("TEST-FREE")
         preferenceManager.savePromoCodeType("TEST")
 
+        // Analytics: 테스트 코드 사용 추적
+        AnalyticsManager.trackPromoCodeUsed("TEST-FREE")
+        AnalyticsManager.trackSubscriptionStart("test_code")
+
         return PromoResult.Success(
             type = PromoType.TEST_CODE,
             message = "테스트 코드가 적용되었습니다\n결제 없이 앱을 체험합니다",
@@ -190,11 +212,15 @@ class PromoCodeManager(private val context: Context) {
     }
 
     /**
-     * STANDFREE 코드 (출시 프로모션)
+     * REBONFREE 코드 (출시 프로모션)
      */
-    private fun applyStandFreeCode(): PromoResult {
-        preferenceManager.saveUsedPromoCode("STANDFREE")
+    private fun applyRebonFreeCode(): PromoResult {
+        preferenceManager.saveUsedPromoCode("REBONFREE")
         preferenceManager.savePromoCodeType("LAUNCH_EVENT")
+
+        // Analytics: 출시 프로모션 코드 사용 추적
+        AnalyticsManager.trackPromoCodeUsed("REBONFREE")
+        AnalyticsManager.trackSubscriptionStart("launch_promo")
 
         return PromoResult.Success(
             type = PromoType.EVENT_CODE,

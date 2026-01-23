@@ -79,12 +79,12 @@ class StepWidgetProvider : AppWidgetProvider() {
             }
             views.setTextViewText(R.id.widget_speech, dialogue)
 
-            // 걸음/km 텍스트
+            // 걸음/km 텍스트 (현재 걸음수만 표시)
             val numberFormat = NumberFormat.getNumberInstance(Locale.getDefault())
             val stepsText = if (isKmMode) {
-                "${String.format("%.2f", displayValue)} / ${String.format("%.2f", displayGoal)} km"
+                "${String.format("%.2f", displayValue)} km"
             } else {
-                "${numberFormat.format(displayValue.toInt())} / ${numberFormat.format(displayGoal.toInt())} 보"
+                "${numberFormat.format(displayValue.toInt())} 보"
             }
             views.setTextViewText(R.id.widget_steps_text, stepsText)
 

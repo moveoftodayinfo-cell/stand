@@ -41,7 +41,10 @@ class HealthConnectManager(private val context: Context) {
      * Health Connect 사용 가능 여부 확인
      */
     fun isAvailable(): Boolean {
-        return HealthConnectClient.getSdkStatus(context) == HealthConnectClient.SDK_AVAILABLE
+        val status = HealthConnectClient.getSdkStatus(context)
+        val available = status == HealthConnectClient.SDK_AVAILABLE
+        Log.d(TAG, "🔍 isAvailable - status: $status, available: $available")
+        return available
     }
 
     /**

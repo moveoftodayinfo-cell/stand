@@ -38,6 +38,7 @@ fun FitnessAppConnectionScreen(
     var installedApps by remember { mutableStateOf<List<FitnessApp>>(emptyList()) }
     var isHealthConnectAvailable by remember { mutableStateOf(false) }
     var hasPermissions by remember { mutableStateOf(false) }
+    var isConnected by remember { mutableStateOf(preferenceManager.isHealthConnectConnected()) }
     var isConnecting by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
     var connectionSuccess by remember { mutableStateOf(false) }
@@ -52,6 +53,7 @@ fun FitnessAppConnectionScreen(
             if (hasPermissions) {
                 errorMessage = null
                 connectionSuccess = true
+                isConnected = true
                 preferenceManager.setUseHealthConnect(true)
                 preferenceManager.setHealthConnectConnected(true)
                 preferenceManager.setConnectedFitnessAppName(selectedAppName)
@@ -253,8 +255,8 @@ fun FitnessAppConnectionScreen(
                 }
                 // Health Connect 사용 가능 상태
                 else {
-                    // 연결된 상태
-                    if (hasPermissions) {
+                    // 연결된 상태 (preferenceManager 기준)
+                    if (isConnected) {
                         val connectedAppName = preferenceManager.getConnectedFitnessAppName()
 
                         Box(
@@ -364,7 +366,7 @@ fun FitnessAppConnectionScreen(
                                         .clickable {
                                             hapticManager.warning()
                                             preferenceManager.disconnectHealthConnect()
-                                            hasPermissions = false
+                                            isConnected = false
 
                                             StepCounterService.stop(context)
                                             StepCounterService.start(context)
@@ -491,7 +493,7 @@ fun FitnessAppConnectionScreen(
                     }
                 }
 
-                Spacer(modifier = Modifier.height(32.dp))
+                Spacer(modifier = Modifier.height(72.dp))
             }
         }
     }

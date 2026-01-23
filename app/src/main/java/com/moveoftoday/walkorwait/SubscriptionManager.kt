@@ -155,7 +155,7 @@ class SubscriptionManager(private val context: Context) {
      * 친구 초대 코드 생성
      */
     private fun generateInviteCode(userId: String): String {
-        return "STAND-${userId.take(6).uppercase()}"
+        return "REBON-${userId.take(6).uppercase()}"
     }
 
     /**

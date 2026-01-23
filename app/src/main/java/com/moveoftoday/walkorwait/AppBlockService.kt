@@ -225,6 +225,9 @@ class AppBlockService : AccessibilityService() {
 
         Log.d(TAG, "!!! BLOCKING APP NOW !!!")
 
+        // Analytics: 앱 차단 추적
+        AnalyticsManager.trackAppBlocked(packageName)
+
         // 🚫 차단 햅틱 피드백
         hapticManager.blocked()
 

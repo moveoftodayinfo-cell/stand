@@ -137,6 +137,9 @@ class MainActivity : ComponentActivity() {
             Log.d(TAG, "Starting service")
             StepCounterService.start(this)
 
+            // Analytics: 메인 화면 조회
+            AnalyticsManager.trackScreenView("MainScreen", "MainActivity")
+
             Log.d(TAG, "=== onCreate COMPLETE ===")
         } catch (e: Exception) {
             Log.e(TAG, "❌ ERROR in onCreate: ${e.message}")
@@ -321,21 +324,115 @@ fun WalkOrWaitScreen(
 ) {
     val context = LocalContext.current
     val hapticManager = remember { HapticManager(context) }
+    val app = context.applicationContext as WalkorWaitApp
+    val repository = app.userDataRepository
 
-    // 설정 완료 상태 체크 - 새 16단계 통합 튜토리얼 사용
-    val isTutorialCompleted = remember { preferenceManager?.isTutorialCompleted() ?: false }
-    val isPaidDeposit = remember { preferenceManager?.isPaidDeposit() ?: false }
+    // Firebase 동기화 상태 관찰
+    val syncCompleted by repository.syncCompleted.collectAsState()
+    val userSettings by repository.userSettings.collectAsState()
+
+    // 동기화 완료 후 설정 상태 체크
+    val isTutorialCompleted = userSettings?.tutorialCompleted ?: preferenceManager?.isTutorialCompleted() ?: false
+    val isPaidDeposit = userSettings?.paidDeposit ?: preferenceManager?.isPaidDeposit() ?: false
     val needsRealGoal = remember { preferenceManager?.needsRealGoalSetup() ?: false }
+    val promoCodeType = remember { preferenceManager?.getPromoCodeType() }
+
+    // 구독/프로모션 상태 체크 (백그라운드에서 확인, 로딩 화면 없음)
+    var showExpiredPaymentScreen by remember { mutableStateOf(false) }
+
+    // 앱 시작 시 구독/프로모션 상태 백그라운드 확인
+    LaunchedEffect(Unit) {
+        if (isTutorialCompleted) {
+            // 1. 프로모션 코드 사용자: 프로모션 기간 체크
+            if (promoCodeType != null) {
+                val isPromoValid = preferenceManager?.isInPromoFreePeriod() ?: false
+                if (!isPromoValid) {
+                    // 프로모션 기간 만료 → 프로모션 정보 삭제 후 결제 화면
+                    preferenceManager?.clearPromoCode()
+                    preferenceManager?.setPaidDeposit(false)
+                    showExpiredPaymentScreen = true
+                }
+                return@LaunchedEffect
+            }
+
+            // 2. 일반 사용자: Google Play 구독 상태 확인
+            // 로컬에 이미 결제 완료 상태면 Google Play 체크 건너뛰기 (연결 실패 시 상태 유지)
+            if (isPaidDeposit) {
+                return@LaunchedEffect
+            }
+
+            val billingManager = BillingManager(
+                context = context,
+                onConnectionReady = {}
+            )
+
+            delay(2000)  // 연결 시간 여유 확보
+
+            billingManager.checkActiveSubscription { isActive, _ ->
+                if (!isActive) {
+                    showExpiredPaymentScreen = true
+                    preferenceManager?.setPaidDeposit(false)
+                }
+            }
+        }
+    }
 
     // 설정 플로우 상태 - 16단계 통합 튜토리얼
-    var showPetOnboarding by remember { mutableStateOf(!isTutorialCompleted) }
-    var showRealGoalSetup by remember { mutableStateOf(needsRealGoal && isTutorialCompleted) }
+    // syncCompleted 후 tutorialCompleted 상태에 따라 결정
+    var showPetOnboarding by remember { mutableStateOf(false) }
+    var showRealGoalSetup by remember { mutableStateOf(false) }
+
+    // Firebase 동기화 완료 후 튜토리얼 상태 결정
+    LaunchedEffect(syncCompleted, isTutorialCompleted) {
+        if (syncCompleted) {
+            showPetOnboarding = !isTutorialCompleted
+            // showRealGoalSetup이 이미 true면 덮어쓰지 않음 (onComplete 콜백에서 설정된 경우)
+            if (!showRealGoalSetup) {
+                showRealGoalSetup = needsRealGoal && isTutorialCompleted
+            }
+        }
+    }
     var showWidgetRecommendation by remember { mutableStateOf(false) }
 
-    // Get pet info for main screen - mutableState로 변경하여 튜토리얼 후 업데이트 반영
-    var petTypeName by remember { mutableStateOf(preferenceManager?.getPetType() ?: "DOG1") }
+    // Get pet info from Firebase or local - 동기화된 데이터 우선 사용
+    var petTypeName by remember { mutableStateOf(userSettings?.petType ?: preferenceManager?.getPetType() ?: "DOG1") }
     var petType by remember { mutableStateOf(PetType.entries.find { it.name == petTypeName } ?: PetType.DOG1) }
-    var petName by remember { mutableStateOf(preferenceManager?.getPetName() ?: "멍이") }
+    var petName by remember { mutableStateOf(userSettings?.petName ?: preferenceManager?.getPetName() ?: "멍이") }
+
+    // Firebase 동기화 완료 후 펫 정보 업데이트
+    LaunchedEffect(userSettings?.petType, userSettings?.petName) {
+        userSettings?.let {
+            petTypeName = it.petType
+            petType = PetType.entries.find { p -> p.name == it.petType } ?: PetType.DOG1
+            petName = it.petName
+        }
+    }
+
+    // 0. Firebase 동기화 대기 중 로딩 화면
+    if (!syncCompleted) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(MockupColors.Background),
+            contentAlignment = Alignment.Center
+        ) {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                CircularProgressIndicator(
+                    color = MockupColors.Border,
+                    modifier = Modifier.size(48.dp)
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+                Text(
+                    text = "데이터 불러오는 중...",
+                    color = MockupColors.TextSecondary,
+                    fontSize = 14.sp
+                )
+            }
+        }
+        return
+    }
 
     // 1. Pet onboarding - 16단계 통합 튜토리얼 (펫 선택부터 결제/위젯까지)
     if (showPetOnboarding) {
@@ -353,6 +450,26 @@ fun WalkOrWaitScreen(
                 showPetOnboarding = false
                 // 튜토리얼 완료 후 실제 목표 설정 화면 표시
                 showRealGoalSetup = true
+            },
+            onDataRestored = {
+                // Google 로그인으로 기존 데이터 복원됨 - 튜토리얼 스킵
+                val restoredPetTypeName = preferenceManager?.getPetType()
+                val restoredPetName = preferenceManager?.getPetName() ?: "반려동물"
+                val restoredPetType = restoredPetTypeName?.let {
+                    PetType.entries.find { pet -> pet.name == it }
+                } ?: PetType.DOG1
+
+                petType = restoredPetType
+                petName = restoredPetName
+                petTypeName = restoredPetTypeName ?: "DOG1"
+                showPetOnboarding = false
+                // 데이터 복원이므로 실제 목표 설정 화면 표시하지 않음
+                showRealGoalSetup = false
+
+                // Analytics 추적
+                AnalyticsManager.trackSettingsChanged("data_restored", "google_signin")
+
+                android.util.Log.d("MainActivity", "✅ Data restored from Google account")
             },
             hapticManager = hapticManager,
             preferenceManager = preferenceManager
@@ -375,6 +492,27 @@ fun WalkOrWaitScreen(
         return
     }
 
+    // 3. 구독 만료 시 결제 화면 (새 레트로 디자인)
+    if (showExpiredPaymentScreen) {
+        val savedPetType = preferenceManager?.getPetType()?.let {
+            PetType.entries.find { pet -> pet.name == it }
+        } ?: PetType.DOG1
+        val savedPetName = preferenceManager?.getPetName() ?: "반려동물"
+
+        PetDepositSettingScreen(
+            petType = savedPetType,
+            petName = savedPetName,
+            preferenceManager = preferenceManager,
+            hapticManager = hapticManager,
+            startAtStep = 2,  // 결제 화면으로 바로 이동
+            onComplete = {
+                // 결제 완료 시
+                showExpiredPaymentScreen = false
+            }
+        )
+        return
+    }
+
     // 위젯 추천 다이얼로그
     if (showWidgetRecommendation) {
         WidgetRecommendationDialog(
@@ -383,13 +521,60 @@ fun WalkOrWaitScreen(
         )
     }
 
+    // 서버 공지 팝업
+    var announcement by remember { mutableStateOf<AnnouncementManager.Announcement?>(null) }
+    val announcementManager = remember { AnnouncementManager(context) }
+    val scope = rememberCoroutineScope()
+
+    LaunchedEffect(Unit) {
+        announcement = announcementManager.getActiveAnnouncement()
+    }
+
+    if (announcement != null) {
+        AnnouncementDialog(
+            announcement = announcement!!,
+            onDismiss = {
+                // 오늘 그만보기
+                announcementManager.dismissForToday(announcement!!.id)
+                announcement = null
+            },
+            onPrimaryAction = {
+                // 메인 버튼 클릭 시에도 오늘 그만보기
+                announcementManager.dismissForToday(announcement!!.id)
+                announcement = null
+            },
+            hapticManager = hapticManager
+        )
+    }
+
     // 단위에 따라 자동 전환
-    val goalUnit = remember { preferenceManager?.getGoalUnit() ?: "steps" }
+    var goalUnit by remember { mutableStateOf(preferenceManager?.getGoalUnit() ?: "steps") }
     var currentProgress by remember { mutableDoubleStateOf(preferenceManager?.getCurrentProgress() ?: 0.0) } // 비교용 (걸음 수 기준)
     var currentProgressDisplay by remember { mutableDoubleStateOf(preferenceManager?.getCurrentProgressForDisplay() ?: 0.0) } // 표시용
     var goal by remember { mutableIntStateOf(preferenceManager?.getGoal() ?: 8000) }
-    val goalDisplay = remember { preferenceManager?.getGoalForDisplay() ?: 8000.0 } // 표시용
+    var goalDisplay by remember { mutableDoubleStateOf(preferenceManager?.getGoalForDisplay() ?: 8000.0) } // 표시용
     var showSettingsScreen by remember { mutableStateOf(false) }
+
+    // 설정 화면 닫을 때 펫 정보 및 목표 단위 다시 로드
+    LaunchedEffect(showSettingsScreen) {
+        if (!showSettingsScreen) {
+            // 펫 정보 다시 로드
+            val savedPetTypeName = preferenceManager?.getPetType()
+            val savedPetName = preferenceManager?.getPetName()
+            if (savedPetTypeName != null && savedPetTypeName != petTypeName) {
+                petTypeName = savedPetTypeName
+                petType = PetType.entries.find { it.name == savedPetTypeName } ?: PetType.DOG1
+            }
+            if (savedPetName != null && savedPetName != petName) {
+                petName = savedPetName
+            }
+            // 목표 단위 및 목표 값 다시 로드
+            goalUnit = preferenceManager?.getGoalUnit() ?: "steps"
+            goal = preferenceManager?.getGoal() ?: 8000
+            goalDisplay = preferenceManager?.getGoalForDisplay() ?: 8000.0
+            currentProgressDisplay = preferenceManager?.getCurrentProgressForDisplay() ?: 0.0
+        }
+    }
 
     var previousGoalAchieved by remember { mutableStateOf(false) }
     var triggerCelebration by remember { mutableStateOf(false) }
@@ -408,7 +593,9 @@ fun WalkOrWaitScreen(
                 preferenceManager?.setStreakCelebrationSeen()
                 showStreakCelebration = false
             },
-            hapticManager = hapticManager
+            hapticManager = hapticManager,
+            petType = petType,
+            petName = petName
         )
     }
 
@@ -447,11 +634,19 @@ fun WalkOrWaitScreen(
                 preferenceManager?.checkAndRecordTodaySuccess()
                 successDays = preferenceManager?.getSuccessDays() ?: 0
 
+                // Analytics: 목표 달성 추적
+                AnalyticsManager.trackGoalAchieved(goal.toInt(), currentProgress.toInt())
+
                 // 연속 달성 업데이트 및 축하 다이얼로그 표시
                 if (preferenceManager?.hasSeenStreakCelebrationToday() == false) {
                     currentStreak = preferenceManager.updateStreakOnGoalAchieved()
                     weeklyAchievements = preferenceManager.getWeeklyAchievements()
                     showStreakCelebration = true
+
+                    // Analytics: 스트릭 마일스톤 추적
+                    if (currentStreak > 0) {
+                        AnalyticsManager.trackStreakMilestone(currentStreak)
+                    }
                 }
             } else if (isNowAchieved) {
                 preferenceManager?.checkAndRecordTodaySuccess()
@@ -521,6 +716,13 @@ fun WalkOrWaitScreen(
         // Pet Main Screen (main.png 스타일)
         val petHappiness = remember { preferenceManager?.getPetHappiness() ?: 3 }
 
+        // 자유 시간 체크: 제어 요일이 아니거나 제어 시간대가 아님
+        val isFreeTime = remember {
+            val isControlDay = preferenceManager?.isTodayControlDay() ?: true
+            val isBlockingPeriod = preferenceManager?.isInBlockingPeriod() ?: true
+            !isControlDay || !isBlockingPeriod
+        }
+
         PetMainScreen(
             petType = petType,
             petName = petName,
@@ -533,7 +735,8 @@ fun WalkOrWaitScreen(
                 showSettingsScreen = true
             },
             hapticManager = hapticManager,
-            modifier = modifier
+            modifier = modifier,
+            isFreeTime = isFreeTime
         )
     }
 
@@ -552,7 +755,9 @@ fun WalkOrWaitScreen(
                 preferenceManager?.setStreakCelebrationSeen()
                 showStreakCelebration = false
             },
-            hapticManager = hapticManager
+            hapticManager = hapticManager,
+            petType = petType,
+            petName = petName
         )
     }
 

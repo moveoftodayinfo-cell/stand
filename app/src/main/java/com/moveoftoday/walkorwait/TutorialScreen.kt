@@ -284,7 +284,7 @@ fun WelcomeStep(hapticManager: HapticManager? = null, onNext: () -> Unit) {
                 Spacer(modifier = Modifier.height(24.dp))
 
                 Text(
-                    text = "Stand",
+                    text = "rebon",
                     fontSize = 48.sp,
                     fontWeight = FontWeight.Bold,
                     color = Color.White
@@ -318,7 +318,7 @@ fun WelcomeStep(hapticManager: HapticManager? = null, onNext: () -> Unit) {
                 .clip(RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp))
                 .background(BottomSheetBg)
                 .padding(horizontal = 24.dp)
-                .padding(top = 32.dp, bottom = 48.dp)
+                .padding(top = 32.dp, bottom = 72.dp)
                 .alpha(fadeAlpha)
         ) {
             Column(
@@ -427,7 +427,7 @@ fun PermissionStep(
                 Spacer(modifier = Modifier.height(32.dp))
 
                 Text(
-                    text = "Stand가 제대로 작동하려면\n아래 권한이 필요해요",
+                    text = "rebon이 제대로 작동하려면\n아래 권한이 필요해요",
                     fontSize = StandTypography.bodyLarge,
                     textAlign = TextAlign.Center,
                     color = Color.White.copy(alpha = 0.7f),
@@ -833,7 +833,7 @@ fun FitnessAppConnectionTutorialStep(
     }
 }
 
-// 4. 접근성 설정 (Stand ON - 필수!)
+// 4. 접근성 설정 (rebon ON - 필수!)
 @Composable
 fun AccessibilityStep(
     hapticManager: HapticManager? = null,
@@ -918,7 +918,7 @@ fun AccessibilityStep(
                         )
                         Spacer(modifier = Modifier.height(8.dp))
                         Text(
-                            text = "1. 아래 버튼을 눌러 설정 화면으로 이동\n2. 설정 화면에서 'Stand' 찾기\n3. Stand를 ON으로 전환\n4. 확인 버튼 누르기\n\n✅ ON 확인되면 자동으로 다음 단계로!",
+                            text = "1. 아래 버튼을 눌러 설정 화면으로 이동\n2. 설정 화면에서 'rebon' 찾기\n3. rebon을 ON으로 전환\n4. 확인 버튼 누르기\n\n✅ ON 확인되면 자동으로 다음 단계로!",
                             fontSize = StandTypography.bodyMedium,
                             color = Color.White.copy(alpha = 0.7f),
                             lineHeight = 20.sp
@@ -946,7 +946,7 @@ fun AccessibilityStep(
                 Spacer(modifier = Modifier.height(16.dp))
 
                 Text(
-                    text = "⚠️ Stand ON을 해야 다음 단계로 진행됩니다",
+                    text = "⚠️ rebon ON을 해야 다음 단계로 진행됩니다",
                     fontSize = StandTypography.labelLarge,
                     color = MockupColors.Red,
                     textAlign = TextAlign.Center
@@ -1388,7 +1388,7 @@ fun TestBlockingStep(
                                 )
                                 Spacer(modifier = Modifier.height(8.dp))
                                 Text(
-                                    text = "1. 홈 버튼을 눌러 나가기\n2. 선택한 앱 실행\n3. 차단 메시지 확인\n4. Stand로 돌아오기",
+                                    text = "1. 홈 버튼을 눌러 나가기\n2. 선택한 앱 실행\n3. 차단 메시지 확인\n4. rebon으로 돌아오기",
                                     fontSize = StandTypography.bodyMedium,
                                     color = Color.White.copy(alpha = 0.7f),
                                     lineHeight = 22.sp
@@ -2073,7 +2073,7 @@ fun WalkingStep(
                                 )
                                 Spacer(modifier = Modifier.height(8.dp))
                                 Text(
-                                    text = "1. 홈 버튼으로 나가기\n2. 차단했던 앱 실행\n3. 이제 앱이 열립니다!\n4. Stand로 돌아오기",
+                                    text = "1. 홈 버튼으로 나가기\n2. 차단했던 앱 실행\n3. 이제 앱이 열립니다!\n4. rebon으로 돌아오기",
                                     fontSize = StandTypography.bodyMedium,
                                     color = Color.White.copy(alpha = 0.7f),
                                     lineHeight = 22.sp
@@ -2331,7 +2331,7 @@ fun UnlockedStep(
                             PixelIcon(iconName = "icon_light_bulb", size = 18.dp)
                             Spacer(modifier = Modifier.width(6.dp))
                             Text(
-                                text = "Stand의 핵심",
+                                text = "rebon의 핵심",
                                 fontSize = StandTypography.bodyLarge,
                                 fontWeight = FontWeight.Bold,
                                 color = StandColors.WarmLightBright

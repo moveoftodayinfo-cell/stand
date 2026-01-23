@@ -10,6 +10,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.lang.ref.WeakReference
 
 class BillingManager(
     private val context: Context,
@@ -24,12 +25,15 @@ class BillingManager(
     private var isConnecting = false  // 연결 진행 중 상태 추적
     private var connectionRetryCount = 0
     private val maxRetries = 3
-    private var pendingActivity: Activity? = null  // 연결 대기 중인 Activity
+    private var pendingActivity: WeakReference<Activity>? = null  // 연결 대기 중인 Activity (WeakRef로 메모리 누수 방지)
+    private var pendingPetChangeActivity: WeakReference<Activity>? = null  // 펫 변경 대기 중인 Activity
 
-    // 구독 상품 ID (Google Play Console에서 생성)
+    // 상품 ID (Google Play Console에서 생성)
     companion object {
         // 단일 구독 상품: 월 4,900원 (한국/일본/미국 출시)
         const val SUBSCRIPTION_PRODUCT_ID = "standnew"
+        // 펫 변경 일회성 상품: 1,000원
+        const val PET_CHANGE_PRODUCT_ID = "pet_change"
     }
 
     fun isReady(): Boolean = isConnected
@@ -109,10 +113,17 @@ class BillingManager(
                     onConnectionReady()
 
                     // 대기 중인 구독 요청이 있으면 실행
-                    pendingActivity?.let { activity ->
+                    pendingActivity?.get()?.let { activity ->
                         Log.d(TAG, "📱 Processing pending subscription request")
                         pendingActivity = null
                         startSubscriptionInternal(activity)
+                    }
+
+                    // 대기 중인 펫 변경 요청이 있으면 실행
+                    pendingPetChangeActivity?.get()?.let { activity ->
+                        Log.d(TAG, "🐾 Processing pending pet change request")
+                        pendingPetChangeActivity = null
+                        startPetChangePurchaseInternal(activity)
                     }
                 } else {
                     val errorMsg = getErrorMessage(billingResult.responseCode)
@@ -125,6 +136,7 @@ class BillingManager(
                         connectBillingClient()
                     } else {
                         pendingActivity = null
+                        pendingPetChangeActivity = null
                         onPurchaseFailure("[0단계:연결실패] $errorMsg\n\n시도횟수: $connectionRetryCount/$maxRetries\n디버그: ${billingResult.debugMessage}\n\n※ Play Store 앱이 최신 버전인지, 로그인되어 있는지 확인하세요")
                     }
                 }
@@ -159,13 +171,13 @@ class BillingManager(
         // 연결 진행 중 - 대기열에 추가
         if (isConnecting) {
             Log.d(TAG, "⏳ Connection in progress, queuing subscription request...")
-            pendingActivity = activity
+            pendingActivity = WeakReference(activity)
             return
         }
 
         // 연결 안됨 - 연결 시도 후 구독 시작
         Log.d(TAG, "⏳ Billing client not connected, attempting to connect...")
-        pendingActivity = activity
+        pendingActivity = WeakReference(activity)
         connectionRetryCount = 0
         connectBillingClient()
     }
@@ -290,7 +302,10 @@ class BillingManager(
         Log.d(TAG, "📦 Handling purchase: ${purchase.orderId}")
 
         if (purchase.purchaseState == Purchase.PurchaseState.PURCHASED) {
-            if (!purchase.isAcknowledged) {
+            // 펫 변경은 소비성 상품 (재구매 가능)
+            if (purchase.products.contains(PET_CHANGE_PRODUCT_ID)) {
+                consumePurchase(purchase)
+            } else if (!purchase.isAcknowledged) {
                 acknowledgePurchase(purchase)
             } else {
                 onPurchaseSuccess(purchase)
@@ -312,6 +327,12 @@ class BillingManager(
             val result = billingClient.acknowledgePurchase(acknowledgePurchaseParams)
             if (result.responseCode == BillingClient.BillingResponseCode.OK) {
                 Log.d(TAG, "✅ Purchase acknowledged")
+
+                // Analytics: 구독 결제 추적
+                val productId = purchase.products.firstOrNull() ?: "stand_monthly"
+                AnalyticsManager.trackPurchaseCompleted(productId, 4700.0)
+                AnalyticsManager.trackSubscriptionStart("google_play")
+
                 withContext(Dispatchers.Main) {
                     onPurchaseSuccess(purchase)
                 }
@@ -368,6 +389,120 @@ class BillingManager(
 
             withContext(Dispatchers.Main) {
                 callback(activePurchase != null, activePurchase)
+            }
+        }
+    }
+
+    /**
+     * 펫 변경 구매 (일회성 1,000원)
+     */
+    fun startPetChangePurchase(activity: Activity) {
+        // 이미 연결됨 - 바로 구매 시작
+        if (isConnected) {
+            Log.d(TAG, "✅ Already connected, starting pet change purchase...")
+            startPetChangePurchaseInternal(activity)
+            return
+        }
+
+        // 연결 진행 중 - 대기열에 추가
+        if (isConnecting) {
+            Log.d(TAG, "⏳ Connection in progress, queuing pet change request...")
+            pendingPetChangeActivity = WeakReference(activity)
+            return
+        }
+
+        // 연결 안됨 - 연결 시도 후 구매 시작
+        Log.d(TAG, "⏳ Billing client not connected, attempting to connect for pet change...")
+        pendingPetChangeActivity = WeakReference(activity)
+        connectionRetryCount = 0
+        connectBillingClient()
+    }
+
+    private fun startPetChangePurchaseInternal(activity: Activity) {
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                Log.d(TAG, "🐾 Starting pet change purchase")
+
+                val productList = listOf(
+                    QueryProductDetailsParams.Product.newBuilder()
+                        .setProductId(PET_CHANGE_PRODUCT_ID)
+                        .setProductType(BillingClient.ProductType.INAPP)
+                        .build()
+                )
+
+                val params = QueryProductDetailsParams.newBuilder()
+                    .setProductList(productList)
+                    .build()
+
+                val productDetailsResult = billingClient.queryProductDetails(params)
+
+                if (productDetailsResult.billingResult.responseCode != BillingClient.BillingResponseCode.OK) {
+                    val errorMsg = getErrorMessage(productDetailsResult.billingResult.responseCode)
+                    withContext(Dispatchers.Main) {
+                        onPurchaseFailure("[펫변경] 상품 조회 실패: $errorMsg")
+                    }
+                    return@launch
+                }
+
+                val productDetails = productDetailsResult.productDetailsList?.firstOrNull()
+                if (productDetails == null) {
+                    withContext(Dispatchers.Main) {
+                        onPurchaseFailure("[펫변경] 상품을 찾을 수 없습니다\n\nPlay Console에서 '$PET_CHANGE_PRODUCT_ID' 상품이 활성 상태인지 확인하세요")
+                    }
+                    return@launch
+                }
+
+                Log.d(TAG, "✅ Pet change product found: ${productDetails.name}")
+
+                val productDetailsParamsList = listOf(
+                    BillingFlowParams.ProductDetailsParams.newBuilder()
+                        .setProductDetails(productDetails)
+                        .build()
+                )
+
+                val billingFlowParams = BillingFlowParams.newBuilder()
+                    .setProductDetailsParamsList(productDetailsParamsList)
+                    .build()
+
+                withContext(Dispatchers.Main) {
+                    val billingResult = billingClient.launchBillingFlow(activity, billingFlowParams)
+                    if (billingResult.responseCode != BillingClient.BillingResponseCode.OK) {
+                        val errorMsg = getErrorMessage(billingResult.responseCode)
+                        onPurchaseFailure("[펫변경] 결제 시작 실패: $errorMsg")
+                    }
+                }
+
+            } catch (e: Exception) {
+                Log.e(TAG, "❌ Error starting pet change purchase: ${e.message}")
+                withContext(Dispatchers.Main) {
+                    onPurchaseFailure("[펫변경] 오류: ${e.message}")
+                }
+            }
+        }
+    }
+
+    /**
+     * 일회성 구매 소비 (재구매 가능하게)
+     */
+    private fun consumePurchase(purchase: Purchase) {
+        val consumeParams = ConsumeParams.newBuilder()
+            .setPurchaseToken(purchase.purchaseToken)
+            .build()
+
+        CoroutineScope(Dispatchers.IO).launch {
+            val result = billingClient.consumePurchase(consumeParams)
+            if (result.billingResult.responseCode == BillingClient.BillingResponseCode.OK) {
+                Log.d(TAG, "✅ Purchase consumed (can buy again)")
+
+                // Analytics 추적
+                val productId = purchase.products.firstOrNull() ?: "pet_change"
+                AnalyticsManager.trackPurchaseCompleted(productId, 1000.0)
+
+                withContext(Dispatchers.Main) {
+                    onPurchaseSuccess(purchase)
+                }
+            } else {
+                Log.e(TAG, "❌ Failed to consume purchase: ${result.billingResult.debugMessage}")
             }
         }
     }

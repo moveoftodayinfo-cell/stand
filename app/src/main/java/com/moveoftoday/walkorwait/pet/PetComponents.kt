@@ -85,6 +85,10 @@ object MockupColors {
     val AchievedCard = Color(0xFFBBDEFB)        // Blue lighter
     val SadBackground = Color(0xFFE0E0E0)
     val SadCard = Color(0xFFD0D0D0)
+
+    // Free time (자유 시간) - 연한 녹색 배경
+    val FreeTimeBackground = Color(0xFFE8F5E9)  // Light green
+    val FreeTimeCard = Color(0xFFC8E6C9)        // Lighter green
 }
 
 /**
@@ -211,10 +215,12 @@ val SpeechBubbleShape: Shape = GenericShape { size, _ ->
 fun SpeechBubble(
     text: String,
     modifier: Modifier = Modifier,
-    fontSize: androidx.compose.ui.unit.TextUnit = 14.sp
+    fontSize: androidx.compose.ui.unit.TextUnit = 14.sp,
+    maxWidth: Dp = 250.dp
 ) {
     Box(
         modifier = modifier
+            .widthIn(max = maxWidth)
             .shadow(4.dp, SpeechBubbleShape)
             .clip(SpeechBubbleShape)
             .background(Color.White)
@@ -227,7 +233,8 @@ fun SpeechBubble(
             color = MockupColors.TextPrimary,
             fontSize = fontSize,
             fontWeight = FontWeight.Medium,
-            textAlign = TextAlign.Center
+            textAlign = TextAlign.Center,
+            lineHeight = fontSize * 1.3f
         )
     }
 }
@@ -635,7 +642,7 @@ fun TutorialNavigationDots(
 
 /**
  * Common tutorial step layout with fixed elements
- * - Title "Stand" (fixed)
+ * - Title "rebon" (fixed)
  * - Display area with stripe background (fixed)
  * - Instruction text (fixed)
  * - Middle content (변경 가능)
@@ -664,14 +671,14 @@ fun TutorialStepLayout(
         modifier = Modifier
             .fillMaxSize()
             .padding(horizontal = 20.dp)
-            .padding(bottom = 24.dp),
+            .padding(bottom = 72.dp),  // 3버튼 네비게이션 고려
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Spacer(modifier = Modifier.height(60.dp))
 
         // Title - 고정
         Text(
-            text = "Stand",
+            text = "rebon",
             fontSize = 32.sp,
             fontFamily = kenneyFont,
             fontWeight = FontWeight.Bold,

@@ -4,7 +4,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@drawable/widget_background"
-    android:padding="6dp"
+    android:padding="8dp"
     android:orientation="vertical">
 
     <!-- Header: Streak + Title -->
@@ -42,6 +42,7 @@
             android:id="@+id/widget_title"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginEnd="8dp"
             android:text="Stand"
             android:textColor="#222222"
             android:textSize="11sp"
@@ -52,22 +53,23 @@
     <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="1dp"
-        android:layout_marginTop="3dp"
-        android:layout_marginBottom="3dp"
+        android:layout_marginTop="6dp"
+        android:layout_marginBottom="6dp"
         android:background="#CCCCCC" />
 
-    <!-- Pet Icon + Speech Bubble -->
+    <!-- Pet Icon + Speech Bubble (중앙 영역 - 확장) -->
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="0dp"
+        android:layout_weight="1"
         android:orientation="horizontal"
         android:gravity="center_vertical">
 
         <!-- Pet Icon (grayscale) -->
         <ImageView
             android:id="@+id/widget_pet_icon"
-            android:layout_width="20dp"
-            android:layout_height="20dp"
+            android:layout_width="28dp"
+            android:layout_height="28dp"
             android:scaleType="fitCenter"
             android:contentDescription="pet" />
 
@@ -77,15 +79,16 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:layout_marginStart="4dp"
+            android:layout_marginStart="6dp"
             android:text="산책하자..."
             android:textColor="#222222"
             android:textSize="10sp"
             android:background="@drawable/widget_speech_bubble"
-            android:paddingLeft="8dp"
-            android:paddingRight="6dp"
-            android:paddingTop="2dp"
-            android:paddingBottom="2dp"
+            android:paddingLeft="10dp"
+            android:paddingRight="10dp"
+            android:paddingTop="6dp"
+            android:paddingBottom="6dp"
+            android:gravity="center"
             android:maxLines="1"
             android:ellipsize="end" />
     </LinearLayout>
@@ -94,11 +97,11 @@
     <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="1dp"
-        android:layout_marginTop="3dp"
-        android:layout_marginBottom="3dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="4dp"
         android:background="#CCCCCC" />
 
-    <!-- Bottom: Steps + Progress -->
+    <!-- Bottom: Steps + Progress (하단 고정) -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -123,6 +126,7 @@
             android:layout_height="8dp"
             android:layout_weight="1"
             android:layout_marginStart="6dp"
+            android:layout_marginEnd="6dp"
             android:max="100"
             android:progress="0"
             android:progressDrawable="@drawable/widget_progress_drawable" />
@@ -135,8 +139,7 @@
             android:text="0%"
             android:textColor="#222222"
             android:textSize="9sp"
-            android:textStyle="bold"
-            android:layout_marginStart="4dp" />
+            android:textStyle="bold" />
     </LinearLayout>
 
 </LinearLayout>

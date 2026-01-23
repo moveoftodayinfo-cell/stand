@@ -23,6 +23,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.animation.core.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
@@ -35,11 +36,19 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.ColorMatrix
+import androidx.compose.foundation.Image
+import androidx.compose.ui.res.painterResource
+import coil.compose.AsyncImage
+import com.moveoftoday.walkorwait.R
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.moveoftoday.walkorwait.BillingManager
@@ -53,38 +62,47 @@ import com.moveoftoday.walkorwait.AppCategory
 import com.moveoftoday.walkorwait.PromoCodeManager
 import com.moveoftoday.walkorwait.SubscriptionManager
 import com.moveoftoday.walkorwait.SubscriptionModel
+import com.moveoftoday.walkorwait.AnalyticsManager
+import com.moveoftoday.walkorwait.WalkorWaitApp
+import com.moveoftoday.walkorwait.StepCounterService
+import com.moveoftoday.walkorwait.GoogleSignInHelper
+import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
+import android.app.Activity
+import android.util.Log
 
 /**
- * Complete Pet Onboarding Flow - 16 Steps:
+ * Complete Pet Onboarding Flow - 17 Steps:
  *
- * NO DOTS (0-2):
- * 0. Pet Selection
- * 1. Pet Name Input
- * 2. Tutorial All-in-One (함께 할 것 설명)
+ * NO DOTS (0-3):
+ * 0. Google Sign-In (데이터 백업) - 기존 데이터 있으면 메인으로 스킵
+ * 1. Pet Selection
+ * 2. Pet Name Input
+ * 3. Tutorial All-in-One (함께 할 것 설명)
  *
- * WITH DOTS (3-14, 12 dots total):
- * 3. Permission Settings (권한 설정) - dot 0
- * 4. Fitness App Connection (피트니스 연결) - dot 1
- * 5. Accessibility (접근성 권한) - dot 2
- * 6. App Selection (앱 선택) - dot 3
- * 7. Test Blocking (차단 테스트) - dot 4
- * 8. Goal Input (목표 입력) - dot 5
- * 9. Walking Test (걷기 테스트) - dot 6
- * 10. Unlocked (잠금 해제) - dot 7
- * 11. Control Days (제어 요일) - dot 8
- * 12. Block Time (차단 시간대) - dot 9
- * 13. Emergency Button (긴급 버튼) - dot 10
- * 14. Payment (결제) - dot 11
+ * WITH DOTS (4-15, 12 dots total):
+ * 4. Permission Settings (권한 설정) - dot 0
+ * 5. Fitness App Connection (피트니스 연결) - dot 1
+ * 6. Accessibility (접근성 권한) - dot 2
+ * 7. App Selection (앱 선택) - dot 3
+ * 8. Test Blocking (차단 테스트) - dot 4
+ * 9. Goal Input (목표 입력) - dot 5
+ * 10. Walking Test (걷기 테스트) - dot 6
+ * 11. Unlocked (잠금 해제) - dot 7
+ * 12. Emergency Button (긴급 버튼) - dot 8
+ * 13. Control Days (제어 요일) - dot 9
+ * 14. Block Time (차단 시간대) - dot 10
+ * 15. Payment (결제) - dot 11
  *
- * NO DOTS (15):
- * 15. Widget Setup (위젯 설정)
+ * NO DOTS (16):
+ * 16. Widget Setup (위젯 설정)
  */
 @Composable
 fun PetOnboardingScreen(
     onComplete: (PetType, String) -> Unit,
+    onDataRestored: () -> Unit = {},  // 기존 데이터 복원 시 튜토리얼 스킵
     hapticManager: HapticManager? = null,
     preferenceManager: PreferenceManager? = null
 ) {
@@ -101,22 +119,39 @@ fun PetOnboardingScreen(
     // 저장된 단계 불러오기 (펫 정보가 있어야만 복원)
     val savedStep = remember {
         val step = prefManager.getTutorialCurrentStep()
-        // 펫 정보가 필요한 단계(3 이상)인데 펫 정보가 없으면 0으로 리셋
-        if (step >= 3 && savedPetType == null) 0 else step
+        // 펫 정보가 필요한 단계(4 이상)인데 펫 정보가 없으면 0으로 리셋
+        // Step 0: Google Sign-In, Step 1-2: Pet setup, Step 3: Tutorial + Google login, Step 4+: Main tutorial
+        if (step >= 4 && savedPetType == null) 0 else step
     }
 
     var currentStep by remember { mutableIntStateOf(savedStep) }
     var selectedPetType by remember { mutableStateOf(savedPetType) }
     var petName by remember { mutableStateOf(if (savedStep > 1 && savedPetName.isNotBlank()) savedPetName else "") }
 
-    // 단계 변경 시 저장
+    // 단계 변경 시 저장 및 Analytics 추적
     LaunchedEffect(currentStep) {
         prefManager.saveTutorialCurrentStep(currentStep)
+
+        // Analytics: 튜토리얼 단계 추적
+        if (currentStep == 0) {
+            AnalyticsManager.trackTutorialBegin()
+        }
+        AnalyticsManager.trackTutorialStep(currentStep)
     }
 
-    // 네비게이션 닷 계산 (Step 3-14는 닷 표시, 12개)
-    val showDots = currentStep in 3..14
-    val dotStep = if (showDots) currentStep - 3 else 0
+    // Analytics: 튜토리얼 이탈 추적 (앱 종료 또는 화면 이탈 시)
+    DisposableEffect(Unit) {
+        onDispose {
+            // 튜토리얼 완료 전에 이탈한 경우 추적
+            if (currentStep < 16) {
+                AnalyticsManager.trackTutorialExit(currentStep)
+            }
+        }
+    }
+
+    // 네비게이션 닷 계산 (Step 4-15는 닷 표시, 12개) - Step 3은 튜토리얼 + 구글 로그인
+    val showDots = currentStep in 4..15
+    val dotStep = if (showDots) currentStep - 4 else 0
     val totalDots = 12
 
     Box(
@@ -125,8 +160,26 @@ fun PetOnboardingScreen(
             .background(MockupColors.Background)
     ) {
         when (currentStep) {
-            // === NO DOTS (0-2) ===
-            0 -> PetSelectionStep(
+            // === NO DOTS (0) - Google 로그인 (맨 처음) ===
+            0 -> GoogleSignInStep(
+                hapticManager = hapticManager,
+                onNext = {
+                    hapticManager?.click()
+                    currentStep = 1  // 펫 선택으로
+                },
+                onSkip = {
+                    hapticManager?.click()
+                    currentStep = 1  // 펫 선택으로
+                },
+                onDataRestored = {
+                    // 기존 데이터 복원 성공 - 튜토리얼 스킵
+                    hapticManager?.success()
+                    onDataRestored()
+                }
+            )
+
+            // === NO DOTS (1-3) ===
+            1 -> PetSelectionStep(
                 selectedPet = selectedPetType,
                 onPetSelected = {
                     selectedPetType = it
@@ -134,14 +187,16 @@ fun PetOnboardingScreen(
                     prefManager.savePetType(it.name)
                     // 위젯 업데이트
                     StepWidgetProvider.updateAllWidgets(context)
+                    // Analytics: 펫 선택 추적
+                    AnalyticsManager.trackPetSelected(it.name)
                 },
                 onNext = {
                     hapticManager?.click()
-                    currentStep = 1
+                    currentStep = 2
                 },
                 hapticManager = hapticManager
             )
-            1 -> PetNameInputStep(
+            2 -> PetNameInputStep(
                 petType = selectedPetType!!,
                 currentName = petName,
                 onNameChanged = {
@@ -151,55 +206,41 @@ fun PetOnboardingScreen(
                 },
                 onNext = {
                     hapticManager?.click()
-                    currentStep = 2
+                    currentStep = 3  // 튜토리얼 + 구글 로그인으로
                 },
                 hapticManager = hapticManager
             )
-            2 -> TutorialAllInOneStep(
-                petType = selectedPetType!!,
-                petName = petName,
-                onComplete = {
-                    hapticManager?.click()
-                    currentStep = 3
-                }
-            )
 
-            // === WITH DOTS (3-14) ===
-            3 -> PermissionSettingsStep(
+            // === NO DOTS (3) - 튜토리얼 + 구글 로그인 ===
+            3 -> TutorialAllInOneStep(
                 petType = selectedPetType!!,
                 petName = petName,
-                dotStep = dotStep,
-                totalDots = totalDots,
                 hapticManager = hapticManager,
-                onNext = {
+                onGoogleLogin = {
+                    // 구글 로그인 성공 후 다음 단계로
+                    hapticManager?.success()
+                    currentStep = 4
+                },
+                onSkip = {
+                    // 로그인 스킵하고 다음 단계로
                     hapticManager?.click()
                     currentStep = 4
                 }
             )
-            4 -> FitnessConnectionStep(
+
+            // === WITH DOTS (4-15) ===
+            4 -> PermissionSettingsStep(
                 petType = selectedPetType!!,
                 petName = petName,
                 dotStep = dotStep,
                 totalDots = totalDots,
-                preferenceManager = prefManager,
                 hapticManager = hapticManager,
                 onNext = {
                     hapticManager?.click()
                     currentStep = 5
                 }
             )
-            5 -> AccessibilityStep(
-                petType = selectedPetType!!,
-                petName = petName,
-                dotStep = dotStep,
-                totalDots = totalDots,
-                hapticManager = hapticManager,
-                onNext = {
-                    hapticManager?.click()
-                    currentStep = 6
-                }
-            )
-            6 -> AppSelectionStep(
+            5 -> FitnessConnectionStep(
                 petType = selectedPetType!!,
                 petName = petName,
                 dotStep = dotStep,
@@ -208,10 +249,33 @@ fun PetOnboardingScreen(
                 hapticManager = hapticManager,
                 onNext = {
                     hapticManager?.click()
+                    currentStep = 6
+                }
+            )
+            6 -> AccessibilityStep(
+                petType = selectedPetType!!,
+                petName = petName,
+                dotStep = dotStep,
+                totalDots = totalDots,
+                hapticManager = hapticManager,
+                onNext = {
+                    hapticManager?.click()
                     currentStep = 7
                 }
             )
-            7 -> TestBlockingStep(
+            7 -> AppSelectionStep(
+                petType = selectedPetType!!,
+                petName = petName,
+                dotStep = dotStep,
+                totalDots = totalDots,
+                preferenceManager = prefManager,
+                hapticManager = hapticManager,
+                onNext = {
+                    hapticManager?.click()
+                    currentStep = 8
+                }
+            )
+            8 -> TestBlockingStep(
                 petType = selectedPetType!!,
                 petName = petName,
                 dotStep = dotStep,
@@ -222,22 +286,10 @@ fun PetOnboardingScreen(
                     hapticManager?.click()
                     // 차단 테스트 상태 클리어
                     prefManager.clearBlockingTestStarted()
-                    currentStep = 8
-                }
-            )
-            8 -> GoalInputStep(
-                petType = selectedPetType!!,
-                petName = petName,
-                dotStep = dotStep,
-                totalDots = totalDots,
-                preferenceManager = prefManager,
-                hapticManager = hapticManager,
-                onNext = {
-                    hapticManager?.click()
                     currentStep = 9
                 }
             )
-            9 -> WalkingTestStep(
+            9 -> GoalInputStep(
                 petType = selectedPetType!!,
                 petName = petName,
                 dotStep = dotStep,
@@ -249,30 +301,41 @@ fun PetOnboardingScreen(
                     currentStep = 10
                 }
             )
-            10 -> UnlockedStep(
+            10 -> WalkingTestStep(
                 petType = selectedPetType!!,
                 petName = petName,
                 dotStep = dotStep,
                 totalDots = totalDots,
+                preferenceManager = prefManager,
                 hapticManager = hapticManager,
                 onNext = {
                     hapticManager?.click()
                     currentStep = 11
                 }
             )
-            11 -> ControlDaysStep(
+            11 -> UnlockedStep(
                 petType = selectedPetType!!,
                 petName = petName,
                 dotStep = dotStep,
                 totalDots = totalDots,
-                preferenceManager = prefManager,
                 hapticManager = hapticManager,
                 onNext = {
                     hapticManager?.click()
                     currentStep = 12
                 }
             )
-            12 -> BlockTimeStep(
+            12 -> EmergencyButtonStep(
+                petType = selectedPetType!!,
+                petName = petName,
+                dotStep = dotStep,
+                totalDots = totalDots,
+                hapticManager = hapticManager,
+                onNext = {
+                    hapticManager?.click()
+                    currentStep = 13
+                }
+            )
+            13 -> ControlDaysStep(
                 petType = selectedPetType!!,
                 petName = petName,
                 dotStep = dotStep,
@@ -281,21 +344,10 @@ fun PetOnboardingScreen(
                 hapticManager = hapticManager,
                 onNext = {
                     hapticManager?.click()
-                    currentStep = 13
-                }
-            )
-            13 -> EmergencyButtonStep(
-                petType = selectedPetType!!,
-                petName = petName,
-                dotStep = dotStep,
-                totalDots = totalDots,
-                hapticManager = hapticManager,
-                onNext = {
-                    hapticManager?.click()
                     currentStep = 14
                 }
             )
-            14 -> PaymentStep(
+            14 -> BlockTimeStep(
                 petType = selectedPetType!!,
                 petName = petName,
                 dotStep = dotStep,
@@ -307,9 +359,21 @@ fun PetOnboardingScreen(
                     currentStep = 15
                 }
             )
+            15 -> PaymentStep(
+                petType = selectedPetType!!,
+                petName = petName,
+                dotStep = dotStep,
+                totalDots = totalDots,
+                preferenceManager = prefManager,
+                hapticManager = hapticManager,
+                onNext = {
+                    hapticManager?.click()
+                    currentStep = 16
+                }
+            )
 
-            // === NO DOTS (15) ===
-            15 -> WidgetSetupStep(
+            // === NO DOTS (16) ===
+            16 -> WidgetSetupStep(
                 petType = selectedPetType!!,
                 petName = petName,
                 hapticManager = hapticManager,
@@ -326,6 +390,26 @@ fun PetOnboardingScreen(
                     prefManager.clearTutorialCurrentStep()
                     // 실제 목표 설정 필요 플래그
                     prefManager.setNeedsRealGoalSetup(true)
+
+                    // Firebase에 모든 데이터 한 번에 동기화 (앱 재설치 시 복원용)
+                    val app = context.applicationContext as WalkorWaitApp
+                    val repo = app.userDataRepository
+                    repo.saveTutorialCompletionData(
+                        lockedApps = prefManager.getLockedApps(),
+                        blockingPeriods = prefManager.getBlockingPeriods(),
+                        controlDays = prefManager.getControlDays(),
+                        goal = prefManager.getGoal(),
+                        deposit = prefManager.getDeposit(),
+                        controlStartDate = prefManager.getControlStartDate(),
+                        controlEndDate = prefManager.getControlEndDate(),
+                        petType = selectedPetType!!.name,
+                        petName = petName
+                    )
+
+                    // Analytics: 튜토리얼 완료 추적
+                    AnalyticsManager.trackTutorialComplete()
+                    AnalyticsManager.setUserPetType(selectedPetType!!.name)
+
                     onComplete(selectedPetType!!, petName)
                 }
             )
@@ -349,14 +433,14 @@ private fun PetSelectionStep(
         modifier = Modifier
             .fillMaxSize()
             .padding(horizontal = 20.dp)
-            .padding(bottom = 24.dp),
+            .padding(bottom = 72.dp),  // 네비게이션 바 고려하여 증가
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Spacer(modifier = Modifier.height(60.dp))
 
         // Title - Kenney Font
         Text(
-            text = "Stand",
+            text = "rebon",
             fontSize = 32.sp,
             fontFamily = kenneyFont,
             fontWeight = FontWeight.Bold,
@@ -587,14 +671,14 @@ private fun PetNameInputStep(
         modifier = Modifier
             .fillMaxSize()
             .padding(horizontal = 20.dp)
-            .padding(bottom = 24.dp),
+            .padding(bottom = 72.dp),  // 3버튼 네비게이션 고려
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Spacer(modifier = Modifier.height(60.dp))
 
         // Title - 고정
         Text(
-            text = "Stand",
+            text = "rebon",
             fontSize = 32.sp,
             fontFamily = kenneyFont,
             fontWeight = FontWeight.Bold,
@@ -721,11 +805,54 @@ private fun PetNameInputStep(
 private fun TutorialAllInOneStep(
     petType: PetType,
     petName: String,
-    onComplete: () -> Unit
+    hapticManager: HapticManager?,
+    onGoogleLogin: () -> Unit,
+    onSkip: () -> Unit
 ) {
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
     val kenneyFont = rememberKenneyFont()
     val displayPetSize = 140.dp
     val stripeWidth = 4.dp
+    val auth = FirebaseAuth.getInstance()
+
+    var isLoading by remember { mutableStateOf(false) }
+    var errorMessage by remember { mutableStateOf<String?>(null) }
+    var isSignedIn by remember { mutableStateOf(auth.currentUser != null && auth.currentUser?.isAnonymous != true) }
+
+    // Google Sign-In 함수 (Credential Manager 사용)
+    fun performGoogleSignIn() {
+        isLoading = true
+        scope.launch {
+            val result = GoogleSignInHelper.signIn(context)
+            when (result) {
+                is GoogleSignInHelper.SignInResult.Success -> {
+                    val firebaseResult = GoogleSignInHelper.signInToFirebase(result.idToken)
+                    if (firebaseResult.isSuccess) {
+                        val app = context.applicationContext as WalkorWaitApp
+                        app.userDataRepository.startSync()
+
+                        isLoading = false
+                        isSignedIn = true
+                        hapticManager?.success()
+                        AnalyticsManager.trackSettingsChanged("google_signin_tutorial", "success")
+
+                        delay(300)
+                        onGoogleLogin()
+                    } else {
+                        errorMessage = "Firebase 로그인 실패"
+                        isLoading = false
+                    }
+                }
+                is GoogleSignInHelper.SignInResult.Error -> {
+                    if (!result.isCancelled) {
+                        errorMessage = result.message
+                    }
+                    isLoading = false
+                }
+            }
+        }
+    }
 
     val speechText = when (petType.personality) {
         PetPersonality.TOUGH -> "준비됐어. 시작하자."
@@ -740,14 +867,14 @@ private fun TutorialAllInOneStep(
         modifier = Modifier
             .fillMaxSize()
             .padding(horizontal = 20.dp)
-            .padding(bottom = 24.dp),
+            .padding(bottom = 72.dp),  // 3버튼 네비게이션 고려
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Spacer(modifier = Modifier.height(60.dp))
 
         // Title - 고정
         Text(
-            text = "Stand",
+            text = "rebon",
             fontSize = 32.sp,
             fontFamily = kenneyFont,
             fontWeight = FontWeight.Bold,
@@ -833,11 +960,72 @@ private fun TutorialAllInOneStep(
 
         Spacer(modifier = Modifier.weight(1f))
 
-        // Action button - 고정
-        MockupButton(
-            text = "시작하기!",
-            onClick = onComplete
-        )
+        // Error message
+        errorMessage?.let { error ->
+            Text(
+                text = error,
+                fontSize = 14.sp,
+                color = MockupColors.Red,
+                textAlign = TextAlign.Center
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+        }
+
+        // 이미 로그인 되어있으면 "시작하기"만, 아니면 "Google 로그인" + "시작하기"
+        if (isSignedIn) {
+            MockupButton(
+                text = "시작하기!",
+                onClick = onSkip
+            )
+        } else {
+            // Google 로그인 버튼
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(56.dp)
+                    .background(MockupColors.TextPrimary, RoundedCornerShape(12.dp))
+                    .clickable(enabled = !isLoading) {
+                        hapticManager?.click()
+                        errorMessage = null
+                        performGoogleSignIn()
+                    },
+                contentAlignment = Alignment.Center
+            ) {
+                if (isLoading) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(24.dp),
+                        color = Color.White,
+                        strokeWidth = 2.dp
+                    )
+                } else {
+                    Text(
+                        text = "Google 로그인",
+                        fontSize = 17.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White,
+                        fontFamily = kenneyFont
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            // 시작하기 (스킵)
+            TextButton(
+                onClick = {
+                    hapticManager?.click()
+                    AnalyticsManager.trackSettingsChanged("google_signin_tutorial", "skipped")
+                    onSkip()
+                },
+                enabled = !isLoading
+            ) {
+                Text(
+                    text = "나중에 할게요",
+                    fontSize = 14.sp,
+                    color = MockupColors.TextMuted
+                )
+            }
+        }
     }
 }
 
@@ -890,7 +1078,355 @@ private fun TutorialItemRow(
 }
 
 // =====================================================
-// STEP 3: Permission Settings (권한 설정)
+// STEP 0: Google Sign-In (데이터 백업)
+// =====================================================
+@Composable
+private fun GoogleSignInStep(
+    hapticManager: HapticManager?,
+    onNext: () -> Unit,
+    onSkip: () -> Unit,
+    onDataRestored: () -> Unit  // 기존 데이터 복원 시 호출
+) {
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    val kenneyFont = rememberKenneyFont()
+    val stripeWidth = 4.dp
+
+    var isLoading by remember { mutableStateOf(false) }
+    var errorMessage by remember { mutableStateOf<String?>(null) }
+    var isSignedIn by remember { mutableStateOf(false) }
+    var statusMessage by remember { mutableStateOf<String?>(null) }
+
+    // Google Sign-In 함수 (Credential Manager 사용)
+    fun performGoogleSignIn() {
+        isLoading = true
+        statusMessage = "로그인 중..."
+        scope.launch {
+            val result = GoogleSignInHelper.signIn(context)
+            when (result) {
+                is GoogleSignInHelper.SignInResult.Success -> {
+                    val firebaseResult = GoogleSignInHelper.signInToFirebase(result.idToken)
+                    if (firebaseResult.isSuccess) {
+                        Log.d("GoogleSignIn", "Firebase sign-in successful")
+                        statusMessage = "데이터 확인 중..."
+
+                        // Repository 동기화 및 데이터 확인
+                        val app = context.applicationContext as WalkorWaitApp
+                        app.userDataRepository.startSync()
+
+                        // 동기화 완료 대기 (최대 5초 - 타임아웃 시 강제 진행)
+                        var waitCount = 0
+                        while (!app.userDataRepository.syncCompleted.value && waitCount < 50) {
+                            delay(100)
+                            waitCount++
+                        }
+                        val syncTimedOut = waitCount >= 50
+                        Log.d("GoogleSignIn", "Sync wait completed - waited ${waitCount * 100}ms, syncCompleted: ${app.userDataRepository.syncCompleted.value}, timedOut: $syncTimedOut")
+
+                        // 타임아웃 시 강제로 syncCompleted 표시
+                        if (syncTimedOut) {
+                            Log.w("GoogleSignIn", "⚠️ Sync timed out - forcing completion")
+                        }
+
+                        // 기존 데이터가 있는지 확인
+                        val prefManager = PreferenceManager(context)
+                        val tutorialCompleted = prefManager.isTutorialCompleted()
+                        val hasPetType = prefManager.getPetType() != null
+                        val petType = prefManager.getPetType()
+
+                        Log.d("GoogleSignIn", "Data check - tutorialCompleted: $tutorialCompleted, hasPetType: $hasPetType, petType: $petType")
+
+                        isSignedIn = true
+                        isLoading = false
+                        hapticManager?.success()
+
+                        // Analytics 추적
+                        AnalyticsManager.trackSettingsChanged("google_signin", "success")
+
+                        if (tutorialCompleted && hasPetType) {
+                            // 기존 데이터가 있으면 바로 메인으로
+                            statusMessage = "데이터 복원 완료!"
+                            delay(1000)
+                            onDataRestored()
+                        } else {
+                            // 기존 데이터 없으면 펫 선택으로
+                            statusMessage = "로그인 완료!"
+                            delay(500)
+                            onNext()
+                        }
+                    } else {
+                        errorMessage = "Firebase 로그인 실패"
+                        statusMessage = null
+                        isLoading = false
+                    }
+                }
+                is GoogleSignInHelper.SignInResult.Error -> {
+                    if (!result.isCancelled) {
+                        errorMessage = result.message
+                    }
+                    statusMessage = null
+                    isLoading = false
+                }
+            }
+        }
+    }
+
+    // Platformer animation state
+    val infiniteTransition = rememberInfiniteTransition(label = "platformer")
+
+    // Pet jump animation (synchronized with obstacles passing)
+    val petJumpOffset by infiniteTransition.animateFloat(
+        initialValue = 0f,
+        targetValue = 0f,
+        animationSpec = infiniteRepeatable(
+            animation = keyframes {
+                durationMillis = 1000  // Jump every ~1 second as icons pass
+                0f at 0
+                -70f at 350
+                -70f at 550
+                0f at 1000
+            },
+            repeatMode = RepeatMode.Restart
+        ),
+        label = "petJump"
+    )
+
+    // Obstacles scroll animation (screen-width range for visibility)
+    val obstaclesOffset by infiniteTransition.animateFloat(
+        initialValue = 1200f,  // Start from right off-screen
+        targetValue = -600f,   // End at left off-screen
+        animationSpec = infiniteRepeatable(
+            animation = tween(6000, easing = LinearEasing),
+            repeatMode = RepeatMode.Restart
+        ),
+        label = "obstaclesScroll"
+    )
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.White)
+            .statusBarsPadding()
+            .navigationBarsPadding()
+            .padding(horizontal = 20.dp)
+            .padding(bottom = 24.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Spacer(modifier = Modifier.height(40.dp))
+
+        // Top: Ribbon icon + rebon
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center
+        ) {
+            // Ribbon icon (grayscale) - from drawable
+            Image(
+                painter = painterResource(id = R.drawable.rebon_icon_trans),
+                contentDescription = "rebon",
+                modifier = Modifier.size(48.dp),
+                colorFilter = ColorFilter.colorMatrix(ColorMatrix().apply { setToSaturation(0f) })
+            )
+            Spacer(modifier = Modifier.width(12.dp))
+            Text(
+                text = "rebon",
+                fontSize = 36.sp,
+                fontFamily = kenneyFont,
+                fontWeight = FontWeight.Bold,
+                color = MockupColors.TextPrimary
+            )
+        }
+
+        Spacer(modifier = Modifier.weight(0.3f))
+
+        // Main text
+        Text(
+            text = buildAnnotatedString {
+                withStyle(
+                    style = SpanStyle(
+                        textDecoration = TextDecoration.Underline
+                    )
+                ) {
+                    append("동물 친구")
+                }
+                append("와 걸으면서\n고치는 디지털 습관")
+            },
+            fontSize = 26.sp,
+            fontWeight = FontWeight.Bold,
+            color = MockupColors.TextPrimary,
+            textAlign = TextAlign.Center,
+            lineHeight = 38.sp
+        )
+
+        Spacer(modifier = Modifier.height(20.dp))
+
+        // Sub text
+        Text(
+            text = "걸음수를 채우면 앱이 열립니다\n자연스러운 디지털 디톡스를 경험하세요",
+            fontSize = 14.sp,
+            color = MockupColors.TextSecondary,
+            textAlign = TextAlign.Center,
+            lineHeight = 22.sp
+        )
+
+        Spacer(modifier = Modifier.height(30.dp))
+
+        // Platformer animation area
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(120.dp)
+        ) {
+            // Ground line
+            Box(
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .fillMaxWidth()
+                    .height(2.dp)
+                    .background(MockupColors.TextPrimary)
+            )
+
+            // Scrolling obstacles (app icons)
+            Row(
+                modifier = Modifier
+                    .align(Alignment.BottomStart)
+                    .offset { IntOffset(obstaclesOffset.toInt(), -4) },
+                horizontalArrangement = Arrangement.spacedBy(100.dp)
+            ) {
+                listOf("icon_dialog", "icon_play", "icon_card", "icon_signal").forEach { iconName ->
+                    DrawableIcon(
+                        iconName = iconName,
+                        size = 36.dp,
+                        tint = MockupColors.TextPrimary
+                    )
+                }
+            }
+
+            // Pet sprite (jumping over obstacles)
+            Box(
+                modifier = Modifier
+                    .align(Alignment.BottomStart)
+                    .offset(x = 40.dp)
+                    .offset { IntOffset(0, petJumpOffset.toInt()) }
+            ) {
+                PetSprite(
+                    petType = PetType.DOG1,
+                    isWalking = true,
+                    size = 72.dp,
+                    monochrome = true
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.weight(0.5f))
+
+        // Status or error message
+        statusMessage?.let { status ->
+            Text(
+                text = status,
+                fontSize = 16.sp,
+                color = MockupColors.Blue,
+                fontWeight = FontWeight.Medium,
+                textAlign = TextAlign.Center
+            )
+            Spacer(modifier = Modifier.height(12.dp))
+        }
+
+        errorMessage?.let { error ->
+            Text(
+                text = error,
+                fontSize = 14.sp,
+                color = MockupColors.Red,
+                textAlign = TextAlign.Center
+            )
+            Spacer(modifier = Modifier.height(12.dp))
+        }
+
+        // "시작하기" Button (goes to pet selection - same as skip)
+        if (!isSignedIn) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(56.dp)
+                    .background(MockupColors.TextPrimary, RoundedCornerShape(12.dp))
+                    .clickable {
+                        hapticManager?.click()
+                        AnalyticsManager.trackSettingsChanged("google_signin", "skipped")
+                        onSkip()
+                    },
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = "시작하기",
+                    fontSize = 17.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White,
+                    fontFamily = kenneyFont
+                )
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Google login link
+            Row(
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "기존 데이터가 있나요? ",
+                    fontSize = 14.sp,
+                    color = MockupColors.TextMuted
+                )
+                Text(
+                    text = "Google로 복원",
+                    fontSize = 14.sp,
+                    color = MockupColors.TextPrimary,
+                    fontWeight = FontWeight.Bold,
+                    textDecoration = TextDecoration.Underline,
+                    modifier = Modifier.clickable(enabled = !isLoading) {
+                        hapticManager?.click()
+                        errorMessage = null
+                        performGoogleSignIn()
+                    }
+                )
+            }
+        } else {
+            // Signed in state
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(56.dp)
+                    .background(MockupColors.Blue, RoundedCornerShape(12.dp)),
+                contentAlignment = Alignment.Center
+            ) {
+                if (isLoading) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(24.dp),
+                        color = Color.White,
+                        strokeWidth = 2.dp
+                    )
+                } else {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Center
+                    ) {
+                        Text(text = "✓", fontSize = 20.sp, color = Color.White)
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = "로그인 완료",
+                            fontSize = 17.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White,
+                            fontFamily = kenneyFont
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+// =====================================================
+// STEP 4: Permission Settings (권한 설정)
 // =====================================================
 @Composable
 private fun PermissionSettingsStep(
@@ -1050,7 +1586,7 @@ private fun PermissionCard(
 }
 
 // =====================================================
-// STEP 4: Fitness App Connection (피트니스 앱 연결)
+// STEP 5: Fitness App Connection (피트니스 앱 연결)
 // =====================================================
 @Composable
 private fun FitnessConnectionStep(
@@ -1082,6 +1618,9 @@ private fun FitnessConnectionStep(
                 preferenceManager.setUseHealthConnect(true)
                 preferenceManager.setHealthConnectConnected(true)
                 preferenceManager.setConnectedFitnessAppName(firstApp?.appName ?: "")
+                // 서비스 재시작하여 Health Connect 모드로 전환
+                StepCounterService.stop(context)
+                StepCounterService.start(context)
                 hapticManager?.success()
                 delay(500)
                 onNext()
@@ -1192,7 +1731,7 @@ private fun FitnessConnectionStep(
 }
 
 // =====================================================
-// STEP 5: Accessibility (접근성 권한)
+// STEP 6: Accessibility (접근성 권한)
 // =====================================================
 @Composable
 private fun AccessibilityStep(
@@ -1266,7 +1805,7 @@ private fun AccessibilityStep(
                 color = MockupColors.TextPrimary
             )
             Text(
-                text = "1. 아래 버튼을 눌러 설정 화면으로\n2. 'Stand' 찾기\n3. Stand를 ON으로 전환\n4. 확인 버튼 누르기",
+                text = "1. 아래 버튼을 눌러 설정 화면으로\n2. 'rebon' 찾기\n3. rebon을 ON으로 전환\n4. 확인 버튼 누르기",
                 fontSize = 14.sp,
                 color = MockupColors.TextSecondary,
                 lineHeight = 22.sp
@@ -1286,7 +1825,7 @@ private fun AccessibilityStep(
 }
 
 // =====================================================
-// STEP 6: App Selection (앱 선택)
+// STEP 7: App Selection (앱 선택)
 // =====================================================
 @Composable
 private fun AppSelectionStep(
@@ -1441,7 +1980,7 @@ private fun getCategoryIcon(category: AppCategory): String {
 }
 
 // =====================================================
-// STEP 7: Test Blocking (차단 테스트)
+// STEP 8: Test Blocking (차단 테스트)
 // =====================================================
 @Composable
 private fun TestBlockingStep(
@@ -1557,7 +2096,7 @@ private fun TestBlockingStep(
                     color = MockupColors.TextPrimary
                 )
                 Text(
-                    text = "1. 홈 버튼을 눌러 나가기\n2. 선택한 앱 실행\n3. 차단 메시지 확인\n4. Stand로 돌아오기",
+                    text = "1. 홈 버튼을 눌러 나가기\n2. 선택한 앱 실행\n3. 차단 메시지 확인\n4. rebon으로 돌아오기",
                     fontSize = 14.sp,
                     color = MockupColors.TextSecondary,
                     lineHeight = 22.sp
@@ -1568,7 +2107,7 @@ private fun TestBlockingStep(
 }
 
 // =====================================================
-// STEP 8: Goal Input (목표 설정)
+// STEP 9: Goal Input (목표 설정)
 // =====================================================
 @Composable
 private fun GoalInputStep(
@@ -1673,7 +2212,7 @@ private fun GoalInputStep(
 }
 
 // =====================================================
-// STEP 9: Control Days (제어 요일)
+// STEP 10: Control Days (제어 요일)
 // =====================================================
 @Composable
 private fun ControlDaysStep(
@@ -1777,7 +2316,7 @@ private fun ControlDaysStep(
 }
 
 // =====================================================
-// STEP 10: Block Time (차단 시간대)
+// STEP 11: Block Time (차단 시간대)
 // =====================================================
 @Composable
 private fun BlockTimeStep(
@@ -1892,7 +2431,7 @@ private fun BlockTimeStep(
 }
 
 // =====================================================
-// STEP 11: Walking Test (걷기 테스트)
+// STEP 12: Walking Test (걷기 테스트)
 // =====================================================
 @Composable
 private fun WalkingTestStep(
@@ -1908,21 +2447,54 @@ private fun WalkingTestStep(
     val app = context.applicationContext as com.moveoftoday.walkorwait.WalkorWaitApp
     val repository = app.userDataRepository
 
-    val baselineSteps = remember { repository.getTodaySteps() }
+    // Health Connect 사용 여부 확인 (remember 없이 매번 읽기 - 이전 단계에서 연결 시 반영)
+    val useHealthConnect = preferenceManager.useHealthConnect()
+    val healthConnectManager = remember(useHealthConnect) {
+        if (useHealthConnect) HealthConnectManager(context) else null
+    }
+
+    var baselineSteps by remember { mutableIntStateOf(repository.getTodaySteps()) }
     var currentSteps by remember { mutableIntStateOf(0) }
+    var manualOffset by remember { mutableIntStateOf(0) }  // +5 버튼용 수동 오프셋
     val targetSteps = repository.getGoal()
     var goalAchieved by remember { mutableStateOf(false) }
 
+    // Health Connect 초기 베이스라인 설정
+    LaunchedEffect(useHealthConnect) {
+        if (useHealthConnect && healthConnectManager != null) {
+            try {
+                baselineSteps = healthConnectManager.getTodaySteps()
+                android.util.Log.d("WalkingTest", "Health Connect baseline: $baselineSteps")
+            } catch (e: Exception) {
+                android.util.Log.e("WalkingTest", "Failed to get baseline: ${e.message}")
+            }
+        }
+    }
+
     LaunchedEffect(Unit) {
         while (!goalAchieved) {
-            val rawSteps = repository.getTodaySteps()
-            val newSteps = maxOf(0, rawSteps - baselineSteps)
+            val rawSteps = if (useHealthConnect && healthConnectManager != null) {
+                // Health Connect에서 직접 조회 (5초 간격)
+                try {
+                    val steps = healthConnectManager.getTodaySteps()
+                    preferenceManager.saveTodaySteps(steps) // 로컬에도 저장
+                    android.util.Log.d("WalkingTest", "Health Connect steps: $steps")
+                    steps
+                } catch (e: Exception) {
+                    android.util.Log.e("WalkingTest", "Health Connect error: ${e.message}")
+                    repository.getTodaySteps()
+                }
+            } else {
+                repository.getTodaySteps()
+            }
+
+            val newSteps = maxOf(0, rawSteps - baselineSteps) + manualOffset
             currentSteps = newSteps
             if (currentSteps >= targetSteps && !goalAchieved) {
                 goalAchieved = true
                 hapticManager?.goalAchieved()
             }
-            delay(1000)
+            delay(1000) // 튜토리얼에서는 즉각적 피드백을 위해 1초
         }
     }
 
@@ -2000,34 +2572,38 @@ private fun WalkingTestStep(
                 )
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(8.dp))
 
-            // 테스트 버튼
+            // Health Connect 사용 시 안내 메시지
+            if (useHealthConnect && !goalAchieved) {
+                Text(
+                    text = "Health App과 동기화에 몇 초 소요될 수 있어요",
+                    fontSize = 12.sp,
+                    color = MockupColors.TextMuted,
+                    textAlign = TextAlign.Center
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = "걸음 수가 안 올라가면 삼성헬스/Health Connect 문제예요",
+                    fontSize = 11.sp,
+                    color = Color(0xFFFF9800),
+                    textAlign = TextAlign.Center
+                )
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            // 테스트 버튼 (+5)
             if (!goalAchieved) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceEvenly
+                Button(
+                    onClick = {
+                        manualOffset += 5  // Health Connect 모드에서도 작동
+                        hapticManager?.lightClick()
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF666666)),
+                    shape = RoundedCornerShape(8.dp)
                 ) {
-                    Button(
-                        onClick = {
-                            repository.saveTodaySteps(baselineSteps + currentSteps + 5)
-                            hapticManager?.lightClick()
-                        },
-                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF666666)),
-                        shape = RoundedCornerShape(8.dp)
-                    ) {
-                        Text("+5", color = Color.White)
-                    }
-                    Button(
-                        onClick = {
-                            repository.saveTodaySteps(baselineSteps + targetSteps)
-                            hapticManager?.success()
-                        },
-                        colors = ButtonDefaults.buttonColors(containerColor = MockupColors.Border),
-                        shape = RoundedCornerShape(8.dp)
-                    ) {
-                        Text("달성", color = Color.White)
-                    }
+                    Text("+5", color = Color.White)
                 }
             }
         }
@@ -2035,7 +2611,7 @@ private fun WalkingTestStep(
 }
 
 // =====================================================
-// STEP 12: Unlocked (잠금 해제)
+// STEP 13: Unlocked (잠금 해제)
 // =====================================================
 @Composable
 private fun UnlockedStep(
@@ -2083,7 +2659,7 @@ private fun UnlockedStep(
             ) {
                 PixelIcon(iconName = "icon_star", size = 24.dp)
                 Text(
-                    text = "Stand의 핵심",
+                    text = "rebon의 핵심",
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold,
                     color = MockupColors.TextPrimary
@@ -2100,7 +2676,7 @@ private fun UnlockedStep(
 }
 
 // =====================================================
-// STEP 13: Emergency Button (긴급 버튼)
+// STEP 14: Emergency Button (긴급 버튼)
 // =====================================================
 @Composable
 private fun EmergencyButtonStep(
@@ -2163,7 +2739,7 @@ private fun EmergencyButtonStep(
 }
 
 // =====================================================
-// STEP 15: Widget Setup (위젯 설정) - 마지막 단계
+// STEP 16: Widget Setup (위젯 설정) - 마지막 단계
 // =====================================================
 @Composable
 private fun WidgetSetupStep(
@@ -2189,14 +2765,14 @@ private fun WidgetSetupStep(
         modifier = Modifier
             .fillMaxSize()
             .padding(horizontal = 20.dp)
-            .padding(bottom = 24.dp),
+            .padding(bottom = 72.dp),  // 3버튼 네비게이션 고려
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Spacer(modifier = Modifier.height(60.dp))
 
         // Title
         Text(
-            text = "Stand",
+            text = "rebon",
             fontSize = 32.sp,
             fontFamily = kenneyFont,
             fontWeight = FontWeight.Bold,
@@ -2273,7 +2849,7 @@ private fun WidgetSetupStep(
             )
 
             Text(
-                text = "1. 홈 화면 길게 누르기\n2. 위젯 선택\n3. Stand 위젯 찾기\n4. 홈 화면에 추가",
+                text = "1. 홈 화면 길게 누르기\n2. 위젯 선택\n3. rebon 위젯 찾기\n4. 홈 화면에 추가",
                 fontSize = 14.sp,
                 color = MockupColors.TextSecondary,
                 lineHeight = 22.sp
@@ -2307,7 +2883,7 @@ private fun WidgetSetupStep(
 }
 
 // =====================================================
-// STEP 14: Payment (결제) - 네비게이션 닷 표시
+// STEP 15: Payment (결제) - 네비게이션 닷 표시
 // =====================================================
 @Composable
 private fun PaymentStep(
@@ -2467,14 +3043,14 @@ private fun PaymentStep(
         modifier = Modifier
             .fillMaxSize()
             .padding(horizontal = 20.dp)
-            .padding(bottom = 24.dp),
+            .padding(bottom = 72.dp),  // 3버튼 네비게이션 고려
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Spacer(modifier = Modifier.height(60.dp))
 
         // Title - Kenney Font (PetSelectionStep과 동일)
         Text(
-            text = "Stand",
+            text = "rebon",
             fontSize = 32.sp,
             fontFamily = kenneyFont,
             fontWeight = FontWeight.Bold,
@@ -2588,7 +3164,7 @@ private fun PaymentStep(
                 PixelIcon(iconName = "icon_trophy", size = 16.dp)
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
-                    text = "염창역 스타벅스 기준 가격",
+                    text = "구독료는 염창역 스타벅스 기준 변동됩니다.",
                     fontSize = 14.sp,
                     color = MockupColors.TextMuted
                 )
@@ -2672,7 +3248,16 @@ private fun PaymentStep(
                                                 val sdf = java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.getDefault())
                                                 val cal = java.util.Calendar.getInstance()
                                                 cal.add(java.util.Calendar.DAY_OF_MONTH, result.freeDays)
-                                                preferenceManager.savePromoFreeEndDate(sdf.format(cal.time))
+                                                val endDate = sdf.format(cal.time)
+                                                preferenceManager.savePromoFreeEndDate(endDate)
+                                                // Firebase에 프로모션 정보 동기화
+                                                val app = context.applicationContext as WalkorWaitApp
+                                                app.userDataRepository.savePromoInfo(
+                                                    code = promoCode.uppercase(),
+                                                    type = preferenceManager.getPromoCodeType(),
+                                                    hostId = preferenceManager.getPromoHostId(),
+                                                    endDate = endDate
+                                                )
                                             }
                                             hapticManager?.success()
                                         }

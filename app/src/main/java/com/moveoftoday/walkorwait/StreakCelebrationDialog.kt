@@ -268,7 +268,7 @@ private fun FullCardContent(
         ) {
             // 1. Title
             Text(
-                text = "Stand",
+                text = "rebon",
                 fontSize = 28.sp,
                 fontFamily = kenneyFont,
                 fontWeight = FontWeight.Bold,
@@ -281,7 +281,7 @@ private fun FullCardContent(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(180.dp)
+                    .height(200.dp)
                     .clip(RoundedCornerShape(16.dp))
                     .background(Color.White)
                     .drawBehind {
@@ -297,23 +297,27 @@ private fun FullCardContent(
                             y += stripeHeightPx * 2
                         }
                     }
-                    .border(3.dp, MockupColors.Border, RoundedCornerShape(16.dp)),
-                contentAlignment = Alignment.Center
+                    .border(3.dp, MockupColors.Border, RoundedCornerShape(16.dp))
             ) {
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center
+                // Speech bubble (상단 고정)
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.TopCenter)
+                        .padding(top = 12.dp)
                 ) {
-                    // Speech bubble
-                    SpeechBubbleMultiline(text = petSpeech, fontSize = 12.sp)
+                    SpeechBubbleMultiline(text = petSpeech, fontSize = 12.sp, maxWidth = 220.dp)
+                }
 
-                    Spacer(modifier = Modifier.height(8.dp))
-
-                    // Pet with glow
+                // Pet with glow (하단 고정)
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .padding(bottom = 8.dp)
+                ) {
                     PetSpriteWithSyncedGlow(
                         petType = petType,
                         isWalking = false,
-                        size = 100.dp,
+                        size = 80.dp,
                         monochrome = true,
                         frameDurationMs = 200
                     )
@@ -457,7 +461,7 @@ private fun StickerContent(
         ) {
             // 1. Title
             Text(
-                text = "Stand",
+                text = "rebon",
                 fontSize = 28.sp,
                 fontFamily = kenneyFont,
                 fontWeight = FontWeight.Bold,
@@ -501,6 +505,7 @@ private fun StickerContent(
                 // Sticker content (for capture - transparent background)
                 Box(
                     modifier = Modifier
+                        .fillMaxSize()
                         .drawWithContent {
                             // 명시적으로 투명 배경 그리기
                             drawRect(Color.Transparent)
@@ -509,36 +514,42 @@ private fun StickerContent(
                             }
                             drawLayer(graphicsLayer)
                         }
-                        .padding(20.dp),
-                    contentAlignment = Alignment.Center
+                        .padding(12.dp)
                 ) {
+                    // Speech bubble (상단 고정)
+                    Box(
+                        modifier = Modifier
+                            .align(Alignment.TopCenter)
+                            .padding(top = 4.dp)
+                    ) {
+                        SpeechBubbleMultiline(text = petSpeech, fontSize = 11.sp, maxWidth = 200.dp)
+                    }
+
+                    // Pet + rebon 로고 (하단 고정)
                     Column(
                         horizontalAlignment = Alignment.CenterHorizontally,
-                        modifier = Modifier.background(Color.Transparent)
+                        modifier = Modifier
+                            .align(Alignment.BottomCenter)
+                            .padding(bottom = 4.dp)
                     ) {
-                        // Speech bubble
-                        SpeechBubbleMultiline(text = petSpeech, fontSize = 11.sp)
-
-                        Spacer(modifier = Modifier.height(12.dp))
-
                         // Pet with glow
                         PetSpriteWithSyncedGlow(
                             petType = petType,
                             isWalking = false,
-                            size = 80.dp,
+                            size = 70.dp,
                             monochrome = true,
                             frameDurationMs = 200
                         )
 
-                        Spacer(modifier = Modifier.height(8.dp))
+                        Spacer(modifier = Modifier.height(4.dp))
 
-                        // Stand 로고 (반투명)
+                        // rebon 로고 (반투명)
                         Text(
-                            text = "Stand",
-                            fontSize = 14.sp,
+                            text = "rebon",
+                            fontSize = 12.sp,
                             fontFamily = kenneyFont,
                             fontWeight = FontWeight.Bold,
-                            color = MockupColors.TextPrimary.copy(alpha = 0.4f)
+                            color = MockupColors.TextPrimary.copy(alpha = 0.5f)
                         )
                     }
                 }
@@ -566,7 +577,8 @@ private fun StickerContent(
 @Composable
 private fun SpeechBubbleMultiline(
     text: androidx.compose.ui.text.AnnotatedString,
-    fontSize: androidx.compose.ui.unit.TextUnit = 14.sp
+    fontSize: androidx.compose.ui.unit.TextUnit = 14.sp,
+    maxWidth: androidx.compose.ui.unit.Dp = 280.dp
 ) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally
@@ -574,6 +586,7 @@ private fun SpeechBubbleMultiline(
         // 말풍선 본체
         Box(
             modifier = Modifier
+                .widthIn(max = maxWidth)
                 .clip(RoundedCornerShape(12.dp))
                 .background(Color.White)
                 .border(2.dp, MockupColors.Border, RoundedCornerShape(12.dp))
@@ -746,7 +759,7 @@ private fun getStreakCelebrationSpeech(
 private fun saveAndShareImage(context: Context, bitmap: Bitmap, streakCount: Int, isSticker: Boolean) {
     try {
         val suffix = if (isSticker) "sticker" else "card"
-        val filename = "Stand_${streakCount}day_${suffix}_${SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())}.png"
+        val filename = "rebon_${streakCount}day_${suffix}_${SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())}.png"
 
         // Sticker의 경우 투명 배경 보존을 위해 ARGB_8888로 변환
         val finalBitmap = if (isSticker && bitmap.config != Bitmap.Config.ARGB_8888) {
@@ -759,7 +772,7 @@ private fun saveAndShareImage(context: Context, bitmap: Bitmap, streakCount: Int
             val contentValues = ContentValues().apply {
                 put(MediaStore.Images.Media.DISPLAY_NAME, filename)
                 put(MediaStore.Images.Media.MIME_TYPE, "image/png")
-                put(MediaStore.Images.Media.RELATIVE_PATH, Environment.DIRECTORY_PICTURES + "/Stand")
+                put(MediaStore.Images.Media.RELATIVE_PATH, Environment.DIRECTORY_PICTURES + "/rebon")
             }
 
             val uri = context.contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues)
@@ -778,10 +791,10 @@ private fun saveAndShareImage(context: Context, bitmap: Bitmap, streakCount: Int
             }
         } else {
             val picturesDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)
-            val standDir = File(picturesDir, "Stand")
-            if (!standDir.exists()) standDir.mkdirs()
+            val rebonDir = File(picturesDir, "rebon")
+            if (!rebonDir.exists()) rebonDir.mkdirs()
 
-            val file = File(standDir, filename)
+            val file = File(rebonDir, filename)
             FileOutputStream(file).use { outputStream ->
                 bitmap.compress(Bitmap.CompressFormat.PNG, 100, outputStream)
             }

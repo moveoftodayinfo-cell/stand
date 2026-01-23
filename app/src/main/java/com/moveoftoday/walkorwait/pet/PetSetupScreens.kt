@@ -555,7 +555,7 @@ fun PetAccessibilityScreen(
             PetPersonality.POSITIVE -> "완벽해! 이제 같이 걷자!"
         }
         else -> when (petType.personality) {
-            PetPersonality.TOUGH -> "Stand를 켜줘. 중요해."
+            PetPersonality.TOUGH -> "rebon을 켜줘. 중요해."
             PetPersonality.CUTE -> "이거 켜주면 같이 놀 수 있음!"
             PetPersonality.TSUNDERE -> "켜줘... 아니면 같이 못 걸어."
             PetPersonality.DIALECT -> "이거 켜주이소! 중요한기라!"
@@ -656,8 +656,8 @@ fun PetAccessibilityScreen(
                         )
                         listOf(
                             "1. 아래 버튼 누르기",
-                            "2. 'Stand' 찾기",
-                            "3. Stand를 ON으로",
+                            "2. 'rebon' 찾기",
+                            "3. rebon을 ON으로",
                             "4. 확인 누르기"
                         ).forEach { step ->
                             Text(
@@ -695,7 +695,7 @@ fun PetAccessibilityScreen(
             Spacer(modifier = Modifier.height(10.dp))
 
             Text(
-                text = "⚠️ Stand ON 해야 다음으로 진행됩니다",
+                text = "⚠️ rebon ON 해야 다음으로 진행됩니다",
                 fontSize = 12.sp,
                 color = Color(0xFFE57373),
                 textAlign = TextAlign.Center,
@@ -1017,14 +1017,14 @@ fun RealGoalSetupScreen(
             .fillMaxSize()
             .background(MockupColors.Background)
             .padding(horizontal = 20.dp)
-            .padding(bottom = 24.dp),
+            .padding(bottom = 72.dp),  // 3버튼 네비게이션 고려
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Spacer(modifier = Modifier.height(60.dp))
 
         // 1. Title - 32sp, Kenney Font
         Text(
-            text = "Stand",
+            text = "rebon",
             fontSize = 32.sp,
             fontFamily = kenneyFont,
             fontWeight = FontWeight.Bold,

@@ -80,7 +80,7 @@ class StepCounterService : Service() {
             PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
         )
         return NotificationCompat.Builder(this, CHANNEL_ID)
-            .setContentTitle("Stand - 측정 중")
+            .setContentTitle("rebon - 측정 중")
             .setContentText("오늘: $steps / ${preferenceManager.getGoal()} 걸음")
             .setSmallIcon(android.R.drawable.ic_menu_compass)
             .setOngoing(true)

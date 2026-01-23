@@ -106,7 +106,7 @@ fun AppLockScreen(
                         Spacer(modifier = Modifier.width(12.dp))
                         Column(modifier = Modifier.weight(1f)) {
                             Text(
-                                text = "Stand가 비활성화되어 있어요",
+                                text = "rebon이 비활성화되어 있어요",
                                 fontSize = 15.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = MockupColors.Red
@@ -340,7 +340,7 @@ fun AppLockScreen(
                 )
             }
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(72.dp))
         }
     }
 }

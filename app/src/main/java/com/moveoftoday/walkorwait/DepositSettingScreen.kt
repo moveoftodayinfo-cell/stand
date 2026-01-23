@@ -605,7 +605,16 @@ fun DepositSettingScreen(
                                                                     val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
                                                                     val calendar = Calendar.getInstance()
                                                                     calendar.add(Calendar.DAY_OF_MONTH, result.freeDays)
-                                                                    preferenceManager?.savePromoFreeEndDate(sdf.format(calendar.time))
+                                                                    val endDate = sdf.format(calendar.time)
+                                                                    preferenceManager?.savePromoFreeEndDate(endDate)
+                                                                    // Firebase에 프로모션 정보 동기화
+                                                                    val app = context.applicationContext as WalkorWaitApp
+                                                                    app.userDataRepository.savePromoInfo(
+                                                                        code = promoCode.uppercase(),
+                                                                        type = preferenceManager?.getPromoCodeType(),
+                                                                        hostId = preferenceManager?.getPromoHostId(),
+                                                                        endDate = endDate
+                                                                    )
                                                                 }
                                                             }
                                                             is PromoCodeManager.PromoResult.Error -> {

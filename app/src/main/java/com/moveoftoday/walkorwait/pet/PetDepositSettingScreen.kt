@@ -39,13 +39,14 @@ fun PetDepositSettingScreen(
     petName: String,
     preferenceManager: PreferenceManager?,
     hapticManager: HapticManager? = null,
+    startAtStep: Int = 0,  // 기존 사용자는 2로 설정하여 결제 화면으로 바로 이동
     onComplete: () -> Unit
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val auth = FirebaseAuth.getInstance()
 
-    var currentStep by remember { mutableIntStateOf(0) }
+    var currentStep by remember { mutableIntStateOf(startAtStep) }
     var isProcessing by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
     var billingManager by remember { mutableStateOf<BillingManager?>(null) }
@@ -58,9 +59,19 @@ fun PetDepositSettingScreen(
     var isPromoFree by remember { mutableStateOf(false) }
     val promoCodeManager = remember { PromoCodeManager(context) }
 
-    // 설정값
-    var selectedDays by remember { mutableStateOf(setOf(1, 2, 3, 4, 5)) } // 월~금
-    var selectedPeriods by remember { mutableStateOf(setOf("morning", "afternoon", "evening", "night")) }
+    // 설정값 (재결제 시에는 기존 저장된 값 사용)
+    var selectedDays by remember {
+        mutableStateOf(
+            if (startAtStep > 0) preferenceManager?.getControlDays() ?: setOf(1, 2, 3, 4, 5)
+            else setOf(1, 2, 3, 4, 5)
+        )
+    }
+    var selectedPeriods by remember {
+        mutableStateOf(
+            if (startAtStep > 0) preferenceManager?.getBlockingPeriods() ?: setOf("morning", "afternoon", "evening", "night")
+            else setOf("morning", "afternoon", "evening", "night")
+        )
+    }
 
     DisposableEffect(Unit) {
         onDispose {
@@ -125,7 +136,16 @@ fun PetDepositSettingScreen(
                                         val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
                                         val calendar = Calendar.getInstance()
                                         calendar.add(Calendar.DAY_OF_MONTH, result.freeDays)
-                                        preferenceManager?.savePromoFreeEndDate(sdf.format(calendar.time))
+                                        val endDate = sdf.format(calendar.time)
+                                        preferenceManager?.savePromoFreeEndDate(endDate)
+                                        // Firebase에 프로모션 정보 동기화
+                                        val app = context.applicationContext as WalkorWaitApp
+                                        app.userDataRepository.savePromoInfo(
+                                            code = promoCode.uppercase(),
+                                            type = preferenceManager?.getPromoCodeType(),
+                                            hostId = preferenceManager?.getPromoHostId(),
+                                            endDate = endDate
+                                        )
                                     }
                                 }
                                 is PromoCodeManager.PromoResult.Error -> {
@@ -265,7 +285,8 @@ fun PetDepositSettingScreen(
                         onComplete()
                     }
                 } else null,
-                hapticManager = hapticManager
+                hapticManager = hapticManager,
+                showNavigation = startAtStep == 0  // 재결제 시(startAtStep > 0) 상단 네비게이션 숨김
             )
         }
     }
@@ -613,7 +634,8 @@ private fun PaymentStep(
     onBack: () -> Unit,
     onPayment: () -> Unit,
     onTestMode: (() -> Unit)?,
-    hapticManager: HapticManager?
+    hapticManager: HapticManager?,
+    showNavigation: Boolean = true  // 재결제 시 false로 설정하여 상단 네비게이션 숨김
 ) {
     val dayNames = listOf("일", "월", "화", "수", "목", "금", "토")
 
@@ -642,32 +664,33 @@ private fun PaymentStep(
             .padding(20.dp)
             .verticalScroll(rememberScrollState())
     ) {
-        // Status bar
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(
-                text = "← 이전",
-                fontSize = 14.sp,
-                color = MockupColors.TextMuted,
-                modifier = Modifier.clickable { onBack() }
-            )
-            Text(
-                text = petName,
-                fontSize = 18.sp,
-                fontWeight = FontWeight.Bold,
-                color = MockupColors.TextPrimary
-            )
-            Text(
-                text = "3/3",
-                fontSize = 16.sp,
-                color = MockupColors.TextMuted
-            )
+        // Status bar (재결제 시 숨김)
+        if (showNavigation) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "← 이전",
+                    fontSize = 14.sp,
+                    color = MockupColors.TextMuted,
+                    modifier = Modifier.clickable { onBack() }
+                )
+                Text(
+                    text = petName,
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = MockupColors.TextPrimary
+                )
+                Text(
+                    text = "3/3",
+                    fontSize = 16.sp,
+                    color = MockupColors.TextMuted
+                )
+            }
+            Spacer(modifier = Modifier.height(15.dp))
         }
-
-        Spacer(modifier = Modifier.height(15.dp))
 
         // Pet area
         PetArea(

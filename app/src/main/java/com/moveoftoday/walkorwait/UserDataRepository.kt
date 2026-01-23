@@ -21,7 +21,8 @@ import kotlinx.coroutines.withContext
  */
 class UserDataRepository(
     context: Context,
-    private val auth: FirebaseAuth
+    private val auth: FirebaseAuth,
+    autoSync: Boolean = true  // 자동 동기화 여부
 ) {
     private val TAG = "UserDataRepository"
     private val preferenceManager = PreferenceManager(context)
@@ -36,14 +37,45 @@ class UserDataRepository(
     private val _todaySteps = MutableStateFlow(0)
     val todaySteps: StateFlow<Int> = _todaySteps
 
+    // Firebase 동기화 완료 상태
+    private val _syncCompleted = MutableStateFlow(false)
+    val syncCompleted: StateFlow<Boolean> = _syncCompleted
+
     init {
         // 로컬 데이터 먼저 로드
         loadLocalData()
 
-        // Firebase 동기화 (백그라운드)
+        // autoSync가 true면 자동으로 동기화 시작
+        if (autoSync) {
+            repositoryScope.launch {
+                syncWithFirebase()
+                _syncCompleted.value = true
+                Log.d(TAG, "✅ Firebase sync completed, tutorialCompleted: ${_userSettings.value?.tutorialCompleted}")
+            }
+        }
+    }
+
+    /**
+     * 외부에서 동기화 시작 (인증 완료 후 호출)
+     */
+    fun startSync() {
+        // 동기화 시작 전 플래그 리셋 (새 동기화 대기 가능하도록)
+        _syncCompleted.value = false
+        Log.d(TAG, "🔄 startSync called - syncCompleted reset to false")
+
         repositoryScope.launch {
             syncWithFirebase()
+            _syncCompleted.value = true
+            Log.d(TAG, "✅ Firebase sync completed, tutorialCompleted: ${_userSettings.value?.tutorialCompleted}")
         }
+    }
+
+    /**
+     * 동기화 완료 표시 (인증 실패 등의 경우)
+     */
+    fun markSyncCompleted() {
+        _syncCompleted.value = true
+        Log.d(TAG, "⚠️ Sync marked as completed (auth failed or skipped)")
     }
 
     /**
@@ -57,7 +89,24 @@ class UserDataRepository(
             controlEndDate = preferenceManager.getControlEndDate(),
             controlDays = preferenceManager.getControlDays(),
             successDays = preferenceManager.getSuccessDays(),
-            paidDeposit = preferenceManager.isPaidDeposit()
+            paidDeposit = preferenceManager.isPaidDeposit(),
+            // 앱 재설치 시 복원 필요한 데이터
+            lockedApps = preferenceManager.getLockedApps(),
+            tutorialCompleted = preferenceManager.isTutorialCompleted(),
+            blockingPeriods = preferenceManager.getBlockingPeriods(),
+            petType = preferenceManager.getPetType() ?: "DOG1",
+            petName = preferenceManager.getPetName() ?: "멍이",
+            // 프로모션 정보
+            usedPromoCode = preferenceManager.getAppliedPromoCode(),
+            promoCodeType = preferenceManager.getPromoCodeType(),
+            promoHostId = preferenceManager.getPromoHostId(),
+            promoFreeEndDate = preferenceManager.getPromoFreeEndDate(),
+            // 연속 달성 및 펫 관련 데이터
+            streak = preferenceManager.getStreak(),
+            lastAchievedDate = preferenceManager.getLastAchievedDate(),
+            consecutiveDays = preferenceManager.getConsecutiveDays(),
+            petHappiness = preferenceManager.getPetHappiness(),
+            petTotalSteps = preferenceManager.getPetTotalSteps()
         )
         _todaySteps.value = preferenceManager.getTodaySteps()
         Log.d(TAG, "📂 Local data loaded")
@@ -76,13 +125,15 @@ class UserDataRepository(
         try {
             Log.d(TAG, "🔄 Syncing with Firebase...")
 
-            // Firebase에서 데이터 가져오기
-            val doc = firestore.collection("users")
-                .document(userId)
-                .collection("userData")
-                .document("settings")
-                .get()
-                .await()
+            // Firebase에서 데이터 가져오기 (10초 타임아웃)
+            val doc = kotlinx.coroutines.withTimeout(10000) {
+                firestore.collection("users")
+                    .document(userId)
+                    .collection("userData")
+                    .document("settings")
+                    .get()
+                    .await()
+            }
 
             if (doc.exists()) {
                 // Firebase 데이터가 있으면 로컬과 비교
@@ -91,16 +142,44 @@ class UserDataRepository(
                     deposit = doc.getLong("deposit")?.toInt() ?: 0,
                     controlStartDate = doc.getString("controlStartDate") ?: "",
                     controlEndDate = doc.getString("controlEndDate") ?: "",
-                    controlDays = (doc.get("controlDays") as? List<*>)?.mapNotNull { (it as? Long)?.toInt() }?.toSet() ?: emptySet(),
+                    controlDays = (doc.get("controlDays") as? List<*>)?.mapNotNull { (it as? Long)?.toInt() }?.toSet()?.ifEmpty { setOf(1, 2, 3, 4, 5) } ?: setOf(1, 2, 3, 4, 5),
                     successDays = doc.getLong("successDays")?.toInt() ?: 0,
-                    paidDeposit = doc.getBoolean("paidDeposit") ?: false
+                    paidDeposit = doc.getBoolean("paidDeposit") ?: false,
+                    // 앱 재설치 시 복원 필요한 데이터
+                    lockedApps = (doc.get("lockedApps") as? List<*>)?.mapNotNull { it as? String }?.toSet() ?: emptySet(),
+                    tutorialCompleted = doc.getBoolean("tutorialCompleted") ?: false,
+                    blockingPeriods = (doc.get("blockingPeriods") as? List<*>)?.mapNotNull { it as? String }?.toSet()
+                        ?: setOf("morning", "afternoon", "evening", "night"),
+                    petType = doc.getString("petType") ?: "DOG1",
+                    petName = doc.getString("petName") ?: "멍이",
+                    // 프로모션 정보
+                    usedPromoCode = doc.getString("usedPromoCode"),
+                    promoCodeType = doc.getString("promoCodeType"),
+                    promoHostId = doc.getString("promoHostId"),
+                    promoFreeEndDate = doc.getString("promoFreeEndDate"),
+                    // 연속 달성 및 펫 관련 데이터
+                    streak = doc.getLong("streak")?.toInt() ?: 0,
+                    lastAchievedDate = doc.getString("lastAchievedDate") ?: "",
+                    consecutiveDays = doc.getLong("consecutiveDays")?.toInt() ?: 0,
+                    petHappiness = doc.getLong("petHappiness")?.toInt() ?: 50,
+                    petTotalSteps = doc.getLong("petTotalSteps") ?: 0L
                 )
 
                 val remoteTimestamp = doc.getLong("lastSyncTimestamp") ?: 0L
                 val localTimestamp = preferenceManager.getLastSyncTimestamp()
 
+                Log.d(TAG, "🔍 Timestamp comparison - remote: $remoteTimestamp, local: $localTimestamp")
+                Log.d(TAG, "🔍 Remote data - tutorialCompleted: ${remoteSettings.tutorialCompleted}, petType: ${remoteSettings.petType}")
+                Log.d(TAG, "🔍 Local data - tutorialCompleted: ${preferenceManager.isTutorialCompleted()}, petType: ${preferenceManager.getPetType()}")
+
+                // 로컬이 빈 데이터(튜토리얼 미완료)이고 Firebase에 완료된 데이터가 있으면 무조건 복원
+                val localTutorialCompleted = preferenceManager.isTutorialCompleted()
+                if (!localTutorialCompleted && remoteSettings.tutorialCompleted) {
+                    Log.d(TAG, "⬇️ Local is empty but Firebase has completed data - RESTORING")
+                    updateLocalSettings(remoteSettings, remoteTimestamp)
+                }
                 // Firebase 데이터가 더 최신이면 로컬 업데이트
-                if (remoteTimestamp > localTimestamp) {
+                else if (remoteTimestamp > localTimestamp) {
                     Log.d(TAG, "⬇️ Firebase data is newer, updating local")
                     updateLocalSettings(remoteSettings, remoteTimestamp)
                 } else {
@@ -113,6 +192,8 @@ class UserDataRepository(
                 uploadLocalToFirebase()
             }
 
+        } catch (e: kotlinx.coroutines.TimeoutCancellationException) {
+            Log.e(TAG, "⏰ Firebase sync timed out after 10s")
         } catch (e: Exception) {
             Log.e(TAG, "❌ Firebase sync failed: ${e.message}")
         }
@@ -129,10 +210,27 @@ class UserDataRepository(
         preferenceManager.saveControlDays(settings.controlDays)
         preferenceManager.saveSuccessDays(settings.successDays)
         preferenceManager.setPaidDeposit(settings.paidDeposit)
+        // 앱 재설치 시 복원 필요한 데이터
+        preferenceManager.saveLockedApps(settings.lockedApps)
+        preferenceManager.setTutorialCompleted(settings.tutorialCompleted)
+        preferenceManager.saveBlockingPeriods(settings.blockingPeriods)
+        preferenceManager.savePetType(settings.petType)
+        preferenceManager.savePetName(settings.petName)
+        // 프로모션 정보 복원
+        settings.usedPromoCode?.let { preferenceManager.saveUsedPromoCode(it) }
+        settings.promoCodeType?.let { preferenceManager.savePromoCodeType(it) }
+        settings.promoHostId?.let { preferenceManager.savePromoHostId(it) }
+        settings.promoFreeEndDate?.let { preferenceManager.savePromoFreeEndDate(it) }
+        // 연속 달성 및 펫 관련 데이터 복원
+        preferenceManager.setStreak(settings.streak)
+        preferenceManager.setLastAchievedDate(settings.lastAchievedDate)
+        preferenceManager.setConsecutiveDays(settings.consecutiveDays)
+        preferenceManager.savePetHappiness(settings.petHappiness)
+        preferenceManager.savePetTotalSteps(settings.petTotalSteps)
         preferenceManager.saveLastSyncTimestamp(timestamp)
 
         _userSettings.value = settings
-        Log.d(TAG, "✅ Local settings updated from Firebase")
+        Log.d(TAG, "✅ Local settings updated from Firebase (lockedApps: ${settings.lockedApps.size}, tutorial: ${settings.tutorialCompleted}, streak: ${settings.streak})")
     }
 
     /**
@@ -143,8 +241,10 @@ class UserDataRepository(
         val settings = _userSettings.value ?: return
 
         try {
-            val timestamp = System.currentTimeMillis()
-            val data = hashMapOf(
+            // 10초 타임아웃 설정
+            kotlinx.coroutines.withTimeout(10000) {
+                val timestamp = System.currentTimeMillis()
+                val data = hashMapOf(
                 "goal" to settings.goal,
                 "deposit" to settings.deposit,
                 "controlStartDate" to settings.controlStartDate,
@@ -152,19 +252,52 @@ class UserDataRepository(
                 "controlDays" to settings.controlDays.toList(),
                 "successDays" to settings.successDays,
                 "paidDeposit" to settings.paidDeposit,
+                // 앱 재설치 시 복원 필요한 데이터
+                "lockedApps" to settings.lockedApps.toList(),
+                "tutorialCompleted" to settings.tutorialCompleted,
+                "blockingPeriods" to settings.blockingPeriods.toList(),
+                "petType" to settings.petType,
+                "petName" to settings.petName,
+                // 프로모션 정보
+                "usedPromoCode" to settings.usedPromoCode,
+                "promoCodeType" to settings.promoCodeType,
+                "promoHostId" to settings.promoHostId,
+                "promoFreeEndDate" to settings.promoFreeEndDate,
+                // 연속 달성 및 펫 관련 데이터
+                "streak" to settings.streak,
+                "lastAchievedDate" to settings.lastAchievedDate,
+                "consecutiveDays" to settings.consecutiveDays,
+                "petHappiness" to settings.petHappiness,
+                "petTotalSteps" to settings.petTotalSteps,
                 "lastSyncTimestamp" to timestamp
             )
 
-            firestore.collection("users")
-                .document(userId)
-                .collection("userData")
-                .document("settings")
-                .set(data, SetOptions.merge())
-                .await()
+                // 부모 문서 (users/{userId}) 생성 - 대시보드 조회용
+                val userDocData = hashMapOf(
+                    "email" to (auth.currentUser?.email ?: ""),
+                    "lastUpdated" to timestamp,
+                    "tutorialCompleted" to settings.tutorialCompleted,
+                    "paidDeposit" to settings.paidDeposit,
+                    "promoCodeType" to settings.promoCodeType
+                )
+                firestore.collection("users")
+                    .document(userId)
+                    .set(userDocData, SetOptions.merge())
+                    .await()
 
-            preferenceManager.saveLastSyncTimestamp(timestamp)
-            Log.d(TAG, "✅ Local data uploaded to Firebase")
+                // 서브컬렉션 (users/{userId}/userData/settings) 저장
+                firestore.collection("users")
+                    .document(userId)
+                    .collection("userData")
+                    .document("settings")
+                    .set(data, SetOptions.merge())
+                    .await()
 
+                preferenceManager.saveLastSyncTimestamp(timestamp)
+                Log.d(TAG, "✅ Local data uploaded to Firebase (parent doc + settings)")
+            }
+        } catch (e: kotlinx.coroutines.TimeoutCancellationException) {
+            Log.e(TAG, "⏰ Firebase upload timed out after 10s")
         } catch (e: Exception) {
             Log.e(TAG, "❌ Failed to upload to Firebase: ${e.message}")
         }
@@ -315,6 +448,147 @@ class UserDataRepository(
     }
 
     /**
+     * 잠금 앱 목록 저장 (Firebase 동기화 포함)
+     */
+    fun saveLockedApps(apps: Set<String>) {
+        preferenceManager.saveLockedApps(apps)
+        _userSettings.value = _userSettings.value?.copy(lockedApps = apps)
+
+        repositoryScope.launch {
+            uploadLocalToFirebase()
+        }
+        Log.d(TAG, "🔒 Locked apps saved and synced: ${apps.size} apps")
+    }
+
+    /**
+     * 튜토리얼 완료 상태 저장 (Firebase 동기화 포함)
+     */
+    fun setTutorialCompleted(completed: Boolean) {
+        preferenceManager.setTutorialCompleted(completed)
+        _userSettings.value = _userSettings.value?.copy(tutorialCompleted = completed)
+
+        repositoryScope.launch {
+            uploadLocalToFirebase()
+        }
+        Log.d(TAG, "🎓 Tutorial completed saved and synced: $completed")
+    }
+
+    /**
+     * 차단 시간대 저장 (Firebase 동기화 포함)
+     */
+    fun saveBlockingPeriods(periods: Set<String>) {
+        preferenceManager.saveBlockingPeriods(periods)
+        _userSettings.value = _userSettings.value?.copy(blockingPeriods = periods)
+
+        repositoryScope.launch {
+            uploadLocalToFirebase()
+        }
+        Log.d(TAG, "⏰ Blocking periods saved and synced: $periods")
+    }
+
+    /**
+     * 펫 정보 저장 (Firebase 동기화 포함)
+     */
+    fun savePetInfo(petType: String, petName: String) {
+        preferenceManager.savePetType(petType)
+        preferenceManager.savePetName(petName)
+        _userSettings.value = _userSettings.value?.copy(petType = petType, petName = petName)
+
+        repositoryScope.launch {
+            uploadLocalToFirebase()
+        }
+        Log.d(TAG, "🐾 Pet info saved and synced: $petType, $petName")
+    }
+
+    /**
+     * 튜토리얼 완료 시 모든 데이터를 한 번에 저장 (Firebase 동기화 포함)
+     * - race condition 방지를 위해 단일 업로드
+     */
+    fun saveTutorialCompletionData(
+        lockedApps: Set<String>,
+        blockingPeriods: Set<String>,
+        controlDays: Set<Int>,
+        goal: Int,
+        deposit: Int,
+        controlStartDate: String,
+        controlEndDate: String,
+        petType: String,
+        petName: String
+    ) {
+        Log.d(TAG, "📦 Saving tutorial completion data...")
+
+        // 로컬에 모든 데이터 저장
+        preferenceManager.setTutorialCompleted(true)
+        preferenceManager.setPaidDeposit(true)
+        preferenceManager.saveLockedApps(lockedApps)
+        preferenceManager.saveBlockingPeriods(blockingPeriods)
+        preferenceManager.saveControlDays(controlDays)
+        preferenceManager.saveGoal(goal)
+        preferenceManager.saveDeposit(deposit)
+        preferenceManager.saveControlStartDate(controlStartDate)
+        preferenceManager.saveControlEndDate(controlEndDate)
+        preferenceManager.savePetType(petType)
+        preferenceManager.savePetName(petName)
+
+        // _userSettings 한 번에 업데이트
+        _userSettings.value = UserSettings(
+            goal = goal,
+            deposit = deposit,
+            controlStartDate = controlStartDate,
+            controlEndDate = controlEndDate,
+            controlDays = controlDays,
+            successDays = preferenceManager.getSuccessDays(),
+            paidDeposit = true,
+            lockedApps = lockedApps,
+            tutorialCompleted = true,
+            blockingPeriods = blockingPeriods,
+            petType = petType,
+            petName = petName,
+            usedPromoCode = preferenceManager.getAppliedPromoCode(),
+            promoCodeType = preferenceManager.getPromoCodeType(),
+            promoHostId = preferenceManager.getPromoHostId(),
+            promoFreeEndDate = preferenceManager.getPromoFreeEndDate(),
+            // 연속 달성 및 펫 관련 데이터
+            streak = preferenceManager.getStreak(),
+            lastAchievedDate = preferenceManager.getLastAchievedDate(),
+            consecutiveDays = preferenceManager.getConsecutiveDays(),
+            petHappiness = preferenceManager.getPetHappiness(),
+            petTotalSteps = preferenceManager.getPetTotalSteps()
+        )
+
+        // 한 번만 Firebase에 업로드
+        repositoryScope.launch {
+            try {
+                uploadLocalToFirebase()
+                Log.d(TAG, "✅ Tutorial completion data synced to Firebase successfully")
+            } catch (e: Exception) {
+                Log.e(TAG, "❌ Failed to sync tutorial completion data: ${e.message}")
+            }
+        }
+    }
+
+    /**
+     * 프로모션 정보 저장 (Firebase 동기화 포함)
+     */
+    fun savePromoInfo(code: String?, type: String?, hostId: String?, endDate: String?) {
+        code?.let { preferenceManager.saveUsedPromoCode(it) }
+        type?.let { preferenceManager.savePromoCodeType(it) }
+        hostId?.let { preferenceManager.savePromoHostId(it) }
+        endDate?.let { preferenceManager.savePromoFreeEndDate(it) }
+        _userSettings.value = _userSettings.value?.copy(
+            usedPromoCode = code,
+            promoCodeType = type,
+            promoHostId = hostId,
+            promoFreeEndDate = endDate
+        )
+
+        repositoryScope.launch {
+            uploadLocalToFirebase()
+        }
+        Log.d(TAG, "🎟️ Promo info saved and synced: $type, endDate: $endDate")
+    }
+
+    /**
      * Getter 함수들
      */
     fun getGoal(): Int = preferenceManager.getGoal()
@@ -329,6 +603,9 @@ class UserDataRepository(
     fun saveYesterdaySteps(steps: Int) = preferenceManager.saveYesterdaySteps(steps)
     fun getLastStepResetDate(): String = preferenceManager.getLastStepResetDate()
     fun saveLastStepResetDate(date: String) = preferenceManager.saveLastStepResetDate(date)
+    fun getLockedApps(): Set<String> = preferenceManager.getLockedApps()
+    fun isTutorialCompleted(): Boolean = preferenceManager.isTutorialCompleted()
+    fun getBlockingPeriods(): Set<String> = preferenceManager.getBlockingPeriods()
 
     private fun getCurrentDate(): String {
         return java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.getDefault())
@@ -346,5 +623,22 @@ data class UserSettings(
     val controlEndDate: String,
     val controlDays: Set<Int>,
     val successDays: Int,
-    val paidDeposit: Boolean
+    val paidDeposit: Boolean,
+    // 앱 재설치 시 복원 필요한 데이터
+    val lockedApps: Set<String> = emptySet(),
+    val tutorialCompleted: Boolean = false,
+    val blockingPeriods: Set<String> = setOf("morning", "afternoon", "evening", "night"),
+    val petType: String = "DOG1",
+    val petName: String = "멍이",
+    // 프로모션 정보
+    val usedPromoCode: String? = null,
+    val promoCodeType: String? = null,
+    val promoHostId: String? = null,
+    val promoFreeEndDate: String? = null,
+    // 연속 달성 및 펫 관련 데이터
+    val streak: Int = 0,
+    val lastAchievedDate: String = "",
+    val consecutiveDays: Int = 0,
+    val petHappiness: Int = 50,
+    val petTotalSteps: Long = 0L
 )

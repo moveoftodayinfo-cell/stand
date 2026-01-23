@@ -34,22 +34,27 @@ class WalkorWaitApp : Application() {
         super.onCreate()
         Log.d(TAG, "🚀 Application started")
 
-        // Firebase 익명 로그인
-        initializeFirebaseAuth()
+        // Analytics 초기화
+        AnalyticsManager.initialize(this)
 
-        // Repository 초기화
+        // Repository 초기화 (먼저 생성, 동기화는 나중에)
         userDataRepository = UserDataRepository(
             context = this,
-            auth = auth
+            auth = auth,
+            autoSync = false  // 자동 동기화 비활성화
         )
+
+        // Firebase 익명 로그인 후 Repository 동기화
+        initializeFirebaseAuthAndSync()
 
         // 구독 상태 확인
         verifySubscriptionStatus()
     }
 
-    private fun initializeFirebaseAuth() {
+    private fun initializeFirebaseAuthAndSync() {
         applicationScope.launch {
             try {
+                // 1. 먼저 Firebase 인증 완료
                 if (auth.currentUser == null) {
                     Log.d(TAG, "📱 Signing in anonymously...")
                     auth.signInAnonymously().await()
@@ -57,8 +62,15 @@ class WalkorWaitApp : Application() {
                 } else {
                     Log.d(TAG, "✅ Already signed in: ${auth.currentUser?.uid}")
                 }
+
+                // 2. 인증 완료 후 Repository 동기화 시작
+                Log.d(TAG, "🔄 Starting repository sync after auth...")
+                userDataRepository.startSync()
+
             } catch (e: Exception) {
                 Log.e(TAG, "❌ Firebase Auth failed: ${e.message}")
+                // 인증 실패해도 syncCompleted를 true로 설정하여 앱이 멈추지 않게
+                userDataRepository.markSyncCompleted()
             }
         }
     }
