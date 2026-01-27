@@ -183,7 +183,7 @@ class PetAIChatManager(
             PetPersonality.TOUGH -> "뭔가 이상한 말 같은데. 다시 말해."
             PetPersonality.CUTE -> "으잉? 이상한 말 같음... 다시!"
             PetPersonality.TSUNDERE -> "뭐야 그게. 다시 말해봐."
-            PetPersonality.DIALECT -> "뭔 말인지 모르것다이. 다시 해봐라!"
+            PetPersonality.DIALECT -> "뭔 소린지 모르겠다 다시 해봐"
             PetPersonality.TIMID -> "저, 저... 잘 모르겠어요... 다시요..."
             PetPersonality.POSITIVE -> "음? 다시 말해줘!"
         }
@@ -197,7 +197,7 @@ class PetAIChatManager(
             PetPersonality.TOUGH -> "오늘 대화는 여기까지. 내일 또 하자."
             PetPersonality.CUTE -> "오늘은 대화 많이 했다~ 내일 또 얘기하자!"
             PetPersonality.TSUNDERE -> "오늘은 이만... 내일 또 와."
-            PetPersonality.DIALECT -> "오늘은 여기까지라이~ 내일 또 보자이!"
+            PetPersonality.DIALECT -> "오늘은 여기까지다 내일 또 보자"
             PetPersonality.TIMID -> "저, 오늘은... 내일 또 얘기해요..."
             PetPersonality.POSITIVE -> "오늘 대화 끝! 내일 또 만나자!"
         }
@@ -211,7 +211,7 @@ class PetAIChatManager(
             PetPersonality.TOUGH -> "...좀 쉬자. 나중에 또 얘기해."
             PetPersonality.CUTE -> "으앙 지쳤음ㅠㅠ 잠깐 쉬고 다시 얘기하자~"
             PetPersonality.TSUNDERE -> "...피곤해. 나중에 말 걸어."
-            PetPersonality.DIALECT -> "아이고 힘들다이~ 좀 쉬고 얘기하자이!"
+            PetPersonality.DIALECT -> "와 힘들다 좀 쉬고 얘기하자"
             PetPersonality.TIMID -> "저, 저... 조금 쉬어도 될까요...?"
             PetPersonality.POSITIVE -> "잠깐! 에너지 충전하고 올게! 조금만 기다려!"
         }
@@ -312,7 +312,7 @@ class PetAIChatManager(
                 "잘 모르겠어", "이해 안 돼", "뭔 소리야"
             )
             PetPersonality.DIALECT -> listOf(
-                "뭔 말인지 모르것다", "잘 모르겠는기라", "어렵네이"
+                "뭔 소린지 모르겠다", "잘 모르겠노", "어렵노"
             )
             PetPersonality.TIMID -> listOf(
                 "잘 모르겠어요", "어려워요", "뭔지 잘"
@@ -426,9 +426,10 @@ class PetAIChatManager(
             """.trimIndent()
 
             PetPersonality.DIALECT -> """
-                성격: 경상도 사투리 사용.
-                말투: "~이소", "~기라", "~다이" 등.
-                예시: "좋은기라!", "힘내이소!", "대단하다이!"
+                성격: MZ 캐주얼 경상도 사투리. 과한 사투리 NO.
+                말투: "~노", "~제", "마", "니" 등 자연스러운 경상도 억양.
+                예시: "마 니 쫌 하네", "잘하노~", "ㅇㅈ이다", "가보자고"
+                금지: "~이소", "~기라", "~다이" 같은 과한 사투리 사용 금지.
             """.trimIndent()
 
             PetPersonality.TIMID -> """

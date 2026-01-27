@@ -78,7 +78,7 @@ class StepSensorManager(private val context: Context) : SensorEventListener {
             sensorType = SensorType.STEP_COUNTER
             Log.d(TAG, "✅ Using STEP_COUNTER sensor")
             if (!useHealthConnect) {
-                Toast.makeText(context, "✅ 기본 걸음 센서 사용", Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, "기본 걸음 센서 사용", Toast.LENGTH_SHORT).show()
             }
         }
         // 3. STEP_DETECTOR 센서
@@ -88,7 +88,7 @@ class StepSensorManager(private val context: Context) : SensorEventListener {
             sensorType = SensorType.STEP_DETECTOR
             currentSteps = prefs.getTodaySteps()
             Log.d(TAG, "✅ Using STEP_DETECTOR sensor")
-            Toast.makeText(context, "✅ 걸음 감지 센서 사용", Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, "걸음 감지 센서 사용", Toast.LENGTH_SHORT).show()
         }
         // 4. ACCELEROMETER (최후 수단)
         else if (sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER).also {
@@ -97,13 +97,13 @@ class StepSensorManager(private val context: Context) : SensorEventListener {
             sensorType = SensorType.ACCELEROMETER
             currentSteps = prefs.getTodaySteps()
             Log.d(TAG, "⚙️ Using ACCELEROMETER sensor")
-            Toast.makeText(context, "⚙️ 가속도계로 걸음 감지 (센서 없음)", Toast.LENGTH_LONG).show()
+            Toast.makeText(context, "가속도계로 걸음 감지 (센서 없음)", Toast.LENGTH_LONG).show()
         }
         // 5. 사용 가능한 것이 없음
         else {
             sensorType = SensorType.NONE
             Log.e(TAG, "❌ No sensors available")
-            Toast.makeText(context, "❌ 사용 가능한 센서 없음", Toast.LENGTH_LONG).show()
+            Toast.makeText(context, "사용 가능한 센서 없음", Toast.LENGTH_LONG).show()
         }
     }
 
@@ -113,7 +113,7 @@ class StepSensorManager(private val context: Context) : SensorEventListener {
             stepSensor != null -> {
                 sensorType = SensorType.STEP_COUNTER
                 Log.d(TAG, "✅ Fallback to STEP_COUNTER")
-                Toast.makeText(context, "✅ 걸음 센서 사용", Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, "걸음 센서 사용", Toast.LENGTH_SHORT).show()
             }
             sensorManager.getDefaultSensor(Sensor.TYPE_STEP_DETECTOR).also {
                 stepDetectorSensor = it
@@ -121,7 +121,7 @@ class StepSensorManager(private val context: Context) : SensorEventListener {
                 sensorType = SensorType.STEP_DETECTOR
                 currentSteps = prefs.getTodaySteps()
                 Log.d(TAG, "✅ Fallback to STEP_DETECTOR")
-                Toast.makeText(context, "✅ 걸음 감지 센서 사용", Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, "걸음 감지 센서 사용", Toast.LENGTH_SHORT).show()
             }
             sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER).also {
                 accelerometerSensor = it
@@ -129,7 +129,7 @@ class StepSensorManager(private val context: Context) : SensorEventListener {
                 sensorType = SensorType.ACCELEROMETER
                 currentSteps = prefs.getTodaySteps()
                 Log.d(TAG, "⚙️ Fallback to ACCELEROMETER")
-                Toast.makeText(context, "⚙️ 가속도계로 걸음 감지", Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, "가속도계로 걸음 감지", Toast.LENGTH_SHORT).show()
             }
             else -> {
                 sensorType = SensorType.NONE
@@ -197,13 +197,23 @@ class StepSensorManager(private val context: Context) : SensorEventListener {
                             }
                             Log.d(TAG, "HEALTH_CONNECT polling started")
                         } else {
-                            // 권한 없으면 센서로 fallback
+                            // 권한 없으면 사용자에게 알림 후 센서로 fallback
                             Log.d(TAG, "⚠️ Health Connect permissions not granted")
+                            Toast.makeText(
+                                context,
+                                "⚠️ 피트니스 앱 연결이 끊어졌습니다.\n설정에서 재연결하세요",
+                                Toast.LENGTH_LONG
+                            ).show()
                             fallbackToSensor()
                             startListeningSensor() // 센서 리스닝 시작
                         }
                     } catch (e: Exception) {
                         Log.e(TAG, "❌ Health Connect error: ${e.message}")
+                        Toast.makeText(
+                            context,
+                            "⚠️ 피트니스 앱 연결 오류.\n기본 센서로 전환합니다",
+                            Toast.LENGTH_LONG
+                        ).show()
                         fallbackToSensor()
                         startListeningSensor() // 센서 리스닝 시작
                     }
@@ -378,6 +388,6 @@ class StepSensorManager(private val context: Context) : SensorEventListener {
             SensorType.NONE -> {}
         }
 
-        Toast.makeText(context, "🔄 걸음 수 리셋!", Toast.LENGTH_SHORT).show()
+        Toast.makeText(context, "걸음 수 리셋!", Toast.LENGTH_SHORT).show()
     }
 }

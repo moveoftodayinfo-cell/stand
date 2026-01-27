@@ -385,7 +385,7 @@ fun PetOnboardingScreen(
                     prefManager.setAccessibilitySetupCompleted(true)
                     prefManager.setAppSelectionCompleted(true)
                     prefManager.setTutorialCompleted(true)
-                    prefManager.setPaidDeposit(true)
+                    // paidDeposit은 saveTutorialCompletionData에서 프로모션 여부 확인 후 설정
                     // 튜토리얼 진행 단계 초기화
                     prefManager.clearTutorialCurrentStep()
                     // 실제 목표 설정 필요 플래그
@@ -2963,7 +2963,7 @@ private fun PaymentStep(
                     preferenceManager.saveControlStartDate(startDate)
                     preferenceManager.saveControlEndDate(endDate)
                     preferenceManager.saveSuccessDays(0)
-                    preferenceManager.setPaidDeposit(true)
+                    preferenceManager.setPaidDeposit(false)  // 프로모션 사용자는 결제자가 아님
                     preferenceManager.saveTodaySteps(0)
 
                     val pastDate = java.util.Calendar.getInstance()

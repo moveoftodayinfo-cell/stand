@@ -14,6 +14,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
@@ -60,6 +61,9 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 import javax.inject.Inject
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -324,6 +328,7 @@ fun WalkOrWaitScreen(
 ) {
     val context = LocalContext.current
     val hapticManager = remember { HapticManager(context) }
+    val notificationHelper = remember { NotificationHelper(context) }
     val app = context.applicationContext as WalkorWaitApp
     val repository = app.userDataRepository
 
@@ -339,6 +344,25 @@ fun WalkOrWaitScreen(
 
     // 구독/프로모션 상태 체크 (백그라운드에서 확인, 로딩 화면 없음)
     var showExpiredPaymentScreen by remember { mutableStateOf(false) }
+
+    // 앱 업데이트 상태
+    var showUpdateDialog by remember { mutableStateOf(false) }
+    var updateInfo by remember { mutableStateOf<AppUpdateManager.UpdateInfo?>(null) }
+    var updateCheckCompleted by remember { mutableStateOf(false) }
+
+    // 앱 시작 시 업데이트 체크
+    LaunchedEffect(Unit) {
+        try {
+            val info = AppUpdateManager.checkForUpdate(context)
+            if (info.isUpdateAvailable) {
+                updateInfo = info
+                showUpdateDialog = true
+            }
+        } catch (e: Exception) {
+            // 업데이트 체크 실패 시 무시
+        }
+        updateCheckCompleted = true
+    }
 
     // 앱 시작 시 구독/프로모션 상태 백그라운드 확인
     LaunchedEffect(Unit) {
@@ -408,30 +432,55 @@ fun WalkOrWaitScreen(
         }
     }
 
-    // 0. Firebase 동기화 대기 중 로딩 화면
-    if (!syncCompleted) {
+    // 0. Firebase 동기화 및 업데이트 체크 대기 중 로딩 화면
+    // 업데이트 확인이 완료되지 않았거나, 동기화가 완료되지 않은 경우 로딩 화면 표시
+    val shouldShowLoading = !syncCompleted || (!updateCheckCompleted && !showUpdateDialog)
+
+    if (shouldShowLoading || showUpdateDialog) {
         Box(
             modifier = Modifier
                 .fillMaxSize()
                 .background(MockupColors.Background),
             contentAlignment = Alignment.Center
         ) {
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                CircularProgressIndicator(
-                    color = MockupColors.Border,
-                    modifier = Modifier.size(48.dp)
-                )
-                Spacer(modifier = Modifier.height(16.dp))
-                Text(
-                    text = "데이터 불러오는 중...",
-                    color = MockupColors.TextSecondary,
-                    fontSize = 14.sp
+            // 로딩 인디케이터 (다이얼로그가 없을 때만 표시)
+            if (!showUpdateDialog) {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    CircularProgressIndicator(
+                        color = MockupColors.Border,
+                        modifier = Modifier.size(48.dp)
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Text(
+                        text = "데이터 불러오는 중...",
+                        color = MockupColors.TextSecondary,
+                        fontSize = 14.sp
+                    )
+                }
+            }
+
+            // 업데이트 다이얼로그
+            if (showUpdateDialog && updateInfo != null) {
+                AppUpdateDialog(
+                    updateInfo = updateInfo!!,
+                    onDismiss = {
+                        if (!updateInfo!!.isForceUpdate) {
+                            showUpdateDialog = false
+                        }
+                    },
+                    onUpdate = {
+                        AppUpdateManager.openPlayStore(context, updateInfo!!.playStoreUrl)
+                    }
                 )
             }
         }
-        return
+
+        // 동기화 완료 + 업데이트 체크 완료 + 다이얼로그 닫힘 전까지 리턴
+        if (!syncCompleted || !updateCheckCompleted || showUpdateDialog) {
+            return
+        }
     }
 
     // 1. Pet onboarding - 16단계 통합 튜토리얼 (펫 선택부터 결제/위젯까지)
@@ -554,6 +603,78 @@ fun WalkOrWaitScreen(
     var goal by remember { mutableIntStateOf(preferenceManager?.getGoal() ?: 8000) }
     var goalDisplay by remember { mutableDoubleStateOf(preferenceManager?.getGoalForDisplay() ?: 8000.0) } // 표시용
     var showSettingsScreen by remember { mutableStateOf(false) }
+    var showChallengeScreen by remember { mutableStateOf(false) }
+
+    // 챌린지 관련 상태
+    val challengeManager = remember { ChallengeManager.getInstance(context) }
+    val currentChallengeProgress by challengeManager.currentProgress.collectAsState()
+    var selectedChallenge by remember { mutableStateOf<Challenge?>(null) }
+    var showChallengeTimer by remember { mutableStateOf(false) }
+    var showChallengeCompleteDialog by remember { mutableStateOf(false) }
+    var showChallengeEndedDialog by remember { mutableStateOf(false) }
+    var completedChallenge by remember { mutableStateOf<Challenge?>(null) }
+
+    // 챌린지 타이머 업데이트 (1초마다)
+    LaunchedEffect(currentChallengeProgress?.status) {
+        if (currentChallengeProgress?.status == ChallengeStatus.RUNNING) {
+            while (currentChallengeProgress?.status == ChallengeStatus.RUNNING) {
+                delay(1000)
+                challengeManager.updateTimer()
+            }
+        }
+    }
+
+    // 앱 라이프사이클 감지 (챌린지 이탈 체크) - 다른 앱으로 갔을 때만 (화면 끄기 제외)
+    val lifecycleOwner = LocalLifecycleOwner.current
+    val powerManager = remember { context.getSystemService(android.content.Context.POWER_SERVICE) as android.os.PowerManager }
+    val exitCheckScope = rememberCoroutineScope()
+    var exitCheckJob by remember { mutableStateOf<kotlinx.coroutines.Job?>(null) }
+
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            when (event) {
+                Lifecycle.Event.ON_STOP -> {
+                    // 이전 체크 취소
+                    exitCheckJob?.cancel()
+                    // 약간의 딜레이 후 화면 상태 체크 (전원 버튼 vs 앱 이탈 구분)
+                    exitCheckJob = exitCheckScope.launch {
+                        delay(100)
+                        // 딜레이 후에도 화면이 켜져 있으면 = 다른 앱으로 이동 (앱 이탈)
+                        // 딜레이 후 화면이 꺼져 있으면 = 전원 버튼으로 화면 끔 (이탈 아님)
+                        val isScreenStillOn = powerManager.isInteractive
+                        if (isScreenStillOn) {
+                            val progress = challengeManager.currentProgress.value
+                            if (progress != null &&
+                                (progress.status == ChallengeStatus.RUNNING || progress.status == ChallengeStatus.PAUSED)) {
+                                challengeManager.onAppExit()
+                                // 토스트 알림 (메인 스레드에서 실행)
+                                kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
+                                    val exitCount = challengeManager.currentProgress.value?.exitCount ?: 0
+                                    val message = if (exitCount >= 2) {
+                                        "챌린지가 종료되었어요"
+                                    } else {
+                                        "챌린지가 일시정지됐어요! (${exitCount}/2)"
+                                    }
+                                    android.widget.Toast.makeText(context, message, android.widget.Toast.LENGTH_SHORT).show()
+                                }
+                            }
+                        }
+                    }
+                }
+                Lifecycle.Event.ON_RESUME -> {
+                    // 앱으로 돌아오면 대기 중인 이탈 체크 취소
+                    exitCheckJob?.cancel()
+                    exitCheckJob = null
+                }
+                else -> {}
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose {
+            exitCheckJob?.cancel()
+            lifecycleOwner.lifecycle.removeObserver(observer)
+        }
+    }
 
     // 설정 화면 닫을 때 펫 정보 및 목표 단위 다시 로드
     LaunchedEffect(showSettingsScreen) {
@@ -628,8 +749,9 @@ fun WalkOrWaitScreen(
 
             val isNowAchieved = currentProgress >= goal
             if (isNowAchieved && !previousGoalAchieved) {
-                // 목표 달성 순간 - 햅틱 + 애니메이션
+                // 목표 달성 순간 - 햅틱 + 애니메이션 + 알림
                 hapticManager.goalAchieved()
+                notificationHelper.showGoalAchievedNotification(goalDisplay, goalUnit)
                 triggerCelebration = true
                 preferenceManager?.checkAndRecordTodaySuccess()
                 successDays = preferenceManager?.getSuccessDays() ?: 0
@@ -707,7 +829,79 @@ fun WalkOrWaitScreen(
     val currentText = if (goalUnit == "km") String.format("%.2f", currentProgressDisplay) else currentProgressDisplay.toInt().toString()
     val goalText = if (goalUnit == "km") String.format("%.2f", goalDisplay) else goal.toString()
 
-    if (showSettingsScreen) {
+    // 챌린지 타이머 다이얼로그
+    if (showChallengeTimer && currentChallengeProgress != null) {
+        ChallengeTimerDialog(
+            progress = currentChallengeProgress!!,
+            onStart = {
+                challengeManager.beginChallenge()
+            },
+            onResume = {
+                challengeManager.resumeChallenge()
+            },
+            onCancel = {
+                challengeManager.cancelChallenge()
+                showChallengeTimer = false
+                selectedChallenge = null
+            },
+            onComplete = {
+                completedChallenge = currentChallengeProgress?.challenge
+                showChallengeTimer = false
+                showChallengeCompleteDialog = true
+                challengeManager.clearCurrentProgress()
+                // 진동 + 알림음
+                hapticManager?.success()
+                try {
+                    val notificationUri = android.media.RingtoneManager.getDefaultUri(android.media.RingtoneManager.TYPE_NOTIFICATION)
+                    android.media.RingtoneManager.getRingtone(context, notificationUri)?.play()
+                } catch (e: Exception) { /* 무시 */ }
+            },
+            onEnded = {
+                completedChallenge = currentChallengeProgress?.challenge
+                showChallengeTimer = false
+                showChallengeEndedDialog = true
+                challengeManager.clearCurrentProgress()
+            },
+            onDebugComplete = {
+                challengeManager.debugCompleteChallenge()
+            }
+        )
+    }
+
+    // 챌린지 완료 다이얼로그
+    if (showChallengeCompleteDialog && completedChallenge != null) {
+        ChallengeCompleteDialog(
+            challenge = completedChallenge!!,
+            onDismiss = {
+                showChallengeCompleteDialog = false
+                completedChallenge = null
+            }
+        )
+    }
+
+    // 챌린지 종료 다이얼로그
+    if (showChallengeEndedDialog && completedChallenge != null) {
+        ChallengeEndedDialog(
+            challenge = completedChallenge!!,
+            onDismiss = {
+                showChallengeEndedDialog = false
+                completedChallenge = null
+            }
+        )
+    }
+
+    if (showChallengeScreen) {
+        ChallengeScreen(
+            onBack = { showChallengeScreen = false },
+            onChallengeSelected = { challenge ->
+                selectedChallenge = challenge
+                // 챌린지 시작 준비 (NOT_STARTED 상태로)
+                challengeManager.prepareChallenge(challenge)
+                showChallengeTimer = true
+                showChallengeScreen = false
+            }
+        )
+    } else if (showSettingsScreen) {
         SettingsScreen(
             preferenceManager = preferenceManager,
             onBack = { showSettingsScreen = false }
@@ -733,6 +927,10 @@ fun WalkOrWaitScreen(
             onSettingsClick = {
                 hapticManager.click()
                 showSettingsScreen = true
+            },
+            onChallengeClick = {
+                hapticManager.click()
+                showChallengeScreen = true
             },
             hapticManager = hapticManager,
             modifier = modifier,
@@ -761,6 +959,161 @@ fun WalkOrWaitScreen(
         )
     }
 
+}
+
+/**
+ * 앱 업데이트 다이얼로그 (레트로 스타일)
+ */
+@Composable
+fun AppUpdateDialog(
+    updateInfo: AppUpdateManager.UpdateInfo,
+    onDismiss: () -> Unit,
+    onUpdate: () -> Unit
+) {
+    val kenneyFont = com.moveoftoday.walkorwait.pet.rememberKenneyFont()
+
+    androidx.compose.ui.window.Dialog(
+        onDismissRequest = {
+            if (!updateInfo.isForceUpdate) {
+                onDismiss()
+            }
+        },
+        properties = androidx.compose.ui.window.DialogProperties(
+            dismissOnBackPress = !updateInfo.isForceUpdate,
+            dismissOnClickOutside = false
+        )
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(16.dp))
+                .background(com.moveoftoday.walkorwait.pet.MockupColors.Background)
+                .border(2.dp, com.moveoftoday.walkorwait.pet.MockupColors.Border, RoundedCornerShape(16.dp))
+        ) {
+            // 헤더 (rebon 로고)
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(com.moveoftoday.walkorwait.pet.MockupColors.CardBackground)
+                    .padding(vertical = 12.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = "rebon",
+                    fontSize = 16.sp,
+                    fontFamily = kenneyFont,
+                    color = com.moveoftoday.walkorwait.pet.MockupColors.TextPrimary,
+                    letterSpacing = 1.sp
+                )
+            }
+
+            // 구분선
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(2.dp)
+                    .background(com.moveoftoday.walkorwait.pet.MockupColors.Border)
+            )
+
+            // 컨텐츠 영역
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                // 아이콘
+                androidx.compose.foundation.Image(
+                    painter = androidx.compose.ui.res.painterResource(id = R.drawable.rebon_icon_trans),
+                    contentDescription = "rebon icon",
+                    modifier = Modifier.size(64.dp)
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // 제목
+                Text(
+                    text = if (updateInfo.isForceUpdate) "업데이트 필요" else "새 버전이 있어요",
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = com.moveoftoday.walkorwait.pet.MockupColors.TextPrimary,
+                    textAlign = TextAlign.Center
+                )
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                // 메시지
+                Text(
+                    text = updateInfo.updateMessage,
+                    fontSize = 14.sp,
+                    color = com.moveoftoday.walkorwait.pet.MockupColors.TextSecondary,
+                    textAlign = TextAlign.Center,
+                    lineHeight = 22.sp
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // 버전 정보
+                Row(
+                    horizontalArrangement = Arrangement.Center,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(
+                        text = "${updateInfo.currentVersionName}",
+                        fontSize = 13.sp,
+                        color = com.moveoftoday.walkorwait.pet.MockupColors.TextMuted
+                    )
+                    Text(
+                        text = " → ",
+                        fontSize = 13.sp,
+                        color = com.moveoftoday.walkorwait.pet.MockupColors.TextMuted
+                    )
+                    Text(
+                        text = "${updateInfo.latestVersionName}",
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = com.moveoftoday.walkorwait.pet.MockupColors.TextPrimary
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                // 업데이트 버튼
+                Button(
+                    onClick = onUpdate,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(48.dp),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = com.moveoftoday.walkorwait.pet.MockupColors.Border,
+                        contentColor = Color.White
+                    )
+                ) {
+                    Text(
+                        text = "업데이트",
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+
+                // 나중에 버튼 (강제 업데이트가 아닌 경우에만)
+                if (!updateInfo.isForceUpdate) {
+                    Spacer(modifier = Modifier.height(8.dp))
+                    TextButton(
+                        onClick = onDismiss,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text(
+                            text = "나중에",
+                            fontSize = 14.sp,
+                            color = com.moveoftoday.walkorwait.pet.MockupColors.TextMuted
+                        )
+                    }
+                }
+            }
+        }
+    }
 }
 
 @Preview(showBackground = true)

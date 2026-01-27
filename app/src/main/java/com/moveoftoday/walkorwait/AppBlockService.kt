@@ -195,7 +195,7 @@ class AppBlockService : AccessibilityService() {
                 handler.post {
                     Toast.makeText(
                         this,
-                        "🆘 긴급 사용 중 - 남은 시간: ${minutes}분 ${seconds}초",
+                        "휴식 중 - 남은 시간: ${minutes}분 ${seconds}초",
                         Toast.LENGTH_SHORT
                     ).show()
                 }
@@ -205,7 +205,7 @@ class AppBlockService : AccessibilityService() {
                 Log.d(TAG, "Emergency mode EXPIRED")
                 prefs.saveEmergencyMode(false)
                 notificationHelper.cancelEmergencyNotification()
-                blockAppImmediately(packageName, "긴급 시간이 끝났어요")
+                blockAppImmediately(packageName, "휴식 시간이 끝났어요")
                 return
             }
         }

@@ -5,6 +5,7 @@ import android.util.Log
 import com.android.billingclient.api.Purchase
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.SetOptions
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import kotlinx.coroutines.tasks.await
@@ -142,6 +143,9 @@ class SubscriptionManager(private val context: Context) {
                 .set(subscription)
                 .await()
 
+            // 대시보드 추적용 사용자 문서 생성
+            createUserDocument(userId, goal)
+
             Log.d(TAG, "✅ Subscription created: $monthId, inviteCode=$inviteCode")
             return Result.success(subscription)
 
@@ -156,6 +160,46 @@ class SubscriptionManager(private val context: Context) {
      */
     private fun generateInviteCode(userId: String): String {
         return "REBON-${userId.take(6).uppercase()}"
+    }
+
+    /**
+     * 대시보드 추적용 사용자 문서 생성 (결제 시 호출)
+     */
+    private fun createUserDocument(userId: String, goal: Int) {
+        val userEmail = auth.currentUser?.email ?: ""
+        val now = System.currentTimeMillis()
+
+        // 부모 문서 생성/업데이트
+        val userDoc = hashMapOf(
+            "email" to userEmail,
+            "lastActiveAt" to now,
+            "lastUpdated" to now,
+            "createdAt" to now
+        )
+        db.collection("users")
+            .document(userId)
+            .set(userDoc, SetOptions.merge())
+            .addOnSuccessListener {
+                Log.d(TAG, "User document created for paid user: $userId")
+            }
+            .addOnFailureListener { e ->
+                Log.e(TAG, "Failed to create user document: ${e.message}")
+            }
+
+        // settings 서브컬렉션 생성
+        val settingsDoc = hashMapOf(
+            "lastActiveAt" to now,
+            "paidDeposit" to true,  // 결제 사용자
+            "goal" to goal
+        )
+        db.collection("users")
+            .document(userId)
+            .collection("userData")
+            .document("settings")
+            .set(settingsDoc, SetOptions.merge())
+            .addOnSuccessListener {
+                Log.d(TAG, "Settings document created for paid user: $userId")
+            }
     }
 
     /**

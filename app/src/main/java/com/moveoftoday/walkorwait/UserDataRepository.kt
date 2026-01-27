@@ -89,6 +89,7 @@ class UserDataRepository(
             controlEndDate = preferenceManager.getControlEndDate(),
             controlDays = preferenceManager.getControlDays(),
             successDays = preferenceManager.getSuccessDays(),
+            totalDays = preferenceManager.getTotalControlDays(),
             paidDeposit = preferenceManager.isPaidDeposit(),
             // 앱 재설치 시 복원 필요한 데이터
             lockedApps = preferenceManager.getLockedApps(),
@@ -144,6 +145,7 @@ class UserDataRepository(
                     controlEndDate = doc.getString("controlEndDate") ?: "",
                     controlDays = (doc.get("controlDays") as? List<*>)?.mapNotNull { (it as? Long)?.toInt() }?.toSet()?.ifEmpty { setOf(1, 2, 3, 4, 5) } ?: setOf(1, 2, 3, 4, 5),
                     successDays = doc.getLong("successDays")?.toInt() ?: 0,
+                    totalDays = doc.getLong("totalDays")?.toInt() ?: 0,
                     paidDeposit = doc.getBoolean("paidDeposit") ?: false,
                     // 앱 재설치 시 복원 필요한 데이터
                     lockedApps = (doc.get("lockedApps") as? List<*>)?.mapNotNull { it as? String }?.toSet() ?: emptySet(),
@@ -251,6 +253,7 @@ class UserDataRepository(
                 "controlEndDate" to settings.controlEndDate,
                 "controlDays" to settings.controlDays.toList(),
                 "successDays" to settings.successDays,
+                "totalDays" to settings.totalDays,
                 "paidDeposit" to settings.paidDeposit,
                 // 앱 재설치 시 복원 필요한 데이터
                 "lockedApps" to settings.lockedApps.toList(),
@@ -269,6 +272,7 @@ class UserDataRepository(
                 "consecutiveDays" to settings.consecutiveDays,
                 "petHappiness" to settings.petHappiness,
                 "petTotalSteps" to settings.petTotalSteps,
+                "lastActiveAt" to System.currentTimeMillis(),  // 이탈 추적용
                 "lastSyncTimestamp" to timestamp
             )
 
@@ -276,6 +280,7 @@ class UserDataRepository(
                 val userDocData = hashMapOf(
                     "email" to (auth.currentUser?.email ?: ""),
                     "lastUpdated" to timestamp,
+                    "lastActiveAt" to System.currentTimeMillis(),  // 이탈 추적용
                     "tutorialCompleted" to settings.tutorialCompleted,
                     "paidDeposit" to settings.paidDeposit,
                     "promoCodeType" to settings.promoCodeType
@@ -378,6 +383,68 @@ class UserDataRepository(
         repositoryScope.launch {
             uploadLocalToFirebase()
         }
+    }
+
+    /**
+     * 펫 교체 결제 추적 (대시보드용)
+     */
+    fun trackPetChangePurchase(petType: String, petName: String) {
+        val userId = auth.currentUser?.uid ?: return
+        val userEmail = auth.currentUser?.email ?: ""
+        val now = System.currentTimeMillis()
+
+        // 사용자 문서 업데이트
+        val userDoc = hashMapOf(
+            "email" to userEmail,
+            "lastActiveAt" to now,
+            "lastUpdated" to now,
+            "petChangePurchased" to true,
+            "lastPetChangeAt" to now,
+            "petChangeCount" to com.google.firebase.firestore.FieldValue.increment(1)
+        )
+        firestore.collection("users")
+            .document(userId)
+            .set(userDoc, SetOptions.merge())
+
+        // settings 서브컬렉션 업데이트 (paidDeposit은 건드리지 않음 - 구독 결제와 별개)
+        val settingsDoc = hashMapOf(
+            "lastActiveAt" to now,
+            "petType" to petType,
+            "petName" to petName,
+            "petChangePurchased" to true,
+            "lastPetChangePurchaseAt" to now
+        )
+        firestore.collection("users")
+            .document(userId)
+            .collection("userData")
+            .document("settings")
+            .set(settingsDoc, SetOptions.merge())
+
+        // 펫 교체 이력 저장 (사용자별 서브컬렉션)
+        val petChangeHistory = hashMapOf(
+            "petType" to petType,
+            "petName" to petName,
+            "purchasedAt" to now,
+            "email" to userEmail
+        )
+        firestore.collection("users")
+            .document(userId)
+            .collection("petChanges")
+            .add(petChangeHistory)
+
+        // 전체 펫 교체 이력 (대시보드 조회용 - 최상위 컬렉션)
+        val globalPetChangeHistory = hashMapOf(
+            "userId" to userId,
+            "email" to userEmail,
+            "petType" to petType,
+            "petName" to petName,
+            "purchasedAt" to now
+        )
+        firestore.collection("petChangeHistory")
+            .add(globalPetChangeHistory)
+            .addOnSuccessListener {
+                Log.d(TAG, "Pet change history saved: $userId -> $petType")
+            }
     }
 
     /**
@@ -517,9 +584,13 @@ class UserDataRepository(
     ) {
         Log.d(TAG, "📦 Saving tutorial completion data...")
 
+        // 프로모션 코드 사용자인지 확인 (프로모션 사용자는 결제자가 아님)
+        val hasPromoCode = !preferenceManager.getPromoCodeType().isNullOrEmpty()
+        val isPaidUser = !hasPromoCode  // 프로모션 코드 없으면 결제자
+
         // 로컬에 모든 데이터 저장
         preferenceManager.setTutorialCompleted(true)
-        preferenceManager.setPaidDeposit(true)
+        preferenceManager.setPaidDeposit(isPaidUser)
         preferenceManager.saveLockedApps(lockedApps)
         preferenceManager.saveBlockingPeriods(blockingPeriods)
         preferenceManager.saveControlDays(controlDays)
@@ -538,7 +609,7 @@ class UserDataRepository(
             controlEndDate = controlEndDate,
             controlDays = controlDays,
             successDays = preferenceManager.getSuccessDays(),
-            paidDeposit = true,
+            paidDeposit = isPaidUser,
             lockedApps = lockedApps,
             tutorialCompleted = true,
             blockingPeriods = blockingPeriods,
@@ -607,6 +678,47 @@ class UserDataRepository(
     fun isTutorialCompleted(): Boolean = preferenceManager.isTutorialCompleted()
     fun getBlockingPeriods(): Set<String> = preferenceManager.getBlockingPeriods()
 
+    /**
+     * 공유 이벤트 기록 (Core 유저 추적용)
+     */
+    fun trackShareEvent() {
+        val userId = auth.currentUser?.uid ?: return
+        val today = getCurrentDate()
+        val now = System.currentTimeMillis()
+
+        repositoryScope.launch {
+            try {
+                // settings에 lastShareAt 업데이트
+                firestore.collection("users")
+                    .document(userId)
+                    .collection("userData")
+                    .document("settings")
+                    .update(
+                        mapOf(
+                            "lastShareAt" to now,
+                            "lastShareDate" to today
+                        )
+                    )
+                    .await()
+
+                // 사용자 문서에도 업데이트
+                firestore.collection("users")
+                    .document(userId)
+                    .update(
+                        mapOf(
+                            "lastShareAt" to now,
+                            "lastShareDate" to today
+                        )
+                    )
+                    .await()
+
+                Log.d(TAG, "📤 Share event tracked: $today")
+            } catch (e: Exception) {
+                Log.e(TAG, "Failed to track share event: ${e.message}")
+            }
+        }
+    }
+
     private fun getCurrentDate(): String {
         return java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.getDefault())
             .format(java.util.Date())
@@ -623,6 +735,7 @@ data class UserSettings(
     val controlEndDate: String,
     val controlDays: Set<Int>,
     val successDays: Int,
+    val totalDays: Int = 0,  // 총 제어 일수 (대시보드용)
     val paidDeposit: Boolean,
     // 앱 재설치 시 복원 필요한 데이터
     val lockedApps: Set<String> = emptySet(),
@@ -640,5 +753,7 @@ data class UserSettings(
     val lastAchievedDate: String = "",
     val consecutiveDays: Int = 0,
     val petHappiness: Int = 50,
-    val petTotalSteps: Long = 0L
+    val petTotalSteps: Long = 0L,
+    // 이탈 추적용
+    val lastActiveAt: Long = System.currentTimeMillis()
 )

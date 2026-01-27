@@ -15,7 +15,9 @@ class NotificationHelper(private val context: Context) {
 
     companion object {
         const val CHANNEL_ID = "stand_emergency_channel"
+        const val GOAL_CHANNEL_ID = "stand_goal_channel"
         const val NOTIFICATION_ID = 1001
+        const val GOAL_NOTIFICATION_ID = 1002
     }
 
     init {
@@ -24,15 +26,29 @@ class NotificationHelper(private val context: Context) {
 
     private fun createNotificationChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val channel = NotificationChannel(
+            // 휴식 모드 채널
+            val emergencyChannel = NotificationChannel(
                 CHANNEL_ID,
-                "긴급 모드 알림",
+                "휴식 모드 알림",
                 NotificationManager.IMPORTANCE_HIGH
             ).apply {
-                description = "긴급 15분 사용 타이머"
+                description = "15분 휴식 타이머"
                 setShowBadge(true)
             }
-            notificationManager.createNotificationChannel(channel)
+            notificationManager.createNotificationChannel(emergencyChannel)
+
+            // 목표 달성 채널
+            val goalChannel = NotificationChannel(
+                GOAL_CHANNEL_ID,
+                "목표 달성 알림",
+                NotificationManager.IMPORTANCE_HIGH
+            ).apply {
+                description = "일일 목표 달성 시 알림"
+                setShowBadge(true)
+                enableVibration(true)
+                vibrationPattern = longArrayOf(0, 300, 100, 300)
+            }
+            notificationManager.createNotificationChannel(goalChannel)
         }
     }
 
@@ -50,7 +66,7 @@ class NotificationHelper(private val context: Context) {
 
         val notification = NotificationCompat.Builder(context, CHANNEL_ID)
             .setSmallIcon(android.R.drawable.ic_lock_idle_alarm)
-            .setContentTitle("🆘 긴급 모드 활성")
+            .setContentTitle("휴식 모드 활성")
             .setContentText("남은 시간: ${minutes}분 ${seconds}초")
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setOngoing(true) // 스와이프로 지울 수 없음
@@ -91,10 +107,10 @@ class NotificationHelper(private val context: Context) {
 
         val notification = NotificationCompat.Builder(context, CHANNEL_ID)
             .setSmallIcon(android.R.drawable.ic_menu_compass)
-            .setContentTitle("🚶 조금만 더 걸어볼까요?")
+            .setContentTitle("조금만 더 걸어볼까요?")
             .setContentText(currentText + " / " + goalText + " " + unitText + " (" + remainingText + unitText + " 남음)")
             .setStyle(NotificationCompat.BigTextStyle()
-                .bigText("현재 $currentText / $goalText $unitText\n" + remainingText + unitText + "만 더 걸으면 목표 달성!\n\n급할 땐 긴급 15분 버튼을 눌러주세요"))
+                .bigText("현재 $currentText / $goalText $unitText\n" + remainingText + unitText + "만 더 걸으면 목표 달성!\n\n급할 땐 15분 휴식 버튼을 눌러주세요"))
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setAutoCancel(true)
             .setContentIntent(pendingIntent)
@@ -105,5 +121,41 @@ class NotificationHelper(private val context: Context) {
 
     fun cancelEmergencyNotification() {
         notificationManager.cancel(NOTIFICATION_ID)
+    }
+
+    /**
+     * 목표 달성 축하 알림
+     * @param goal 목표 값 (걸음수 또는 km)
+     * @param unit 단위 ("steps" 또는 "km")
+     */
+    fun showGoalAchievedNotification(goal: Double, unit: String) {
+        val intent = Intent(context, MainActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+        }
+
+        val pendingIntent = PendingIntent.getActivity(
+            context,
+            0,
+            intent,
+            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
+        )
+
+        val goalText = if (unit == "km") {
+            String.format("%.2fkm", goal)
+        } else {
+            String.format("%,d보", goal.toInt())
+        }
+
+        val notification = NotificationCompat.Builder(context, GOAL_CHANNEL_ID)
+            .setSmallIcon(android.R.drawable.ic_dialog_info)
+            .setContentTitle("목표 달성!")
+            .setContentText("오늘 $goalText 완료")
+            .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setAutoCancel(true)
+            .setContentIntent(pendingIntent)
+            .setDefaults(NotificationCompat.DEFAULT_VIBRATE or NotificationCompat.DEFAULT_SOUND)
+            .build()
+
+        notificationManager.notify(GOAL_NOTIFICATION_ID, notification)
     }
 }

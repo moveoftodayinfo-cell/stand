@@ -30,6 +30,7 @@ object ChatLogManager {
     ) {
         val userId = auth.currentUser?.uid ?: return
         val userEmail = auth.currentUser?.email ?: ""
+        val now = System.currentTimeMillis()
 
         val chatLog = hashMapOf(
             "userId" to userId,
@@ -50,6 +51,34 @@ object ChatLogManager {
             }
             .addOnFailureListener { e ->
                 Log.e(TAG, "Failed to log chat: ${e.message}")
+            }
+
+        // 사용자 문서도 업데이트 (대시보드에서 볼 수 있도록)
+        val userDoc = hashMapOf(
+            "email" to userEmail,
+            "lastActiveAt" to now,
+            "lastUpdated" to now
+        )
+        db.collection("users")
+            .document(userId)
+            .set(userDoc, com.google.firebase.firestore.SetOptions.merge())
+            .addOnSuccessListener {
+                Log.d(TAG, "User doc updated")
+            }
+
+        // settings 서브컬렉션도 펫 정보 업데이트
+        val settingsUpdate = hashMapOf(
+            "petName" to petName,
+            "petType" to petType,
+            "lastActiveAt" to now
+        )
+        db.collection("users")
+            .document(userId)
+            .collection("userData")
+            .document("settings")
+            .set(settingsUpdate, com.google.firebase.firestore.SetOptions.merge())
+            .addOnSuccessListener {
+                Log.d(TAG, "Settings updated with pet info")
             }
     }
 

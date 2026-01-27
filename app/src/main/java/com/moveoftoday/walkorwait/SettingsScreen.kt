@@ -137,9 +137,7 @@ fun SettingsScreen(
     // 앱 제어 섹션 접기/펼치기 상태 (기본: 접힘)
     var isAppControlExpanded by remember { mutableStateOf(false) }
 
-    // 펫 변경 관련 상태 - Ref로 관리하여 콜백에서 최신 값 접근
-    val pendingPetTypeRef = remember { mutableStateOf<PetType?>(null) }
-    val pendingPetNameRef = remember { mutableStateOf("") }
+    // 펫 변경 관련 상태
     val showPetChangeDialogRef = remember { mutableStateOf(false) }
 
     // 외부에서 사용할 변수
@@ -150,8 +148,8 @@ fun SettingsScreen(
 
     // 펫 변경 결제 시작 함수
     fun startPetChangePurchase(newPetType: PetType, newPetName: String) {
-        pendingPetTypeRef.value = newPetType
-        pendingPetNameRef.value = newPetName
+        // PreferenceManager에 임시 저장 (Activity 재생성 대비)
+        preferenceManager?.savePendingPetChange(newPetType.name, newPetName)
 
         // 먼저 다이얼로그 닫기 (결제 UI가 뜨기 전에)
         showPetChangeDialogRef.value = false
@@ -165,29 +163,35 @@ fun SettingsScreen(
             if (petChangeBillingManager == null) {
                 petChangeBillingManager = BillingManager(
                     context = context,
-                    onPurchaseSuccess = { _ ->
-                        // 결제 성공 시 펫 변경 저장
-                        val petType = pendingPetTypeRef.value
-                        val petName = pendingPetNameRef.value
+                    onPurchaseSuccess = { purchase ->
+                        // 결제 성공 시 펫 변경 저장 - PreferenceManager에서 읽기
+                        val petTypeName = preferenceManager?.getPendingPetType()
+                        val petName = preferenceManager?.getPendingPetName() ?: ""
 
-                        if (petType != null) {
+                        if (petTypeName != null) {
                             try {
                                 val appContext = context.applicationContext
-                                preferenceManager?.savePetType(petType.name)
+                                preferenceManager?.savePetType(petTypeName)
                                 preferenceManager?.savePetName(petName)
                                 // Firebase에도 동기화
                                 val app = appContext as WalkorWaitApp
-                                app.userDataRepository.savePetInfo(petType.name, petName)
+                                app.userDataRepository.savePetInfo(petTypeName, petName)
+
+                                // 펫 교체 결제 추적
+                                app.userDataRepository.trackPetChangePurchase(petTypeName, petName)
+                                AnalyticsManager.trackPurchaseCompleted("pet_change", 2500.0)
+
                                 StepWidgetProvider.updateAllWidgets(appContext)
                                 Toast.makeText(appContext, "펫이 변경되었습니다!", Toast.LENGTH_SHORT).show()
                             } catch (e: Exception) {
                                 android.util.Log.e("SettingsScreen", "Pet change failed: ${e.message}")
                             }
                         }
-                        pendingPetTypeRef.value = null
-                        pendingPetNameRef.value = ""
+                        // 임시 저장 데이터 삭제
+                        preferenceManager?.clearPendingPetChange()
                     },
                     onPurchaseFailure = { error ->
+                        preferenceManager?.clearPendingPetChange()
                         Toast.makeText(context, error, Toast.LENGTH_LONG).show()
                     }
                 )
@@ -340,51 +344,52 @@ fun SettingsScreen(
         ) {
             Column(modifier = Modifier.fillMaxSize()) {
                 // 상단 헤더 - 깔끔한 레트로 스타일
-                Box(
+                Column(
                     modifier = Modifier
                         .fillMaxWidth()
                         .background(Color.White)
-                        .border(
-                            width = 3.dp,
-                            color = MockupColors.Border,
-                            shape = RoundedCornerShape(0.dp)
-                        )
-                        .padding(horizontal = 16.dp)
-                        .padding(top = 48.dp, bottom = 16.dp)
                 ) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 20.dp)
+                            .padding(top = 30.dp, bottom = 16.dp)
                     ) {
                         // 뒤로가기 버튼
                         Box(
                             modifier = Modifier
-                                .size(40.dp)
-                                .border(3.dp, MockupColors.Border, RoundedCornerShape(8.dp))
-                                .background(MockupColors.Background, RoundedCornerShape(8.dp))
                                 .clickable {
                                     hapticManager.click()
                                     onBack()
-                                },
+                                }
+                                .align(Alignment.CenterStart)
+                                .padding(8.dp),
                             contentAlignment = Alignment.Center
                         ) {
                             Text(
-                                text = "<",
+                                text = "←",
                                 fontSize = 24.sp,
                                 fontWeight = FontWeight.Bold,
-                                color = MockupColors.Border,
-                                fontFamily = kenneyFont
+                                color = Color(0xFF333333)
                             )
                         }
-                        Spacer(modifier = Modifier.width(16.dp))
+
+                        // 중앙 타이틀
                         Text(
-                            text = "Settings",
-                            fontSize = 28.sp,
+                            text = "setting",
+                            fontSize = 24.sp,
                             fontWeight = FontWeight.Bold,
                             color = MockupColors.Border,
-                            fontFamily = kenneyFont
+                            fontFamily = kenneyFont,
+                            modifier = Modifier.align(Alignment.Center)
                         )
                     }
+
+                    // 하단 구분선만
+                    HorizontalDivider(
+                        color = MockupColors.Border,
+                        thickness = 3.dp
+                    )
                 }
 
                 // 스크롤 가능한 컨텐츠 - 깔끔한 레트로 스타일
@@ -1079,6 +1084,10 @@ fun SettingsScreen(
                     HorizontalDivider(color = MockupColors.Border.copy(alpha = 0.2f), thickness = 2.dp)
 
                     Spacer(modifier = Modifier.height(16.dp))
+
+                    // TODO: 15분 휴식 버튼 - 추후 개발 완료 후 활성화
+                    // RetroSectionTitle(title = "15분 휴식", fontFamily = kenneyFont)
+                    // ... (비활성화됨)
 
                     // 🏃 피트니스 앱 연결
                     RetroSectionTitle(title = "피트니스 연결", fontFamily = kenneyFont)

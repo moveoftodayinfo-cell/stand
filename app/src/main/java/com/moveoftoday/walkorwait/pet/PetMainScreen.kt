@@ -12,6 +12,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -20,6 +21,7 @@ import androidx.compose.material3.Text
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import com.moveoftoday.walkorwait.BuildConfig
+import com.moveoftoday.walkorwait.ChallengeManager
 import com.moveoftoday.walkorwait.HapticManager
 import com.moveoftoday.walkorwait.PreferenceManager
 import com.moveoftoday.walkorwait.StreakCelebrationDialog
@@ -78,22 +80,18 @@ fun PetMainScreen(
     goalSteps: Int,
     streakCount: Int,
     onSettingsClick: () -> Unit,
+    onChallengeClick: () -> Unit = {},
     hapticManager: HapticManager? = null,
     modifier: Modifier = Modifier,
     isFreeTime: Boolean = false  // 자유로운 날/시간 (제어 요일 아니거나 제어 시간대 아님)
 ) {
     val kenneyFont = rememberKenneyFont()
     val isGoalAchieved = stepCount >= goalSteps
-    val progressPercent = ((stepCount.toFloat() / goalSteps) * 100).toInt().coerceIn(0, 100)
+    val progressPercent = ((stepCount.toFloat() / goalSteps) * 100).toInt().coerceAtLeast(0)  // 100% 초과 허용
     val isWalking = progressPercent > 0 && !isGoalAchieved
 
-    // Determine background color based on state
-    val backgroundColor = when {
-        isFreeTime -> MockupColors.FreeTimeBackground  // 자유 시간 배경
-        isGoalAchieved -> MockupColors.AchievedBackground
-        happinessLevel <= 1 -> MockupColors.SadBackground
-        else -> MockupColors.Background
-    }
+    // 배경색 항상 흰색
+    val backgroundColor = MockupColors.Background
 
     // Pet speech 로직 - 백그라운드 복귀 또는 새 대화 시에만 변경
     var petResponse by remember { mutableStateOf("") }
@@ -121,6 +119,50 @@ fun PetMainScreen(
     }
     val coroutineScope = rememberCoroutineScope()
 
+    // 챌린지 완료 시 펫 칭찬 메시지
+    val challengeManager = remember { ChallengeManager.getInstance(context) }
+    val justCompletedChallenge by challengeManager.justCompletedChallenge.collectAsState()
+    val justEndedChallenge by challengeManager.justEndedChallenge.collectAsState()
+    val equippedTitle by challengeManager.equippedTitle.collectAsState()
+    val justUnlockedTitle by challengeManager.justUnlockedTitle.collectAsState()
+
+    // 칭호가 적용된 펫 이름
+    val displayPetName = challengeManager.getPetNameWithTitle(petName)
+
+    LaunchedEffect(justCompletedChallenge) {
+        justCompletedChallenge?.let { challenge ->
+            petResponse = PetDialogues.getChallengeCompleteMessage(petType.personality, challenge.name)
+            hapticManager?.success()
+            challengeManager.clearJustCompletedChallenge()
+        }
+    }
+
+    // 챌린지 실패 시 펫 응원 메시지
+    LaunchedEffect(justEndedChallenge) {
+        justEndedChallenge?.let { challenge ->
+            petResponse = PetDialogues.getChallengeEndedMessage(petType.personality, challenge.name)
+            hapticManager?.lightClick()
+            challengeManager.clearJustEndedChallenge()
+        }
+    }
+
+    // 칭호 획득 알림
+    var showTitleUnlockedDialog by remember { mutableStateOf(false) }
+    var unlockedTitleType by remember { mutableStateOf<com.moveoftoday.walkorwait.ChallengeType?>(null) }
+
+    // 칭호 선택 다이얼로그
+    var showTitleSelectionDialog by remember { mutableStateOf(false) }
+    val unlockedTitles by challengeManager.unlockedTitles.collectAsState()
+
+    LaunchedEffect(justUnlockedTitle) {
+        justUnlockedTitle?.let { titleType ->
+            unlockedTitleType = titleType
+            showTitleUnlockedDialog = true
+            hapticManager?.success()
+            challengeManager.clearJustUnlockedTitle()
+        }
+    }
+
     // 현재 상태에 맞는 대사를 가져오는 함수 (달성률 구간별 다양한 대사)
     fun getCurrentSpeech(): String {
         // 30% 확률로 동기부여 명언 표시 (0~49% 구간에서)
@@ -133,6 +175,7 @@ fun PetMainScreen(
 
         return when {
             isFreeTime -> PetDialogues.getFreeTimeMessage(petType.personality)  // 자유 시간
+            progressPercent > 100 -> PetDialogues.getOverAchievedMessage(petType.personality, progressPercent)  // 100% 초과
             isGoalAchieved -> PetDialogues.getGoalAchievedMessage(petType.personality)  // 100%
             progressPercent >= 90 -> PetDialogues.getAlmostThereMessage(petType.personality)  // 90-99%
             progressPercent >= 75 -> PetDialogues.getThreeQuarterMessage(petType.personality)  // 75-89%
@@ -221,6 +264,39 @@ fun PetMainScreen(
         )
     }
 
+    // 칭호 획득 다이얼로그
+    if (showTitleUnlockedDialog && unlockedTitleType != null) {
+        TitleUnlockedDialog(
+            titleType = unlockedTitleType!!,
+            petName = petName,
+            onEquip = {
+                challengeManager.equipTitle(unlockedTitleType)
+                showTitleUnlockedDialog = false
+            },
+            onDismiss = {
+                showTitleUnlockedDialog = false
+            },
+            hapticManager = hapticManager
+        )
+    }
+
+    // 칭호 선택 다이얼로그
+    if (showTitleSelectionDialog) {
+        TitleSelectionDialog(
+            petName = petName,
+            unlockedTitles = unlockedTitles,
+            equippedTitle = equippedTitle,
+            onSelect = { titleType ->
+                challengeManager.equipTitle(titleType)
+                showTitleSelectionDialog = false
+            },
+            onDismiss = {
+                showTitleSelectionDialog = false
+            },
+            hapticManager = hapticManager
+        )
+    }
+
     // 공유 다이얼로그
     if (showShareDialog) {
         val today = java.util.Calendar.getInstance().get(java.util.Calendar.DAY_OF_WEEK)
@@ -236,7 +312,8 @@ fun PetMainScreen(
             },
             hapticManager = hapticManager,
             petType = petType,
-            petName = petName,
+            petName = petName,  // 펫 이름만 전달
+            equippedTitle = equippedTitle?.title,  // 칭호는 별도로 전달 (볼드용)
             dailySteps = goalSteps,
             totalKm = (goalSteps * 0.0007f) * streakCount.coerceAtLeast(1),
             screenFreeHours = 3 * streakCount.coerceAtLeast(1),
@@ -306,7 +383,7 @@ fun PetMainScreen(
                 .background(Color.White)
                 .drawBehind {
                     val stripeHeightPx = stripeWidth.toPx()
-                    val stripeColor = if (isGoalAchieved) Color(0xFFFFF9C4) else Color(0xFFF0F0F0)
+                    val stripeColor = Color(0xFFF0F0F0)
                     var y = 0f
                     while (y < size.height) {
                         drawRect(
@@ -328,12 +405,14 @@ fun PetMainScreen(
                 SpeechBubble(text = displaySpeech, fontSize = 14.sp)
             }
 
-            // 펫 스프라이트 (하단 고정)
-            Box(
+            // 펫 스프라이트 + 이름 (하단 고정)
+            Column(
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
-                    .padding(bottom = 8.dp)
+                    .padding(bottom = 10.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
+                // 펫 스프라이트
                 PetSpriteWithSyncedGlow(
                     petType = petType,
                     isWalking = isWalking || isGoalAchieved,
@@ -342,6 +421,46 @@ fun PetMainScreen(
                     frameDurationMs = 500,
                     enableRandomAnimation = !isWalking && !isGoalAchieved
                 )
+
+                // 칭호 + 펫 이름 (스프라이트 아래, 클릭하여 칭호 변경)
+                Row(
+                    modifier = Modifier
+                        .offset(y = 6.dp)
+                        .clickable {
+                            hapticManager?.click()
+                            showTitleSelectionDialog = true
+                        },
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    if (equippedTitle != null) {
+                        Text(
+                            text = "${equippedTitle!!.title} ",
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = MockupColors.TextSecondary,
+                            style = androidx.compose.ui.text.TextStyle(
+                                shadow = androidx.compose.ui.graphics.Shadow(
+                                    color = Color.White,
+                                    offset = androidx.compose.ui.geometry.Offset(0f, 0f),
+                                    blurRadius = 4f
+                                )
+                            )
+                        )
+                    }
+                    Text(
+                        text = petName,
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.Normal,
+                        color = MockupColors.TextSecondary,
+                        style = androidx.compose.ui.text.TextStyle(
+                            shadow = androidx.compose.ui.graphics.Shadow(
+                                color = Color.White,
+                                offset = androidx.compose.ui.geometry.Offset(0f, 0f),
+                                blurRadius = 4f
+                            )
+                        )
+                    )
+                }
             }
 
             // 공유 아이콘 (우측 상단)
@@ -486,7 +605,7 @@ fun PetMainScreen(
                     text = "${progressPercent}%",
                     fontSize = 48.sp,
                     fontWeight = FontWeight.Bold,
-                    color = if (isGoalAchieved) Color(0xFF4CAF50) else MockupColors.TextPrimary
+                    color = MockupColors.TextPrimary
                 )
 
                 Spacer(modifier = Modifier.height(8.dp))
@@ -514,9 +633,7 @@ fun PetMainScreen(
                         modifier = Modifier
                             .fillMaxHeight()
                             .fillMaxWidth(progress)
-                            .background(
-                                if (isGoalAchieved) Color(0xFF4CAF50) else MockupColors.Border
-                            )
+                            .background(MockupColors.Border)
                     )
                 }
 
@@ -531,7 +648,7 @@ fun PetMainScreen(
                     Text(
                         text = if (isGoalAchieved) "목표 달성! 앱 사용 가능" else "앱 차단 ${getBlockedTimeText()}",
                         fontSize = 14.sp,
-                        color = if (isGoalAchieved) Color(0xFF4CAF50) else MockupColors.TextSecondary
+                        color = MockupColors.TextSecondary
                     )
                 }
             }
@@ -570,7 +687,7 @@ fun PetMainScreen(
             text = "챌린지 하러가기",
             onClick = {
                 hapticManager?.click()
-                showComingSoonDialog = true
+                onChallengeClick()
             }
         )
     }
@@ -724,7 +841,7 @@ fun PetMainContent(
                 .background(Color.White)
                 .drawBehind {
                     val stripeHeightPx = stripeWidth.toPx()
-                    val stripeColor = if (isGoalAchieved) Color(0xFFFFF9C4) else Color(0xFFF0F0F0)
+                    val stripeColor = Color(0xFFF0F0F0)
                     var y = 0f
                     while (y < size.height) {
                         drawRect(
@@ -832,9 +949,7 @@ fun PetMainContent(
                         modifier = Modifier
                             .fillMaxHeight()
                             .fillMaxWidth(progress)
-                            .background(
-                                if (isGoalAchieved) Color(0xFF4CAF50) else MockupColors.Border
-                            )
+                            .background(MockupColors.Border)
                     )
                 }
 
@@ -922,6 +1037,254 @@ fun PetMainContent(
                 },
                 petName = petName
             )
+        }
+    }
+}
+
+/**
+ * 칭호 획득 다이얼로그
+ */
+@Composable
+fun TitleUnlockedDialog(
+    titleType: com.moveoftoday.walkorwait.ChallengeType,
+    petName: String,
+    onEquip: () -> Unit,
+    onDismiss: () -> Unit,
+    hapticManager: com.moveoftoday.walkorwait.HapticManager? = null
+) {
+    val kenneyFont = rememberKenneyFont()
+
+    androidx.compose.ui.window.Dialog(onDismissRequest = onDismiss) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .border(3.dp, Color(0xFFE0E0E0), RoundedCornerShape(24.dp))
+                .background(Color.White, RoundedCornerShape(24.dp))
+                .padding(24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            // 타이틀
+            Text(
+                text = "새 칭호 획득!",
+                fontSize = 20.sp,
+                fontFamily = kenneyFont,
+                fontWeight = FontWeight.Bold,
+                color = Color(0xFF333333)
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // 칭호 미리보기
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(Color(0xFFF5F5F5), RoundedCornerShape(12.dp))
+                    .padding(16.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = "${titleType.title} $petName",
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFF333333),
+                    textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                )
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            // 챌린지 설명
+            Text(
+                text = "${titleType.displayName} 완료!",
+                fontSize = 14.sp,
+                color = Color(0xFF666666)
+            )
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // 버튼들
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                // 나중에 버튼
+                Box(
+                    modifier = Modifier
+                        .weight(1f)
+                        .border(2.dp, Color(0xFF333333), RoundedCornerShape(12.dp))
+                        .background(Color.White, RoundedCornerShape(12.dp))
+                        .clickable {
+                            hapticManager?.click()
+                            onDismiss()
+                        }
+                        .padding(14.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "나중에",
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFF333333)
+                    )
+                }
+
+                // 장착하기 버튼
+                Box(
+                    modifier = Modifier
+                        .weight(1f)
+                        .background(Color(0xFF333333), RoundedCornerShape(12.dp))
+                        .clickable {
+                            hapticManager?.success()
+                            onEquip()
+                        }
+                        .padding(14.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "장착하기",
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White
+                    )
+                }
+            }
+        }
+    }
+}
+
+/**
+ * 칭호 선택 다이얼로그
+ */
+@Composable
+fun TitleSelectionDialog(
+    petName: String,
+    unlockedTitles: Set<com.moveoftoday.walkorwait.ChallengeType>,
+    equippedTitle: com.moveoftoday.walkorwait.ChallengeType?,
+    onSelect: (com.moveoftoday.walkorwait.ChallengeType?) -> Unit,
+    onDismiss: () -> Unit,
+    hapticManager: com.moveoftoday.walkorwait.HapticManager? = null
+) {
+    val kenneyFont = rememberKenneyFont()
+
+    androidx.compose.ui.window.Dialog(onDismissRequest = onDismiss) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .border(3.dp, Color(0xFFE0E0E0), RoundedCornerShape(24.dp))
+                .background(Color.White, RoundedCornerShape(24.dp))
+                .padding(24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            // 타이틀
+            Text(
+                text = "칭호 선택",
+                fontSize = 20.sp,
+                fontFamily = kenneyFont,
+                fontWeight = FontWeight.Bold,
+                color = Color(0xFF333333)
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // 칭호 없음 옵션
+            TitleOptionItem(
+                title = "없음",
+                isSelected = equippedTitle == null,
+                onClick = {
+                    hapticManager?.click()
+                    onSelect(null)
+                }
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            // 획득한 칭호들
+            if (unlockedTitles.isEmpty()) {
+                Text(
+                    text = "아직 획득한 칭호가 없어요\n챌린지를 완료하면 칭호를 얻을 수 있어요!",
+                    fontSize = 13.sp,
+                    color = Color(0xFF999999),
+                    textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                    modifier = Modifier.padding(vertical = 16.dp)
+                )
+            } else {
+                unlockedTitles.forEach { titleType ->
+                    TitleOptionItem(
+                        title = titleType.title,
+                        isSelected = equippedTitle == titleType,
+                        onClick = {
+                            hapticManager?.click()
+                            onSelect(titleType)
+                        }
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                }
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // 닫기 버튼
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(Color(0xFF333333), RoundedCornerShape(12.dp))
+                    .clickable {
+                        hapticManager?.click()
+                        onDismiss()
+                    }
+                    .padding(14.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = "닫기",
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun TitleOptionItem(
+    title: String,
+    isSelected: Boolean,
+    onClick: () -> Unit
+) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .border(
+                width = 2.dp,
+                color = if (isSelected) Color(0xFF333333) else Color(0xFFE0E0E0),
+                shape = RoundedCornerShape(12.dp)
+            )
+            .background(
+                color = if (isSelected) Color(0xFFF5F5F5) else Color.White,
+                shape = RoundedCornerShape(12.dp)
+            )
+            .clickable { onClick() }
+            .padding(14.dp),
+        contentAlignment = Alignment.CenterStart
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = title,
+                fontSize = 15.sp,
+                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+                color = Color(0xFF333333)
+            )
+            if (isSelected) {
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = "장착중",
+                    fontSize = 11.sp,
+                    color = Color(0xFF666666)
+                )
+            }
         }
     }
 }

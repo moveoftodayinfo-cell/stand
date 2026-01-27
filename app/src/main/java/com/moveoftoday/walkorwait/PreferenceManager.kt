@@ -909,6 +909,29 @@ class PreferenceManager(context: Context) {
         return prefs.getString("pet_name", "") ?: ""
     }
 
+    // Pending pet change (결제 중 임시 저장)
+    fun savePendingPetChange(petType: String, petName: String) {
+        prefs.edit()
+            .putString("pending_pet_type", petType)
+            .putString("pending_pet_name", petName)
+            .apply()
+    }
+
+    fun getPendingPetType(): String? {
+        return prefs.getString("pending_pet_type", null)
+    }
+
+    fun getPendingPetName(): String {
+        return prefs.getString("pending_pet_name", "") ?: ""
+    }
+
+    fun clearPendingPetChange() {
+        prefs.edit()
+            .remove("pending_pet_type")
+            .remove("pending_pet_name")
+            .apply()
+    }
+
     // Pet happiness level (1-5)
     fun savePetHappiness(level: Int) {
         prefs.edit().putInt("pet_happiness", level.coerceIn(1, 5)).apply()
@@ -1253,5 +1276,24 @@ class PreferenceManager(context: Context) {
             }
         }
         return null
+    }
+
+    // ========== 15분 휴식 일일 제한 ==========
+
+    /**
+     * 오늘 15분 휴식을 이미 사용했는지 확인
+     */
+    fun hasUsedRestModeToday(): Boolean {
+        val today = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+        val lastUsedDate = prefs.getString("rest_mode_used_date", "") ?: ""
+        return lastUsedDate == today
+    }
+
+    /**
+     * 15분 휴식 사용 완료 기록
+     */
+    fun markRestModeUsedToday() {
+        val today = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+        prefs.edit().putString("rest_mode_used_date", today).apply()
     }
 }

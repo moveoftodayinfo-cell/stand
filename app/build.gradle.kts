@@ -18,8 +18,8 @@ android {
         applicationId = "com.moveoftoday.walkorwait"
         minSdk = 26
         targetSdk = 36
-        versionCode = 67
-        versionName = "1.0.67"
+        versionCode = 69
+        versionName = "1.0.69"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -98,6 +98,7 @@ dependencies {
     implementation(libs.firebase.firestore)
     implementation(libs.firebase.auth)
     implementation(libs.firebase.analytics)
+    implementation(libs.firebase.config)
 
     // Credential Manager (Google Sign-In replacement)
     implementation("androidx.credentials:credentials:1.3.0")

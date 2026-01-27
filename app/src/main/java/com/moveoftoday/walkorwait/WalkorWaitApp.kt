@@ -82,15 +82,15 @@ class WalkorWaitApp : Application() {
     private fun verifySubscriptionStatus() {
         val preferenceManager = PreferenceManager(this)
 
-        // 결제된 적이 있는 경우에만 확인
-        if (!preferenceManager.isPaidDeposit()) {
-            Log.d(TAG, "📱 No subscription to verify")
-            return
-        }
-
         // 프로모션 무료 기간인 경우 Google Play 확인 스킵
         if (preferenceManager.isInPromoFreePeriod()) {
             Log.d(TAG, "🎁 In promo free period - skipping Google Play check")
+            return
+        }
+
+        // 결제된 적이 있는 경우에만 확인
+        if (!preferenceManager.isPaidDeposit()) {
+            Log.d(TAG, "📱 No subscription to verify")
             return
         }
 

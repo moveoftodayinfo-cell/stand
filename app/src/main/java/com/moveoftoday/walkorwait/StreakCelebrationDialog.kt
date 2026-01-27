@@ -28,7 +28,9 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.graphics.layer.drawLayer
 import androidx.compose.ui.graphics.rememberGraphicsLayer
@@ -59,6 +61,7 @@ fun StreakCelebrationDialog(
     hapticManager: HapticManager? = null,
     petType: PetType = PetType.DOG1,
     petName: String = "",
+    equippedTitle: String? = null,  // 칭호 (볼드용)
     dailySteps: Int = 5000,
     totalKm: Float = 0f,
     screenFreeHours: Int = 0,
@@ -136,6 +139,8 @@ fun StreakCelebrationDialog(
                             streakCount = streakCount,
                             screenFreeHours = screenFreeHours,
                             petType = petType,
+                            petName = petName,
+                            equippedTitle = equippedTitle,
                             petSpeech = petSpeech,
                             today = today,
                             dayNames = dayNames,
@@ -151,6 +156,8 @@ fun StreakCelebrationDialog(
                         // Page 2: Sticker
                         StickerContent(
                             petType = petType,
+                            petName = petName,
+                            equippedTitle = equippedTitle,
                             petSpeech = petSpeech,
                             kenneyFont = kenneyFont,
                             graphicsLayer = stickerGraphicsLayer
@@ -193,6 +200,10 @@ fun StreakCelebrationDialog(
                         }
                         val isSticker = pagerState.currentPage == 1
                         saveAndShareImage(context, bitmap, streakCount, isSticker)
+
+                        // Core 유저 추적: 공유 이벤트 기록
+                        (context.applicationContext as? WalkorWaitApp)?.userDataRepository?.trackShareEvent()
+                        AnalyticsManager.trackStreakShared(streakCount)
                     }
                 },
                 modifier = Modifier
@@ -234,6 +245,8 @@ private fun FullCardContent(
     streakCount: Int,
     screenFreeHours: Int,
     petType: PetType,
+    petName: String = "",
+    equippedTitle: String? = null,
     petSpeech: androidx.compose.ui.text.AnnotatedString,
     today: Int,
     dayNames: List<String>,
@@ -308,11 +321,12 @@ private fun FullCardContent(
                     SpeechBubbleMultiline(text = petSpeech, fontSize = 12.sp, maxWidth = 220.dp)
                 }
 
-                // Pet with glow (하단 고정)
-                Box(
+                // 스프라이트 + 펫 이름 (하단 고정)
+                Column(
                     modifier = Modifier
                         .align(Alignment.BottomCenter)
-                        .padding(bottom = 8.dp)
+                        .padding(bottom = 8.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     PetSpriteWithSyncedGlow(
                         petType = petType,
@@ -321,6 +335,31 @@ private fun FullCardContent(
                         monochrome = true,
                         frameDurationMs = 200
                     )
+
+                    // 칭호 + 펫 이름 (스프라이트 아래) - 칭호만 볼드, 이름은 노말
+                    if (petName.isNotEmpty() || equippedTitle != null) {
+                        Text(
+                            text = buildAnnotatedString {
+                                if (equippedTitle != null) {
+                                    withStyle(SpanStyle(fontWeight = FontWeight.Bold)) {
+                                        append("$equippedTitle ")
+                                    }
+                                }
+                                append(petName)
+                            },
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.Normal,
+                            color = MockupColors.TextSecondary,
+                            style = androidx.compose.ui.text.TextStyle(
+                                shadow = Shadow(
+                                    color = Color.White,
+                                    offset = Offset(0f, 0f),
+                                    blurRadius = 4f
+                                )
+                            ),
+                            modifier = Modifier.offset(y = 5.dp)
+                        )
+                    }
                 }
             }
 
@@ -442,6 +481,8 @@ private fun FullCardContent(
 @Composable
 private fun StickerContent(
     petType: PetType,
+    petName: String = "",
+    equippedTitle: String? = null,
     petSpeech: androidx.compose.ui.text.AnnotatedString,
     kenneyFont: androidx.compose.ui.text.font.FontFamily,
     graphicsLayer: androidx.compose.ui.graphics.layer.GraphicsLayer
@@ -525,7 +566,7 @@ private fun StickerContent(
                         SpeechBubbleMultiline(text = petSpeech, fontSize = 11.sp, maxWidth = 200.dp)
                     }
 
-                    // Pet + rebon 로고 (하단 고정)
+                    // 스프라이트 + 펫 이름 + rebon 로고 (하단 고정)
                     Column(
                         horizontalAlignment = Alignment.CenterHorizontally,
                         modifier = Modifier
@@ -541,7 +582,30 @@ private fun StickerContent(
                             frameDurationMs = 200
                         )
 
-                        Spacer(modifier = Modifier.height(4.dp))
+                        // 칭호 + 펫 이름 (스프라이트 아래) - 칭호만 볼드, 이름은 노말
+                        if (petName.isNotEmpty() || equippedTitle != null) {
+                            Text(
+                                text = buildAnnotatedString {
+                                    if (equippedTitle != null) {
+                                        withStyle(SpanStyle(fontWeight = FontWeight.Bold)) {
+                                            append("$equippedTitle ")
+                                        }
+                                    }
+                                    append(petName)
+                                },
+                                fontSize = 10.sp,
+                                fontWeight = FontWeight.Normal,
+                                color = MockupColors.TextSecondary,
+                                style = androidx.compose.ui.text.TextStyle(
+                                    shadow = Shadow(
+                                        color = Color.White,
+                                        offset = Offset(0f, 0f),
+                                        blurRadius = 4f
+                                    )
+                                ),
+                                modifier = Modifier.offset(y = 5.dp)
+                            )
+                        }
 
                         // rebon 로고 (반투명)
                         Text(
@@ -648,9 +712,9 @@ private fun getStreakCelebrationSpeech(
     return when (personality) {
         PetPersonality.TOUGH -> if (streakDays == 1) {
             buildAnnotatedString {
-                append("첫 날부터 ")
+                append("오늘 ")
                 withStyle(boldStyle) { append("${formattedSteps}보") }
-                append("나\n걸었다고? 됐다. 좋은 시작이야.")
+                append("나 걸었다고?\n됐다. 좋은 시작이야.")
             }
         } else {
             buildAnnotatedString {
@@ -665,9 +729,9 @@ private fun getStreakCelebrationSpeech(
 
         PetPersonality.CUTE -> if (streakDays == 1) {
             buildAnnotatedString {
-                append("우와~! 첫 날부터\n")
+                append("우와~! 오늘 ")
                 withStyle(boldStyle) { append("${formattedSteps}보") }
-                append("나 걸었다니 대단해용!")
+                append("나\n걸었다니 대단해용!")
             }
         } else {
             buildAnnotatedString {
@@ -683,7 +747,7 @@ private fun getStreakCelebrationSpeech(
 
         PetPersonality.TSUNDERE -> if (streakDays == 1) {
             buildAnnotatedString {
-                append("흥, 첫 날치고 ")
+                append("흥, 오늘 ")
                 withStyle(boldStyle) { append("${formattedSteps}보") }
                 append("?\n뭐... 나쁘지 않네.")
             }
@@ -701,9 +765,9 @@ private fun getStreakCelebrationSpeech(
 
         PetPersonality.DIALECT -> if (streakDays == 1) {
             buildAnnotatedString {
-                append("첫 날부터 ")
+                append("오늘 ")
                 withStyle(boldStyle) { append("${formattedSteps}보") }
-                append("나\n걸었는기라! 좋은 시작이이소!")
+                append("나 걸었노~\n좋은 시작이다!")
             }
         } else {
             buildAnnotatedString {
@@ -712,13 +776,13 @@ private fun getStreakCelebrationSpeech(
                 withStyle(boldStyle) { append("${formattedSteps}보") }
                 append("씩\n")
                 withStyle(boldStyle) { append("${totalKm}km") }
-                append("나 걸었는기라!\n대단하이소!")
+                append(" 걸었노~\nㄹㅇ 대단하다!")
             }
         }
 
         PetPersonality.TIMID -> if (streakDays == 1) {
             buildAnnotatedString {
-                append("대, 대단해요...!\n첫 날부터 ")
+                append("대, 대단해요...!\n오늘 ")
                 withStyle(boldStyle) { append("${formattedSteps}보") }
                 append("나...!")
             }
@@ -736,9 +800,9 @@ private fun getStreakCelebrationSpeech(
 
         PetPersonality.POSITIVE -> if (streakDays == 1) {
             buildAnnotatedString {
-                append("첫 날부터 ")
+                append("오늘 ")
                 withStyle(boldStyle) { append("${formattedSteps}보") }
-                append("!\n좋은 시작! 최고야!")
+                append(" 완료!\n좋은 시작! 최고야!")
             }
         } else {
             buildAnnotatedString {

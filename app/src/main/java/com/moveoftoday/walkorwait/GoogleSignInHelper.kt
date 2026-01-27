@@ -14,6 +14,8 @@ import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
 import com.google.android.libraries.identity.googleid.GoogleIdTokenParsingException
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.GoogleAuthProvider
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.SetOptions
 import kotlinx.coroutines.tasks.await
 
 /**
@@ -109,12 +111,60 @@ object GoogleSignInHelper {
             val credential = GoogleAuthProvider.getCredential(idToken, null)
             val authResult = auth.signInWithCredential(credential).await()
 
-            Log.d(TAG, "Firebase sign-in successful: ${authResult.user?.uid}")
-            Result.success(authResult.user?.uid ?: "")
+            val userId = authResult.user?.uid ?: ""
+            val userEmail = authResult.user?.email ?: ""
+
+            Log.d(TAG, "Firebase sign-in successful: $userId")
+
+            // 로그인 즉시 Firestore에 사용자 문서 생성 (대시보드 추적용)
+            if (userId.isNotEmpty()) {
+                createUserDocument(userId, userEmail)
+            }
+
+            Result.success(userId)
         } catch (e: Exception) {
             Log.e(TAG, "Firebase sign-in failed: ${e.message}")
             Result.failure(e)
         }
+    }
+
+    /**
+     * Firestore에 사용자 문서 생성 (로그인 추적용)
+     */
+    private fun createUserDocument(userId: String, email: String) {
+        val db = FirebaseFirestore.getInstance()
+        val now = System.currentTimeMillis()
+
+        // 부모 문서 생성/업데이트
+        val userDoc = hashMapOf(
+            "email" to email,
+            "lastActiveAt" to now,
+            "lastUpdated" to now,
+            "createdAt" to now
+        )
+        db.collection("users")
+            .document(userId)
+            .set(userDoc, SetOptions.merge())
+            .addOnSuccessListener {
+                Log.d(TAG, "User document created/updated: $userId")
+            }
+            .addOnFailureListener { e ->
+                Log.e(TAG, "Failed to create user document: ${e.message}")
+            }
+
+        // settings 서브컬렉션 기본값 생성
+        val settingsDoc = hashMapOf(
+            "lastActiveAt" to now,
+            "tutorialCompleted" to false
+        )
+        db.collection("users")
+            .document(userId)
+            .collection("userData")
+            .document("settings")
+            .set(settingsDoc, SetOptions.merge())
+            .addOnSuccessListener {
+                Log.d(TAG, "Settings document created: $userId")
+            }
     }
 
     /**

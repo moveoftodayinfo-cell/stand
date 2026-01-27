@@ -7,6 +7,7 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import kotlinx.coroutines.tasks.await
+import com.google.firebase.firestore.SetOptions
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -119,6 +120,9 @@ class PromoCodeManager(private val context: Context) {
             AnalyticsManager.trackPromoCodeUsed("FRIEND_INVITE")
             AnalyticsManager.trackSubscriptionStart("friend_invite")
 
+            // 대시보드 추적용 사용자 문서 생성
+            createUserDocument("FRIEND_INVITE")
+
             return PromoResult.Success(
                 type = PromoType.FRIEND_INVITE,
                 message = "친구 초대 코드가 적용되었습니다!\n1달간 무료로 사용하세요",
@@ -180,6 +184,9 @@ class PromoCodeManager(private val context: Context) {
             AnalyticsManager.trackPromoCodeUsed("EVENT")
             AnalyticsManager.trackSubscriptionStart("event_code")
 
+            // 대시보드 추적용 사용자 문서 생성
+            createUserDocument("EVENT")
+
             return PromoResult.Success(
                 type = PromoType.EVENT_CODE,
                 message = description,
@@ -204,6 +211,9 @@ class PromoCodeManager(private val context: Context) {
         AnalyticsManager.trackPromoCodeUsed("TEST-FREE")
         AnalyticsManager.trackSubscriptionStart("test_code")
 
+        // 대시보드 추적용 사용자 문서 생성
+        createUserDocument("TEST")
+
         return PromoResult.Success(
             type = PromoType.TEST_CODE,
             message = "테스트 코드가 적용되었습니다\n결제 없이 앱을 체험합니다",
@@ -222,6 +232,9 @@ class PromoCodeManager(private val context: Context) {
         AnalyticsManager.trackPromoCodeUsed("REBONFREE")
         AnalyticsManager.trackSubscriptionStart("launch_promo")
 
+        // 대시보드 추적용 사용자 문서 생성
+        createUserDocument("LAUNCH_EVENT")
+
         return PromoResult.Success(
             type = PromoType.EVENT_CODE,
             message = "출시 기념 코드가 적용되었습니다!\n첫 달 무료로 시작하세요",
@@ -236,6 +249,49 @@ class PromoCodeManager(private val context: Context) {
         val code = preferenceManager.getAppliedPromoCode()
         val type = preferenceManager.getPromoCodeType()
         return Pair(code, type)
+    }
+
+    /**
+     * Firestore에 사용자 문서 생성 (대시보드 추적용)
+     * 프로모션 코드 적용 시 호출
+     */
+    private fun createUserDocument(promoCodeType: String) {
+        val userId = auth.currentUser?.uid ?: return
+        val userEmail = auth.currentUser?.email ?: ""
+        val now = System.currentTimeMillis()
+
+        // 부모 문서 생성/업데이트
+        val userDoc = hashMapOf(
+            "email" to userEmail,
+            "lastActiveAt" to now,
+            "lastUpdated" to now,
+            "createdAt" to now,
+            "promoCodeApplied" to true
+        )
+        db.collection("users")
+            .document(userId)
+            .set(userDoc, SetOptions.merge())
+            .addOnSuccessListener {
+                Log.d(TAG, "User document created for promo user: $userId")
+            }
+            .addOnFailureListener { e ->
+                Log.e(TAG, "Failed to create user document: ${e.message}")
+            }
+
+        // settings 서브컬렉션 생성
+        val settingsDoc = hashMapOf(
+            "lastActiveAt" to now,
+            "promoCodeType" to promoCodeType,
+            "paidDeposit" to false  // 프로모션 사용자는 결제자 아님
+        )
+        db.collection("users")
+            .document(userId)
+            .collection("userData")
+            .document("settings")
+            .set(settingsDoc, SetOptions.merge())
+            .addOnSuccessListener {
+                Log.d(TAG, "Settings document created for promo user: $userId")
+            }
     }
 
     /**
