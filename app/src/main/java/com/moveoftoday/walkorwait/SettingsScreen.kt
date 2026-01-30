@@ -586,6 +586,9 @@ fun SettingsScreen(
                     val earnedCoupon = SubscriptionModel.earnsFriendCoupon(achievementRate)
                     val statusColor = if (earnedCoupon) MockupColors.Blue else MockupColors.TextMuted
 
+                    // 프로모션(친구초대)으로 들어온 사용자인지 확인
+                    val isPromoFreeUser = preferenceManager?.getPromoCodeType() != null
+
                     // 섹션 타이틀
                     RetroSectionTitle(title = "구독 관리", fontFamily = kenneyFont)
 
@@ -670,40 +673,42 @@ fun SettingsScreen(
                                 )
                             }
 
-                            Spacer(modifier = Modifier.height(16.dp))
+                            // 쿠폰 혜택 박스 - 프로모션(친구초대) 사용자에게는 표시 안함
+                            if (!isPromoFreeUser) {
+                                Spacer(modifier = Modifier.height(16.dp))
 
-                            // 쿠폰 혜택 박스 (강조)
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .clip(RoundedCornerShape(10.dp))
-                                    .background(
-                                        if (earnedCoupon) MockupColors.BlueLight else MockupColors.CardBackground
-                                    )
-                                    .padding(12.dp)
-                            ) {
-                                Row(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    horizontalArrangement = Arrangement.SpaceBetween,
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    Column {
-                                        Text(
-                                            text = if (earnedCoupon) "친구 초대 쿠폰 획득!" else "95% 달성하면",
-                                            fontSize = 15.sp,
-                                            fontWeight = FontWeight.Bold,
-                                            color = if (earnedCoupon) MockupColors.Blue else MockupColors.TextPrimary
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .clip(RoundedCornerShape(10.dp))
+                                        .background(
+                                            if (earnedCoupon) MockupColors.BlueLight else MockupColors.CardBackground
                                         )
-                                        Text(
-                                            text = if (earnedCoupon) "친구에게 1달 무료 선물하세요" else "친구 초대 쿠폰을 드려요!",
-                                            fontSize = 13.sp,
-                                            color = if (earnedCoupon) MockupColors.Blue else MockupColors.TextMuted
+                                        .padding(12.dp)
+                                ) {
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.SpaceBetween,
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Column {
+                                            Text(
+                                                text = if (earnedCoupon) "친구 초대 쿠폰 획득!" else "95% 달성하면",
+                                                fontSize = 15.sp,
+                                                fontWeight = FontWeight.Bold,
+                                                color = if (earnedCoupon) MockupColors.Blue else MockupColors.TextPrimary
+                                            )
+                                            Text(
+                                                text = if (earnedCoupon) "친구에게 1달 무료 선물하세요" else "친구 초대 쿠폰을 드려요!",
+                                                fontSize = 13.sp,
+                                                color = if (earnedCoupon) MockupColors.Blue else MockupColors.TextMuted
+                                            )
+                                        }
+                                        PixelIcon(
+                                            iconName = if (earnedCoupon) "icon_trophy" else "icon_chest",
+                                            size = 32.dp
                                         )
                                     }
-                                    PixelIcon(
-                                        iconName = if (earnedCoupon) "icon_trophy" else "icon_chest",
-                                        size = 32.dp
-                                    )
                                 }
                             }
                         }
