@@ -62,7 +62,7 @@ fun PetPermissionScreen(
         PetPersonality.TOUGH -> "권한 설정 해줘."
         PetPersonality.CUTE -> "이거 켜주면 같이 걸을 수 있음!"
         PetPersonality.TSUNDERE -> "뭐, 설정 안 하면... 못 걷는 건 아니지만."
-        PetPersonality.DIALECT -> "권한 설정 해주이소~"
+        PetPersonality.DIALECT -> "권한 설정 해줘"
         PetPersonality.TIMID -> "저, 이거 필요해요..."
         PetPersonality.POSITIVE -> "권한 설정하자! 금방이야!"
     }
@@ -296,7 +296,7 @@ fun PetHealthConnectScreen(
             PetPersonality.TOUGH -> "피트니스 앱 연결해."
             PetPersonality.CUTE -> "이 앱이랑 연결하면 더 정확해짐!"
             PetPersonality.TSUNDERE -> "연결하면... 더 정확하긴 해."
-            PetPersonality.DIALECT -> "피트니스 앱 연결하이소~"
+            PetPersonality.DIALECT -> "피트니스 앱 연결하자"
             PetPersonality.TIMID -> "이, 이거 연결하면 좋아요..."
             PetPersonality.POSITIVE -> "피트니스 앱 발견! 연결하자!"
         }
@@ -558,7 +558,7 @@ fun PetAccessibilityScreen(
             PetPersonality.TOUGH -> "rebon을 켜줘. 중요해."
             PetPersonality.CUTE -> "이거 켜주면 같이 놀 수 있음!"
             PetPersonality.TSUNDERE -> "켜줘... 아니면 같이 못 걸어."
-            PetPersonality.DIALECT -> "이거 켜주이소! 중요한기라!"
+            PetPersonality.DIALECT -> "이거 켜줘 중요하다"
             PetPersonality.TIMID -> "저, 이거 켜주세요... 꼭이요..."
             PetPersonality.POSITIVE -> "이것만 켜면 돼! 할 수 있어!"
         }
@@ -731,9 +731,9 @@ fun PetAppSelectionScreen(
     val speechText = when {
         selectedApps.size >= 3 -> when (petType.personality) {
             PetPersonality.TOUGH -> "좋아. 그 정도면 돼."
-            PetPersonality.CUTE -> "와~ 많이 골랐어! 스고이!"
+            PetPersonality.CUTE -> "와~ 많이 골랐어! 대박ㅋㅋ"
             PetPersonality.TSUNDERE -> "뭐, 적당히 골랐네."
-            PetPersonality.DIALECT -> "잘 골랐네 마~"
+            PetPersonality.DIALECT -> "잘 골랐네"
             PetPersonality.TIMID -> "이, 이 정도면... 괜찮아요..."
             PetPersonality.POSITIVE -> "완벽한 선택이야!"
         }
@@ -741,7 +741,7 @@ fun PetAppSelectionScreen(
             PetPersonality.TOUGH -> "더 골라도 돼."
             PetPersonality.CUTE -> "더 골라볼래~?"
             PetPersonality.TSUNDERE -> "그것만? 뭐, 상관없지만."
-            PetPersonality.DIALECT -> "더 골라도 되긴 하는데~"
+            PetPersonality.DIALECT -> "더 골라도 된다"
             PetPersonality.TIMID -> "더, 더 고르시겠어요...?"
             PetPersonality.POSITIVE -> "좋아! 더 골라도 돼!"
         }
@@ -749,7 +749,7 @@ fun PetAppSelectionScreen(
             PetPersonality.TOUGH -> "제어할 앱 골라."
             PetPersonality.CUTE -> "어떤 앱 잠글까~?"
             PetPersonality.TSUNDERE -> "앱 골라... 안 걸으면 잠기는 거야."
-            PetPersonality.DIALECT -> "앱 골라주이소~"
+            PetPersonality.DIALECT -> "앱 골라줘"
             PetPersonality.TIMID -> "저, 앱을 골라주세요..."
             PetPersonality.POSITIVE -> "자주 쓰는 앱을 골라봐!"
         }
@@ -1017,7 +1017,7 @@ fun RealGoalSetupScreen(
             .fillMaxSize()
             .background(MockupColors.Background)
             .padding(horizontal = 20.dp)
-            .padding(bottom = 72.dp),  // 3버튼 네비게이션 고려
+            .padding(bottom = 72.dp),  // 네비게이션 바 고려
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Spacer(modifier = Modifier.height(60.dp))
@@ -1129,13 +1129,13 @@ fun RealGoalSetupScreen(
                 }
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(8.dp))
 
-            // 현재 값 표시 영역 (높이 고정 - 레이아웃 밀림 방지)
+            // 현재 값 표시 영역 (높이 고정 - 탭 전환 시 레이아웃 일관성)
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(115.dp),
+                    .height(110.dp),
                 contentAlignment = Alignment.Center
             ) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -1152,18 +1152,6 @@ fun RealGoalSetupScreen(
                         color = MockupColors.TextPrimary
                     )
 
-                    // 특별 라벨 영역 (높이 고정)
-                    Box(modifier = Modifier.height(20.dp), contentAlignment = Alignment.Center) {
-                        if (specialLabel != null) {
-                            Text(
-                                text = specialLabel,
-                                fontSize = 16.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = Color(0xFF4CAF50)
-                            )
-                        }
-                    }
-
                     // 환산 값 표시
                     Text(
                         text = if (selectedUnit == "km") {
@@ -1177,7 +1165,7 @@ fun RealGoalSetupScreen(
                 }
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(8.dp))
 
             // 슬라이더 (goalSteps 기준으로 통일 - 모드 전환 시 위치 유지)
             Slider(

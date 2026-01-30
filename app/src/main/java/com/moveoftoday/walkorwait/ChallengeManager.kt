@@ -124,6 +124,13 @@ class ChallengeManager private constructor(context: Context) {
         loadTodayCompletedChallenges()
         loadUnlockedTitles()
         loadEquippedTitle()
+
+        // 로그인 상태이고 로컬에 오늘의 통계가 없으면 Firebase에서 로드
+        if (auth.currentUser != null && _todayCompletionCounts.value.isEmpty()) {
+            scope.launch {
+                loadTodayStatsFromFirebase()
+            }
+        }
     }
 
     fun getChallengesByCategory(category: String?): List<Challenge> {
@@ -372,38 +379,25 @@ class ChallengeManager private constructor(context: Context) {
         }
     }
 
-    // Firebase에 칭호 획득 기록 저장
+    // Firebase에 칭호 획득 기록 저장 (부모 문서 배열로 통합)
     private suspend fun saveTitleUnlockToFirebase(type: ChallengeType) {
         val userId = auth.currentUser?.uid ?: return
 
         try {
             val now = System.currentTimeMillis()
 
-            // 칭호 획득 이력 저장
-            val titleData = hashMapOf(
-                "titleType" to type.name,
-                "title" to type.title,
-                "challengeName" to type.displayName,
-                "unlockedAt" to now
-            )
-            firestore.collection("users")
-                .document(userId)
-                .collection("unlockedTitles")
-                .document(type.name)
-                .set(titleData)
-                .await()
-
-            // 사용자 문서에 획득 칭호 목록 업데이트
+            // 부모 문서에 획득 칭호 배열로 저장 (서브컬렉션 대신)
             val userUpdate = hashMapOf(
                 "unlockedTitles" to _unlockedTitles.value.map { it.name },
-                "lastTitleUnlockedAt" to now
+                "lastTitleUnlockedAt" to now,
+                "lastActiveAt" to now
             )
             firestore.collection("users")
                 .document(userId)
                 .set(userUpdate, SetOptions.merge())
                 .await()
 
-            Log.d(TAG, "✅ Title unlock saved to Firebase: ${type.title}")
+            Log.d(TAG, "✅ Title unlock saved to Firebase (array): ${type.title}")
         } catch (e: Exception) {
             Log.e(TAG, "❌ Failed to save title unlock to Firebase: ${e.message}")
         }
@@ -415,6 +409,7 @@ class ChallengeManager private constructor(context: Context) {
         _unlockedTitles.value = unlocked.mapNotNull {
             try { ChallengeType.valueOf(it) } catch (e: Exception) { null }
         }.toSet()
+        Log.d(TAG, "🏆 Loaded unlocked titles: ${_unlockedTitles.value}")
     }
 
     // 장착된 칭호 로드
@@ -422,6 +417,62 @@ class ChallengeManager private constructor(context: Context) {
         val equipped = prefs.getString("equipped_title", null)
         _equippedTitle.value = equipped?.let {
             try { ChallengeType.valueOf(it) } catch (e: Exception) { null }
+        }
+        Log.d(TAG, "🏆 Loaded equipped title: ${_equippedTitle.value}")
+    }
+
+    /**
+     * SharedPreferences에서 칭호 데이터 다시 로드
+     * Firebase에서 복원 완료 후 호출
+     */
+    fun reloadFromPreferences() {
+        Log.d(TAG, "🔄 Reloading challenge data from SharedPreferences...")
+        loadUnlockedTitles()
+        loadEquippedTitle()
+        loadTodayCompletedChallenges()
+        Log.d(TAG, "✅ Challenge data reloaded - unlockedTitles: ${_unlockedTitles.value.size}, equipped: ${_equippedTitle.value}")
+    }
+
+    /**
+     * Firebase에서 오늘의 챌린지 통계 로드
+     * 앱 재설치 후 복원 시 호출
+     */
+    suspend fun loadTodayStatsFromFirebase() {
+        val userId = auth.currentUser?.uid ?: return
+        val today = java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.getDefault())
+            .format(java.util.Date())
+
+        try {
+            val statsDoc = firestore.collection("users")
+                .document(userId)
+                .collection("challengeStats")
+                .document(today)
+                .get()
+                .await()
+
+            if (statsDoc.exists()) {
+                val counts = mutableMapOf<ChallengeType, Int>()
+                val editor = prefs.edit()
+
+                ChallengeType.entries.forEach { type ->
+                    val countKey = "${type.name}_count"
+                    val count = statsDoc.getLong(countKey)?.toInt() ?: 0
+                    if (count > 0) {
+                        counts[type] = count
+                        // SharedPreferences에도 저장 (로컬 캐시)
+                        val prefKey = "count_${today}_${type.name}"
+                        editor.putInt(prefKey, count)
+                    }
+                }
+                editor.apply()
+
+                _todayCompletionCounts.value = counts
+                Log.d(TAG, "📊 Loaded today's stats from Firebase: $counts")
+            } else {
+                Log.d(TAG, "📊 No stats for today in Firebase")
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "❌ Failed to load today's stats from Firebase: ${e.message}")
         }
     }
 
@@ -442,33 +493,24 @@ class ChallengeManager private constructor(context: Context) {
         }
     }
 
-    // Firebase에 장착된 칭호 저장
+    // Firebase에 장착된 칭호 저장 (부모 문서에만)
     private suspend fun saveEquippedTitleToFirebase(type: ChallengeType?) {
         val userId = auth.currentUser?.uid ?: return
 
         try {
+            val now = System.currentTimeMillis()
             val userUpdate = hashMapOf(
                 "equippedTitle" to type?.name,
                 "equippedTitleDisplay" to type?.title,
-                "lastTitleChangeAt" to System.currentTimeMillis()
+                "lastTitleChangeAt" to now,
+                "lastActiveAt" to now
             )
             firestore.collection("users")
                 .document(userId)
                 .set(userUpdate, SetOptions.merge())
                 .await()
 
-            // settings 서브컬렉션에도 저장 (앱 복원용)
-            val settingsUpdate = hashMapOf(
-                "equippedTitle" to type?.name
-            )
-            firestore.collection("users")
-                .document(userId)
-                .collection("userData")
-                .document("settings")
-                .set(settingsUpdate, SetOptions.merge())
-                .await()
-
-            Log.d(TAG, "✅ Equipped title saved to Firebase: ${type?.title ?: "없음"}")
+            Log.d(TAG, "✅ Equipped title saved to Firebase (parent doc): ${type?.title ?: "없음"}")
         } catch (e: Exception) {
             Log.e(TAG, "❌ Failed to save equipped title to Firebase: ${e.message}")
         }

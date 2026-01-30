@@ -6,6 +6,9 @@ import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
 import java.util.Locale
+import com.moveoftoday.walkorwait.pet.PetLevel
+import com.moveoftoday.walkorwait.pet.PetTypeV2
+import com.moveoftoday.walkorwait.pet.PetGrowthStage
 
 class PreferenceManager(context: Context) {
     private val prefs: SharedPreferences =
@@ -1022,7 +1025,131 @@ class PreferenceManager(context: Context) {
         savePetHappiness(newLevel)
     }
 
+    // ===== Pet System V2 (Evolution/Growth) =====
+
+    // V2 Pet Type (6 new pets: SHIBA, CAT, PIG, RACCOON, HAMSTER, PENGUIN)
+    fun savePetTypeV2(petType: PetTypeV2) {
+        prefs.edit().putString("pet_type_v2", petType.name).apply()
+    }
+
+    fun getPetTypeV2(): PetTypeV2? {
+        val typeName = prefs.getString("pet_type_v2", null) ?: return null
+        return try {
+            PetTypeV2.valueOf(typeName)
+        } catch (e: IllegalArgumentException) {
+            null
+        }
+    }
+
+    // V2 Pet Level/Experience system
+    fun savePetLevelV2(petLevel: PetLevel) {
+        prefs.edit()
+            .putInt("pet_level_v2", petLevel.level)
+            .putInt("pet_current_exp_v2", petLevel.currentExp)
+            .putInt("pet_total_exp_v2", petLevel.totalExp)
+            .apply()
+    }
+
+    fun getPetLevelV2(): PetLevel {
+        val level = prefs.getInt("pet_level_v2", 0)  // 0 = Egg stage
+        val currentExp = prefs.getInt("pet_current_exp_v2", 0)
+        val totalExp = prefs.getInt("pet_total_exp_v2", 0)
+        return PetLevel(level = level, currentExp = currentExp, totalExp = totalExp)
+    }
+
+    // Add experience and return updated PetLevel
+    fun addPetExpV2(exp: Int): PetLevel {
+        val currentLevel = getPetLevelV2()
+        val newLevel = currentLevel.addExp(exp)
+        savePetLevelV2(newLevel)
+        return newLevel
+    }
+
+    // Convert steps to exp and add (100 steps = 1 exp)
+    fun addPetExpFromStepsV2(steps: Int): PetLevel {
+        val exp = PetLevel.stepsToExp(steps)
+        return if (exp > 0) addPetExpV2(exp) else getPetLevelV2()
+    }
+
+    // Check if pet is still in Egg stage
+    fun isPetEggStage(): Boolean {
+        return getPetLevelV2().stage == PetGrowthStage.EGG
+    }
+
+    // Hatch egg (move from level 0 to level 1)
+    fun hatchPetEgg(): PetLevel {
+        val currentLevel = getPetLevelV2()
+        if (currentLevel.level == 0) {
+            val hatchedLevel = PetLevel(level = 1, currentExp = 0, totalExp = PetLevel.calculateExpForLevel(1))
+            savePetLevelV2(hatchedLevel)
+            return hatchedLevel
+        }
+        return currentLevel
+    }
+
+    // V2 Pet name (can be different from V1)
+    fun savePetNameV2(name: String) {
+        prefs.edit().putString("pet_name_v2", name).apply()
+    }
+
+    fun getPetNameV2(): String {
+        return prefs.getString("pet_name_v2", "") ?: ""
+    }
+
+    // V2 Pet happiness (0-100)
+    fun savePetHappinessV2(happiness: Int) {
+        prefs.edit().putInt("pet_happiness_v2", happiness.coerceIn(0, 100)).apply()
+    }
+
+    fun getPetHappinessV2(): Int {
+        return prefs.getInt("pet_happiness_v2", 100)
+    }
+
+    // Last interaction time for happiness decay
+    fun savePetLastInteractionTimeV2(timestamp: Long) {
+        prefs.edit().putLong("pet_last_interaction_v2", timestamp).apply()
+    }
+
+    fun getPetLastInteractionTimeV2(): Long {
+        return prefs.getLong("pet_last_interaction_v2", System.currentTimeMillis())
+    }
+
+    // Check if V2 pet system is initialized
+    fun isPetV2Initialized(): Boolean {
+        return getPetTypeV2() != null && getPetNameV2().isNotBlank()
+    }
+
+    // Reset V2 pet (for new pet selection)
+    fun resetPetV2() {
+        prefs.edit()
+            .remove("pet_type_v2")
+            .remove("pet_name_v2")
+            .remove("pet_level_v2")
+            .remove("pet_current_exp_v2")
+            .remove("pet_total_exp_v2")
+            .remove("pet_happiness_v2")
+            .remove("pet_last_interaction_v2")
+            .apply()
+    }
+
     // ===== 연속 달성 (Streak) =====
+
+    // 듀오링고 스타일: 새벽 4시 기준으로 날짜 변경
+    private val DAY_BOUNDARY_HOUR = 4 // 새벽 4시
+
+    /**
+     * 듀오링고 스타일 "유효 날짜" 계산
+     * 새벽 4시 이전이면 전날로 계산
+     */
+    fun getEffectiveDate(): String {
+        val calendar = java.util.Calendar.getInstance()
+        if (calendar.get(java.util.Calendar.HOUR_OF_DAY) < DAY_BOUNDARY_HOUR) {
+            calendar.add(java.util.Calendar.DAY_OF_MONTH, -1)
+        }
+        // 스레드 안전을 위해 매번 새 인스턴스 생성
+        val sdf = java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.getDefault())
+        return sdf.format(calendar.time)
+    }
 
     // 현재 연속 달성 일수
     fun getStreak(): Int {
@@ -1042,20 +1169,71 @@ class PreferenceManager(context: Context) {
         prefs.edit().putString("last_achieved_date", date).apply()
     }
 
-    // 오늘 달성 축하 다이얼로그를 이미 봤는지
+    // Streak 시작 날짜 (연속 달성이 시작된 날)
+    fun getStreakStartDate(): String {
+        return prefs.getString("streak_start_date", "") ?: ""
+    }
+
+    fun setStreakStartDate(date: String) {
+        prefs.edit().putString("streak_start_date", date).apply()
+    }
+
+    // Streak 시작 요일 (0=일요일, 1=월요일, ..., 6=토요일)
+    fun getStreakStartDayOfWeek(): Int {
+        val startDate = getStreakStartDate()
+        android.util.Log.d("StreakDebug", "📅 getStreakStartDayOfWeek - startDate: '$startDate'")
+        if (startDate.isEmpty()) return 0 // 기본 일요일
+
+        return try {
+            val sdf = java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.getDefault())
+            val date = sdf.parse(startDate)
+            val calendar = java.util.Calendar.getInstance()
+            calendar.time = date ?: return 0
+            val dayOfWeek = calendar.get(java.util.Calendar.DAY_OF_WEEK) - 1 // Calendar.SUNDAY = 1
+            android.util.Log.d("StreakDebug", "📅 dayOfWeek: $dayOfWeek")
+            dayOfWeek
+        } catch (e: Exception) {
+            android.util.Log.e("StreakDebug", "📅 Error parsing date: ${e.message}")
+            0
+        }
+    }
+
+    // 현재 streak이 첫 주인지 (시작일로부터 7일 미만)
+    fun isFirstWeekOfStreak(): Boolean {
+        val startDate = getStreakStartDate()
+        android.util.Log.d("StreakDebug", "📅 isFirstWeekOfStreak - startDate: '$startDate'")
+        if (startDate.isEmpty()) {
+            android.util.Log.d("StreakDebug", "📅 startDate is empty, returning true")
+            return true
+        }
+
+        return try {
+            val sdf = java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.getDefault())
+            val start = sdf.parse(startDate)
+            val today = sdf.parse(getEffectiveDate())
+            val diffInDays = ((today?.time ?: 0) - (start?.time ?: 0)) / (1000 * 60 * 60 * 24)
+            android.util.Log.d("StreakDebug", "📅 diffInDays: $diffInDays, isFirstWeek: ${diffInDays < 7}")
+            diffInDays < 7
+        } catch (e: Exception) {
+            android.util.Log.e("StreakDebug", "📅 Error: ${e.message}")
+            true
+        }
+    }
+
+    // 오늘 달성 축하 다이얼로그를 이미 봤는지 (듀오링고 스타일: 새벽 4시 기준)
     fun hasSeenStreakCelebrationToday(): Boolean {
-        val today = java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.getDefault()).format(java.util.Date())
+        val today = getEffectiveDate()
         return prefs.getString("last_streak_celebration_date", "") == today
     }
 
     fun setStreakCelebrationSeen() {
-        val today = java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.getDefault()).format(java.util.Date())
+        val today = getEffectiveDate()
         prefs.edit().putString("last_streak_celebration_date", today).apply()
     }
 
-    // 목표 달성 시 호출 - 연속 달성 업데이트
+    // 목표 달성 시 호출 - 연속 달성 업데이트 (듀오링고 스타일: 새벽 4시 기준)
     fun updateStreakOnGoalAchieved(): Int {
-        val today = java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.getDefault()).format(java.util.Date())
+        val today = getEffectiveDate()
         val lastAchievedDate = getLastAchievedDate()
 
         if (lastAchievedDate == today) {
@@ -1067,7 +1245,8 @@ class PreferenceManager(context: Context) {
         val newStreak: Int
 
         newStreak = if (lastAchievedDate.isEmpty()) {
-            // 첫 달성
+            // 첫 달성 - streak 시작 날짜 저장
+            setStreakStartDate(today)
             1
         } else {
             // 어제 달성했는지 확인
@@ -1081,17 +1260,91 @@ class PreferenceManager(context: Context) {
                     // 연속 달성
                     currentStreak + 1
                 } else {
-                    // 연속 끊김 - 다시 1부터
+                    // 연속 끊김 - 다시 1부터, streak 시작 날짜 갱신
+                    setStreakStartDate(today)
                     1
                 }
             } catch (e: Exception) {
+                setStreakStartDate(today)
                 1
             }
         }
 
         setStreak(newStreak)
         setLastAchievedDate(today)
+
+        // 목표 달성 시간 기록 (평소 운동 시간 추적용)
+        recordGoalAchievedTime()
+
         return newStreak
+    }
+
+    // ===== 평소 운동 시간 추적 (걱정 알림용) =====
+
+    /**
+     * 목표 달성 시간을 기록 (최근 7일간의 달성 시간 저장)
+     */
+    private fun recordGoalAchievedTime() {
+        val currentHour = java.util.Calendar.getInstance().get(java.util.Calendar.HOUR_OF_DAY)
+        val times = getRecentAchievedTimes().toMutableList()
+        times.add(currentHour)
+        // 최근 7개만 유지
+        while (times.size > 7) {
+            times.removeAt(0)
+        }
+        prefs.edit().putString("recent_achieved_times", times.joinToString(",")).apply()
+    }
+
+    /**
+     * 최근 달성 시간들 가져오기
+     */
+    fun getRecentAchievedTimes(): List<Int> {
+        val timesStr = prefs.getString("recent_achieved_times", "") ?: ""
+        if (timesStr.isEmpty()) return emptyList()
+        return timesStr.split(",").mapNotNull { it.toIntOrNull() }
+    }
+
+    /**
+     * 평소 운동 시간 계산 (최근 달성 시간들의 평균)
+     * 데이터가 3개 미만이면 null 반환
+     */
+    fun getUsualExerciseHour(): Int? {
+        val times = getRecentAchievedTimes()
+        if (times.size < 3) return null
+        return times.average().toInt()
+    }
+
+    /**
+     * 걱정 알림을 보낼 시간인지 확인
+     * 평소 운동 시간 + 2시간이 지났고, 오늘 아직 목표 달성 안 했으면 true
+     */
+    fun shouldShowWorryNotification(): Boolean {
+        val usualHour = getUsualExerciseHour() ?: return false
+        val currentHour = java.util.Calendar.getInstance().get(java.util.Calendar.HOUR_OF_DAY)
+        val today = getEffectiveDate()
+        val lastAchieved = getLastAchievedDate()
+
+        // 오늘 이미 달성했으면 알림 불필요
+        if (lastAchieved == today) return false
+
+        // 평소 시간 + 2시간이 지났으면 걱정 알림
+        return currentHour >= usualHour + 2
+    }
+
+    /**
+     * 오늘 걱정 알림을 이미 보냈는지 확인
+     */
+    fun hasShownWorryNotificationToday(): Boolean {
+        val today = getEffectiveDate()
+        return prefs.getString("worry_notification_date", "") == today
+    }
+
+    /**
+     * 걱정 알림 보냄 표시
+     */
+    fun setWorryNotificationShown() {
+        val today = getEffectiveDate()
+        prefs.edit().putString("worry_notification_date", today).apply()
     }
 
     // ===== 튜토리얼 차단 테스트 상태 =====
@@ -1137,9 +1390,9 @@ class PreferenceManager(context: Context) {
                 dateStr == today && getCurrentProgress() >= getGoal() -> true
                 dateStr == lastAchievedDate -> true
                 dateStr < today -> {
-                    // 과거 날짜는 streak 기록으로 추정
+                    // 과거 날짜는 streak 기록으로 추정 (오늘 포함 streak일수)
                     val daysDiff = ((sdf.parse(today)?.time ?: 0) - (sdf.parse(dateStr)?.time ?: 0)) / (1000 * 60 * 60 * 24)
-                    daysDiff <= getStreak()
+                    daysDiff < getStreak()  // streak=3이면 차이 0,1,2 (3일)
                 }
                 else -> false // 미래 날짜
             }
@@ -1295,5 +1548,24 @@ class PreferenceManager(context: Context) {
     fun markRestModeUsedToday() {
         val today = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
         prefs.edit().putString("rest_mode_used_date", today).apply()
+    }
+
+    // ========== 목표 달성 알림 중복 방지 ==========
+
+    /**
+     * 오늘 목표 달성 알림을 이미 보냈는지 확인
+     */
+    fun hasShownGoalNotificationToday(): Boolean {
+        val today = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+        val lastShownDate = prefs.getString("goal_notification_shown_date", "") ?: ""
+        return lastShownDate == today
+    }
+
+    /**
+     * 목표 달성 알림 발송 기록
+     */
+    fun setGoalNotificationShown() {
+        val today = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+        prefs.edit().putString("goal_notification_shown_date", today).apply()
     }
 }

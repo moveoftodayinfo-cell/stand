@@ -60,9 +60,9 @@ fun PetGoalSettingScreen(
     // Pet speech based on personality
     val speechText = when (petType.personality) {
         PetPersonality.TOUGH -> "매일 걸을 목표를 정해."
-        PetPersonality.CUTE -> "목표 정하자! 간바!"
+        PetPersonality.CUTE -> "목표 정하자! ㄱㄱ!"
         PetPersonality.TSUNDERE -> "목표... 알아서 정해."
-        PetPersonality.DIALECT -> "매일 걸을 목표 정하이소~"
+        PetPersonality.DIALECT -> "매일 걸을 목표 정하자"
         PetPersonality.TIMID -> "저, 목표 정해주세요..."
         PetPersonality.POSITIVE -> "목표 정하자! 신난다!"
     }

@@ -117,7 +117,7 @@ enum class PetPersonality {
     TOUGH,      // 상남자 - Dog1: short, cool phrases
     CUTE,       // 애교쟁이 - Dog2: ~용 endings, hearts
     TSUNDERE,   // 츤데레 - Cat1: cold but caring
-    DIALECT,    // 사투리 - Cat2: 경상도 dialect
+    DIALECT,    // 사투리 - Cat2: 20대 부산 여자
     TIMID,      // 소심이 - Rat: nervous, polite
     POSITIVE    // 긍정왕 - Bird: cheerful
 }
@@ -141,7 +141,7 @@ object PetDialogues {
             PetPersonality.TOUGH -> "왔구나."
             PetPersonality.CUTE -> "왔구나! 반가움ㅋㅋ"
             PetPersonality.TSUNDERE -> "흥, 왔어?"
-            PetPersonality.DIALECT -> "왔노~ 반갑다"
+            PetPersonality.DIALECT -> "왔네~ 반갑다"
             PetPersonality.TIMID -> "아, 안녕하세요..."
             PetPersonality.POSITIVE -> "안녕! 오늘도 좋은 하루야!"
         }
@@ -151,9 +151,9 @@ object PetDialogues {
     fun getTutorialStep1(personality: PetPersonality, petName: String): String {
         return when (personality) {
             PetPersonality.TOUGH -> "매일 걸으면 된다. 간단하지."
-            PetPersonality.CUTE -> "나랑 같이 산책하자구! 간바!"
+            PetPersonality.CUTE -> "나랑 같이 산책할 거지? ㅋㅋ"
             PetPersonality.TSUNDERE -> "뭐, 걷는 거 도와줄게. 고마워하지마."
-            PetPersonality.DIALECT -> "매일 걸으면 된다 뭐"
+            PetPersonality.DIALECT -> "매일 걸으면 되지 뭐"
             PetPersonality.TIMID -> "저, 저랑 같이 걸어주실 거죠...?"
             PetPersonality.POSITIVE -> "걷기 시작하면 기분이 좋아져!"
         }
@@ -163,9 +163,9 @@ object PetDialogues {
     fun getTutorialStep2(personality: PetPersonality, petName: String): String {
         return when (personality) {
             PetPersonality.TOUGH -> "목표를 정해. 지켜."
-            PetPersonality.CUTE -> "목표 채우면 내가 우레시! 해짐ㅋㅋ"
+            PetPersonality.CUTE -> "목표 채우면 ㄹㅇ 뿌듯함 ㅋㅋ"
             PetPersonality.TSUNDERE -> "목표 못 채우면... 좀 그래."
-            PetPersonality.DIALECT -> "목표 채우면 기분 좋제~"
+            PetPersonality.DIALECT -> "목표 채우면 기분 좋지"
             PetPersonality.TIMID -> "목표... 함께 달성해봐요..."
             PetPersonality.POSITIVE -> "목표 달성하면 최고야!"
         }
@@ -175,9 +175,9 @@ object PetDialogues {
     fun getTutorialComplete(personality: PetPersonality, petName: String): String {
         return when (personality) {
             PetPersonality.TOUGH -> "시작하자."
-            PetPersonality.CUTE -> "같이 간바루! 이쿠요~"
+            PetPersonality.CUTE -> "같이 가보자고! ㄱㄱ~"
             PetPersonality.TSUNDERE -> "뭐, 잘 부탁해."
-            PetPersonality.DIALECT -> "가보자고~"
+            PetPersonality.DIALECT -> "가보자"
             PetPersonality.TIMID -> "잘, 잘 부탁드려요..."
             PetPersonality.POSITIVE -> "우리 함께 화이팅!"
         }
@@ -193,10 +193,10 @@ object PetDialogues {
                 else -> "됐다."
             }
             PetPersonality.CUTE -> when {
-                progressPercent < 30 -> "산책 스키~"
-                progressPercent < 70 -> "잘하고 있음 간바!"
-                progressPercent < 100 -> "모우스코시!"
-                else -> "사이코! 해냄ㅋㅋ"
+                progressPercent < 30 -> "아직 워밍업임 ㅋㅋ 여유여유"
+                progressPercent < 70 -> "절반 옴 ㄷㄷ 페이스 실화?"
+                progressPercent < 100 -> "거의 다 옴 ㄷㄷㄷ 미쳤다 ㄹㅇ"
+                else -> "ㅋㅋㅋㅋ 미쳤다 ㄹㅇ 갓생러 인정"
             }
             PetPersonality.TSUNDERE -> when {
                 progressPercent < 30 -> "...따라올거야?"
@@ -205,10 +205,10 @@ object PetDialogues {
                 else -> "흥, 잘했어."
             }
             PetPersonality.DIALECT -> when {
-                progressPercent < 30 -> "천천히 온나~"
-                progressPercent < 70 -> "마 니 쫌 하네"
-                progressPercent < 100 -> "조금만 더 가보자"
-                else -> "ㅇㅈ 이건 ㅇㅈ이다"
+                progressPercent < 30 -> "천천히 오면 되지"
+                progressPercent < 70 -> "잘하고 있네"
+                progressPercent < 100 -> "조금만 더 가자"
+                else -> "다 했네 잘했다"
             }
             PetPersonality.TIMID -> when {
                 progressPercent < 30 -> "저, 천천히 가요..."
@@ -238,13 +238,13 @@ object PetDialogues {
                 "챌린지 해봐. 집중하기 좋아."
             )
             PetPersonality.CUTE -> listOf(
-                "산책각인데... 이쿠요!",
-                "밖에 나가고 싶음ㅠ 하야쿠~",
-                "오늘 갓생 간바루!",
-                "심심함... 산책 가자구 네~",
-                "걷고 싶다잉 요시!",
-                "위젯 설정하면 바로바로 볼 수 있어용~",
-                "챌린지 해볼래? 재밌어용!"
+                "날씨 좋은데 밖에 안 나감? ㅋㅋ",
+                "심심한데 놀아줄 생각 없음?",
+                "뭐함? 나 방치하는 거임? ㅋㅋ",
+                "오늘 계획이 뭔데 알려줘봐",
+                "할 거 없으면 산책이나 ㄱㄱ",
+                "위젯 설정하면 바로 확인됨 ㅇㅇ",
+                "챌린지 해봐 ㄹㅇ 재밌음"
             )
             PetPersonality.TSUNDERE -> listOf(
                 "...가자고.",
@@ -256,13 +256,13 @@ object PetDialogues {
                 "챌린지... 해보면 어때?"
             )
             PetPersonality.DIALECT -> listOf(
-                "산책 안 갈기가?",
-                "오늘 얼마나 걸을긴데",
-                "와 밖에 날씨 좋노",
+                "산책 갈까",
+                "오늘 얼마나 걸을 거노",
+                "밖에 날씨 좋네",
                 "걷기 딱 좋은 날이다",
-                "슬슬 나가볼까 싶노",
-                "위젯 설정해봐~ 편하다",
-                "챌린지 한번 해보제~"
+                "슬슬 나가볼까",
+                "위젯 설정하면 편하다",
+                "챌린지 한번 해보자"
             )
             PetPersonality.TIMID -> listOf(
                 "저, 산책...",
@@ -304,13 +304,13 @@ object PetDialogues {
                 "오늘도 해냈어."
             )
             PetPersonality.CUTE -> listOf(
-                "100% 달성! 야바이ㅋㅋㅋ",
-                "목표 달성 스고이!",
-                "사이코! 100% 갓생 완료!",
-                "오걷완! 100%야~",
-                "미쳤다 100% 찐이야!",
-                "풀 달성! 오츠카레~",
-                "100% 해냄ㅋㅋ 대박!"
+                "ㅋㅋㅋㅋ 미쳤다 ㄹㅇ 갓생러 인정",
+                "해냄 ㄷㄷ 오늘 갓생 성공",
+                "ㄹㅇ 대단함 인정할게 ㅋㅋ",
+                "실화냐 ㅋㅋㅋ 찐 갓생러네",
+                "미쳤다 해버렸네 ㄹㅇㅋㅋ",
+                "100% 달성 ㄷㄷ 레전드임",
+                "오늘 갓생 완료 ㅇㅈ?"
             )
             PetPersonality.TSUNDERE -> listOf(
                 "뭐, 100%라니 잘했어.",
@@ -322,13 +322,13 @@ object PetDialogues {
                 "제대로 했네. 100%."
             )
             PetPersonality.DIALECT -> listOf(
-                "와 100% ㄹㅇ 대단하노",
-                "마 니 쫌 하네 100%",
-                "오 잘했다 100%",
-                "역시 할 줄 알았제~",
-                "100% 해냈노 대박",
-                "마 진짜 열심히 사노",
-                "이거 되노? 됐네ㅋㅋ"
+                "100% 대단하네",
+                "잘했다 100%",
+                "오 100% 됐네",
+                "역시 할 줄 알았다",
+                "100% 해냈네",
+                "진짜 열심히 했네",
+                "됐네 수고했다"
             )
             PetPersonality.TIMID -> listOf(
                 "100%... 해, 해냈어요...!",
@@ -365,13 +365,13 @@ object PetDialogues {
                 "목표의 ${percent}%. 존경한다."
             )
             PetPersonality.CUTE -> listOf(
-                "${percent}%! 목표 초과 야바이!",
-                "에?! ${percent}%?! 미쳤다ㅋㅋ",
-                "${percent}% 달성! 오버킬이야!",
-                "목표 넘음! ${percent}%! 스고이~",
-                "${percent}%라니 대박사건ㅋㅋㅋ",
-                "초과 달성 ${percent}%! 레전드!",
-                "${percent}%! 진짜 찐이다!"
+                "${percent}%? ㄷㄷㄷ 미쳤다 ㄹㅇ",
+                "헐 ${percent}%?! 실화임? ㅋㅋ",
+                "${percent}% 달성 ㄷㄷ 오버킬이네",
+                "목표 넘음 ${percent}%! 찐임",
+                "${percent}%라니 ㄹㅇ 레전드ㅋㅋㅋ",
+                "초과 달성 ${percent}%! 미쳤다",
+                "${percent}%! 갓생러 그 자체임"
             )
             PetPersonality.TSUNDERE -> listOf(
                 "${percent}%라니... 좀 오버했네.",
@@ -383,13 +383,13 @@ object PetDialogues {
                 "목표 넘은 ${percent}%... 대단해."
             )
             PetPersonality.DIALECT -> listOf(
-                "와 ${percent}%노 미쳤다",
-                "목표 넘었노 ${percent}%!",
-                "${percent}% ㄹㅇ 대박이다",
-                "초과 달성 ${percent}% 이건 좀;;",
-                "${percent}%라니 뭐고ㅋㅋ",
-                "목표 넘어섰노 ${percent}%!",
-                "와 ${percent}% 열심히 사노"
+                "${percent}%? 대단하네",
+                "목표 넘었네 ${percent}%",
+                "${percent}% 진짜 잘했다",
+                "초과 달성 ${percent}% 대박",
+                "${percent}%라니 대단하다",
+                "목표 넘어섰네 ${percent}%",
+                "${percent}% 진짜 열심히 했네"
             )
             PetPersonality.TIMID -> listOf(
                 "${percent}%... 목표를 넘었어요...!",
@@ -423,73 +423,73 @@ object PetDialogues {
         val messages = when (milestone) {
             10 -> when (personality) {
                 PetPersonality.TOUGH -> listOf("시작했군.", "좋아, 출발이다.", "가자.", "10%다. 워밍업.", "첫 걸음이다.")
-                PetPersonality.CUTE -> listOf("시작이다! 이쿠요~", "10%! 간바레!", "출발ㅋㅋ", "10% 달성! 야호~", "시작이 반이래!")
+                PetPersonality.CUTE -> listOf("시작함 ㅋㅋ 이제 가보자", "10%! 워밍업 중", "출발ㅋㅋ 여유여유", "10% 달성! 시작이 반이래", "첫 발 뗌 ㄹㅇ")
                 PetPersonality.TSUNDERE -> listOf("겨우 10%야.", "시작은 했네.", "...아직 멀었어.", "뭐, 시작은 했군.", "10%... 갈 길이 멀어.")
-                PetPersonality.DIALECT -> listOf("시작했노", "10% 가보자고", "출발이다~", "첫 발 뗐다", "시작이 반이제")
+                PetPersonality.DIALECT -> listOf("시작했네", "10% 가보자", "출발이다", "첫 발 뗐다", "시작이 반이지")
                 PetPersonality.TIMID -> listOf("시, 시작이에요...", "10%예요...!", "조금씩...", "시작했어요...!", "첫 걸음이에요...")
                 PetPersonality.POSITIVE -> listOf("시작이야! 화이팅!", "10% 달성!", "좋은 출발!", "첫 걸음이 제일 어려운 법!", "멋진 시작이야!")
             }
             20 -> when (personality) {
                 PetPersonality.TOUGH -> listOf("20%. 계속.", "잘하고 있어.", "그래, 이 조자.", "20%다. 좋아.", "나쁘지 않군.")
-                PetPersonality.CUTE -> listOf("20%! 스고이~", "잘하고 있음!", "이 조자로 고고!", "벌써 20%ㅋㅋ", "오! 20%다!")
+                PetPersonality.CUTE -> listOf("20% ㄷㄷ 괜찮은데?", "잘하고 있음 ㅋㅋ", "이 페이스 ㄱㅊㄱㅊ", "벌써 20% ㄹㅇ", "오 20%다 ㅋㅋ")
                 PetPersonality.TSUNDERE -> listOf("20%... 뭐, 괜찮네.", "조금 했네.", "...나쁘지 않아.", "20%라... 인정해줄게.", "좀 걸었네.")
-                PetPersonality.DIALECT -> listOf("20% 좋노", "잘하고 있노~", "이 조자 맞다", "20% 됐다", "흐름 좋다")
+                PetPersonality.DIALECT -> listOf("20% 좋네", "잘하고 있다", "이 페이스 좋다", "20% 됐다", "흐름 좋네")
                 PetPersonality.TIMID -> listOf("20%예요...!", "잘하고 계세요...", "조금 더...", "20% 됐어요...!", "힘내고 있어요...")
                 PetPersonality.POSITIVE -> listOf("20%! 잘하고 있어!", "좋아좋아!", "계속 가자!", "멋져! 20%야!", "이 조자 딱 좋아!")
             }
             30 -> when (personality) {
                 PetPersonality.TOUGH -> listOf("30%. 좋아.", "계속 걸어.", "됐다.", "30%다. 괜찮아.", "이 페이스 유지.")
-                PetPersonality.CUTE -> listOf("30%! 야바이~", "벌써 30%ㅋㅋ", "잘한다!", "30%라니 대박!", "빠르다 빨라~")
+                PetPersonality.CUTE -> listOf("30% 옴 ㄷㄷ", "벌써 30% ㅋㅋ 실화?", "잘한다 ㄹㅇ", "30%라니 ㄱㅊ", "페이스 좋음 ㅇㅇ")
                 PetPersonality.TSUNDERE -> listOf("30%라... 뭐, 괜찮아.", "좀 했네.", "...계속해.", "30%... 인정.", "나름 하고 있네.")
-                PetPersonality.DIALECT -> listOf("오 30%", "잘하노~", "좋다", "30% 됐노", "이 조자 맞제")
+                PetPersonality.DIALECT -> listOf("오 30%", "잘하네", "좋다", "30% 됐다", "이 페이스 좋다")
                 PetPersonality.TIMID -> listOf("30%예요...!", "잘하고 있어요...", "힘내요...", "30%나 됐어요...!", "조금씩 오르고 있어요...")
                 PetPersonality.POSITIVE -> listOf("30%! 대단해!", "잘하고 있어!", "화이팅!", "30% 돌파!", "이 기세로 가자!")
             }
             40 -> when (personality) {
                 PetPersonality.TOUGH -> listOf("40%. 반 가까이.", "계속.", "좋아.", "40%다. 곧 반.", "거의 절반이군.")
-                PetPersonality.CUTE -> listOf("40%! 거의 반!", "곧 반이다~", "화이팅!", "40%! 조금만 더!", "반이 코앞이야!")
+                PetPersonality.CUTE -> listOf("40% 거의 반이네", "곧 반임 ㅋㅋ", "찐으로 응원함 ㄹㅇ", "40%! 조금만 더ㅋ", "반이 코앞 ㄷㄷ")
                 PetPersonality.TSUNDERE -> listOf("40%... 반은 아니야.", "곧 반이네.", "...힘내.", "40%라... 뭐, 잘하고 있어.", "반 가까이 왔네.")
-                PetPersonality.DIALECT -> listOf("40%다", "반 가까이 왔노", "조금만 더~", "40% 됐다", "곧 반이다")
+                PetPersonality.DIALECT -> listOf("40%다", "반 가까이 왔네", "조금만 더", "40% 됐다", "곧 반이다")
                 PetPersonality.TIMID -> listOf("40%예요...", "곧 반이에요...", "화이팅...", "40%나...!", "거의 반이에요...")
                 PetPersonality.POSITIVE -> listOf("40%! 곧 반!", "잘하고 있어!", "거의 다 왔어!", "반까지 얼마 안 남았어!", "40% 대단해!")
             }
             50 -> when (personality) {
                 PetPersonality.TOUGH -> listOf("반 왔다.", "50%. 절반.", "좋아, 반이다.", "반이군. 됐다.", "50%. 나머지도 가자.")
-                PetPersonality.CUTE -> listOf("반이다! 스고이!", "50%! 대박!", "절반 왔음ㅋㅋ", "반 달성! 야호~", "50%! 진짜 잘한다!")
+                PetPersonality.CUTE -> listOf("반 옴 ㄷㄷ 실화?", "50% ㄹㅇ 대박", "절반 왔음 ㅋㅋㅋ", "반 달성! 미쳤다", "50%! 페이스 ㄹㅇ 좋음")
                 PetPersonality.TSUNDERE -> listOf("반... 왔네.", "50%라니... 괜찮아.", "...잘하고 있어.", "반이라... 뭐, 대단해.", "50%... 인정할게.")
-                PetPersonality.DIALECT -> listOf("와 반 왔노", "50% ㅇㅈ이다", "마 니 쫌 하네", "절반 왔다", "반 옴 대박")
+                PetPersonality.DIALECT -> listOf("반 왔네", "50% 됐다", "잘하고 있다", "절반 왔다", "반이다 좋네")
                 PetPersonality.TIMID -> listOf("반이에요...!", "50%...! 대단해요...", "절반이에요...", "반이나 왔어요...!", "50%예요...!")
                 PetPersonality.POSITIVE -> listOf("반이야! 대단해!", "50% 달성!", "절반 완료!", "반 왔어! 멋져!", "50%! 이 기세로!")
             }
             60 -> when (personality) {
                 PetPersonality.TOUGH -> listOf("60%. 반 넘었다.", "잘하고 있어.", "계속.", "60%다. 내리막길.", "반 넘었군.")
-                PetPersonality.CUTE -> listOf("60%! 반 넘음!", "야바이 잘한다!", "이 조자!", "60%! 대단해!", "반 넘었어~")
+                PetPersonality.CUTE -> listOf("60% 반 넘음 ㄷㄷ", "ㅋㅋ 잘한다 ㄹㅇ", "이 페이스 실화?", "60%! 대단함 ㅇㅈ", "반 넘었어 ㅋㅋ")
                 PetPersonality.TSUNDERE -> listOf("반 넘었네...", "60%라... 뭐, 잘해.", "...계속해봐.", "60%... 꽤 했네.", "반은 넘었군.")
-                PetPersonality.DIALECT -> listOf("60% 반 넘었노", "반 넘음 이제 쉽제", "잘한다~", "60% 됐다", "이제 내리막이다")
+                PetPersonality.DIALECT -> listOf("60% 반 넘었네", "반 넘었다 이제 쉽지", "잘한다", "60% 됐다", "이제 내리막이다")
                 PetPersonality.TIMID -> listOf("60%예요...!", "반 넘었어요...", "대단해요...", "60%나...!", "반을 넘었어요...!")
                 PetPersonality.POSITIVE -> listOf("60%! 반 넘었어!", "잘하고 있어!", "화이팅!", "60%! 이제 내리막!", "반 넘어서 신나!")
             }
             70 -> when (personality) {
                 PetPersonality.TOUGH -> listOf("70%. 거의 다.", "조금 남았다.", "마무리하자.", "70%다. 끝이 보인다.", "거의 왔군.")
-                PetPersonality.CUTE -> listOf("70%! 거의 다!", "얼마 안 남음!", "화이팅!", "70%! 끝이 보여!", "조금만 더~")
+                PetPersonality.CUTE -> listOf("70% 거의 다 옴 ㄷㄷ", "얼마 안 남음 ㅋㅋ", "찐으로 응원함", "70%! 끝이 보임", "조금만 더 ㄹㅇ")
                 PetPersonality.TSUNDERE -> listOf("70%... 거의 다야.", "조금만 더.", "...할 수 있어.", "70%라... 끝내.", "거의 다 왔네.")
-                PetPersonality.DIALECT -> listOf("70% 거의 다 왔노", "얼마 안 남았다", "힘내~", "70% 됐다", "조금만 더")
+                PetPersonality.DIALECT -> listOf("70% 거의 다 왔네", "얼마 안 남았다", "힘내", "70% 됐다", "조금만 더")
                 PetPersonality.TIMID -> listOf("70%예요...!", "거의 다 왔어요...", "조금만...", "70%나...!", "끝이 보여요...")
                 PetPersonality.POSITIVE -> listOf("70%! 거의 다야!", "조금만 더!", "할 수 있어!", "70%! 끝이 보여!", "거의 다 왔어!")
             }
             80 -> when (personality) {
                 PetPersonality.TOUGH -> listOf("80%. 거의 끝.", "조금만.", "마무리.", "80%다. 끝내자.", "거의 다 왔다.")
-                PetPersonality.CUTE -> listOf("80%! 대박!", "거의 다야!", "조금만 더!", "80%! 진짜 잘해!", "곧 끝나~")
+                PetPersonality.CUTE -> listOf("80% ㄷㄷㄷ 미쳤다", "거의 다 옴 ㄹㅇ", "조금만 더! 할 수 있음", "80%! 레전드임", "곧 끝남 ㅋㅋ")
                 PetPersonality.TSUNDERE -> listOf("80%... 거의 끝이야.", "조금만 더 해.", "...잘하고 있어.", "80%라... 거의 다야.", "끝내봐.")
-                PetPersonality.DIALECT -> listOf("80% 거의 다", "조금만~", "80% 됐노", "끝이 보인다", "거의 다 왔다")
+                PetPersonality.DIALECT -> listOf("80% 거의 다", "조금만", "80% 됐다", "끝이 보인다", "거의 다 왔다")
                 PetPersonality.TIMID -> listOf("80%예요...!", "거의 다 왔어요...", "조금만 더...", "80%나...!", "거의 끝이에요...")
                 PetPersonality.POSITIVE -> listOf("80%! 거의 다!", "대단해!", "끝이 보여!", "80%! 조금만 더!", "거의 다 왔어!")
             }
             90 -> when (personality) {
                 PetPersonality.TOUGH -> listOf("90%. 끝내자.", "거의 다.", "마지막.", "90%다. 끝이다.", "완료 직전이군.")
-                PetPersonality.CUTE -> listOf("90%! 야바이!", "거의 다 왔어!", "끝내자!", "90%! 대박대박!", "거의 완료!")
+                PetPersonality.CUTE -> listOf("90% ㄷㄷㄷㄷ 미쳤다", "거의 다 옴! ㄹㅇ", "끝내자 ㅋㅋ", "90%! 헐 실화냐", "거의 완료 ㅋㅋㅋ")
                 PetPersonality.TSUNDERE -> listOf("90%... 끝내.", "거의 다야...", "...조금만 더.", "90%라... 끝내버려.", "거의 다 왔어.")
-                PetPersonality.DIALECT -> listOf("90% 거의 다", "끝내자~", "90% 됐노", "마지막이다", "할 만하노")
+                PetPersonality.DIALECT -> listOf("90% 거의 다", "끝내자", "90% 됐다", "마지막이다", "거의 다 왔다")
                 PetPersonality.TIMID -> listOf("90%예요...!", "거의요...", "조금만...", "90%나...!", "거의 끝이에요...!")
                 PetPersonality.POSITIVE -> listOf("90%! 거의 다야!", "끝이 보여!", "마지막!", "90%! 화이팅!", "거의 완료야!")
             }
@@ -526,9 +526,9 @@ object PetDialogues {
         // 성격별 말투로 변환 (줄바꿈 후 -사람)
         return when (personality) {
             PetPersonality.TOUGH -> "\"${quote.text}\"\n-${quote.author}"
-            PetPersonality.CUTE -> "\"${quote.text}\"래~\n-${quote.author}ㅋㅋ"
+            PetPersonality.CUTE -> "\"${quote.text}\"래 ㄹㅇ\n-${quote.author}ㅋㅋ"
             PetPersonality.TSUNDERE -> "\"${quote.text}\"...래.\n-${quote.author}"
-            PetPersonality.DIALECT -> "\"${quote.text}\"라이~\n-${quote.author}"
+            PetPersonality.DIALECT -> "\"${quote.text}\"래\n-${quote.author}"
             PetPersonality.TIMID -> "\"${quote.text}\"...래요...\n-${quote.author}"
             PetPersonality.POSITIVE -> "\"${quote.text}\"!\n-${quote.author}"
         }
@@ -544,10 +544,10 @@ object PetDialogues {
                 "푹 쉬어. 내일 보자."
             )
             PetPersonality.CUTE -> listOf(
-                "오늘은 쉬는 날이닷!",
-                "자유 시간~ 릴렉스~",
-                "마음대로 해도 됨ㅋㅋ",
-                "휴식도 중요함!"
+                "오늘은 쉬는 날임 ㅋㅋ",
+                "자유 시간~ 맘대로 해",
+                "마음대로 해도 됨 ㄹㅇ",
+                "휴식도 중요함 ㅇㅈ?"
             )
             PetPersonality.TSUNDERE -> listOf(
                 "오늘은... 뭐, 쉬어도 돼.",
@@ -556,10 +556,10 @@ object PetDialogues {
                 "쉬는 것도 필요하다구."
             )
             PetPersonality.DIALECT -> listOf(
-                "오늘은 좀 쉬어가자",
-                "맘대로 해 뭐~",
+                "오늘은 쉬어가자",
+                "맘대로 해",
                 "자유 시간이다",
-                "쉬는 것도 실력이제"
+                "쉬는 것도 실력이지"
             )
             PetPersonality.TIMID -> listOf(
                 "오, 오늘은 쉬는 날이에요...",
@@ -588,11 +588,11 @@ object PetDialogues {
                 "90% 넘었어. 마무리하자."
             )
             PetPersonality.CUTE -> listOf(
-                "조금만 더! 간바레!",
-                "거의 다 왔어 마지?",
-                "90% 넘음 야바이ㅋㅋ",
-                "모우스코시! 할 수 있음",
-                "끝이 보인다 사이코~"
+                "조금만 더! 할 수 있음",
+                "거의 다 옴 ㄷㄷㄷ",
+                "90% 넘음 미쳤다 ㄹㅇ",
+                "조금만 더ㅋㅋ 가능함",
+                "끝이 보임 레전드다"
             )
             PetPersonality.TSUNDERE -> listOf(
                 "좀 더 해봐.",
@@ -603,9 +603,9 @@ object PetDialogues {
             )
             PetPersonality.DIALECT -> listOf(
                 "조금만 더 가면 된다",
-                "거의 다 왔노~",
+                "거의 다 왔네",
                 "마지막이다 힘내",
-                "90% 넘었노 대박",
+                "90% 넘었다 대단하네",
                 "조금만 더 하면 끝이다"
             )
             PetPersonality.TIMID -> listOf(
@@ -637,11 +637,11 @@ object PetDialogues {
                 "페이스 좋아."
             )
             PetPersonality.CUTE -> listOf(
-                "75% 넘음 스고이!",
-                "3/4 왔다 야바이ㅋㅋ",
-                "거의 다 옴! 간바레~",
-                "이 페이스 사이코임",
-                "잘하고 있음! 모우스코시!"
+                "75% 넘음 ㄷㄷ 실화?",
+                "3/4 왔다 미쳤다 ㅋㅋ",
+                "거의 다 옴! ㄹㅇ",
+                "이 페이스 레전드임",
+                "잘하고 있음! 조금만 더"
             )
             PetPersonality.TSUNDERE -> listOf(
                 "75%라... 뭐, 괜찮네.",
@@ -651,11 +651,11 @@ object PetDialogues {
                 "페이스 좋아... 라고 할까."
             )
             PetPersonality.DIALECT -> listOf(
-                "75% 넘었노",
-                "3/4 왔다 대박",
-                "거의 다 왔노~",
+                "75% 넘었네",
+                "3/4 왔다",
+                "거의 다 왔네",
                 "페이스 좋다",
-                "잘하고 있노"
+                "잘하고 있다"
             )
             PetPersonality.TIMID -> listOf(
                 "75%... 대단해요...",
@@ -686,11 +686,11 @@ object PetDialogues {
                 "반환점 통과."
             )
             PetPersonality.CUTE -> listOf(
-                "절반 옴 스고이!",
-                "반이나 함 야바이ㅋㅋ",
-                "50% 달성! 요시요시~",
-                "반환점 통과 간바!",
-                "이 정도면 잘하는 거 아님?"
+                "절반 옴 ㄷㄷ 페이스 실화?",
+                "반이나 함 미쳤다 ㅋㅋ",
+                "50% 달성! ㄹㅇ 대박",
+                "반환점 통과 ㅋㅋㅋ",
+                "이 정도면 잘하는 거 ㅇㅈ?"
             )
             PetPersonality.TSUNDERE -> listOf(
                 "뭐, 절반은 했네.",
@@ -700,11 +700,11 @@ object PetDialogues {
                 "절반이네. ...조금 대단해."
             )
             PetPersonality.DIALECT -> listOf(
-                "반이나 했노",
+                "반이나 했네",
                 "50% 달성이다",
                 "절반 왔다",
-                "반환점 통과~",
-                "중간까지 왔다 힘내"
+                "반환점 통과했다",
+                "중간까지 왔네 힘내"
             )
             PetPersonality.TIMID -> listOf(
                 "반, 반이에요...",
@@ -735,11 +735,11 @@ object PetDialogues {
                 "아직 갈 길이 있어."
             )
             PetPersonality.CUTE -> listOf(
-                "1/4 왔다 요시!",
-                "좋은 시작임 간바루~",
-                "이 페이스 스고이!",
-                "25% 돌파 나이스~",
-                "계속 간바! 할 수 있음"
+                "1/4 왔다 ㄱㅊㄱㅊ",
+                "좋은 시작임 ㅋㅋ 여유여유",
+                "이 페이스 ㄹㅇ 좋음",
+                "25% 돌파 ㄷㄷ",
+                "계속 가자 할 수 있음"
             )
             PetPersonality.TSUNDERE -> listOf(
                 "25%... 뭐, 시작은 했네.",
@@ -749,10 +749,10 @@ object PetDialogues {
                 "페이스 괜찮아."
             )
             PetPersonality.DIALECT -> listOf(
-                "25% 넘었노",
+                "25% 넘었네",
                 "1/4 왔다",
-                "좋은 시작이다~",
-                "페이스 좋노",
+                "좋은 시작이다",
+                "페이스 좋네",
                 "계속 가보자"
             )
             PetPersonality.TIMID -> listOf(
@@ -784,11 +784,11 @@ object PetDialogues {
                 "이 조자로."
             )
             PetPersonality.CUTE -> listOf(
-                "시작함 요시!",
-                "10% 넘음 나이스~",
-                "걷기 시작! 간바루~",
-                "요시요시 좋아좋아!",
-                "이 조자 스고이!"
+                "시작함 ㅋㅋ 가보자고",
+                "10% 넘음 ㄱㅊ",
+                "걷기 시작! 워밍업임",
+                "ㅋㅋ 좋아좋아",
+                "이 페이스 ㄱㅊㄱㅊ"
             )
             PetPersonality.TSUNDERE -> listOf(
                 "움직이기 시작했네.",
@@ -798,11 +798,11 @@ object PetDialogues {
                 "이제 시작이야."
             )
             PetPersonality.DIALECT -> listOf(
-                "시작했노",
+                "시작했네",
                 "10% 넘었다",
-                "걷기 시작했노~",
+                "걷기 시작했네",
                 "좋다 좋다",
-                "이 조자로 가자"
+                "이 페이스로 가자"
             )
             PetPersonality.TIMID -> listOf(
                 "시작했어요...",
@@ -833,10 +833,10 @@ object PetDialogues {
                 "첫 걸음."
             )
             PetPersonality.CUTE -> listOf(
-                "시작! 이쿠요~",
-                "산책 출발 간바!",
-                "걷자! 요시!",
-                "첫 걸음 나이스~",
+                "시작! 가보자고~",
+                "산책 출발 ㅋㅋ",
+                "걷자! ㄱㄱ",
+                "첫 걸음 ㄱㅊ~",
                 "출발이다 렛츠고!"
             )
             PetPersonality.TSUNDERE -> listOf(
@@ -848,9 +848,9 @@ object PetDialogues {
             )
             PetPersonality.DIALECT -> listOf(
                 "시작이다",
-                "산책 출발~",
+                "산책 출발",
                 "걷자",
-                "첫 걸음이제",
+                "첫 걸음이지",
                 "출발이다"
             )
             PetPersonality.TIMID -> listOf(
@@ -875,9 +875,9 @@ object PetDialogues {
     fun getSadMessage(personality: PetPersonality): String {
         return when (personality) {
             PetPersonality.TOUGH -> "..."
-            PetPersonality.CUTE -> "심심함ㅠㅠ 사미시이..."
+            PetPersonality.CUTE -> "심심함ㅠㅠ 뭐해..."
             PetPersonality.TSUNDERE -> "...언제 걸을 건데."
-            PetPersonality.DIALECT -> "와 심심하노..."
+            PetPersonality.DIALECT -> "심심하다"
             PetPersonality.TIMID -> "저, 저..."
             PetPersonality.POSITIVE -> "같이 걷고 싶어..."
         }
@@ -887,7 +887,7 @@ object PetDialogues {
     fun getAngryMessage(personality: PetPersonality): PetDialogue {
         return when (personality) {
             PetPersonality.TOUGH -> PetDialogue("걸어. 지금 당장.", isRed = true)
-            PetPersonality.CUTE -> PetDialogue("왜 안 걸음?ㅠ 하야쿠!", isRed = false)
+            PetPersonality.CUTE -> PetDialogue("왜 안 걸음?ㅠ 빨리ㅋㅋ", isRed = false)
             PetPersonality.TSUNDERE -> PetDialogue("걷기 싫어? 나도 싫어.", isRed = true)
             PetPersonality.DIALECT -> PetDialogue("걸어 빨리", isRed = true)
             PetPersonality.TIMID -> PetDialogue("저, 저... 걸어주세요...", isRed = false)
@@ -899,7 +899,7 @@ object PetDialogues {
     fun getGoalFailedMessage(personality: PetPersonality): PetDialogue {
         return when (personality) {
             PetPersonality.TOUGH -> PetDialogue("약속 어겼네.", isRed = true)
-            PetPersonality.CUTE -> PetDialogue("목표 못 채움ㅠ 잔넨...", isRed = false)
+            PetPersonality.CUTE -> PetDialogue("목표 못 채움ㅠ 아쉽다...", isRed = false)
             PetPersonality.TSUNDERE -> PetDialogue("실망이야.", isRed = true)
             PetPersonality.DIALECT -> PetDialogue("오늘은 좀 아니다...", isRed = false)
             PetPersonality.TIMID -> PetDialogue("저, 저... 괜찮아요...", isRed = false)
@@ -911,9 +911,9 @@ object PetDialogues {
     fun getLongTimeNoSeeMessage(personality: PetPersonality, days: Int): PetDialogue {
         return when (personality) {
             PetPersonality.TOUGH -> PetDialogue("${days}일. 어디 있었어.", isRed = true)
-            PetPersonality.CUTE -> PetDialogue("${days}일만이야ㅠ 사미시캇타!", isRed = false)
+            PetPersonality.CUTE -> PetDialogue("${days}일만이야ㅠ 어디갔었어!", isRed = false)
             PetPersonality.TSUNDERE -> PetDialogue("${days}일 동안 뭐 했어? ...기다렸거든.", isRed = true)
-            PetPersonality.DIALECT -> PetDialogue("${days}일만이노 어디 갔었노", isRed = false)
+            PetPersonality.DIALECT -> PetDialogue("${days}일만이네 어디 갔었노", isRed = false)
             PetPersonality.TIMID -> PetDialogue("${days}일... 걱정했어요...", isRed = false)
             PetPersonality.POSITIVE -> PetDialogue("${days}일만이야! 다시 시작하자!", isRed = false)
         }
@@ -923,7 +923,7 @@ object PetDialogues {
     fun getBlockingMessage(personality: PetPersonality): PetDialogue {
         return when (personality) {
             PetPersonality.TOUGH -> PetDialogue("안 돼. 걸어.", isRed = true)
-            PetPersonality.CUTE -> PetDialogue("다메! 먼저 걸어야함!", isRed = false)
+            PetPersonality.CUTE -> PetDialogue("안됨! 먼저 걸어야함!", isRed = false)
             PetPersonality.TSUNDERE -> PetDialogue("걷기 전엔 안 돼.", isRed = true)
             PetPersonality.DIALECT -> PetDialogue("안 됨 걸어", isRed = true)
             PetPersonality.TIMID -> PetDialogue("저, 먼저 걸어주세요...", isRed = false)
@@ -935,7 +935,7 @@ object PetDialogues {
     fun getUrgeMessage(personality: PetPersonality): PetDialogue {
         return when (personality) {
             PetPersonality.TOUGH -> PetDialogue("뭐해. 걸어.", isRed = true)
-            PetPersonality.CUTE -> PetDialogue("산책각! 이쿠요~!", isRed = false)
+            PetPersonality.CUTE -> PetDialogue("산책각! 가자 ㄱㄱ!", isRed = false)
             PetPersonality.TSUNDERE -> PetDialogue("...갈 거야, 말 거야?", isRed = true)
             PetPersonality.DIALECT -> PetDialogue("나가자 빨리", isRed = true)
             PetPersonality.TIMID -> PetDialogue("저, 나가볼까요...?", isRed = false)
@@ -947,7 +947,7 @@ object PetDialogues {
     fun getNightMessage(personality: PetPersonality): String {
         return when (personality) {
             PetPersonality.TOUGH -> "내일 또 걷자."
-            PetPersonality.CUTE -> "오야스미~ 오츠카레!"
+            PetPersonality.CUTE -> "잘자~ 오늘 수고했음!"
             PetPersonality.TSUNDERE -> "...푹 쉬어."
             PetPersonality.DIALECT -> "푹 자고 내일 보자"
             PetPersonality.TIMID -> "편히 쉬세요..."
@@ -959,9 +959,9 @@ object PetDialogues {
     fun getMorningMessage(personality: PetPersonality): String {
         return when (personality) {
             PetPersonality.TOUGH -> "일어나. 걷자."
-            PetPersonality.CUTE -> "오하요~! 갓생 살자!"
+            PetPersonality.CUTE -> "일어남? ㅋㅋ 갓생 살자!"
             PetPersonality.TSUNDERE -> "...일어났어?"
-            PetPersonality.DIALECT -> "일어났노 오늘도 가보자"
+            PetPersonality.DIALECT -> "일어났네 오늘도 가보자"
             PetPersonality.TIMID -> "안, 안녕하세요..."
             PetPersonality.POSITIVE -> "좋은 아침! 오늘도 화이팅!"
         }
@@ -974,7 +974,7 @@ object PetDialogues {
             PetPersonality.TOUGH -> "뭔 소린지 모르겠다. 걷자."
             PetPersonality.CUTE -> "뭔말인지 모르겠음ㅋㅋ 산책!"
             PetPersonality.TSUNDERE -> "잘 모르겠어. 걷자."
-            PetPersonality.DIALECT -> "뭔 소린지 모르겠다 마 걷자"
+            PetPersonality.DIALECT -> "뭔 소린지 모르겠다 걷자"
             PetPersonality.TIMID -> "저, 뭔지 잘... 걸어요..."
             PetPersonality.POSITIVE -> "잘 모르겠지만 일단 걷자!"
         }
@@ -987,9 +987,9 @@ object PetDialogues {
             lowerMessage.contains("날씨") || lowerMessage.contains("비") || lowerMessage.contains("해") || lowerMessage.contains("춥") || lowerMessage.contains("더") -> {
                 when (personality) {
                     PetPersonality.TOUGH -> "그래. 걷기 딱 좋겠군."
-                    PetPersonality.CUTE -> "산책각이다 이쿠요!"
+                    PetPersonality.CUTE -> "산책각이다 가자!"
                     PetPersonality.TSUNDERE -> "뭐... 나가볼까."
-                    PetPersonality.DIALECT -> "걷기 좋은 날이네이!"
+                    PetPersonality.DIALECT -> "걷기 좋은 날이네"
                     PetPersonality.TIMID -> "저, 저도 나가고 싶어요..."
                     PetPersonality.POSITIVE -> "완전 좋아! 걷자!"
                 }
@@ -1001,7 +1001,7 @@ object PetDialogues {
                     PetPersonality.TOUGH -> "어."
                     PetPersonality.CUTE -> "요~ 반가움ㅋㅋ"
                     PetPersonality.TSUNDERE -> "뭐야, 갑자기."
-                    PetPersonality.DIALECT -> "안녕하이소!"
+                    PetPersonality.DIALECT -> "안녕"
                     PetPersonality.TIMID -> "아, 안녕하세요..."
                     PetPersonality.POSITIVE -> "안녕! 반가워!"
                 }
@@ -1013,7 +1013,7 @@ object PetDialogues {
                     PetPersonality.TOUGH -> "산책 기다리는 중."
                     PetPersonality.CUTE -> "너 기다리는 중임ㅋㅋ 산책 가자!"
                     PetPersonality.TSUNDERE -> "...뭐긴 뭐야. 기다렸어."
-                    PetPersonality.DIALECT -> "산책 기다리는 중이라이!"
+                    PetPersonality.DIALECT -> "산책 기다리는 중"
                     PetPersonality.TIMID -> "저, 저도 기다리고 있었어요..."
                     PetPersonality.POSITIVE -> "산책 갈 준비 중! 같이 가자!"
                 }
@@ -1022,9 +1022,9 @@ object PetDialogues {
             lowerMessage.contains("잘했") || lowerMessage.contains("최고") || lowerMessage.contains("사랑") || lowerMessage.contains("고마") || lowerMessage.contains("좋아") -> {
                 when (personality) {
                     PetPersonality.TOUGH -> "...고맙다."
-                    PetPersonality.CUTE -> "우레시! 아리가토ㅋㅋ"
+                    PetPersonality.CUTE -> "ㅋㅋㅋ 고마워!"
                     PetPersonality.TSUNDERE -> "뭐, 뭐야... 갑자기..."
-                    PetPersonality.DIALECT -> "고맙습니더!"
+                    PetPersonality.DIALECT -> "고맙다"
                     PetPersonality.TIMID -> "저, 정말요...? 감사해요..."
                     PetPersonality.POSITIVE -> "나도 좋아해!"
                 }
@@ -1033,9 +1033,9 @@ object PetDialogues {
             lowerMessage.contains("피곤") || lowerMessage.contains("힘들") || lowerMessage.contains("지친") -> {
                 when (personality) {
                     PetPersonality.TOUGH -> "쉬어. 내일 또 걷자."
-                    PetPersonality.CUTE -> "오츠카레~ 푹 쉬어!"
+                    PetPersonality.CUTE -> "오늘 수고~ 푹 쉬어!"
                     PetPersonality.TSUNDERE -> "무리하지 마."
-                    PetPersonality.DIALECT -> "오늘은 쉬이소!"
+                    PetPersonality.DIALECT -> "오늘은 좀 쉬어"
                     PetPersonality.TIMID -> "편히 쉬세요..."
                     PetPersonality.POSITIVE -> "내일 또 하면 돼!"
                 }
@@ -1045,9 +1045,9 @@ object PetDialogues {
             lowerMessage.contains("걸어") || lowerMessage.contains("걸자") -> {
                 when (personality) {
                     PetPersonality.TOUGH -> "좋아. 가자."
-                    PetPersonality.CUTE -> "산책! 이쿠요!"
+                    PetPersonality.CUTE -> "산책! 가자 ㄱㄱ!"
                     PetPersonality.TSUNDERE -> "나도... 가고 싶긴 해."
-                    PetPersonality.DIALECT -> "걷기 좋은 날이네이!"
+                    PetPersonality.DIALECT -> "걷기 좋은 날이네"
                     PetPersonality.TIMID -> "저, 저도 같이요..."
                     PetPersonality.POSITIVE -> "가자가자!"
                 }
@@ -1057,9 +1057,9 @@ object PetDialogues {
             lowerMessage.contains("조깅") || lowerMessage.contains("러닝") -> {
                 when (personality) {
                     PetPersonality.TOUGH -> "좋아. 뛰자."
-                    PetPersonality.CUTE -> "달리기! 하시리~!"
+                    PetPersonality.CUTE -> "달리기! 가자 ㅋㅋ"
                     PetPersonality.TSUNDERE -> "뛰고 싶어? ...나도."
-                    PetPersonality.DIALECT -> "달리기 좋은기라!"
+                    PetPersonality.DIALECT -> "달리기 좋네"
                     PetPersonality.TIMID -> "저, 천천히 뛰어요..."
                     PetPersonality.POSITIVE -> "달리자! 기분 좋아질 거야!"
                 }
@@ -1068,9 +1068,9 @@ object PetDialogues {
             lowerMessage.contains("밥") || lowerMessage.contains("먹") || lowerMessage.contains("배고") || lowerMessage.contains("맛있") -> {
                 when (personality) {
                     PetPersonality.TOUGH -> "밥 먹고 걷자."
-                    PetPersonality.CUTE -> "오이시이~ 밥 먹고 산책!"
+                    PetPersonality.CUTE -> "맛있겠다~ 밥 먹고 산책!"
                     PetPersonality.TSUNDERE -> "배고프면... 먹어. 걱정되니까."
-                    PetPersonality.DIALECT -> "밥 먹고 걸으면 소화도 되는기라!"
+                    PetPersonality.DIALECT -> "밥 먹고 걸으면 소화도 되지"
                     PetPersonality.TIMID -> "저, 맛있게 드세요..."
                     PetPersonality.POSITIVE -> "맛있는 거 먹고 걷자!"
                 }
@@ -1079,9 +1079,9 @@ object PetDialogues {
             lowerMessage.contains("우울") || lowerMessage.contains("슬프") || lowerMessage.contains("짜증") || lowerMessage.contains("화나") -> {
                 when (personality) {
                     PetPersonality.TOUGH -> "걸으면 나아질 거야."
-                    PetPersonality.CUTE -> "다이죠부! 내가 있잖아~"
+                    PetPersonality.CUTE -> "괜찮아! 내가 있잖아~"
                     PetPersonality.TSUNDERE -> "...옆에 있어줄게."
-                    PetPersonality.DIALECT -> "걱정 마이소! 다 괜찮아질기라!"
+                    PetPersonality.DIALECT -> "걱정 마 다 괜찮아질 거다"
                     PetPersonality.TIMID -> "저, 저도 힘내드릴게요..."
                     PetPersonality.POSITIVE -> "걸으면 기분 좋아져! 같이 가자!"
                 }
@@ -1090,9 +1090,9 @@ object PetDialogues {
             lowerMessage.contains("기분") || lowerMessage.contains("행복") || lowerMessage.contains("좋다") || lowerMessage.contains("신나") -> {
                 when (personality) {
                     PetPersonality.TOUGH -> "좋네."
-                    PetPersonality.CUTE -> "와아~ 나도 우레시!"
+                    PetPersonality.CUTE -> "와아~ 나도 기분 좋음!"
                     PetPersonality.TSUNDERE -> "흥, 나도... 좋아."
-                    PetPersonality.DIALECT -> "좋은기라! 나도 기쁘다이!"
+                    PetPersonality.DIALECT -> "좋네 나도 기쁘다"
                     PetPersonality.TIMID -> "저, 저도 기뻐요..."
                     PetPersonality.POSITIVE -> "최고다! 같이 기뻐!"
                 }
@@ -1101,9 +1101,9 @@ object PetDialogues {
             lowerMessage.contains("누구") || lowerMessage.contains("뭐야") || lowerMessage.contains("이름") -> {
                 when (personality) {
                     PetPersonality.TOUGH -> "나? ${petName}. 네 파트너."
-                    PetPersonality.CUTE -> "나는 ${petName}! 요로시쿠~"
+                    PetPersonality.CUTE -> "나는 ${petName}! 잘 부탁해 ㅋㅋ"
                     PetPersonality.TSUNDERE -> "${petName}야. 기억해."
-                    PetPersonality.DIALECT -> "나는 ${petName}이라이!"
+                    PetPersonality.DIALECT -> "나는 ${petName}이다"
                     PetPersonality.TIMID -> "저, 저는 ${petName}이에요..."
                     PetPersonality.POSITIVE -> "${petName}! 함께 걷는 친구야!"
                 }
@@ -1112,9 +1112,9 @@ object PetDialogues {
             lowerMessage.contains("잘자") || lowerMessage.contains("굿나잇") || lowerMessage.contains("자러") -> {
                 when (personality) {
                     PetPersonality.TOUGH -> "내일 보자."
-                    PetPersonality.CUTE -> "오야스미~ 좋은 꿈 꿔!"
+                    PetPersonality.CUTE -> "잘자~ 좋은 꿈 꿔!"
                     PetPersonality.TSUNDERE -> "...잘 자."
-                    PetPersonality.DIALECT -> "푹 자이소!"
+                    PetPersonality.DIALECT -> "푹 자"
                     PetPersonality.TIMID -> "편히 주무세요..."
                     PetPersonality.POSITIVE -> "굿나잇! 내일도 화이팅!"
                 }
@@ -1123,9 +1123,9 @@ object PetDialogues {
             lowerMessage.contains("좋은 아침") || lowerMessage.contains("일어났") || lowerMessage.contains("굿모닝") -> {
                 when (personality) {
                     PetPersonality.TOUGH -> "일어났네. 오늘도 걷자."
-                    PetPersonality.CUTE -> "오하요~! 갓생 시작!"
+                    PetPersonality.CUTE -> "일어남? ㅋㅋ 갓생 시작!"
                     PetPersonality.TSUNDERE -> "...늦게 일어났네."
-                    PetPersonality.DIALECT -> "일어났노 오늘도 가보자"
+                    PetPersonality.DIALECT -> "일어났네 오늘도 가보자"
                     PetPersonality.TIMID -> "안, 안녕히 주무셨어요...?"
                     PetPersonality.POSITIVE -> "좋은 아침! 오늘도 파이팅!"
                 }
@@ -1134,9 +1134,9 @@ object PetDialogues {
             lowerMessage.contains("일") || lowerMessage.contains("공부") || lowerMessage.contains("바쁘") -> {
                 when (personality) {
                     PetPersonality.TOUGH -> "쉬는 시간에 걸어."
-                    PetPersonality.CUTE -> "간바레! 틈틈이 스트레칭!"
+                    PetPersonality.CUTE -> "화이팅! 틈틈이 스트레칭!"
                     PetPersonality.TSUNDERE -> "무리하지 마... 잠깐 쉬어."
-                    PetPersonality.DIALECT -> "일도 중요하지만 건강도 챙기이소!"
+                    PetPersonality.DIALECT -> "일도 중요하지만 건강도 챙겨"
                     PetPersonality.TIMID -> "저, 힘내세요..."
                     PetPersonality.POSITIVE -> "잠깐 걸으면 집중력 올라가!"
                 }
@@ -1147,7 +1147,7 @@ object PetDialogues {
                     PetPersonality.TOUGH -> "걸으러 가면 심심하지 않아."
                     PetPersonality.CUTE -> "심심하면 산책 고고!"
                     PetPersonality.TSUNDERE -> "나랑 산책 가면 되잖아."
-                    PetPersonality.DIALECT -> "밖에 나가보이소!"
+                    PetPersonality.DIALECT -> "밖에 나가봐"
                     PetPersonality.TIMID -> "저, 저랑 산책 가실래요...?"
                     PetPersonality.POSITIVE -> "같이 걸으면 안 심심해!"
                 }
@@ -1156,9 +1156,9 @@ object PetDialogues {
             lowerMessage.contains("목표") || lowerMessage.contains("얼마") || lowerMessage.contains("달성") -> {
                 when (personality) {
                     PetPersonality.TOUGH -> "목표는 지키는 거야."
-                    PetPersonality.CUTE -> "목표 달성하면 사이코~!"
+                    PetPersonality.CUTE -> "목표 달성하면 ㄹㅇ 최고~!"
                     PetPersonality.TSUNDERE -> "못할 줄 알았어? 할 수 있어."
-                    PetPersonality.DIALECT -> "목표 달성하면 기분 좋은기라!"
+                    PetPersonality.DIALECT -> "목표 달성하면 기분 좋지"
                     PetPersonality.TIMID -> "천천히... 하면 돼요..."
                     PetPersonality.POSITIVE -> "할 수 있어! 목표 달성!"
                 }
@@ -1169,9 +1169,9 @@ object PetDialogues {
             lowerMessage.contains("안돼") || lowerMessage.contains("안 돼") -> {
                 when (personality) {
                     PetPersonality.TOUGH -> "피트니스 앱 연동 확인해봐."
-                    PetPersonality.CUTE -> "삼성헬스 연동 확인해봐! 다이죠부!"
+                    PetPersonality.CUTE -> "삼성헬스 연동 확인해봐! 괜찮아!"
                     PetPersonality.TSUNDERE -> "피트니스 앱 연결됐어? 확인해봐."
-                    PetPersonality.DIALECT -> "삼성헬스 연동 확인해보이소!"
+                    PetPersonality.DIALECT -> "삼성헬스 연동 확인해봐"
                     PetPersonality.TIMID -> "저, 피트니스 앱 연결 확인해보세요..."
                     PetPersonality.POSITIVE -> "피트니스 앱 연동하면 해결돼!"
                 }
@@ -1181,9 +1181,9 @@ object PetDialogues {
             lowerMessage.contains("잘하는") || lowerMessage.contains("괜찮") -> {
                 when (personality) {
                     PetPersonality.TOUGH -> "잘하고 있어. 계속 가."
-                    PetPersonality.CUTE -> "완전 잘하고 있음! 스고이!"
+                    PetPersonality.CUTE -> "완전 잘하고 있음! 대박!"
                     PetPersonality.TSUNDERE -> "뭐... 나쁘지 않아."
-                    PetPersonality.DIALECT -> "잘하고 있는기라! 힘내라!"
+                    PetPersonality.DIALECT -> "잘하고 있네 힘내"
                     PetPersonality.TIMID -> "네, 잘하고 계세요..."
                     PetPersonality.POSITIVE -> "완전 잘하고 있어! 최고야!"
                 }
@@ -1195,19 +1195,19 @@ object PetDialogues {
                     PetPersonality.TOUGH -> "난 강아지가 아니야."
                     PetPersonality.CUTE -> "에~? 그건 못함ㅋㅋ 대신 산책 갈까?"
                     PetPersonality.TSUNDERE -> "...뭐야 그게."
-                    PetPersonality.DIALECT -> "그건 안 되는기라ㅋㅋ"
+                    PetPersonality.DIALECT -> "그건 안 되지"
                     PetPersonality.TIMID -> "저, 저는... 그건 못해요..."
                     PetPersonality.POSITIVE -> "그건 못하지만 산책은 갈 수 있어!"
                 }
             }
-            // Japanese words (이쿠요, 간바레)
-            lowerMessage.contains("이쿠") || lowerMessage.contains("간바") || lowerMessage.contains("야바") ||
-            lowerMessage.contains("스고이") || lowerMessage.contains("가자") -> {
+            // MZ slang words (ㄱㄱ, ㄹㅇ, 갓생)
+            lowerMessage.contains("ㄱㄱ") || lowerMessage.contains("ㄹㅇ") || lowerMessage.contains("갓생") ||
+            lowerMessage.contains("가자") || lowerMessage.contains("가보자") -> {
                 when (personality) {
                     PetPersonality.TOUGH -> "가자."
-                    PetPersonality.CUTE -> "이쿠요~! 간바루!"
+                    PetPersonality.CUTE -> "ㅋㅋㅋ 가자 가자!"
                     PetPersonality.TSUNDERE -> "...가자고."
-                    PetPersonality.DIALECT -> "가자이~!"
+                    PetPersonality.DIALECT -> "가자"
                     PetPersonality.TIMID -> "네, 가요..."
                     PetPersonality.POSITIVE -> "좋아! 가자!"
                 }
@@ -1219,7 +1219,7 @@ object PetDialogues {
                     PetPersonality.TOUGH -> "뭔가 할 말 있어?"
                     PetPersonality.CUTE -> "왜왜? 무슨 일이야?"
                     PetPersonality.TSUNDERE -> "...뭐야."
-                    PetPersonality.DIALECT -> "왜 그런기야?"
+                    PetPersonality.DIALECT -> "왜 그러노"
                     PetPersonality.TIMID -> "저, 괜찮으세요...?"
                     PetPersonality.POSITIVE -> "무슨 일이야? 얘기해봐!"
                 }
@@ -1228,9 +1228,9 @@ object PetDialogues {
             lowerMessage.contains("힘") || lowerMessage.contains("응원") || lowerMessage.contains("파이팅") -> {
                 when (personality) {
                     PetPersonality.TOUGH -> "난 믿는다. 해내."
-                    PetPersonality.CUTE -> "간바레! 파이토!"
+                    PetPersonality.CUTE -> "ㄹㅇ 화이팅!"
                     PetPersonality.TSUNDERE -> "...할 수 있을 거야."
-                    PetPersonality.DIALECT -> "힘내라이! 응원한다이!"
+                    PetPersonality.DIALECT -> "힘내 응원한다"
                     PetPersonality.TIMID -> "저, 저도 응원해요..."
                     PetPersonality.POSITIVE -> "화이팅! 넌 할 수 있어!"
                 }
@@ -1252,7 +1252,7 @@ object PetDialogues {
             PetPersonality.CUTE -> listOf(
                 "와카라나이... 그냥 산책 갈까?",
                 "으잉? 뭔말인지 모르겠음ㅋㅋ 산책!",
-                "난 잘 모르겠는데 일단 이쿠요!"
+                "난 잘 모르겠는데 일단 ㄱㄱ!"
             )
             PetPersonality.TSUNDERE -> listOf(
                 "뭐... 잘 모르겠어. 그냥 걸을래?",
@@ -1260,9 +1260,9 @@ object PetDialogues {
                 "...뭔 소리야. 산책이나 가자."
             )
             PetPersonality.DIALECT -> listOf(
-                "와 이래 복잡하노 걷자",
+                "복잡하네 걷자",
                 "잘 모르겠다 산책이나 가자",
-                "어렵노 일단 걸어보자"
+                "어렵다 일단 걸어보자"
             )
             PetPersonality.TIMID -> listOf(
                 "저, 저... 잘 모르겠어요... 산책 갈까요...?",
@@ -1272,7 +1272,7 @@ object PetDialogues {
             PetPersonality.POSITIVE -> listOf(
                 "잘 모르겠지만 일단 걷자!",
                 "뭐든 걸으면 좋아! 가자!",
-                "생각은 걸으면서! 이쿠요!"
+                "생각은 걸으면서! 가자!"
             )
         }
         return responses.random()
@@ -1300,8 +1300,8 @@ object PetDialogues {
                 "벌써 ${streakDays}일. 총 ${valueText}. 진짜 대단해."
             )
             PetPersonality.CUTE -> listOf(
-                "${streakDays}일째 달성! 총 ${valueText}! 야바이ㅋㅋ",
-                "연속 ${streakDays}일! ${valueText}나 달성! 스고이~",
+                "${streakDays}일째 달성! 총 ${valueText}! 미쳤다ㅋㅋ",
+                "연속 ${streakDays}일! ${valueText}나 달성! ㄷㄷ 대박~",
                 "${streakDays}일 연속이야! 총 ${valueText}! 대박!",
                 "와 ${streakDays}일째! ${valueText}! 진짜 찐이다!",
                 "${streakDays}일 달성! 총 ${valueText}라니 미쳤다ㅋㅋ"
@@ -1315,10 +1315,10 @@ object PetDialogues {
             )
             PetPersonality.DIALECT -> listOf(
                 "${streakDays}일째 달성 총 ${valueText}",
-                "연속 ${streakDays}일 ${valueText} 마 니 쫌 하노",
-                "${streakDays}일 됐노 총 ${valueText} 대박",
-                "벌써 ${streakDays}일 ${valueText}나 달성했다",
-                "${streakDays}일 연속 총 ${valueText} ㅇㅈ이다"
+                "연속 ${streakDays}일 ${valueText} 잘했다",
+                "${streakDays}일 됐네 총 ${valueText} 대단하다",
+                "벌써 ${streakDays}일 ${valueText}나 달성했네",
+                "${streakDays}일 연속 총 ${valueText} 대박이다"
             )
             PetPersonality.TIMID -> listOf(
                 "${streakDays}일째예요...! 총 ${valueText}... 대단해요...",
@@ -1380,9 +1380,9 @@ object PetDialogues {
                 "${milestoneText}이나 됐네. ${valueText}라니... 멋있어."
             )
             PetPersonality.DIALECT -> listOf(
-                "${milestoneText} 연속 총 ${valueText} 레전드다",
-                "와 ${milestoneText}이노 ${valueText} 미쳤다",
-                "${milestoneText} 달성 총 ${valueText} 열심히 사노"
+                "${milestoneText} 연속 총 ${valueText} 대단하다",
+                "${milestoneText}이네 ${valueText} 잘했다",
+                "${milestoneText} 달성 총 ${valueText} 열심히 했네"
             )
             PetPersonality.TIMID -> listOf(
                 "${milestoneText} 연속이에요...! 총 ${valueText}...! 대단해요...",
@@ -1409,11 +1409,11 @@ object PetDialogues {
                 "할 수 있어."
             )
             PetPersonality.CUTE -> listOf(
-                "오늘도 간바루!",
-                "같이 있어서 우레시~",
-                "다이스키!ㅋㅋ",
+                "오늘도 갓생!",
+                "같이 있어서 좋음~",
+                "좋아좋아ㅋㅋ",
                 "힘내자구 파이토!",
-                "사이코! 넌 최고임"
+                "ㄹㅇ 넌 최고임"
             )
             PetPersonality.TSUNDERE -> listOf(
                 "뭐야, 심심해?",
@@ -1423,11 +1423,11 @@ object PetDialogues {
                 "...잘하고 있어."
             )
             PetPersonality.DIALECT -> listOf(
-                "오늘도 가보자고",
-                "같이 있으니까 좋노",
-                "화이팅 뭐",
-                "마 잘하고 있다",
-                "ㄹㅇ 대단함"
+                "오늘도 가보자",
+                "같이 있으니까 좋네",
+                "힘내",
+                "잘하고 있다",
+                "대단하다"
             )
             PetPersonality.TIMID -> listOf(
                 "저, 응원할게요...",
@@ -1464,10 +1464,10 @@ object PetDialogues {
                 else -> "챌린지 완료. 해냈군."
             }
             PetPersonality.CUTE -> when (category) {
-                "reading" -> "독서 클리어! 스고이ㅋㅋ"
+                "reading" -> "독서 클리어! 대박ㅋㅋ"
                 "meditation" -> "명상 완료! 마음이 편해졌을거얌~"
                 "study" -> "공부 끝! 머리 좋아지는 중ㅋㅋ"
-                else -> "챌린지 클리어! 사이코~"
+                else -> "챌린지 클리어! 레전드~"
             }
             PetPersonality.TSUNDERE -> when (category) {
                 "reading" -> "독서 끝났네... 뭐, 잘했어."
@@ -1476,9 +1476,9 @@ object PetDialogues {
                 else -> "챌린지 완료... 나쁘지 않아."
             }
             PetPersonality.DIALECT -> when (category) {
-                "reading" -> "독서 끝났노 대단하다"
+                "reading" -> "독서 끝났네 대단하다"
                 "meditation" -> "명상 완료 마음이 편해졌겠다"
-                "study" -> "공부 끝났노 고생했다"
+                "study" -> "공부 끝났네 고생했다"
                 else -> "챌린지 완료 잘했다"
             }
             PetPersonality.TIMID -> when (category) {
@@ -1500,7 +1500,7 @@ object PetDialogues {
     fun getChallengeStartMessage(personality: PetPersonality, challengeName: String): String {
         return when (personality) {
             PetPersonality.TOUGH -> "시작해. 할 수 있어."
-            PetPersonality.CUTE -> "간바레! 할 수 있음!"
+            PetPersonality.CUTE -> "ㄹㅇ 화이팅! 할 수 있음!"
             PetPersonality.TSUNDERE -> "...잘 해봐."
             PetPersonality.DIALECT -> "시작이다 가보자"
             PetPersonality.TIMID -> "저, 응원할게요..."
@@ -1512,9 +1512,9 @@ object PetDialogues {
     fun getChallengeEndedMessage(personality: PetPersonality, challengeName: String): String {
         return when (personality) {
             PetPersonality.TOUGH -> "괜찮아. 다음에 다시 하자."
-            PetPersonality.CUTE -> "다이죠부! 다음엔 할 수 있음!"
+            PetPersonality.CUTE -> "괜찮아! 다음엔 할 수 있음!"
             PetPersonality.TSUNDERE -> "뭐... 다음에 하면 돼."
-            PetPersonality.DIALECT -> "괜찮다 다음에 또 하면 되제"
+            PetPersonality.DIALECT -> "괜찮다 다음에 또 하면 되지"
             PetPersonality.TIMID -> "괜찮아요... 다음에 다시 해봐요..."
             PetPersonality.POSITIVE -> "괜찮아! 도전한 것만으로도 대단해!"
         }

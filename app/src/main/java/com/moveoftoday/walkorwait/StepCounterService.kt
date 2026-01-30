@@ -1,11 +1,15 @@
 package com.moveoftoday.walkorwait
 
+import android.Manifest
 import android.app.*
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.os.Build
 import android.os.IBinder
+import android.util.Log
 import androidx.core.app.NotificationCompat
+import androidx.core.content.ContextCompat
 
 class StepCounterService : Service() {
 
@@ -13,15 +17,33 @@ class StepCounterService : Service() {
     private lateinit var preferenceManager: PreferenceManager
 
     companion object {
+        private const val TAG = "StepCounterService"
         const val CHANNEL_ID = "step_counter_channel"
         const val NOTIFICATION_ID = 2001
 
         fun start(context: Context) {
+            // Android Q 이상에서는 ACTIVITY_RECOGNITION 권한 필요
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                val hasPermission = ContextCompat.checkSelfPermission(
+                    context,
+                    Manifest.permission.ACTIVITY_RECOGNITION
+                ) == PackageManager.PERMISSION_GRANTED
+
+                if (!hasPermission) {
+                    Log.w(TAG, "ACTIVITY_RECOGNITION permission not granted, skipping service start")
+                    return
+                }
+            }
+
             val intent = Intent(context, StepCounterService::class.java)
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                context.startForegroundService(intent)
-            } else {
-                context.startService(intent)
+            try {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    context.startForegroundService(intent)
+                } else {
+                    context.startService(intent)
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "Failed to start service: ${e.message}")
             }
         }
 

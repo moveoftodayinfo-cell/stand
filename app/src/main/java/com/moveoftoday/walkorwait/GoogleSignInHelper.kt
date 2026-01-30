@@ -152,10 +152,10 @@ object GoogleSignInHelper {
                 Log.e(TAG, "Failed to create user document: ${e.message}")
             }
 
-        // settings 서브컬렉션 기본값 생성
+        // settings 서브컬렉션 업데이트 (lastActiveAt만 - 기존 데이터 보존)
+        // tutorialCompleted는 설정하지 않음 - 기존 사용자의 값을 덮어쓰면 안됨
         val settingsDoc = hashMapOf(
-            "lastActiveAt" to now,
-            "tutorialCompleted" to false
+            "lastActiveAt" to now
         )
         db.collection("users")
             .document(userId)

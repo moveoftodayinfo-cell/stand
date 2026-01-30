@@ -16,9 +16,8 @@ import java.net.URL
 /**
  * AI 펫 채팅 매니저
  *
- * 하이브리드 방식:
- * 1. 키워드 기반 스크립트 응답 (무료, 빠름)
- * 2. AI 폴백 (Claude API, 유료, 일일 30회 제한)
+ * AI 전용 방식:
+ * - Claude API 사용 (일일 30회 제한)
  *
  * 안전장치:
  * - 입력 필터링 (프롬프트 인젝션 방지)
@@ -99,7 +98,7 @@ class PetAIChatManager(
     )
 
     /**
-     * 채팅 응답 가져오기 (하이브리드)
+     * 채팅 응답 가져오기 (AI 전용)
      *
      * @param isAILimitReached AI 일일 제한 도달 여부 (true면 AI 호출 스킵)
      */
@@ -119,33 +118,22 @@ class PetAIChatManager(
             return ChatResult.Filtered(getFilteredMessage(personality))
         }
 
-        // 2. 먼저 스크립트 기반 응답 시도
-        val scriptResponse = PetDialogues.getChatResponse(
-            personality, sanitizedMessage, petName, isHappy
-        )
-
-        // 스크립트에서 폴백이 아닌 응답을 찾았으면 사용 (무료)
-        if (!isFallbackResponse(scriptResponse, personality, petName)) {
-            return ChatResult.Script(scriptResponse)
-        }
-
-        // 3. API 키가 없으면 폴백 응답
+        // 2. API 키가 없으면 에러 메시지
         if (apiKey.isEmpty()) {
-            Log.w(TAG, "API key is empty, returning script fallback")
-            return ChatResult.Script(scriptResponse)
+            Log.w(TAG, "API key is empty")
+            return ChatResult.Error(getErrorMessage(personality))
         }
 
         Log.d(TAG, "Calling AI API for message: $sanitizedMessage")
 
-        // 4. AI 일일 제한 도달 시 제한 메시지 반환
+        // 3. AI 일일 제한 도달 시 제한 메시지 반환
         if (isAILimitReached) {
             return ChatResult.LimitReached(getLimitReachedMessage(personality))
         }
 
-        // 5. 연속 질문 피로도 체크
+        // 4. 연속 질문 피로도 체크
         val currentTime = System.currentTimeMillis()
         if (currentTime - lastQuestionTime > TIRED_RESET_TIME) {
-            // 30분 지나면 리셋
             consecutiveQuestionCount = 0
         }
         lastQuestionTime = currentTime
@@ -161,17 +149,15 @@ class PetAIChatManager(
 
             // 응답 안전성 체크
             if (isResponseSafe(aiResponse)) {
-                // 응답 길이 제한 (최대 40자)
                 val truncatedResponse = truncateResponse(aiResponse, MAX_RESPONSE_LENGTH)
-                // AI 사용 카운트 증가 콜백 호출
                 onAIUsed?.invoke()
                 ChatResult.AI(truncatedResponse)
             } else {
-                ChatResult.Script(scriptResponse)
+                ChatResult.Error(getErrorMessage(personality))
             }
         } catch (e: Exception) {
             Log.e(TAG, "AI API failed: ${e.message}")
-            ChatResult.Script(scriptResponse) // 실패시 스크립트 폴백
+            ChatResult.Error(getErrorMessage(personality))
         }
     }
 
@@ -214,6 +200,20 @@ class PetAIChatManager(
             PetPersonality.DIALECT -> "와 힘들다 좀 쉬고 얘기하자"
             PetPersonality.TIMID -> "저, 저... 조금 쉬어도 될까요...?"
             PetPersonality.POSITIVE -> "잠깐! 에너지 충전하고 올게! 조금만 기다려!"
+        }
+    }
+
+    /**
+     * 에러 메시지 (API 실패 시, 성격별)
+     */
+    private fun getErrorMessage(personality: PetPersonality): String {
+        return when (personality) {
+            PetPersonality.TOUGH -> "...연결이 안 돼. 나중에 다시."
+            PetPersonality.CUTE -> "앗 연결이 끊겼음ㅠㅠ 다시 해봐!"
+            PetPersonality.TSUNDERE -> "...뭔가 이상해. 다시 해봐."
+            PetPersonality.DIALECT -> "연결이 안 되노 다시 해봐"
+            PetPersonality.TIMID -> "저, 저... 연결이 안 돼요..."
+            PetPersonality.POSITIVE -> "앗! 연결이 끊겼어! 다시 해보자!"
         }
     }
 
@@ -295,34 +295,6 @@ class PetAIChatManager(
             result = result.replace(punct, punct.trimEnd() + "\n")
         }
         return result.trimEnd()
-    }
-
-    /**
-     * 폴백 응답인지 확인
-     */
-    private fun isFallbackResponse(response: String, personality: PetPersonality, petName: String): Boolean {
-        val fallbackResponses = when (personality) {
-            PetPersonality.TOUGH -> listOf(
-                "뭔 소린지 모르겠다", "걷기나 하자", "뭐든 걸으면 해결돼"
-            )
-            PetPersonality.CUTE -> listOf(
-                "와카라나이", "뭔말인지 모르겠음", "잘 모르겠는데"
-            )
-            PetPersonality.TSUNDERE -> listOf(
-                "잘 모르겠어", "이해 안 돼", "뭔 소리야"
-            )
-            PetPersonality.DIALECT -> listOf(
-                "뭔 소린지 모르겠다", "잘 모르겠노", "어렵노"
-            )
-            PetPersonality.TIMID -> listOf(
-                "잘 모르겠어요", "어려워요", "뭔지 잘"
-            )
-            PetPersonality.POSITIVE -> listOf(
-                "잘 모르겠지만", "뭐든 걸으면", "생각은 걸으면서"
-            )
-        }
-
-        return fallbackResponses.any { response.contains(it) }
     }
 
     /**
@@ -414,9 +386,10 @@ class PetAIChatManager(
             """.trimIndent()
 
             PetPersonality.CUTE -> """
-                성격: 애교쟁이. 일본어 섞인 인터넷 말투.
-                말투: "~용", "~임", ㅋㅋ, 일본어 섞기.
-                예시: "우레시~!", "간바루!", "스고이ㅋㅋ"
+                성격: MZ 인터넷 말투. 자연스러운 한국 인터넷 슬랭.
+                말투: "~임", "ㅋㅋ", "ㄹㅇ", "ㄷㄷ", "실화?", "미쳤다", "찐", "갓생러" 등.
+                예시: "ㄹㅇ 대박ㅋㅋ", "미쳤다 실화냐", "찐으로 응원함", "페이스 ㄷㄷ"
+                금지: 일본어(간바, 이쿠요, 스고이 등) 사용 금지. 한국어 인터넷 슬랭만 사용.
             """.trimIndent()
 
             PetPersonality.TSUNDERE -> """
@@ -426,10 +399,10 @@ class PetAIChatManager(
             """.trimIndent()
 
             PetPersonality.DIALECT -> """
-                성격: MZ 캐주얼 경상도 사투리. 과한 사투리 NO.
-                말투: "~노", "~제", "마", "니" 등 자연스러운 경상도 억양.
-                예시: "마 니 쫌 하네", "잘하노~", "ㅇㅈ이다", "가보자고"
-                금지: "~이소", "~기라", "~다이" 같은 과한 사투리 사용 금지.
+                성격: 20대 부산 여자. 쿨하고 담백한 부산 사투리.
+                말투: "~네", "~노", "~다", "~지" 자연스럽고 쿨하게.
+                예시: "왔네", "잘하고 있다", "좋네", "걷자", "힘내"
+                금지: "~이소", "~기라", "~다이", "~라이", 과한 사투리 금지.
             """.trimIndent()
 
             PetPersonality.TIMID -> """
@@ -452,21 +425,22 @@ class PetAIChatManager(
      * 채팅 결과 타입
      */
     sealed class ChatResult {
-        data class Script(val text: String) : ChatResult()       // 스크립트 응답 (무료)
-        data class AI(val text: String) : ChatResult()           // AI 응답 (유료)
+        data class AI(val text: String) : ChatResult()           // AI 응답
         data class Filtered(val text: String) : ChatResult()     // 필터링됨
         data class LimitReached(val text: String) : ChatResult() // 일일 제한 도달
         data class Tired(val text: String) : ChatResult()        // 연속 질문 피로
+        data class Error(val text: String) : ChatResult()        // API 에러
 
         fun getResponse(): String = when (this) {
-            is Script -> text
             is AI -> text
             is Filtered -> text
             is Tired -> text
             is LimitReached -> text
+            is Error -> text
         }
 
         fun isAI(): Boolean = this is AI
         fun isLimitReached(): Boolean = this is LimitReached
+        fun isError(): Boolean = this is Error
     }
 }

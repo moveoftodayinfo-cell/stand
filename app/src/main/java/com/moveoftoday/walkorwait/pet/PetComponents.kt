@@ -79,6 +79,9 @@ object MockupColors {
     val BlueLight = Color(0xFFE3F2FD)     // Blue background
     val Red = Color(0xFFE53935)           // Warning, error, danger
     val RedLight = Color(0xFFFFEBEE)      // Red background
+    val Green = Color(0xFF43A047)         // Success, local data
+    val GreenLight = Color(0xFFE8F5E9)    // Green background
+    val Orange = Color(0xFFF57C00)        // Warning, attention
 
     // State backgrounds (using Blue for positive states)
     val AchievedBackground = Color(0xFFE3F2FD)  // Blue light

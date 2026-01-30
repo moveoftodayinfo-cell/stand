@@ -20,7 +20,7 @@ import kotlinx.coroutines.withContext
  * - Single Source of Truth 패턴
  */
 class UserDataRepository(
-    context: Context,
+    private val context: Context,
     private val auth: FirebaseAuth,
     autoSync: Boolean = true  // 자동 동기화 여부
 ) {
@@ -105,6 +105,7 @@ class UserDataRepository(
             // 연속 달성 및 펫 관련 데이터
             streak = preferenceManager.getStreak(),
             lastAchievedDate = preferenceManager.getLastAchievedDate(),
+            streakStartDate = preferenceManager.getStreakStartDate(),
             consecutiveDays = preferenceManager.getConsecutiveDays(),
             petHappiness = preferenceManager.getPetHappiness(),
             petTotalSteps = preferenceManager.getPetTotalSteps()
@@ -114,7 +115,7 @@ class UserDataRepository(
     }
 
     /**
-     * Firebase와 동기화
+     * Firebase와 동기화 (통합 구조: users/{userId} 부모 문서만 사용)
      */
     suspend fun syncWithFirebase() {
         val userId = auth.currentUser?.uid
@@ -124,10 +125,18 @@ class UserDataRepository(
         }
 
         try {
-            Log.d(TAG, "🔄 Syncing with Firebase...")
+            Log.d(TAG, "🔄 Syncing with Firebase (unified structure)...")
 
-            // Firebase에서 데이터 가져오기 (10초 타임아웃)
-            val doc = kotlinx.coroutines.withTimeout(10000) {
+            // 부모 문서에서 모든 데이터 가져오기 (10초 타임아웃)
+            val userDoc = kotlinx.coroutines.withTimeout(10000) {
+                firestore.collection("users")
+                    .document(userId)
+                    .get()
+                    .await()
+            }
+
+            // 구버전 settings 문서 확인 (마이그레이션 필요 여부)
+            val oldSettingsDoc = kotlinx.coroutines.withTimeout(5000) {
                 firestore.collection("users")
                     .document(userId)
                     .collection("userData")
@@ -135,58 +144,163 @@ class UserDataRepository(
                     .get()
                     .await()
             }
+            val needsMigration = oldSettingsDoc.exists()
+            Log.d(TAG, "🔍 Migration needed: $needsMigration")
 
-            if (doc.exists()) {
-                // Firebase 데이터가 있으면 로컬과 비교
+            if (userDoc.exists() || needsMigration) {
+                // 부모 문서 또는 구버전 settings에서 데이터 읽기
+                Log.d(TAG, "📄 User doc exists: ${userDoc.exists()}, old settings exists: $needsMigration")
+
+                // 부모 문서에서 읽기 (우선)
+                val docToRead = if (userDoc.exists() && userDoc.getLong("lastSyncTimestamp") != null) userDoc else oldSettingsDoc
+                Log.d(TAG, "📄 Reading from: ${if (docToRead == userDoc) "parent doc" else "old settings"}")
+                Log.d(TAG, "📄 Doc data: ${docToRead.data}")
+
+                // 데이터 읽기 - 부모 문서와 구버전 settings 병합
+                val petName = userDoc.getString("petName")
+                    ?: oldSettingsDoc.getString("petName")
+                    ?: "멍이"
+                val petType = userDoc.getString("petType")?.takeIf { it.isNotBlank() && it != "DOG1" }
+                    ?: oldSettingsDoc.getString("petType")?.takeIf { it.isNotBlank() }
+                    ?: "DOG1"
+                val tutorialCompleted = (userDoc.getBoolean("tutorialCompleted") ?: false) ||
+                    (oldSettingsDoc.getBoolean("tutorialCompleted") ?: false)
+                val paidDeposit = (userDoc.getBoolean("paidDeposit") ?: false) ||
+                    (oldSettingsDoc.getBoolean("paidDeposit") ?: false)
+                val lockedApps = ((userDoc.get("lockedApps") as? List<*>)?.mapNotNull { it as? String }?.toSet() ?: emptySet()) +
+                    ((oldSettingsDoc.get("lockedApps") as? List<*>)?.mapNotNull { it as? String }?.toSet() ?: emptySet())
+
+                // 칭호 데이터 (배열로 통합) - 부모 문서, 구버전, 서브컬렉션 순으로 확인
+                var unlockedTitles = (userDoc.get("unlockedTitles") as? List<*>)?.mapNotNull { it as? String }?.toSet() ?: emptySet()
+                if (unlockedTitles.isEmpty()) {
+                    unlockedTitles = (oldSettingsDoc.get("unlockedTitles") as? List<*>)?.mapNotNull { it as? String }?.toSet() ?: emptySet()
+                }
+                if (unlockedTitles.isEmpty()) {
+                    unlockedTitles = fetchUnlockedTitlesFromSubcollection(userId)
+                }
+                val equippedTitle = userDoc.getString("equippedTitle") ?: oldSettingsDoc.getString("equippedTitle")
+                val totalChallenges = userDoc.getLong("totalChallengesCompleted")?.toInt()
+                    ?: oldSettingsDoc.getLong("totalChallengesCompleted")?.toInt()
+
+                Log.d(TAG, "🐾 Pet: $petType, $petName")
+                Log.d(TAG, "🔍 tutorialCompleted: $tutorialCompleted, paidDeposit: $paidDeposit, lockedApps: ${lockedApps.size}")
+                Log.d(TAG, "🏆 Titles: ${unlockedTitles.size}, equipped: $equippedTitle")
+
                 val remoteSettings = UserSettings(
-                    goal = doc.getLong("goal")?.toInt() ?: 8000,
-                    deposit = doc.getLong("deposit")?.toInt() ?: 0,
-                    controlStartDate = doc.getString("controlStartDate") ?: "",
-                    controlEndDate = doc.getString("controlEndDate") ?: "",
-                    controlDays = (doc.get("controlDays") as? List<*>)?.mapNotNull { (it as? Long)?.toInt() }?.toSet()?.ifEmpty { setOf(1, 2, 3, 4, 5) } ?: setOf(1, 2, 3, 4, 5),
-                    successDays = doc.getLong("successDays")?.toInt() ?: 0,
-                    totalDays = doc.getLong("totalDays")?.toInt() ?: 0,
-                    paidDeposit = doc.getBoolean("paidDeposit") ?: false,
-                    // 앱 재설치 시 복원 필요한 데이터
-                    lockedApps = (doc.get("lockedApps") as? List<*>)?.mapNotNull { it as? String }?.toSet() ?: emptySet(),
-                    tutorialCompleted = doc.getBoolean("tutorialCompleted") ?: false,
-                    blockingPeriods = (doc.get("blockingPeriods") as? List<*>)?.mapNotNull { it as? String }?.toSet()
+                    goal = userDoc.getLong("goal")?.toInt()
+                        ?: oldSettingsDoc.getLong("goal")?.toInt()
+                        ?: 8000,
+                    deposit = userDoc.getLong("deposit")?.toInt()
+                        ?: oldSettingsDoc.getLong("deposit")?.toInt()
+                        ?: 0,
+                    controlStartDate = userDoc.getString("controlStartDate")
+                        ?: oldSettingsDoc.getString("controlStartDate")
+                        ?: "",
+                    controlEndDate = userDoc.getString("controlEndDate")
+                        ?: oldSettingsDoc.getString("controlEndDate")
+                        ?: "",
+                    controlDays = (userDoc.get("controlDays") as? List<*>)?.mapNotNull { (it as? Long)?.toInt() }?.toSet()?.ifEmpty { null }
+                        ?: (oldSettingsDoc.get("controlDays") as? List<*>)?.mapNotNull { (it as? Long)?.toInt() }?.toSet()?.ifEmpty { null }
+                        ?: setOf(1, 2, 3, 4, 5),
+                    successDays = userDoc.getLong("successDays")?.toInt()
+                        ?: oldSettingsDoc.getLong("successDays")?.toInt()
+                        ?: 0,
+                    totalDays = userDoc.getLong("totalDays")?.toInt()
+                        ?: oldSettingsDoc.getLong("totalDays")?.toInt()
+                        ?: 0,
+                    paidDeposit = paidDeposit,
+                    lockedApps = lockedApps,
+                    tutorialCompleted = tutorialCompleted,
+                    blockingPeriods = (userDoc.get("blockingPeriods") as? List<*>)?.mapNotNull { it as? String }?.toSet()?.ifEmpty { null }
+                        ?: (oldSettingsDoc.get("blockingPeriods") as? List<*>)?.mapNotNull { it as? String }?.toSet()?.ifEmpty { null }
                         ?: setOf("morning", "afternoon", "evening", "night"),
-                    petType = doc.getString("petType") ?: "DOG1",
-                    petName = doc.getString("petName") ?: "멍이",
+                    petType = petType,
+                    petName = petName,
                     // 프로모션 정보
-                    usedPromoCode = doc.getString("usedPromoCode"),
-                    promoCodeType = doc.getString("promoCodeType"),
-                    promoHostId = doc.getString("promoHostId"),
-                    promoFreeEndDate = doc.getString("promoFreeEndDate"),
+                    usedPromoCode = userDoc.getString("usedPromoCode") ?: oldSettingsDoc.getString("usedPromoCode"),
+                    promoCodeType = userDoc.getString("promoCodeType") ?: oldSettingsDoc.getString("promoCodeType"),
+                    promoHostId = userDoc.getString("promoHostId") ?: oldSettingsDoc.getString("promoHostId"),
+                    promoFreeEndDate = userDoc.getString("promoFreeEndDate") ?: oldSettingsDoc.getString("promoFreeEndDate"),
                     // 연속 달성 및 펫 관련 데이터
-                    streak = doc.getLong("streak")?.toInt() ?: 0,
-                    lastAchievedDate = doc.getString("lastAchievedDate") ?: "",
-                    consecutiveDays = doc.getLong("consecutiveDays")?.toInt() ?: 0,
-                    petHappiness = doc.getLong("petHappiness")?.toInt() ?: 50,
-                    petTotalSteps = doc.getLong("petTotalSteps") ?: 0L
+                    streak = userDoc.getLong("streak")?.toInt()
+                        ?: oldSettingsDoc.getLong("streak")?.toInt()
+                        ?: 0,
+                    lastAchievedDate = userDoc.getString("lastAchievedDate")
+                        ?: oldSettingsDoc.getString("lastAchievedDate")
+                        ?: "",
+                    streakStartDate = userDoc.getString("streakStartDate")
+                        ?: oldSettingsDoc.getString("streakStartDate")
+                        ?: "",
+                    consecutiveDays = userDoc.getLong("consecutiveDays")?.toInt()
+                        ?: oldSettingsDoc.getLong("consecutiveDays")?.toInt()
+                        ?: 0,
+                    petHappiness = userDoc.getLong("petHappiness")?.toInt()
+                        ?: oldSettingsDoc.getLong("petHappiness")?.toInt()
+                        ?: 50,
+                    petTotalSteps = userDoc.getLong("petTotalSteps")
+                        ?: oldSettingsDoc.getLong("petTotalSteps")
+                        ?: 0L,
+                    // 칭호 데이터 (통합)
+                    unlockedTitles = unlockedTitles,
+                    equippedTitle = equippedTitle,
+                    totalChallengesCompleted = totalChallenges ?: 0
                 )
 
-                val remoteTimestamp = doc.getLong("lastSyncTimestamp") ?: 0L
+                val remoteTimestamp = userDoc.getLong("lastSyncTimestamp")
+                    ?: oldSettingsDoc.getLong("lastSyncTimestamp")
+                    ?: 0L
                 val localTimestamp = preferenceManager.getLastSyncTimestamp()
 
                 Log.d(TAG, "🔍 Timestamp comparison - remote: $remoteTimestamp, local: $localTimestamp")
-                Log.d(TAG, "🔍 Remote data - tutorialCompleted: ${remoteSettings.tutorialCompleted}, petType: ${remoteSettings.petType}")
-                Log.d(TAG, "🔍 Local data - tutorialCompleted: ${preferenceManager.isTutorialCompleted()}, petType: ${preferenceManager.getPetType()}")
 
-                // 로컬이 빈 데이터(튜토리얼 미완료)이고 Firebase에 완료된 데이터가 있으면 무조건 복원
+                // 로컬이 완전히 빈 데이터(신규 설치)인지 확인
                 val localTutorialCompleted = preferenceManager.isTutorialCompleted()
-                if (!localTutorialCompleted && remoteSettings.tutorialCompleted) {
-                    Log.d(TAG, "⬇️ Local is empty but Firebase has completed data - RESTORING")
-                    updateLocalSettings(remoteSettings, remoteTimestamp)
+                val localHasData = preferenceManager.getPetType() != null || preferenceManager.getLockedApps().isNotEmpty()
+
+                // 로컬이 빈 데이터이면 Firebase에서 복원
+                if (!localTutorialCompleted && !localHasData) {
+                    Log.d(TAG, "⬇️ Local is empty, restoring from Firebase")
+
+                    // 유효한 데이터가 있으면 tutorialCompleted = true로 처리
+                    var finalSettings = remoteSettings
+                    if (remoteSettings.lockedApps.isNotEmpty() || remoteSettings.streak > 0 || remoteSettings.petTotalSteps > 0 || remoteSettings.paidDeposit) {
+                        finalSettings = remoteSettings.copy(tutorialCompleted = true)
+                    }
+
+                    updateLocalSettings(finalSettings, remoteTimestamp)
+
+                    // 칭호 데이터 복원
+                    if (unlockedTitles.isNotEmpty() || equippedTitle != null || totalChallenges != null) {
+                        restoreTitleData(unlockedTitles, equippedTitle, totalChallenges)
+                    }
                 }
                 // Firebase 데이터가 더 최신이면 로컬 업데이트
                 else if (remoteTimestamp > localTimestamp) {
                     Log.d(TAG, "⬇️ Firebase data is newer, updating local")
                     updateLocalSettings(remoteSettings, remoteTimestamp)
+
+                    // 칭호 데이터도 복원
+                    if (unlockedTitles.isNotEmpty() || equippedTitle != null || totalChallenges != null) {
+                        restoreTitleData(unlockedTitles, equippedTitle, totalChallenges)
+                    }
                 } else {
-                    Log.d(TAG, "⬆️ Local data is newer, updating Firebase")
+                    Log.d(TAG, "⬆️ Local data is newer, uploading to Firebase")
+
+                    // 로컬에는 없지만 Firebase에 칭호 데이터가 있는 경우 복원
+                    val localHasTitles = context.getSharedPreferences("challenge_prefs", android.content.Context.MODE_PRIVATE)
+                        .getStringSet("unlocked_titles", emptySet())?.isNotEmpty() == true
+
+                    if (!localHasTitles && unlockedTitles.isNotEmpty()) {
+                        Log.d(TAG, "⚠️ Local has no titles but Firebase has ${unlockedTitles.size} titles - restoring!")
+                        restoreTitleData(unlockedTitles, equippedTitle, totalChallenges)
+                    }
+
                     uploadLocalToFirebase()
+                }
+
+                // 마이그레이션: 구버전 데이터를 부모 문서로 이전 후 삭제
+                if (needsMigration) {
+                    migrateOldSettingsToParent(userId)
                 }
             } else {
                 // Firebase에 데이터 없으면 로컬 데이터 업로드
@@ -198,6 +312,68 @@ class UserDataRepository(
             Log.e(TAG, "⏰ Firebase sync timed out after 10s")
         } catch (e: Exception) {
             Log.e(TAG, "❌ Firebase sync failed: ${e.message}")
+        }
+    }
+
+    /**
+     * 구버전 settings 데이터를 부모 문서로 마이그레이션
+     */
+    private suspend fun migrateOldSettingsToParent(userId: String) {
+        try {
+            Log.d(TAG, "🚚 Starting migration from userData/settings to parent doc...")
+
+            // 1. 현재 부모 문서에 데이터가 제대로 있는지 확인
+            val parentDoc = firestore.collection("users")
+                .document(userId)
+                .get()
+                .await()
+
+            val hasValidParentData = parentDoc.getLong("lastSyncTimestamp") != null &&
+                (parentDoc.getBoolean("tutorialCompleted") == true ||
+                 parentDoc.get("lockedApps") != null ||
+                 parentDoc.getLong("petTotalSteps") != null)
+
+            if (!hasValidParentData) {
+                Log.d(TAG, "⚠️ Parent doc doesn't have valid data yet, skipping delete")
+                return
+            }
+
+            // 2. 구버전 칭호 서브컬렉션도 마이그레이션
+            val titlesSubcollection = firestore.collection("users")
+                .document(userId)
+                .collection("unlockedTitles")
+                .get()
+                .await()
+
+            if (!titlesSubcollection.isEmpty) {
+                val titles = titlesSubcollection.documents.mapNotNull { it.id }
+                Log.d(TAG, "🏆 Migrating ${titles.size} titles from subcollection to array")
+
+                // 부모 문서에 배열로 저장
+                firestore.collection("users")
+                    .document(userId)
+                    .update("unlockedTitles", titles)
+                    .await()
+
+                // 서브컬렉션 문서들 삭제
+                for (titleDoc in titlesSubcollection.documents) {
+                    titleDoc.reference.delete().await()
+                }
+                Log.d(TAG, "🗑️ Deleted ${titlesSubcollection.documents.size} title subcollection docs")
+            }
+
+            // 3. 구버전 settings 문서 삭제
+            firestore.collection("users")
+                .document(userId)
+                .collection("userData")
+                .document("settings")
+                .delete()
+                .await()
+
+            Log.d(TAG, "✅ Migration completed! Old settings document deleted")
+
+        } catch (e: Exception) {
+            Log.e(TAG, "❌ Migration failed: ${e.message}")
         }
     }
 
@@ -226,6 +402,7 @@ class UserDataRepository(
         // 연속 달성 및 펫 관련 데이터 복원
         preferenceManager.setStreak(settings.streak)
         preferenceManager.setLastAchievedDate(settings.lastAchievedDate)
+        preferenceManager.setStreakStartDate(settings.streakStartDate)
         preferenceManager.setConsecutiveDays(settings.consecutiveDays)
         preferenceManager.savePetHappiness(settings.petHappiness)
         preferenceManager.savePetTotalSteps(settings.petTotalSteps)
@@ -236,7 +413,65 @@ class UserDataRepository(
     }
 
     /**
-     * 로컬 데이터를 Firebase에 업로드
+     * 칭호 데이터 복원 (ChallengeManager용 SharedPreferences에 저장)
+     * 복원 후 ChallengeManager 리로드
+     */
+    private fun restoreTitleData(unlockedTitles: Set<String>, equippedTitle: String?, totalChallengesCompleted: Int? = null) {
+        val prefs = context.getSharedPreferences("challenge_prefs", android.content.Context.MODE_PRIVATE)
+        val editor = prefs.edit()
+        if (unlockedTitles.isNotEmpty()) {
+            editor.putStringSet("unlocked_titles", unlockedTitles)
+            Log.d(TAG, "🏆 Restored unlocked titles: $unlockedTitles")
+        }
+        if (equippedTitle != null) {
+            editor.putString("equipped_title", equippedTitle)
+            Log.d(TAG, "🏆 Restored equipped title: $equippedTitle")
+        }
+        if (totalChallengesCompleted != null && totalChallengesCompleted > 0) {
+            editor.putInt("total_challenges_completed", totalChallengesCompleted)
+            Log.d(TAG, "🏆 Restored total challenges completed: $totalChallengesCompleted")
+        }
+        editor.apply()
+
+        // ChallengeManager가 이미 초기화되어 있으면 다시 로드
+        try {
+            val challengeManager = ChallengeManager.getInstance(context)
+            challengeManager.reloadFromPreferences()
+            Log.d(TAG, "🔄 ChallengeManager reloaded after title restoration")
+
+            // 오늘의 챌린지 통계도 Firebase에서 로드
+            kotlinx.coroutines.GlobalScope.launch {
+                challengeManager.loadTodayStatsFromFirebase()
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "⚠️ Failed to reload ChallengeManager: ${e.message}")
+        }
+    }
+
+    /**
+     * unlockedTitles 서브컬렉션에서 칭호 목록 조회
+     * 부모 문서에 칭호 목록이 없을 때 폴백으로 사용
+     */
+    private suspend fun fetchUnlockedTitlesFromSubcollection(userId: String): Set<String> {
+        return try {
+            val docs = kotlinx.coroutines.withTimeout(5000) {
+                firestore.collection("users")
+                    .document(userId)
+                    .collection("unlockedTitles")
+                    .get()
+                    .await()
+            }
+            val titles = docs.documents.mapNotNull { it.id }.toSet()
+            Log.d(TAG, "🏆 Fetched ${titles.size} titles from subcollection: $titles")
+            titles
+        } catch (e: Exception) {
+            Log.e(TAG, "⚠️ Failed to fetch titles from subcollection: ${e.message}")
+            emptySet()
+        }
+    }
+
+    /**
+     * 로컬 데이터를 Firebase에 업로드 (통합 구조: 부모 문서에만 저장)
      */
     private suspend fun uploadLocalToFirebase() {
         val userId = auth.currentUser?.uid ?: return
@@ -246,65 +481,82 @@ class UserDataRepository(
             // 10초 타임아웃 설정
             kotlinx.coroutines.withTimeout(10000) {
                 val timestamp = System.currentTimeMillis()
-                val data = hashMapOf(
-                "goal" to settings.goal,
-                "deposit" to settings.deposit,
-                "controlStartDate" to settings.controlStartDate,
-                "controlEndDate" to settings.controlEndDate,
-                "controlDays" to settings.controlDays.toList(),
-                "successDays" to settings.successDays,
-                "totalDays" to settings.totalDays,
-                "paidDeposit" to settings.paidDeposit,
-                // 앱 재설치 시 복원 필요한 데이터
-                "lockedApps" to settings.lockedApps.toList(),
-                "tutorialCompleted" to settings.tutorialCompleted,
-                "blockingPeriods" to settings.blockingPeriods.toList(),
-                "petType" to settings.petType,
-                "petName" to settings.petName,
-                // 프로모션 정보
-                "usedPromoCode" to settings.usedPromoCode,
-                "promoCodeType" to settings.promoCodeType,
-                "promoHostId" to settings.promoHostId,
-                "promoFreeEndDate" to settings.promoFreeEndDate,
-                // 연속 달성 및 펫 관련 데이터
-                "streak" to settings.streak,
-                "lastAchievedDate" to settings.lastAchievedDate,
-                "consecutiveDays" to settings.consecutiveDays,
-                "petHappiness" to settings.petHappiness,
-                "petTotalSteps" to settings.petTotalSteps,
-                "lastActiveAt" to System.currentTimeMillis(),  // 이탈 추적용
-                "lastSyncTimestamp" to timestamp
-            )
 
-                // 부모 문서 (users/{userId}) 생성 - 대시보드 조회용
-                val userDocData = hashMapOf(
+                // 로컬 칭호 데이터 가져오기
+                val challengePrefs = context.getSharedPreferences("challenge_prefs", android.content.Context.MODE_PRIVATE)
+                val localUnlockedTitles = challengePrefs.getStringSet("unlocked_titles", emptySet()) ?: emptySet()
+                val localEquippedTitle = challengePrefs.getString("equipped_title", null)
+                val localTotalChallenges = challengePrefs.getInt("total_challenges_completed", 0)
+
+                // 부모 문서 (users/{userId})에 모든 데이터 통합 저장
+                val data = hashMapOf(
+                    // 기본 정보
                     "email" to (auth.currentUser?.email ?: ""),
                     "lastUpdated" to timestamp,
-                    "lastActiveAt" to System.currentTimeMillis(),  // 이탈 추적용
+                    "lastActiveAt" to timestamp,
+                    "lastSyncTimestamp" to timestamp,
+
+                    // 펫 정보
+                    "petType" to settings.petType,
+                    "petName" to settings.petName,
+                    "petHappiness" to settings.petHappiness,
+                    "petTotalSteps" to settings.petTotalSteps,
+
+                    // 진행 상태
                     "tutorialCompleted" to settings.tutorialCompleted,
                     "paidDeposit" to settings.paidDeposit,
-                    "promoCodeType" to settings.promoCodeType
-                )
-                firestore.collection("users")
-                    .document(userId)
-                    .set(userDocData, SetOptions.merge())
-                    .await()
+                    "streak" to settings.streak,
+                    "lastAchievedDate" to settings.lastAchievedDate,
+                    "streakStartDate" to settings.streakStartDate,
+                    "consecutiveDays" to settings.consecutiveDays,
 
-                // 서브컬렉션 (users/{userId}/userData/settings) 저장
+                    // 설정
+                    "goal" to settings.goal,
+                    "deposit" to settings.deposit,
+                    "controlStartDate" to settings.controlStartDate,
+                    "controlEndDate" to settings.controlEndDate,
+                    "controlDays" to settings.controlDays.toList(),
+                    "successDays" to settings.successDays,
+                    "totalDays" to settings.totalDays,
+                    "lockedApps" to settings.lockedApps.toList(),
+                    "blockingPeriods" to settings.blockingPeriods.toList(),
+
+                    // 프로모션 정보
+                    "usedPromoCode" to settings.usedPromoCode,
+                    "promoCodeType" to settings.promoCodeType,
+                    "promoHostId" to settings.promoHostId,
+                    "promoFreeEndDate" to settings.promoFreeEndDate,
+
+                    // 챌린지/칭호 (배열로 통합)
+                    "unlockedTitles" to localUnlockedTitles.toList(),
+                    "equippedTitle" to localEquippedTitle,
+                    "totalChallengesCompleted" to localTotalChallenges
+                )
+
                 firestore.collection("users")
                     .document(userId)
-                    .collection("userData")
-                    .document("settings")
                     .set(data, SetOptions.merge())
                     .await()
 
                 preferenceManager.saveLastSyncTimestamp(timestamp)
-                Log.d(TAG, "✅ Local data uploaded to Firebase (parent doc + settings)")
+                Log.d(TAG, "✅ Local data uploaded to Firebase (unified parent doc)")
             }
         } catch (e: kotlinx.coroutines.TimeoutCancellationException) {
             Log.e(TAG, "⏰ Firebase upload timed out after 10s")
         } catch (e: Exception) {
             Log.e(TAG, "❌ Failed to upload to Firebase: ${e.message}")
+        }
+    }
+
+    /**
+     * 로컬 데이터를 강제로 Firebase에 업로드 (데이터 충돌 시 로컬 우선)
+     */
+    fun forceUploadLocalData() {
+        Log.d(TAG, "⬆️ Force uploading local data to Firebase...")
+        repositoryScope.launch {
+            uploadLocalToFirebase()
+            _syncCompleted.value = true
+            Log.d(TAG, "✅ Force upload completed")
         }
     }
 
@@ -386,18 +638,20 @@ class UserDataRepository(
     }
 
     /**
-     * 펫 교체 결제 추적 (대시보드용)
+     * 펫 교체 결제 추적 (대시보드용) - 부모 문서에 통합 저장
      */
     fun trackPetChangePurchase(petType: String, petName: String) {
         val userId = auth.currentUser?.uid ?: return
         val userEmail = auth.currentUser?.email ?: ""
         val now = System.currentTimeMillis()
 
-        // 사용자 문서 업데이트
+        // 부모 문서에 모든 정보 통합 저장
         val userDoc = hashMapOf(
             "email" to userEmail,
             "lastActiveAt" to now,
             "lastUpdated" to now,
+            "petType" to petType,
+            "petName" to petName,
             "petChangePurchased" to true,
             "lastPetChangeAt" to now,
             "petChangeCount" to com.google.firebase.firestore.FieldValue.increment(1)
@@ -405,20 +659,6 @@ class UserDataRepository(
         firestore.collection("users")
             .document(userId)
             .set(userDoc, SetOptions.merge())
-
-        // settings 서브컬렉션 업데이트 (paidDeposit은 건드리지 않음 - 구독 결제와 별개)
-        val settingsDoc = hashMapOf(
-            "lastActiveAt" to now,
-            "petType" to petType,
-            "petName" to petName,
-            "petChangePurchased" to true,
-            "lastPetChangePurchaseAt" to now
-        )
-        firestore.collection("users")
-            .document(userId)
-            .collection("userData")
-            .document("settings")
-            .set(settingsDoc, SetOptions.merge())
 
         // 펫 교체 이력 저장 (사용자별 서브컬렉션)
         val petChangeHistory = hashMapOf(
@@ -622,6 +862,7 @@ class UserDataRepository(
             // 연속 달성 및 펫 관련 데이터
             streak = preferenceManager.getStreak(),
             lastAchievedDate = preferenceManager.getLastAchievedDate(),
+            streakStartDate = preferenceManager.getStreakStartDate(),
             consecutiveDays = preferenceManager.getConsecutiveDays(),
             petHappiness = preferenceManager.getPetHappiness(),
             petTotalSteps = preferenceManager.getPetTotalSteps()
@@ -679,7 +920,7 @@ class UserDataRepository(
     fun getBlockingPeriods(): Set<String> = preferenceManager.getBlockingPeriods()
 
     /**
-     * 공유 이벤트 기록 (Core 유저 추적용)
+     * 공유 이벤트 기록 (Core 유저 추적용) - 부모 문서에만 저장
      */
     fun trackShareEvent() {
         val userId = auth.currentUser?.uid ?: return
@@ -688,26 +929,14 @@ class UserDataRepository(
 
         repositoryScope.launch {
             try {
-                // settings에 lastShareAt 업데이트
-                firestore.collection("users")
-                    .document(userId)
-                    .collection("userData")
-                    .document("settings")
-                    .update(
-                        mapOf(
-                            "lastShareAt" to now,
-                            "lastShareDate" to today
-                        )
-                    )
-                    .await()
-
-                // 사용자 문서에도 업데이트
+                // 부모 문서에만 업데이트
                 firestore.collection("users")
                     .document(userId)
                     .update(
                         mapOf(
                             "lastShareAt" to now,
-                            "lastShareDate" to today
+                            "lastShareDate" to today,
+                            "lastActiveAt" to now
                         )
                     )
                     .await()
@@ -726,7 +955,7 @@ class UserDataRepository(
 }
 
 /**
- * 사용자 설정 데이터 클래스
+ * 사용자 설정 데이터 클래스 (통합 구조)
  */
 data class UserSettings(
     val goal: Int,
@@ -751,9 +980,14 @@ data class UserSettings(
     // 연속 달성 및 펫 관련 데이터
     val streak: Int = 0,
     val lastAchievedDate: String = "",
+    val streakStartDate: String = "",  // streak 시작 날짜
     val consecutiveDays: Int = 0,
     val petHappiness: Int = 50,
     val petTotalSteps: Long = 0L,
+    // 챌린지/칭호 데이터 (통합)
+    val unlockedTitles: Set<String> = emptySet(),
+    val equippedTitle: String? = null,
+    val totalChallengesCompleted: Int = 0,
     // 이탈 추적용
     val lastActiveAt: Long = System.currentTimeMillis()
 )

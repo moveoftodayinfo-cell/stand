@@ -32,6 +32,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.graphics.drawable.toBitmap
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.tasks.await
 import android.app.Activity
 import android.content.ClipData
 import android.content.ClipboardManager
@@ -57,6 +58,23 @@ import com.moveoftoday.walkorwait.ui.theme.StandSpacing
 import com.moveoftoday.walkorwait.ui.theme.StandSize
 import com.moveoftoday.walkorwait.ui.components.*
 
+// 데이터 충돌 정보 클래스
+data class RemoteDataInfo(
+    val petType: String?,
+    val petName: String?,
+    val streak: Int,
+    val petTotalSteps: Long,
+    val tutorialCompleted: Boolean,
+    val paidDeposit: Boolean
+)
+
+data class LocalDataInfo(
+    val petType: String?,
+    val petName: String?,
+    val streak: Int,
+    val petTotalSteps: Long
+)
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(
@@ -68,6 +86,9 @@ fun SettingsScreen(
     val repository = app.userDataRepository
     val hapticManager = remember { HapticManager(context) }
     val scope = rememberCoroutineScope()
+
+    // UserSettings StateFlow 관찰 (Firebase 데이터 복원 시 자동 UI 갱신)
+    val userSettings by repository.userSettings.collectAsState()
 
     var currentSteps by remember { mutableIntStateOf(repository.getTodaySteps()) }
     var goal by remember { mutableIntStateOf(repository.getGoal()) }
@@ -86,6 +107,26 @@ fun SettingsScreen(
     // 접근성 서비스 체크
     var isAccessibilityEnabled by remember { mutableStateOf(false) }
 
+    // 설정 값 로컬 상태 (변경 시 즉시 UI 반영)
+    var lockedAppsState by remember { mutableStateOf(preferenceManager?.getLockedApps() ?: emptySet<String>()) }
+    var blockingPeriodsState by remember { mutableStateOf(preferenceManager?.getBlockingPeriods() ?: emptySet<String>()) }
+    var controlDaysState by remember { mutableStateOf(preferenceManager?.getControlDays() ?: emptySet<Int>()) }
+
+    // Firebase에서 복원된 데이터로 로컬 상태 업데이트
+    LaunchedEffect(userSettings) {
+        userSettings?.let { settings ->
+            if (settings.lockedApps.isNotEmpty() && lockedAppsState.isEmpty()) {
+                lockedAppsState = settings.lockedApps
+            }
+            if (settings.blockingPeriods.isNotEmpty() && blockingPeriodsState.isEmpty()) {
+                blockingPeriodsState = settings.blockingPeriods
+            }
+            if (settings.controlDays.isNotEmpty() && controlDaysState.isEmpty()) {
+                controlDaysState = settings.controlDays
+            }
+        }
+    }
+
     var showGoalDialog by remember { mutableStateOf(false) }
     var showAppLockScreen by remember { mutableStateOf(false) }
     var showDepositSettingScreen by remember { mutableStateOf(false) }
@@ -102,6 +143,30 @@ fun SettingsScreen(
     var googleEmail by remember { mutableStateOf(auth.currentUser?.email ?: "") }
     var isGoogleLoading by remember { mutableStateOf(false) }
 
+    // 데이터 충돌 다이얼로그 상태
+    var showDataConflictDialog by remember { mutableStateOf(false) }
+    var remoteDataInfo by remember { mutableStateOf<RemoteDataInfo?>(null) }
+    var localDataInfo by remember { mutableStateOf<LocalDataInfo?>(null) }
+
+    // 선택에 따른 동기화 처리
+    fun handleDataChoice(useRemoteData: Boolean) {
+        scope.launch {
+            if (useRemoteData) {
+                // 원격 데이터로 복원 (기존 동기화 로직)
+                repository.startSync()
+                Toast.makeText(context, "기존 데이터를 복원했어요!", Toast.LENGTH_SHORT).show()
+            } else {
+                // 현재 로컬 데이터를 Firebase에 덮어쓰기
+                repository.forceUploadLocalData()
+                Toast.makeText(context, "현재 데이터를 저장했어요!", Toast.LENGTH_SHORT).show()
+            }
+            showDataConflictDialog = false
+            isGoogleSignedIn = true
+            googleEmail = auth.currentUser?.email ?: ""
+            hapticManager.success()
+        }
+    }
+
     // Google Sign-In 함수 (Credential Manager 사용)
     fun performGoogleSignIn() {
         isGoogleLoading = true
@@ -111,14 +176,90 @@ fun SettingsScreen(
                 is GoogleSignInHelper.SignInResult.Success -> {
                     val firebaseResult = GoogleSignInHelper.signInToFirebase(result.idToken)
                     if (firebaseResult.isSuccess) {
-                        // Repository 동기화 시작
-                        repository.startSync()
+                        val userId = auth.currentUser?.uid
+                        if (userId != null) {
+                            // Firebase에서 기존 데이터 확인
+                            val firestore = com.google.firebase.firestore.FirebaseFirestore.getInstance()
+                            try {
+                                val settingsDoc = firestore.collection("users")
+                                    .document(userId)
+                                    .collection("userData")
+                                    .document("settings")
+                                    .get()
+                                    .await()
 
-                        isGoogleLoading = false
-                        isGoogleSignedIn = true
-                        googleEmail = auth.currentUser?.email ?: ""
-                        hapticManager.success()
-                        Toast.makeText(context, "Google 계정 연결 완료!", Toast.LENGTH_SHORT).show()
+                                val remoteTutorialCompleted = settingsDoc.getBoolean("tutorialCompleted") ?: false
+                                val remotePetType = settingsDoc.getString("petType")
+                                val remotePetName = settingsDoc.getString("petName")
+                                val remoteStreak = settingsDoc.getLong("streak")?.toInt() ?: 0
+                                val remotePetSteps = settingsDoc.getLong("petTotalSteps") ?: 0L
+                                val remotePaidDeposit = settingsDoc.getBoolean("paidDeposit") ?: false
+
+                                // 원격에 유효한 데이터가 있는지 확인
+                                val hasRemoteData = remoteTutorialCompleted ||
+                                    (remotePetType != null && remotePetType != "DOG1") ||
+                                    remoteStreak > 0 || remotePetSteps > 0
+
+                                // 로컬에 유효한 데이터가 있는지 확인
+                                val localPetType = preferenceManager?.getPetType()
+                                val localPetName = preferenceManager?.getPetName()
+                                val localStreak = preferenceManager?.getStreak() ?: 0
+                                val localPetSteps = preferenceManager?.getPetTotalSteps() ?: 0L
+                                val hasLocalData = (localPetType != null && localPetType != "DOG1") ||
+                                    localStreak > 0 || localPetSteps > 0
+
+                                android.util.Log.d("SettingsScreen", "🔍 Data check - hasRemoteData: $hasRemoteData, hasLocalData: $hasLocalData")
+                                android.util.Log.d("SettingsScreen", "🔍 Remote - petType: $remotePetType, streak: $remoteStreak, steps: $remotePetSteps")
+                                android.util.Log.d("SettingsScreen", "🔍 Local - petType: $localPetType, streak: $localStreak, steps: $localPetSteps")
+
+                                isGoogleLoading = false
+
+                                // 양쪽에 데이터가 있고 다르면 충돌 다이얼로그 표시
+                                if (hasRemoteData && hasLocalData) {
+                                    remoteDataInfo = RemoteDataInfo(
+                                        petType = remotePetType,
+                                        petName = remotePetName,
+                                        streak = remoteStreak,
+                                        petTotalSteps = remotePetSteps,
+                                        tutorialCompleted = remoteTutorialCompleted,
+                                        paidDeposit = remotePaidDeposit
+                                    )
+                                    localDataInfo = LocalDataInfo(
+                                        petType = localPetType,
+                                        petName = localPetName,
+                                        streak = localStreak,
+                                        petTotalSteps = localPetSteps
+                                    )
+                                    showDataConflictDialog = true
+                                } else if (hasRemoteData) {
+                                    // 원격에만 데이터 있으면 복원
+                                    repository.startSync()
+                                    isGoogleSignedIn = true
+                                    googleEmail = auth.currentUser?.email ?: ""
+                                    hapticManager.success()
+                                    Toast.makeText(context, "기존 데이터를 복원했어요!", Toast.LENGTH_SHORT).show()
+                                } else {
+                                    // 로컬에만 데이터 있거나 양쪽 다 없으면 로컬 업로드
+                                    repository.forceUploadLocalData()
+                                    isGoogleSignedIn = true
+                                    googleEmail = auth.currentUser?.email ?: ""
+                                    hapticManager.success()
+                                    Toast.makeText(context, "Google 계정 연결 완료!", Toast.LENGTH_SHORT).show()
+                                }
+                            } catch (e: Exception) {
+                                android.util.Log.e("SettingsScreen", "❌ Firebase check failed: ${e.message}")
+                                // 에러 시 기본 동기화
+                                repository.startSync()
+                                isGoogleLoading = false
+                                isGoogleSignedIn = true
+                                googleEmail = auth.currentUser?.email ?: ""
+                                hapticManager.success()
+                                Toast.makeText(context, "Google 계정 연결 완료!", Toast.LENGTH_SHORT).show()
+                            }
+                        } else {
+                            isGoogleLoading = false
+                            Toast.makeText(context, "로그인 실패", Toast.LENGTH_SHORT).show()
+                        }
                     } else {
                         isGoogleLoading = false
                         Toast.makeText(context, "Firebase 로그인 실패", Toast.LENGTH_SHORT).show()
@@ -263,7 +404,8 @@ fun SettingsScreen(
     if (showAppLockScreen) {
         AppLockScreen(
             preferenceManager = preferenceManager,
-            onBack = { showAppLockScreen = false }
+            onBack = { showAppLockScreen = false },
+            onLockedAppsChanged = { newApps -> lockedAppsState = newApps }
         )
     } else if (showDepositSettingScreen) {
         val savedPetType = preferenceManager?.getPetType()?.let {
@@ -303,12 +445,13 @@ fun SettingsScreen(
         // 차단 시간대 선택 (풀스크린)
         val canRemovePeriods = preferenceManager?.canChangeBlockingPeriods() ?: true
         BlockingPeriodsDialog(
-            currentPeriods = preferenceManager?.getBlockingPeriods() ?: emptySet(),
+            currentPeriods = blockingPeriodsState,
             canRemove = canRemovePeriods,
             nextRemoveDate = if (!canRemovePeriods) preferenceManager?.getNextBlockingPeriodsChangeDate() ?: "" else "",
             onDismiss = { showBlockingPeriodsDialog = false },
             onConfirm = { newPeriods, hasRemovals ->
                 preferenceManager?.saveBlockingPeriods(newPeriods)
+                blockingPeriodsState = newPeriods  // 로컬 상태 업데이트
                 // 제거가 있을 때만 변경 시간 기록
                 if (hasRemovals) {
                     preferenceManager?.saveBlockingPeriodsChangeTime()
@@ -320,12 +463,13 @@ fun SettingsScreen(
         // 제어 요일 선택 (풀스크린)
         val canRemoveDays = preferenceManager?.canChangeControlDays() ?: true
         ControlDaysDialog(
-            currentDays = preferenceManager?.getControlDays() ?: emptySet(),
+            currentDays = controlDaysState,
             canRemove = canRemoveDays,
             nextRemoveDate = if (!canRemoveDays) preferenceManager?.getNextControlDaysChangeDate() ?: "" else "",
             onDismiss = { showControlDaysDialog = false },
             onConfirm = { newDays, hasRemovals ->
                 preferenceManager?.saveControlDays(newDays)
+                controlDaysState = newDays  // 로컬 상태 업데이트
                 // 제거가 있을 때만 변경 시간 기록
                 if (hasRemovals) {
                     preferenceManager?.saveControlDaysChangeTime()
@@ -865,7 +1009,8 @@ fun SettingsScreen(
                     // 🔒 잠금 앱 관리
                     RetroSectionTitle(title = "잠금 앱", fontFamily = kenneyFont)
 
-                    val lockedApps = preferenceManager?.getLockedApps() ?: emptySet()
+                    // 로컬 상태 사용 (변경 시 즉시 반영, Firebase 복원 시에도 자동 갱신)
+                    val lockedApps = lockedAppsState
 
                     // 차단 앱 목록 표시
                     if (lockedApps.isNotEmpty()) {
@@ -979,7 +1124,8 @@ fun SettingsScreen(
                     // ⏰ 차단 시간대
                     RetroSectionTitle(title = "차단 시간대", fontFamily = kenneyFont)
 
-                    val blockingPeriods = preferenceManager?.getBlockingPeriods() ?: emptySet()
+                    // 로컬 상태 사용 (변경 시 즉시 반영, Firebase 복원 시에도 자동 갱신)
+                    val blockingPeriods = blockingPeriodsState
                     val periodNames = mapOf(
                         "morning" to "아침",
                         "afternoon" to "점심",
@@ -1052,7 +1198,8 @@ fun SettingsScreen(
                     // 📅 제어 요일
                     RetroSectionTitle(title = "제어 요일", fontFamily = kenneyFont)
 
-                    val controlDays = preferenceManager?.getControlDays() ?: emptySet()
+                    // 로컬 상태 사용 (변경 시 즉시 반영, Firebase 복원 시에도 자동 갱신)
+                    val controlDays = controlDaysState
                     val dayNames2 = listOf("일", "월", "화", "수", "목", "금", "토")
                     val selectedDayNames = controlDays.sorted().map { dayNames2[it] }.joinToString(", ")
                     val displayDays = if (controlDays.isEmpty()) "없음" else selectedDayNames
@@ -1659,6 +1806,29 @@ fun SettingsScreen(
                         showFeedbackDialog = false
                     },
                     hapticManager = hapticManager
+                )
+            }
+
+            // 데이터 충돌 선택 다이얼로그
+            if (showDataConflictDialog && remoteDataInfo != null && localDataInfo != null) {
+                DataConflictDialog(
+                    remoteInfo = remoteDataInfo!!,
+                    localInfo = localDataInfo!!,
+                    onUseRemote = {
+                        hapticManager.click()
+                        handleDataChoice(useRemoteData = true)
+                    },
+                    onUseLocal = {
+                        hapticManager.click()
+                        handleDataChoice(useRemoteData = false)
+                    },
+                    onDismiss = {
+                        showDataConflictDialog = false
+                        // 취소 시 로그아웃
+                        scope.launch {
+                            GoogleSignInHelper.signOut(context)
+                        }
+                    }
                 )
             }
 
@@ -2911,6 +3081,176 @@ private fun FeedbackDialog(
             }
 
             Spacer(modifier = Modifier.height(72.dp))
+        }
+    }
+}
+
+/**
+ * 데이터 충돌 선택 다이얼로그
+ * Google 로그인 시 기존 데이터와 현재 데이터가 모두 있을 때 표시
+ */
+@Composable
+private fun DataConflictDialog(
+    remoteInfo: RemoteDataInfo,
+    localInfo: LocalDataInfo,
+    onUseRemote: () -> Unit,
+    onUseLocal: () -> Unit,
+    onDismiss: () -> Unit
+) {
+    val kenneyFont = rememberKenneyFont()
+
+    // 펫 타입 이름 변환
+    fun getPetDisplayName(petType: String?): String {
+        return when (petType) {
+            "DOG1" -> "강아지"
+            "CAT" -> "고양이"
+            "RAT" -> "쥐"
+            "HAMSTER" -> "햄스터"
+            "RABBIT" -> "토끼"
+            else -> petType ?: "기본"
+        }
+    }
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.Black.copy(alpha = 0.7f))
+            .clickable(enabled = false) { },
+        contentAlignment = Alignment.Center
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth(0.9f)
+                .border(4.dp, MockupColors.Border, RoundedCornerShape(16.dp))
+                .background(MockupColors.CardBackground, RoundedCornerShape(16.dp))
+                .padding(24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            // 제목
+            Text(
+                text = "⚠️ 데이터 선택",
+                fontSize = 24.sp,
+                fontWeight = FontWeight.Bold,
+                fontFamily = kenneyFont,
+                color = MockupColors.Orange
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Text(
+                text = "기존 Google 계정에 저장된 데이터가 있어요.\n어떤 데이터를 사용할까요?",
+                fontSize = 14.sp,
+                color = MockupColors.TextSecondary,
+                textAlign = TextAlign.Center,
+                lineHeight = 20.sp
+            )
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // 기존 데이터 (Google)
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .border(3.dp, MockupColors.Blue, RoundedCornerShape(12.dp))
+                    .background(MockupColors.BlueLight, RoundedCornerShape(12.dp))
+                    .clickable { onUseRemote() }
+                    .padding(16.dp)
+            ) {
+                Column {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "☁️",
+                            fontSize = 24.sp
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = "기존 데이터 복원",
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.Bold,
+                            fontFamily = kenneyFont,
+                            color = MockupColors.Blue
+                        )
+                    }
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = "펫: ${remoteInfo.petName ?: "이름없음"} (${getPetDisplayName(remoteInfo.petType)})",
+                        fontSize = 14.sp,
+                        color = MockupColors.TextPrimary
+                    )
+                    Text(
+                        text = "연속 달성: ${remoteInfo.streak}일 | 총 걸음: ${String.format("%,d", remoteInfo.petTotalSteps)}보",
+                        fontSize = 13.sp,
+                        color = MockupColors.TextSecondary
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            Text(
+                text = "VS",
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Bold,
+                fontFamily = kenneyFont,
+                color = MockupColors.TextMuted
+            )
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            // 현재 데이터 (로컬)
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .border(3.dp, MockupColors.Green, RoundedCornerShape(12.dp))
+                    .background(MockupColors.GreenLight, RoundedCornerShape(12.dp))
+                    .clickable { onUseLocal() }
+                    .padding(16.dp)
+            ) {
+                Column {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "📱",
+                            fontSize = 24.sp
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = "현재 데이터 유지",
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.Bold,
+                            fontFamily = kenneyFont,
+                            color = MockupColors.Green
+                        )
+                    }
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = "펫: ${localInfo.petName ?: "이름없음"} (${getPetDisplayName(localInfo.petType)})",
+                        fontSize = 14.sp,
+                        color = MockupColors.TextPrimary
+                    )
+                    Text(
+                        text = "연속 달성: ${localInfo.streak}일 | 총 걸음: ${String.format("%,d", localInfo.petTotalSteps)}보",
+                        fontSize = 13.sp,
+                        color = MockupColors.TextSecondary
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(20.dp))
+
+            // 취소 버튼
+            TextButton(
+                onClick = onDismiss
+            ) {
+                Text(
+                    text = "취소",
+                    fontSize = 14.sp,
+                    color = MockupColors.TextMuted
+                )
+            }
         }
     }
 }

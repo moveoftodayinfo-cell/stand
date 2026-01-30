@@ -62,9 +62,11 @@ fun StreakCelebrationDialog(
     petType: PetType = PetType.DOG1,
     petName: String = "",
     equippedTitle: String? = null,  // 칭호 (볼드용)
-    dailySteps: Int = 5000,
+    successDays: Int = 0,  // 전체 달성 일수 (연속 아님)
     totalKm: Float = 0f,
-    screenFreeHours: Int = 0,
+    // 첫 주 판단용 파라미터
+    isFirstWeek: Boolean = false,  // streak 시작 후 첫 주인지
+    streakStartDayOfWeek: Int = 0,  // streak 시작 요일 (0=일, 1=월, ...)
     // 현재 상태 공유용 파라미터
     isQuickShare: Boolean = false,
     currentSpeech: String = "",
@@ -96,12 +98,12 @@ fun StreakCelebrationDialog(
     }
 
     // Pet speech: 빠른 공유면 현재 말, 아니면 달성 축하 메시지
-    val petSpeech = remember(isQuickShare, currentSpeech, streakCount, petType, dailySteps, totalKm) {
+    val petSpeech = remember(isQuickShare, currentSpeech, streakCount, petType, successDays, totalKm) {
         if (isQuickShare && currentSpeech.isNotEmpty()) {
             // 현재 말풍선을 AnnotatedString으로 변환 (볼드 없이 단순하게)
             buildAnnotatedString { append(currentSpeech) }
         } else {
-            getStreakCelebrationSpeech(petType.personality, streakCount, dailySteps, totalKm)
+            getStreakCelebrationSpeech(petType.personality, streakCount, successDays, totalKm)
         }
     }
 
@@ -137,19 +139,23 @@ fun StreakCelebrationDialog(
                         // Page 1: Full Card
                         FullCardContent(
                             streakCount = streakCount,
-                            screenFreeHours = screenFreeHours,
+                            successDays = successDays,
+                            totalKm = totalKm,
                             petType = petType,
                             petName = petName,
                             equippedTitle = equippedTitle,
                             petSpeech = petSpeech,
                             today = today,
                             dayNames = dayNames,
+                            weeklyAchievements = weeklyAchievements,
                             kenneyFont = kenneyFont,
                             graphicsLayer = fullCardGraphicsLayer,
                             isQuickShare = isQuickShare,
                             currentSteps = currentSteps,
                             goalSteps = goalSteps,
-                            progressPercent = progressPercent
+                            progressPercent = progressPercent,
+                            isFirstWeek = isFirstWeek,
+                            streakStartDayOfWeek = streakStartDayOfWeek
                         )
                     }
                     1 -> {
@@ -243,27 +249,31 @@ fun StreakCelebrationDialog(
 @Composable
 private fun FullCardContent(
     streakCount: Int,
-    screenFreeHours: Int,
+    successDays: Int,
+    totalKm: Float,
     petType: PetType,
     petName: String = "",
     equippedTitle: String? = null,
     petSpeech: androidx.compose.ui.text.AnnotatedString,
     today: Int,
     dayNames: List<String>,
+    weeklyAchievements: List<Boolean>,
     kenneyFont: androidx.compose.ui.text.font.FontFamily,
     graphicsLayer: androidx.compose.ui.graphics.layer.GraphicsLayer,
     isQuickShare: Boolean = false,
     currentSteps: Int = 0,
     goalSteps: Int = 0,
-    progressPercent: Int = 0
+    progressPercent: Int = 0,
+    isFirstWeek: Boolean = false,
+    streakStartDayOfWeek: Int = 0
 ) {
     val stripeWidth = 4.dp
 
-    // 인스타 피드용 4:5 비율
+    // 인스타 스토리용 9:16 비율
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .aspectRatio(4f / 5f)
+            .aspectRatio(9f / 16f)
             .clip(RoundedCornerShape(20.dp))
             .drawWithContent {
                 graphicsLayer.record {
@@ -294,7 +304,7 @@ private fun FullCardContent(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(200.dp)
+                    .height(240.dp)
                     .clip(RoundedCornerShape(16.dp))
                     .background(Color.White)
                     .drawBehind {
@@ -407,9 +417,9 @@ private fun FullCardContent(
                 Text(
                     text = buildAnnotatedString {
                         withStyle(SpanStyle(fontWeight = FontWeight.Bold)) {
-                            append("${screenFreeHours}h")
+                            append("${streakCount}일")
                         }
-                        append(" screen-free")
+                        append(" 연속 달성")
                     },
                     fontSize = 16.sp,
                     color = MockupColors.TextMuted
@@ -419,6 +429,8 @@ private fun FullCardContent(
             Spacer(modifier = Modifier.height(12.dp))
 
             // 4. Week Card
+            // 첫 주: 시작 요일부터 7일 표시 (예: TUE부터 시작하면 TUE~MON)
+            // 그 이후: 일~토 고정
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -427,18 +439,41 @@ private fun FullCardContent(
                     .border(3.dp, MockupColors.Border, RoundedCornerShape(12.dp))
                     .padding(12.dp)
             ) {
+                // 첫 주면 시작 요일부터 순환, 아니면 일~토 고정
+                val displayDayNames = if (isFirstWeek) {
+                    (0 until 7).map { dayNames[(streakStartDayOfWeek + it) % 7] }
+                } else {
+                    dayNames
+                }
+
+                // 첫 주면 달성 데이터도 시작 요일 기준으로 재배열
+                val displayAchievements = if (isFirstWeek) {
+                    (0 until 7).map { weeklyAchievements.getOrElse((streakStartDayOfWeek + it) % 7) { false } }
+                } else {
+                    weeklyAchievements
+                }
+
+                // 오늘 요일의 표시 위치
+                val todayDisplayIndex = if (isFirstWeek) {
+                    (today - streakStartDayOfWeek + 7) % 7
+                } else {
+                    today
+                }
+
                 Column {
                     // Day labels
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
-                        dayNames.forEachIndexed { index, day ->
+                        displayDayNames.forEachIndexed { index, day ->
+                            // 오늘 요일 강조
+                            val isToday = index == todayDisplayIndex
                             Text(
                                 text = day,
                                 fontSize = 12.sp,
                                 fontWeight = FontWeight.Bold,
-                                color = if (index == today) MockupColors.TextPrimary else MockupColors.TextMuted,
+                                color = if (isToday) MockupColors.TextPrimary else MockupColors.TextMuted,
                                 modifier = Modifier.width(32.dp),
                                 textAlign = TextAlign.Center
                             )
@@ -447,30 +482,99 @@ private fun FullCardContent(
 
                     Spacer(modifier = Modifier.height(8.dp))
 
-                    // Stars (fill from Monday to today)
+                    // Stars (실제 달성 여부로 채움)
+                    // 오늘 별 펄스 애니메이션
+                    val infiniteTransition = rememberInfiniteTransition(label = "todayStarPulse")
+                    val todayStarScale by infiniteTransition.animateFloat(
+                        initialValue = 1f,
+                        targetValue = 1.2f,
+                        animationSpec = infiniteRepeatable(
+                            animation = tween(600, easing = FastOutSlowInEasing),
+                            repeatMode = RepeatMode.Reverse
+                        ),
+                        label = "scale"
+                    )
+
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
-                        repeat(7) { index ->
-                            val isFilled = if (today == 0) {
-                                index == 0 // Sunday only
-                            } else {
-                                index in 1..today // Monday to today
-                            }
-
+                        displayAchievements.forEachIndexed { index, achieved ->
+                            val isToday = index == todayDisplayIndex
                             Box(
-                                modifier = Modifier.size(32.dp),
+                                modifier = Modifier
+                                    .size(32.dp)
+                                    .scale(if (isToday) todayStarScale else 1f),
                                 contentAlignment = Alignment.Center
                             ) {
                                 PixelIcon(
                                     iconName = "icon_star",
                                     size = 24.dp,
-                                    // 채워진 별: 진한 회색, 빈 별: 연한 회색
-                                    tint = if (isFilled) Color(0xFF333333) else Color(0xFFCCCCCC)
+                                    // 달성한 날: 진한 회색, 안 한 날: 연한 회색
+                                    tint = if (achieved) Color(0xFF333333) else Color(0xFFCCCCCC)
                                 )
                             }
                         }
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            // 5. Stats Card (파라미터로 전달받은 실제 데이터 사용)
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(MockupColors.CardBackground)
+                    .border(3.dp, MockupColors.Border, RoundedCornerShape(12.dp))
+                    .padding(vertical = 12.dp, horizontal = 16.dp)
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceEvenly
+                ) {
+                    // 총 거리
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text(
+                            text = String.format("%.1fkm", totalKm),
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = MockupColors.TextPrimary
+                        )
+                        Text(
+                            text = "총 거리",
+                            fontSize = 11.sp,
+                            color = MockupColors.TextMuted
+                        )
+                    }
+                    // 전체 달성 일수
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text(
+                            text = "${successDays}일",
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = MockupColors.TextPrimary
+                        )
+                        Text(
+                            text = "달성 일수",
+                            fontSize = 11.sp,
+                            color = MockupColors.TextMuted
+                        )
+                    }
+                    // 연속 달성
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text(
+                            text = "${streakCount}일",
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = MockupColors.TextPrimary
+                        )
+                        Text(
+                            text = "연속 달성",
+                            fontSize = 11.sp,
+                            color = MockupColors.TextMuted
+                        )
                     }
                 }
             }
@@ -515,7 +619,7 @@ private fun StickerContent(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(200.dp)
+                    .height(230.dp)
                     .clip(RoundedCornerShape(16.dp))
                     .drawBehind {
                         val squareSize = 16.dp.toPx()
@@ -703,61 +807,49 @@ private fun SpeechBubbleMultiline(
 private fun getStreakCelebrationSpeech(
     personality: PetPersonality,
     streakDays: Int,
-    dailySteps: Int,
+    successDays: Int,
     totalKm: Float
 ): androidx.compose.ui.text.AnnotatedString {
-    val formattedSteps = "%,d".format(dailySteps)
     val boldStyle = SpanStyle(fontWeight = FontWeight.Bold)
 
     return when (personality) {
         PetPersonality.TOUGH -> if (streakDays == 1) {
             buildAnnotatedString {
-                append("오늘 ")
-                withStyle(boldStyle) { append("${formattedSteps}보") }
-                append("나 걸었다고?\n됐다. 좋은 시작이야.")
+                append("오늘도 달성했다고?\n됐다. 좋은 시작이야.")
             }
         } else {
             buildAnnotatedString {
-                withStyle(boldStyle) { append("${streakDays}일") }
-                append(" 동안 매일 ")
-                withStyle(boldStyle) { append("${formattedSteps}보") }
-                append("씩\n")
+                append("총 ")
+                withStyle(boldStyle) { append("${successDays}일") }
+                append(" 달성,\n")
                 withStyle(boldStyle) { append("${totalKm}km") }
-                append("나 걸었다고?\n됐다. 잘했어.")
+                append(" 걸었다고?\n됐다. 잘했어.")
             }
         }
 
         PetPersonality.CUTE -> if (streakDays == 1) {
             buildAnnotatedString {
-                append("우와~! 오늘 ")
-                withStyle(boldStyle) { append("${formattedSteps}보") }
-                append("나\n걸었다니 대단해용!")
+                append("우와~! 오늘도 달성!\n대단해용!")
             }
         } else {
             buildAnnotatedString {
-                append("우와~! ")
-                withStyle(boldStyle) { append("${streakDays}일") }
-                append(" 동안\n매일 ")
-                withStyle(boldStyle) { append("${formattedSteps}보") }
-                append("씩\n")
+                append("우와~! 총 ")
+                withStyle(boldStyle) { append("${successDays}일") }
+                append(" 달성!\n")
                 withStyle(boldStyle) { append("${totalKm}km") }
-                append("나 걸었다니 대단해용!")
+                append(" 걸었다니 대단해용!")
             }
         }
 
         PetPersonality.TSUNDERE -> if (streakDays == 1) {
             buildAnnotatedString {
-                append("흥, 오늘 ")
-                withStyle(boldStyle) { append("${formattedSteps}보") }
-                append("?\n뭐... 나쁘지 않네.")
+                append("흥, 오늘도 달성?\n뭐... 나쁘지 않네.")
             }
         } else {
             buildAnnotatedString {
-                append("흥, ")
-                withStyle(boldStyle) { append("${streakDays}일") }
-                append(" 동안\n매일 ")
-                withStyle(boldStyle) { append("${formattedSteps}보") }
-                append("씩 ")
+                append("흥, 총 ")
+                withStyle(boldStyle) { append("${successDays}일") }
+                append(" 달성에\n")
                 withStyle(boldStyle) { append("${totalKm}km") }
                 append("?\n뭐... 나쁘지 않네.")
             }
@@ -765,16 +857,13 @@ private fun getStreakCelebrationSpeech(
 
         PetPersonality.DIALECT -> if (streakDays == 1) {
             buildAnnotatedString {
-                append("오늘 ")
-                withStyle(boldStyle) { append("${formattedSteps}보") }
-                append("나 걸었노~\n좋은 시작이다!")
+                append("오늘도 달성했노~\n좋은 시작이다!")
             }
         } else {
             buildAnnotatedString {
-                withStyle(boldStyle) { append("${streakDays}일") }
-                append(" 동안 매일 ")
-                withStyle(boldStyle) { append("${formattedSteps}보") }
-                append("씩\n")
+                append("총 ")
+                withStyle(boldStyle) { append("${successDays}일") }
+                append(" 달성에\n")
                 withStyle(boldStyle) { append("${totalKm}km") }
                 append(" 걸었노~\nㄹㅇ 대단하다!")
             }
@@ -782,36 +871,29 @@ private fun getStreakCelebrationSpeech(
 
         PetPersonality.TIMID -> if (streakDays == 1) {
             buildAnnotatedString {
-                append("대, 대단해요...!\n오늘 ")
-                withStyle(boldStyle) { append("${formattedSteps}보") }
-                append("나...!")
+                append("대, 대단해요...!\n오늘도 달성...!")
             }
         } else {
             buildAnnotatedString {
-                append("대, 대단해요...! ")
-                withStyle(boldStyle) { append("${streakDays}일") }
-                append(" 동안\n매일 ")
-                withStyle(boldStyle) { append("${formattedSteps}보") }
-                append("씩\n")
+                append("대, 대단해요...! 총 ")
+                withStyle(boldStyle) { append("${successDays}일") }
+                append(" 달성에\n")
                 withStyle(boldStyle) { append("${totalKm}km") }
-                append("나 걸었어요...!")
+                append(" 걸었어요...!")
             }
         }
 
         PetPersonality.POSITIVE -> if (streakDays == 1) {
             buildAnnotatedString {
-                append("오늘 ")
-                withStyle(boldStyle) { append("${formattedSteps}보") }
-                append(" 완료!\n좋은 시작! 최고야!")
+                append("오늘도 달성!\n좋은 시작! 최고야!")
             }
         } else {
             buildAnnotatedString {
-                withStyle(boldStyle) { append("${streakDays}일") }
-                append(" 동안 매일 ")
-                withStyle(boldStyle) { append("${formattedSteps}보") }
-                append("!\n총 ")
+                append("총 ")
+                withStyle(boldStyle) { append("${successDays}일") }
+                append(" 달성!\n")
                 withStyle(boldStyle) { append("${totalKm}km") }
-                append("! 최고야!")
+                append(" 걸었어! 최고야!")
             }
         }
     }

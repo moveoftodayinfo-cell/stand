@@ -83,7 +83,9 @@ fun PetMainScreen(
     onChallengeClick: () -> Unit = {},
     hapticManager: HapticManager? = null,
     modifier: Modifier = Modifier,
-    isFreeTime: Boolean = false  // 자유로운 날/시간 (제어 요일 아니거나 제어 시간대 아님)
+    isFreeTime: Boolean = false,  // 자유로운 날/시간 (제어 요일 아니거나 제어 시간대 아님)
+    petStateV2: PetState? = null,  // V2 펫 상태 (있으면 V2 스프라이트 사용)
+    onTestGoalClick: () -> Unit = {}  // 🧪 테스트: 목표 달성 시뮬레이션
 ) {
     val kenneyFont = rememberKenneyFont()
     val isGoalAchieved = stepCount >= goalSteps
@@ -163,39 +165,43 @@ fun PetMainScreen(
         }
     }
 
-    // 현재 상태에 맞는 대사를 가져오는 함수 (달성률 구간별 다양한 대사)
+    // 현재 상태에 맞는 대사를 가져오는 함수 (진행률 대사 + 30% AI 명언)
     fun getCurrentSpeech(): String {
-        // 30% 확률로 동기부여 명언 표시 (0~49% 구간에서)
-        val showMotivationalQuote = !isFreeTime && !isGoalAchieved &&
-            progressPercent < 50 && (0..9).random() < 3
-
-        if (showMotivationalQuote) {
-            return PetDialogues.getMotivationalQuote(petType.personality)
+        // 30% 확률로 AI 명언 표시
+        val showAIQuote = (0..9).random() < 3
+        if (showAIQuote) {
+            return PetAIQuoteManager.getQuote(petType.personality)
         }
 
+        // 진행률 기반 대사
         return when {
-            isFreeTime -> PetDialogues.getFreeTimeMessage(petType.personality)  // 자유 시간
-            progressPercent > 100 -> PetDialogues.getOverAchievedMessage(petType.personality, progressPercent)  // 100% 초과
-            isGoalAchieved -> PetDialogues.getGoalAchievedMessage(petType.personality)  // 100%
-            progressPercent >= 90 -> PetDialogues.getAlmostThereMessage(petType.personality)  // 90-99%
-            progressPercent >= 75 -> PetDialogues.getThreeQuarterMessage(petType.personality)  // 75-89%
-            progressPercent >= 50 -> PetDialogues.getHalfwayMessage(petType.personality)  // 50-74%
-            progressPercent >= 25 -> PetDialogues.getQuarterMessage(petType.personality)  // 25-49%
-            happinessLevel <= 1 -> PetDialogues.getSadMessage(petType.personality)  // 슬픔 상태
-            progressPercent >= 10 -> PetDialogues.getStartedMessage(petType.personality)  // 10-24%
-            progressPercent > 0 -> PetDialogues.getJustStartedMessage(petType.personality)  // 1-9%
-            else -> PetDialogues.getIdleMessage(petType.personality)  // 0%
+            isFreeTime -> PetDialogues.getFreeTimeMessage(petType.personality)
+            progressPercent > 100 -> PetDialogues.getOverAchievedMessage(petType.personality, progressPercent)
+            isGoalAchieved -> PetDialogues.getGoalAchievedMessage(petType.personality)
+            progressPercent >= 90 -> PetDialogues.getAlmostThereMessage(petType.personality)
+            progressPercent >= 75 -> PetDialogues.getThreeQuarterMessage(petType.personality)
+            progressPercent >= 50 -> PetDialogues.getHalfwayMessage(petType.personality)
+            progressPercent >= 25 -> PetDialogues.getQuarterMessage(petType.personality)
+            happinessLevel <= 1 -> PetDialogues.getSadMessage(petType.personality)
+            progressPercent >= 10 -> PetDialogues.getStartedMessage(petType.personality)
+            progressPercent > 0 -> PetDialogues.getJustStartedMessage(petType.personality)
+            else -> PetDialogues.getIdleMessage(petType.personality)
         }
     }
 
     // 기본 대사 (백그라운드 복귀 또는 새 대화 시에만 변경)
     var defaultSpeech by remember { mutableStateOf("") }
 
-    // 최초 로드 시 대사 설정
+    // 앱 시작 시 AI 명언 생성 및 대사 설정
     LaunchedEffect(Unit) {
+        // 초기 대사 설정 (기본값)
         if (defaultSpeech.isEmpty()) {
             defaultSpeech = getCurrentSpeech()
         }
+        // AI 명언 생성 (완료 후 대사 갱신)
+        PetAIQuoteManager.generateQuotes(petType.personality, petName)
+        // AI 생성 완료 후 대사 갱신
+        defaultSpeech = getCurrentSpeech()
     }
 
     // 대사 새로고침 트리거가 변경되면 대사 업데이트
@@ -299,13 +305,16 @@ fun PetMainScreen(
 
     // 공유 다이얼로그
     if (showShareDialog) {
-        val today = java.util.Calendar.getInstance().get(java.util.Calendar.DAY_OF_WEEK)
-        val dayIndex = if (today == java.util.Calendar.SUNDAY) 6 else today - 2
-        val testWeeklyAchievements = List(7) { index -> index <= dayIndex }
+        // 실제 주간 달성 데이터 사용
+        val realWeeklyAchievements = preferenceManager.getWeeklyAchievements()
+
+        // 총 걸음수 기반 총거리 (km) - Firebase에서 복원된 petTotalSteps 사용
+        val petTotalSteps = preferenceManager.getPetTotalSteps()
+        val totalDistanceKm = petTotalSteps * 0.0007f
 
         StreakCelebrationDialog(
             streakCount = streakCount.coerceAtLeast(1),
-            weeklyAchievements = testWeeklyAchievements,
+            weeklyAchievements = realWeeklyAchievements,
             onDismiss = {
                 showShareDialog = false
                 isQuickShareMode = false
@@ -314,9 +323,11 @@ fun PetMainScreen(
             petType = petType,
             petName = petName,  // 펫 이름만 전달
             equippedTitle = equippedTitle?.title,  // 칭호는 별도로 전달 (볼드용)
-            dailySteps = goalSteps,
-            totalKm = (goalSteps * 0.0007f) * streakCount.coerceAtLeast(1),
-            screenFreeHours = 3 * streakCount.coerceAtLeast(1),
+            successDays = preferenceManager.getSuccessDays(),
+            totalKm = totalDistanceKm,
+            // 첫 주 판단용 파라미터
+            isFirstWeek = preferenceManager.isFirstWeekOfStreak(),
+            streakStartDayOfWeek = preferenceManager.getStreakStartDayOfWeek(),
             // 빠른 공유 모드 파라미터
             isQuickShare = isQuickShareMode,
             currentSpeech = displaySpeech,
@@ -412,15 +423,27 @@ fun PetMainScreen(
                     .padding(bottom = 10.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                // 펫 스프라이트
-                PetSpriteWithSyncedGlow(
-                    petType = petType,
-                    isWalking = isWalking || isGoalAchieved,
-                    size = 120.dp,
-                    monochrome = true,
-                    frameDurationMs = 500,
-                    enableRandomAnimation = !isWalking && !isGoalAchieved
-                )
+                // 펫 스프라이트 (V2 우선, 없으면 V1)
+                if (petStateV2 != null) {
+                    // V2 스프라이트
+                    PetSpriteFromState(
+                        petState = petStateV2,
+                        isWalking = isWalking || isGoalAchieved,
+                        progressPercent = progressPercent,
+                        baseSizeDp = 120,
+                        monochrome = true
+                    )
+                } else {
+                    // V1 스프라이트 (폴백)
+                    PetSpriteWithSyncedGlow(
+                        petType = petType,
+                        isWalking = isWalking || isGoalAchieved,
+                        size = 120.dp,
+                        monochrome = true,
+                        frameDurationMs = 500,
+                        enableRandomAnimation = !isWalking && !isGoalAchieved
+                    )
+                }
 
                 // 칭호 + 펫 이름 (스프라이트 아래, 클릭하여 칭호 변경)
                 Row(
@@ -525,11 +548,11 @@ fun PetMainScreen(
 
                             // 채팅 로그 저장
                             val responseType = when (result) {
-                                is PetAIChatManager.ChatResult.Script -> "script"
                                 is PetAIChatManager.ChatResult.AI -> "ai"
                                 is PetAIChatManager.ChatResult.Filtered -> "filtered"
                                 is PetAIChatManager.ChatResult.LimitReached -> "limit_reached"
                                 is PetAIChatManager.ChatResult.Tired -> "tired"
+                                is PetAIChatManager.ChatResult.Error -> "error"
                             }
                             com.moveoftoday.walkorwait.ChatLogManager.saveChat(
                                 userMessage = inputMessage,
@@ -667,6 +690,7 @@ fun PetMainScreen(
                     .border(2.dp, Color(0xFFE53935), RoundedCornerShape(12.dp))
                     .clickable {
                         hapticManager?.click()
+                        onTestGoalClick()  // 걸음수 채우기
                         isQuickShareMode = false  // 달성 모드
                         showShareDialog = true
                     }
@@ -781,13 +805,21 @@ fun PetMainContent(
     }
 
     var petResponse by remember { mutableStateOf("") }
-    val defaultSpeech = when {
-        isGoalAchieved -> PetDialogues.getGoalAchievedMessage(petType.personality)
-        progressPercent >= 90 -> PetDialogues.getAlmostThereMessage(petType.personality)
-        progressPercent >= 50 -> PetDialogues.getHalfwayMessage(petType.personality)
-        happinessLevel <= 1 -> PetDialogues.getSadMessage(petType.personality)
-        progressPercent > 0 -> PetDialogues.getWalkingMessage(petType.personality, progressPercent)
-        else -> PetDialogues.getIdleMessage(petType.personality)
+    // 30% 확률로 AI 명언, 나머지는 진행률 대사
+    val defaultSpeech = remember(progressPercent, isGoalAchieved, happinessLevel) {
+        val showAIQuote = (0..9).random() < 3
+        if (showAIQuote) {
+            PetAIQuoteManager.getQuote(petType.personality)
+        } else {
+            when {
+                isGoalAchieved -> PetDialogues.getGoalAchievedMessage(petType.personality)
+                progressPercent >= 90 -> PetDialogues.getAlmostThereMessage(petType.personality)
+                progressPercent >= 50 -> PetDialogues.getHalfwayMessage(petType.personality)
+                happinessLevel <= 1 -> PetDialogues.getSadMessage(petType.personality)
+                progressPercent > 0 -> PetDialogues.getWalkingMessage(petType.personality, progressPercent)
+                else -> PetDialogues.getIdleMessage(petType.personality)
+            }
+        }
     }
     val displaySpeech = if (petResponse.isNotEmpty()) petResponse else defaultSpeech
 
@@ -1019,11 +1051,11 @@ fun PetMainContent(
 
                             // 채팅 로그 저장
                             val responseType = when (result) {
-                                is PetAIChatManager.ChatResult.Script -> "script"
                                 is PetAIChatManager.ChatResult.AI -> "ai"
                                 is PetAIChatManager.ChatResult.Filtered -> "filtered"
                                 is PetAIChatManager.ChatResult.LimitReached -> "limit_reached"
                                 is PetAIChatManager.ChatResult.Tired -> "tired"
+                                is PetAIChatManager.ChatResult.Error -> "error"
                             }
                             com.moveoftoday.walkorwait.ChatLogManager.saveChat(
                                 userMessage = inputMessage,

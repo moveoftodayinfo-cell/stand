@@ -27,7 +27,8 @@ import com.moveoftoday.walkorwait.pet.rememberKenneyFont
 @Composable
 fun AppLockScreen(
     preferenceManager: PreferenceManager?,
-    onBack: () -> Unit
+    onBack: () -> Unit,
+    onLockedAppsChanged: ((Set<String>) -> Unit)? = null
 ) {
     val context = LocalContext.current
     val kenneyFont = rememberKenneyFont()
@@ -241,10 +242,12 @@ fun AppLockScreen(
                                             if (!isSelected) {
                                                 selectedApps = selectedApps + app.packageName
                                                 preferenceManager?.saveLockedApps(selectedApps)
+                                                onLockedAppsChanged?.invoke(selectedApps)
                                             } else {
                                                 if (preferenceManager?.canRemoveLockedApp() == true) {
                                                     selectedApps = selectedApps - app.packageName
                                                     preferenceManager.saveLockedApps(selectedApps)
+                                                    onLockedAppsChanged?.invoke(selectedApps)
                                                     preferenceManager.saveAppRemoveTime()
                                                 } else {
                                                     hapticManager.warning()
@@ -285,10 +288,12 @@ fun AppLockScreen(
                                             if (checked) {
                                                 selectedApps = selectedApps + app.packageName
                                                 preferenceManager?.saveLockedApps(selectedApps)
+                                                onLockedAppsChanged?.invoke(selectedApps)
                                             } else {
                                                 if (preferenceManager?.canRemoveLockedApp() == true) {
                                                     selectedApps = selectedApps - app.packageName
                                                     preferenceManager.saveLockedApps(selectedApps)
+                                                    onLockedAppsChanged?.invoke(selectedApps)
                                                     preferenceManager.saveAppRemoveTime()
                                                 } else {
                                                     hapticManager.warning()

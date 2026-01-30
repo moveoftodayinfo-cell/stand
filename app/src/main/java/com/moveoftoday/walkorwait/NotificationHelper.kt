@@ -158,4 +158,49 @@ class NotificationHelper(private val context: Context) {
 
         notificationManager.notify(GOAL_NOTIFICATION_ID, notification)
     }
+
+    /**
+     * 걱정 알림 - 평소 운동 시간에 움직임이 없을 때
+     * 펫이 걱정하는 말투로 알림
+     * @param petName 펫 이름
+     */
+    fun showWorryNotification(petName: String) {
+        val intent = Intent(context, MainActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+        }
+
+        val pendingIntent = PendingIntent.getActivity(
+            context,
+            0,
+            intent,
+            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
+        )
+
+        // 걱정하는 말투의 메시지들
+        val worryMessages = listOf(
+            "오늘 괜찮아? 평소 이 시간엔 같이 산책했는데...",
+            "무슨 일 있어? 걱정돼서 기다리고 있었어",
+            "오늘 많이 바쁜가봐... 잠깐이라도 나와줄 수 있어?",
+            "혹시 아픈 건 아니지? 오늘 아직 못 봤네...",
+            "보고싶다... 잠깐만 얼굴이라도 보여줘!"
+        )
+
+        val message = worryMessages.random()
+
+        val notification = NotificationCompat.Builder(context, GOAL_CHANNEL_ID)
+            .setSmallIcon(android.R.drawable.ic_dialog_alert)
+            .setContentTitle("$petName 가 걱정하고 있어요")
+            .setContentText(message)
+            .setStyle(NotificationCompat.BigTextStyle().bigText(message))
+            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+            .setAutoCancel(true)
+            .setContentIntent(pendingIntent)
+            .build()
+
+        try {
+            notificationManager.notify(GOAL_NOTIFICATION_ID + 10, notification)
+        } catch (e: SecurityException) {
+            android.util.Log.e("NotificationHelper", "Failed to show worry notification: ${e.message}")
+        }
+    }
 }

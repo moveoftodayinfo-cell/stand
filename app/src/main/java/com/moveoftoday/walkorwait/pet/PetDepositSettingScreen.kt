@@ -310,7 +310,7 @@ private fun ControlDaysStep(
         PetPersonality.TOUGH -> "어떤 요일에 걸을 거야?"
         PetPersonality.CUTE -> "언제 걸을 거야~?"
         PetPersonality.TSUNDERE -> "요일... 정해야지."
-        PetPersonality.DIALECT -> "어느 요일에 걸을 낀지 정하이소~"
+        PetPersonality.DIALECT -> "어느 요일에 걸을 낀지 정하자"
         PetPersonality.TIMID -> "저, 요일 정해주세요..."
         PetPersonality.POSITIVE -> "언제 걸을지 정하자!"
     }
@@ -480,7 +480,7 @@ private fun BlockingPeriodsStep(
         PetPersonality.TOUGH -> "언제 차단할 거야?"
         PetPersonality.CUTE -> "차단 시간 정하자~"
         PetPersonality.TSUNDERE -> "시간대... 정해야지."
-        PetPersonality.DIALECT -> "몇 시에 차단할 낀지 정하이소~"
+        PetPersonality.DIALECT -> "몇 시에 차단할 낀지 정하자"
         PetPersonality.TIMID -> "저, 시간대 정해주세요..."
         PetPersonality.POSITIVE -> "시간대 정하자! 거의 다 왔어!"
     }
@@ -644,15 +644,15 @@ private fun PaymentStep(
             PetPersonality.TOUGH -> "무료로 시작하자."
             PetPersonality.CUTE -> "무료야! 럭키~"
             PetPersonality.TSUNDERE -> "무, 무료라니... 좋은 거 아냐!"
-            PetPersonality.DIALECT -> "무료로 시작하는기라!"
+            PetPersonality.DIALECT -> "무료로 시작이다"
             PetPersonality.TIMID -> "저, 무료라니 다행이에요..."
             PetPersonality.POSITIVE -> "무료다! 대박!"
         }
         else -> when (petType.personality) {
             PetPersonality.TOUGH -> "이제 시작해볼까."
-            PetPersonality.CUTE -> "마지막이야! 간바~"
+            PetPersonality.CUTE -> "마지막이야! 가보자고~"
             PetPersonality.TSUNDERE -> "뭐, 결제... 해야겠지."
-            PetPersonality.DIALECT -> "이제 시작하는기라!"
+            PetPersonality.DIALECT -> "이제 시작이다"
             PetPersonality.TIMID -> "저, 마지막 단계예요..."
             PetPersonality.POSITIVE -> "마지막! 거의 다 왔어!"
         }

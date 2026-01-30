@@ -71,6 +71,7 @@ class MainActivity : ComponentActivity() {
     private lateinit var stepSensorManager: StepSensorManager
     private lateinit var repository: UserDataRepository
     private lateinit var preferenceManager: PreferenceManager
+    private lateinit var notificationHelper: NotificationHelper
     private var stepCount = mutableIntStateOf(0)
 
     private val permissionLauncher = registerForActivityResult(
@@ -97,6 +98,7 @@ class MainActivity : ComponentActivity() {
             val app = application as WalkorWaitApp
             repository = app.userDataRepository
             preferenceManager = PreferenceManager(this) // 하위 호환성을 위해 유지
+            notificationHelper = NotificationHelper(this)
 
             Log.d(TAG, "Loading today steps")
             stepCount.intValue = repository.getTodaySteps()
@@ -132,14 +134,20 @@ class MainActivity : ComponentActivity() {
             Log.d(TAG, "Checking and resetting daily")
             checkAndResetDaily()
 
-            Log.d(TAG, "Checking permissions")
-            checkPermissionAndStart()
+            // 튜토리얼 완료된 경우에만 권한 요청 및 서비스 시작
+            // (튜토리얼 중에는 PermissionSettingsStep에서 권한 요청)
+            if (preferenceManager.isTutorialCompleted()) {
+                Log.d(TAG, "Tutorial completed - Checking permissions")
+                checkPermissionAndStart()
 
-            Log.d(TAG, "Requesting notification permission")
-            requestNotificationPermission()
+                Log.d(TAG, "Requesting notification permission")
+                requestNotificationPermission()
 
-            Log.d(TAG, "Starting service")
-            StepCounterService.start(this)
+                Log.d(TAG, "Starting service")
+                StepCounterService.start(this)
+            } else {
+                Log.d(TAG, "Tutorial not completed - skipping permission requests")
+            }
 
             // Analytics: 메인 화면 조회
             AnalyticsManager.trackScreenView("MainScreen", "MainActivity")
@@ -154,6 +162,24 @@ class MainActivity : ComponentActivity() {
     override fun onResume() {
         super.onResume()
         checkAndResetDaily()
+        checkWorryNotification()
+    }
+
+    /**
+     * 걱정 알림 체크 - 평소 운동 시간에 움직임이 없으면 알림
+     */
+    private fun checkWorryNotification() {
+        // 초기화 완료 체크
+        if (!::preferenceManager.isInitialized || !::notificationHelper.isInitialized) {
+            return
+        }
+        
+        if (preferenceManager.shouldShowWorryNotification() &&
+            !preferenceManager.hasShownWorryNotificationToday()) {
+            val petName = preferenceManager.getPetName() ?: "펫"
+            notificationHelper.showWorryNotification(petName)
+            preferenceManager.setWorryNotificationShown()
+        }
     }
 
     private fun checkAndResetDaily() {
@@ -364,27 +390,40 @@ fun WalkOrWaitScreen(
         updateCheckCompleted = true
     }
 
-    // 앱 시작 시 구독/프로모션 상태 백그라운드 확인
-    LaunchedEffect(Unit) {
+    // 앱 시작 시 구독/프로모션 상태 백그라운드 확인 (Firebase 동기화 완료 후)
+    LaunchedEffect(syncCompleted, isTutorialCompleted) {
+        if (!syncCompleted) return@LaunchedEffect  // Firebase 동기화 완료 대기
+
+        // Firebase에서 복원된 최신 값 사용
+        val currentPromoCodeType = preferenceManager?.getPromoCodeType()
+        val currentIsPaidDeposit = preferenceManager?.isPaidDeposit() ?: false
+
+        Log.d("MainActivity", "💳 Subscription check - syncCompleted: $syncCompleted, isTutorialCompleted: $isTutorialCompleted, isPaidDeposit: $currentIsPaidDeposit, promoCodeType: $currentPromoCodeType")
+
         if (isTutorialCompleted) {
             // 1. 프로모션 코드 사용자: 프로모션 기간 체크
-            if (promoCodeType != null) {
+            if (currentPromoCodeType != null) {
                 val isPromoValid = preferenceManager?.isInPromoFreePeriod() ?: false
+                Log.d("MainActivity", "💳 Promo user - isPromoValid: $isPromoValid")
                 if (!isPromoValid) {
                     // 프로모션 기간 만료 → 프로모션 정보 삭제 후 결제 화면
                     preferenceManager?.clearPromoCode()
                     preferenceManager?.setPaidDeposit(false)
                     showExpiredPaymentScreen = true
+                    Log.d("MainActivity", "💳 Promo expired - showing payment screen")
                 }
                 return@LaunchedEffect
             }
 
-            // 2. 일반 사용자: Google Play 구독 상태 확인
-            // 로컬에 이미 결제 완료 상태면 Google Play 체크 건너뛰기 (연결 실패 시 상태 유지)
-            if (isPaidDeposit) {
-                return@LaunchedEffect
+            // 2. 유료 구독 사용자: Google Play 구독 상태 확인
+            // paidDeposit: true여도 항상 Google Play에서 구독 활성화 여부 확인
+            if (currentIsPaidDeposit) {
+                Log.d("MainActivity", "💳 Paid user - checking Google Play subscription...")
+            } else {
+                Log.d("MainActivity", "💳 New user - checking Google Play subscription...")
             }
 
+            Log.d("MainActivity", "💳 Checking Google Play subscription...")
             val billingManager = BillingManager(
                 context = context,
                 onConnectionReady = {}
@@ -393,9 +432,17 @@ fun WalkOrWaitScreen(
             delay(2000)  // 연결 시간 여유 확보
 
             billingManager.checkActiveSubscription { isActive, _ ->
-                if (!isActive) {
+                Log.d("MainActivity", "💳 Subscription check result - isActive: $isActive")
+                if (isActive) {
+                    // 구독 활성화 확인 - paidDeposit을 true로 설정 (복원 시 누락 방지)
+                    if (preferenceManager?.isPaidDeposit() != true) {
+                        preferenceManager?.setPaidDeposit(true)
+                        Log.d("MainActivity", "💳 Active subscription confirmed - paidDeposit updated to true")
+                    }
+                } else {
                     showExpiredPaymentScreen = true
                     preferenceManager?.setPaidDeposit(false)
+                    Log.d("MainActivity", "💳 No active subscription - showing payment screen")
                 }
             }
         }
@@ -408,8 +455,10 @@ fun WalkOrWaitScreen(
 
     // Firebase 동기화 완료 후 튜토리얼 상태 결정
     LaunchedEffect(syncCompleted, isTutorialCompleted) {
+        Log.d("MainActivity", "🔄 LaunchedEffect - syncCompleted: $syncCompleted, isTutorialCompleted: $isTutorialCompleted, userSettings: ${userSettings?.tutorialCompleted}, prefManager: ${preferenceManager?.isTutorialCompleted()}")
         if (syncCompleted) {
             showPetOnboarding = !isTutorialCompleted
+            Log.d("MainActivity", "📱 showPetOnboarding set to: $showPetOnboarding")
             // showRealGoalSetup이 이미 true면 덮어쓰지 않음 (onComplete 콜백에서 설정된 경우)
             if (!showRealGoalSetup) {
                 showRealGoalSetup = needsRealGoal && isTutorialCompleted
@@ -541,19 +590,13 @@ fun WalkOrWaitScreen(
         return
     }
 
-    // 3. 구독 만료 시 결제 화면 (새 레트로 디자인)
+    // 3. 구독 만료 시 결제 화면 (PaymentScreen - 재결제용)
     if (showExpiredPaymentScreen) {
-        val savedPetType = preferenceManager?.getPetType()?.let {
-            PetType.entries.find { pet -> pet.name == it }
-        } ?: PetType.DOG1
-        val savedPetName = preferenceManager?.getPetName() ?: "반려동물"
-
-        PetDepositSettingScreen(
-            petType = savedPetType,
-            petName = savedPetName,
-            preferenceManager = preferenceManager,
+        com.moveoftoday.walkorwait.pet.PaymentScreen(
+            petType = petType,
+            petName = petName,
+            preferenceManager = preferenceManager!!,
             hapticManager = hapticManager,
-            startAtStep = 2,  // 결제 화면으로 바로 이동
             onComplete = {
                 // 결제 완료 시
                 showExpiredPaymentScreen = false
@@ -716,7 +759,9 @@ fun WalkOrWaitScreen(
             },
             hapticManager = hapticManager,
             petType = petType,
-            petName = petName
+            petName = petName,
+            isFirstWeek = preferenceManager?.isFirstWeekOfStreak() ?: false,
+            streakStartDayOfWeek = preferenceManager?.getStreakStartDayOfWeek() ?: 0
         )
     }
 
@@ -955,7 +1000,9 @@ fun WalkOrWaitScreen(
             },
             hapticManager = hapticManager,
             petType = petType,
-            petName = petName
+            petName = petName,
+            isFirstWeek = preferenceManager?.isFirstWeekOfStreak() ?: false,
+            streakStartDayOfWeek = preferenceManager?.getStreakStartDayOfWeek() ?: 0
         )
     }
 

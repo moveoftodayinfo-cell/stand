@@ -23,6 +23,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.animation.core.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -124,7 +125,7 @@ fun PetOnboardingScreen(
         if (step >= 4 && savedPetType == null) 0 else step
     }
 
-    var currentStep by remember { mutableIntStateOf(savedStep) }
+    var currentStep by rememberSaveable { mutableIntStateOf(savedStep) }
     var selectedPetType by remember { mutableStateOf(savedPetType) }
     var petName by remember { mutableStateOf(if (savedStep > 1 && savedPetName.isNotBlank()) savedPetName else "") }
 
@@ -160,19 +161,16 @@ fun PetOnboardingScreen(
             .background(MockupColors.Background)
     ) {
         when (currentStep) {
-            // === NO DOTS (0) - Google 로그인 (맨 처음) ===
+            // === NO DOTS (0) - Google 로그인 (필수) ===
             0 -> GoogleSignInStep(
                 hapticManager = hapticManager,
                 onNext = {
+                    // 신규 사용자: 펫 선택으로
                     hapticManager?.click()
-                    currentStep = 1  // 펫 선택으로
-                },
-                onSkip = {
-                    hapticManager?.click()
-                    currentStep = 1  // 펫 선택으로
+                    currentStep = 1
                 },
                 onDataRestored = {
-                    // 기존 데이터 복원 성공 - 튜토리얼 스킵
+                    // 기존 사용자: 튜토리얼 스킵하고 메인으로
                     hapticManager?.success()
                     onDataRestored()
                 }
@@ -211,19 +209,12 @@ fun PetOnboardingScreen(
                 hapticManager = hapticManager
             )
 
-            // === NO DOTS (3) - 튜토리얼 + 구글 로그인 ===
+            // === NO DOTS (3) - 튜토리얼 안내 (Google 로그인은 step 0에서 완료) ===
             3 -> TutorialAllInOneStep(
                 petType = selectedPetType!!,
                 petName = petName,
                 hapticManager = hapticManager,
-                onGoogleLogin = {
-                    // 구글 로그인 성공 후 다음 단계로
-                    hapticManager?.success()
-                    currentStep = 4
-                },
-                onSkip = {
-                    // 로그인 스킵하고 다음 단계로
-                    hapticManager?.click()
+                onNext = {
                     currentStep = 4
                 }
             )
@@ -359,14 +350,12 @@ fun PetOnboardingScreen(
                     currentStep = 15
                 }
             )
-            15 -> PaymentStep(
+            15 -> PaymentScreen(
                 petType = selectedPetType!!,
                 petName = petName,
-                dotStep = dotStep,
-                totalDots = totalDots,
                 preferenceManager = prefManager,
                 hapticManager = hapticManager,
-                onNext = {
+                onComplete = {
                     hapticManager?.click()
                     currentStep = 16
                 }
@@ -599,9 +588,9 @@ private fun PetSelectionStep(
 private fun getPetDescription(petType: PetType): String {
     return when (petType) {
         PetType.DOG1 -> "듬직하고 멋있는 상남자 스타일\n말수는 적지만 행동으로 보여주는 타입\n묵묵히 당신 곁을 지켜줄 거예요"
-        PetType.DOG2 -> "갓생러 지망 강아지\n간바레! 이쿠요! 응원이 특기\n같이 있으면 텐션 업 보장"
+        PetType.DOG2 -> "갓생러 지망 강아지\nㄹㅇ 응원이 특기ㅋㅋ\n같이 있으면 텐션 업 보장"
         PetType.CAT1 -> "겉은 차갑지만 속은 따뜻한 츤데레\n관심 없는 척하지만 사실 다 챙겨요\n은근히 당신 걱정을 많이 해요"
-        PetType.CAT2 -> "정 많은 경상도 사투리 고양이\n구수한 말투로 친근하게 다가와요\n푸근한 매력에 빠지게 될 거예요"
+        PetType.CAT2 -> "쿨한 부산 고양이\n담백하고 솔직한 말투가 매력\n옆에서 든든하게 챙겨줄 거예요"
         PetType.RAT -> "소심하지만 마음은 따뜻해요\n조심스럽게 당신에게 다가가요\n천천히 친해지면 든든한 친구가 돼요"
         PetType.BIRD -> "언제나 밝고 긍정적인 에너지\n힘들 때 용기를 북돋아 줘요\n함께라면 매일이 즐거워요"
     }
@@ -806,59 +795,18 @@ private fun TutorialAllInOneStep(
     petType: PetType,
     petName: String,
     hapticManager: HapticManager?,
-    onGoogleLogin: () -> Unit,
-    onSkip: () -> Unit
+    onNext: () -> Unit  // 다음 단계로
 ) {
     val context = LocalContext.current
-    val scope = rememberCoroutineScope()
     val kenneyFont = rememberKenneyFont()
     val displayPetSize = 140.dp
     val stripeWidth = 4.dp
-    val auth = FirebaseAuth.getInstance()
-
-    var isLoading by remember { mutableStateOf(false) }
-    var errorMessage by remember { mutableStateOf<String?>(null) }
-    var isSignedIn by remember { mutableStateOf(auth.currentUser != null && auth.currentUser?.isAnonymous != true) }
-
-    // Google Sign-In 함수 (Credential Manager 사용)
-    fun performGoogleSignIn() {
-        isLoading = true
-        scope.launch {
-            val result = GoogleSignInHelper.signIn(context)
-            when (result) {
-                is GoogleSignInHelper.SignInResult.Success -> {
-                    val firebaseResult = GoogleSignInHelper.signInToFirebase(result.idToken)
-                    if (firebaseResult.isSuccess) {
-                        val app = context.applicationContext as WalkorWaitApp
-                        app.userDataRepository.startSync()
-
-                        isLoading = false
-                        isSignedIn = true
-                        hapticManager?.success()
-                        AnalyticsManager.trackSettingsChanged("google_signin_tutorial", "success")
-
-                        delay(300)
-                        onGoogleLogin()
-                    } else {
-                        errorMessage = "Firebase 로그인 실패"
-                        isLoading = false
-                    }
-                }
-                is GoogleSignInHelper.SignInResult.Error -> {
-                    if (!result.isCancelled) {
-                        errorMessage = result.message
-                    }
-                    isLoading = false
-                }
-            }
-        }
-    }
 
     val speechText = when (petType.personality) {
         PetPersonality.TOUGH -> "준비됐어. 시작하자."
-        PetPersonality.CUTE -> "같이 간바루! 이쿠요~"
+        PetPersonality.CUTE -> "같이 가보자고! ㄱㄱ~"
         PetPersonality.TSUNDERE -> "뭐, 잘 부탁해."
-        PetPersonality.DIALECT -> "자, 시작해보이소!"
+        PetPersonality.DIALECT -> "자 시작하자"
         PetPersonality.TIMID -> "잘, 잘 부탁드려요..."
         PetPersonality.POSITIVE -> "우리 함께 화이팅!"
     }
@@ -960,72 +908,14 @@ private fun TutorialAllInOneStep(
 
         Spacer(modifier = Modifier.weight(1f))
 
-        // Error message
-        errorMessage?.let { error ->
-            Text(
-                text = error,
-                fontSize = 14.sp,
-                color = MockupColors.Red,
-                textAlign = TextAlign.Center
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-        }
-
-        // 이미 로그인 되어있으면 "시작하기"만, 아니면 "Google 로그인" + "시작하기"
-        if (isSignedIn) {
-            MockupButton(
-                text = "시작하기!",
-                onClick = onSkip
-            )
-        } else {
-            // Google 로그인 버튼
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(56.dp)
-                    .background(MockupColors.TextPrimary, RoundedCornerShape(12.dp))
-                    .clickable(enabled = !isLoading) {
-                        hapticManager?.click()
-                        errorMessage = null
-                        performGoogleSignIn()
-                    },
-                contentAlignment = Alignment.Center
-            ) {
-                if (isLoading) {
-                    CircularProgressIndicator(
-                        modifier = Modifier.size(24.dp),
-                        color = Color.White,
-                        strokeWidth = 2.dp
-                    )
-                } else {
-                    Text(
-                        text = "Google 로그인",
-                        fontSize = 17.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color.White,
-                        fontFamily = kenneyFont
-                    )
-                }
+        // 시작하기 버튼만 (Google 로그인은 step 0에서 완료됨)
+        MockupButton(
+            text = "시작하기!",
+            onClick = {
+                hapticManager?.click()
+                onNext()
             }
-
-            Spacer(modifier = Modifier.height(12.dp))
-
-            // 시작하기 (스킵)
-            TextButton(
-                onClick = {
-                    hapticManager?.click()
-                    AnalyticsManager.trackSettingsChanged("google_signin_tutorial", "skipped")
-                    onSkip()
-                },
-                enabled = !isLoading
-            ) {
-                Text(
-                    text = "나중에 할게요",
-                    fontSize = 14.sp,
-                    color = MockupColors.TextMuted
-                )
-            }
-        }
+        )
     }
 }
 
@@ -1083,9 +973,8 @@ private fun TutorialItemRow(
 @Composable
 private fun GoogleSignInStep(
     hapticManager: HapticManager?,
-    onNext: () -> Unit,
-    onSkip: () -> Unit,
-    onDataRestored: () -> Unit  // 기존 데이터 복원 시 호출
+    onNext: () -> Unit,  // 신규 사용자: 펫 선택으로
+    onDataRestored: () -> Unit  // 기존 사용자: 튜토리얼 스킵
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -1108,6 +997,12 @@ private fun GoogleSignInStep(
                     val firebaseResult = GoogleSignInHelper.signInToFirebase(result.idToken)
                     if (firebaseResult.isSuccess) {
                         Log.d("GoogleSignIn", "Firebase sign-in successful")
+
+                        // 🔥 Activity 재생성 대비: sync 전에 즉시 step 1 저장
+                        val prefManager = PreferenceManager(context)
+                        prefManager.saveTutorialCurrentStep(1)
+                        Log.d("GoogleSignIn", "✅ Saved step 1 immediately after sign-in")
+
                         statusMessage = "데이터 확인 중..."
 
                         // Repository 동기화 및 데이터 확인
@@ -1128,13 +1023,90 @@ private fun GoogleSignInStep(
                             Log.w("GoogleSignIn", "⚠️ Sync timed out - forcing completion")
                         }
 
-                        // 기존 데이터가 있는지 확인
-                        val prefManager = PreferenceManager(context)
-                        val tutorialCompleted = prefManager.isTutorialCompleted()
-                        val hasPetType = prefManager.getPetType() != null
+                        // 기존 데이터가 있는지 확인 (여러 소스에서 체크)
+                        var tutorialCompleted = prefManager.isTutorialCompleted()
                         val petType = prefManager.getPetType()
+                        val hasPetType = petType != null && petType != "DOG1"  // 기본값이 아닌 경우만
+                        val hasLockedApps = prefManager.getLockedApps().isNotEmpty()
+                        val streak = prefManager.getStreak()
+                        val hasStreak = streak > 0
+                        val petTotalSteps = prefManager.getPetTotalSteps()
+                        val hasPetSteps = petTotalSteps > 0
 
-                        Log.d("GoogleSignIn", "Data check - tutorialCompleted: $tutorialCompleted, hasPetType: $hasPetType, petType: $petType")
+                        // ChallengeManager에서 칭호 데이터도 확인
+                        val challengePrefs = context.getSharedPreferences("challenge_prefs", android.content.Context.MODE_PRIVATE)
+                        val unlockedTitles = challengePrefs.getStringSet("unlocked_titles", emptySet()) ?: emptySet()
+                        val hasUnlockedTitles = unlockedTitles.isNotEmpty()
+
+                        // 기존 사용자 판단: tutorialCompleted, petType, lockedApps, 칭호, streak 중 하나라도 있으면
+                        var isExistingUser = tutorialCompleted || hasPetType || hasLockedApps || hasUnlockedTitles || hasStreak || hasPetSteps
+
+                        Log.d("GoogleSignIn", "Data check (local) - tutorialCompleted: $tutorialCompleted, petType: $petType, hasPetType: $hasPetType, hasLockedApps: $hasLockedApps, hasStreak: $hasStreak, hasPetSteps: $hasPetSteps, hasUnlockedTitles: $hasUnlockedTitles, isExistingUser: $isExistingUser")
+
+                        // 로컬에서 기존 사용자 판단 실패 시 Firebase에서 직접 확인
+                        if (!isExistingUser) {
+                            Log.d("GoogleSignIn", "🔍 Local check failed, checking Firebase directly...")
+                            val userId = FirebaseAuth.getInstance().currentUser?.uid
+                            if (userId != null) {
+                                try {
+                                    val firestore = com.google.firebase.firestore.FirebaseFirestore.getInstance()
+                                    // 부모 문서 확인
+                                    val parentDoc = firestore.collection("users")
+                                        .document(userId)
+                                        .get()
+                                        .await()
+
+                                    val fbTutorialCompleted = parentDoc.getBoolean("tutorialCompleted") ?: false
+                                    val fbPetType = parentDoc.getString("petType")
+                                    val fbLockedApps = (parentDoc.get("lockedApps") as? List<*>)?.size ?: 0
+                                    val fbUnlockedTitles = (parentDoc.get("unlockedTitles") as? List<*>)?.size ?: 0
+                                    val fbPaidDeposit = parentDoc.getBoolean("paidDeposit") ?: false
+
+                                    Log.d("GoogleSignIn", "🔍 Firebase parent doc - tutorialCompleted: $fbTutorialCompleted, petType: $fbPetType, lockedApps: $fbLockedApps, unlockedTitles: $fbUnlockedTitles, paidDeposit: $fbPaidDeposit")
+
+                                    // settings 서브컬렉션도 확인
+                                    val settingsDoc = firestore.collection("users")
+                                        .document(userId)
+                                        .collection("userData")
+                                        .document("settings")
+                                        .get()
+                                        .await()
+
+                                    val settingsTutorial = settingsDoc.getBoolean("tutorialCompleted") ?: false
+                                    val settingsLockedApps = (settingsDoc.get("lockedApps") as? List<*>)?.size ?: 0
+                                    val settingsStreak = settingsDoc.getLong("streak")?.toInt() ?: 0
+                                    val settingsPetSteps = settingsDoc.getLong("petTotalSteps") ?: 0L
+
+                                    Log.d("GoogleSignIn", "🔍 Firebase settings - tutorialCompleted: $settingsTutorial, lockedApps: $settingsLockedApps, streak: $settingsStreak, petTotalSteps: $settingsPetSteps")
+
+                                    // Firebase에 기존 사용자 데이터가 있으면
+                                    if (fbTutorialCompleted || settingsTutorial || fbPaidDeposit ||
+                                        fbLockedApps > 0 || settingsLockedApps > 0 ||
+                                        fbUnlockedTitles > 0 || settingsStreak > 0 || settingsPetSteps > 0 ||
+                                        (fbPetType != null && fbPetType != "DOG1")) {
+
+                                        Log.d("GoogleSignIn", "✅ Found existing user data in Firebase!")
+                                        isExistingUser = true
+                                        tutorialCompleted = fbTutorialCompleted || settingsTutorial
+
+                                        // 동기화가 제대로 안됐으면 다시 시도
+                                        if (!app.userDataRepository.syncCompleted.value) {
+                                            Log.d("GoogleSignIn", "🔄 Retrying sync...")
+                                            app.userDataRepository.startSync()
+                                            // 추가 대기 (최대 3초)
+                                            var retryCount = 0
+                                            while (!app.userDataRepository.syncCompleted.value && retryCount < 30) {
+                                                delay(100)
+                                                retryCount++
+                                            }
+                                            Log.d("GoogleSignIn", "🔄 Retry sync completed after ${retryCount * 100}ms")
+                                        }
+                                    }
+                                } catch (e: Exception) {
+                                    Log.e("GoogleSignIn", "❌ Firebase direct check failed: ${e.message}")
+                                }
+                            }
+                        }
 
                         isSignedIn = true
                         isLoading = false
@@ -1143,7 +1115,14 @@ private fun GoogleSignInStep(
                         // Analytics 추적
                         AnalyticsManager.trackSettingsChanged("google_signin", "success")
 
-                        if (tutorialCompleted && hasPetType) {
+                        // 기존 사용자면 튜토리얼 스킵
+                        if (isExistingUser) {
+                            // tutorialCompleted가 false면 true로 수정
+                            if (!tutorialCompleted) {
+                                prefManager.setTutorialCompleted(true)
+                                app.userDataRepository.setTutorialCompleted(true)
+                                Log.d("GoogleSignIn", "Fixed tutorialCompleted to true")
+                            }
                             // 기존 데이터가 있으면 바로 메인으로
                             statusMessage = "데이터 복원 완료!"
                             delay(1000)
@@ -1341,53 +1320,35 @@ private fun GoogleSignInStep(
             Spacer(modifier = Modifier.height(12.dp))
         }
 
-        // "시작하기" Button (goes to pet selection - same as skip)
+        // Google 로그인 버튼 (필수)
         if (!isSignedIn) {
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(56.dp)
                     .background(MockupColors.TextPrimary, RoundedCornerShape(12.dp))
-                    .clickable {
-                        hapticManager?.click()
-                        AnalyticsManager.trackSettingsChanged("google_signin", "skipped")
-                        onSkip()
-                    },
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = "시작하기",
-                    fontSize = 17.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color.White,
-                    fontFamily = kenneyFont
-                )
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // Google login link
-            Row(
-                horizontalArrangement = Arrangement.Center,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = "기존 데이터가 있나요? ",
-                    fontSize = 14.sp,
-                    color = MockupColors.TextMuted
-                )
-                Text(
-                    text = "Google로 복원",
-                    fontSize = 14.sp,
-                    color = MockupColors.TextPrimary,
-                    fontWeight = FontWeight.Bold,
-                    textDecoration = TextDecoration.Underline,
-                    modifier = Modifier.clickable(enabled = !isLoading) {
+                    .clickable(enabled = !isLoading) {
                         hapticManager?.click()
                         errorMessage = null
                         performGoogleSignIn()
-                    }
-                )
+                    },
+                contentAlignment = Alignment.Center
+            ) {
+                if (isLoading) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(24.dp),
+                        color = Color.White,
+                        strokeWidth = 2.dp
+                    )
+                } else {
+                    Text(
+                        text = "Google 로그인",
+                        fontSize = 17.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White,
+                        fontFamily = kenneyFont
+                    )
+                }
             }
         } else {
             // Signed in state
@@ -1422,6 +1383,30 @@ private fun GoogleSignInStep(
                 }
             }
         }
+
+        // Debug 모드에서만 표시되는 테스트 버튼
+        if (BuildConfig.DEBUG && !isSignedIn) {
+            Spacer(modifier = Modifier.height(12.dp))
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(48.dp)
+                    .background(Color(0xFFFF6B6B), RoundedCornerShape(12.dp))
+                    .clickable(enabled = !isLoading) {
+                        hapticManager?.click()
+                        // 로그인 없이 바로 펫 선택으로 진행
+                        onNext()
+                    },
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = "[DEBUG] 로그인 없이 테스트",
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White
+                )
+            }
+        }
     }
 }
 
@@ -1445,7 +1430,11 @@ private fun PermissionSettingsStep(
         ActivityResultContracts.RequestPermission()
     ) { isGranted ->
         activityPermissionGranted = isGranted
-        if (isGranted) hapticManager?.success()
+        if (isGranted) {
+            hapticManager?.success()
+            // 권한 부여 후 바로 StepCounterService 시작 (WalkingTestStep에서 걸음 수 측정용)
+            StepCounterService.start(context)
+        }
     }
 
     val notificationPermissionLauncher = rememberLauncherForActivityResult(
@@ -1458,7 +1447,7 @@ private fun PermissionSettingsStep(
         PetPersonality.TOUGH -> "권한 좀 줘."
         PetPersonality.CUTE -> "권한 부탁! 오네가이~"
         PetPersonality.TSUNDERE -> "뭐, 권한이 필요해."
-        PetPersonality.DIALECT -> "권한 좀 줘보이소~"
+        PetPersonality.DIALECT -> "권한 좀 줘봐"
         PetPersonality.TIMID -> "저, 권한이 필요해요..."
         PetPersonality.POSITIVE -> "권한 설정 화이팅!"
     }
@@ -1644,9 +1633,9 @@ private fun FitnessConnectionStep(
 
     val speechText = when (petType.personality) {
         PetPersonality.TOUGH -> "피트니스 앱 연결해."
-        PetPersonality.CUTE -> "피트니스 연결! 이쿠요~"
+        PetPersonality.CUTE -> "피트니스 연결! 가보자고~"
         PetPersonality.TSUNDERE -> "연결 안 해도 되긴 해..."
-        PetPersonality.DIALECT -> "피트니스 연결해보이소~"
+        PetPersonality.DIALECT -> "피트니스 연결해봐"
         PetPersonality.TIMID -> "연결하면 좋을 것 같아요..."
         PetPersonality.POSITIVE -> "연결하면 더 정확해!"
     }
@@ -1769,7 +1758,7 @@ private fun AccessibilityStep(
         PetPersonality.TOUGH -> "접근성 ON 해."
         PetPersonality.CUTE -> "접근성 켜줘! 오네가이~"
         PetPersonality.TSUNDERE -> "접근성 켜줘... 부탁이야."
-        PetPersonality.DIALECT -> "접근성 켜주이소~"
+        PetPersonality.DIALECT -> "접근성 켜줘"
         PetPersonality.TIMID -> "접근성을 켜주세요..."
         PetPersonality.POSITIVE -> "접근성 설정 화이팅!"
     }
@@ -1846,7 +1835,7 @@ private fun AppSelectionStep(
         PetPersonality.TOUGH -> "제어할 앱 골라."
         PetPersonality.CUTE -> "앱 선택! 고고~"
         PetPersonality.TSUNDERE -> "앱 선택해... 빨리."
-        PetPersonality.DIALECT -> "앱 골라보이소~"
+        PetPersonality.DIALECT -> "앱 골라봐"
         PetPersonality.TIMID -> "앱을 선택해주세요..."
         PetPersonality.POSITIVE -> "어떤 앱을 제어할까?"
     }
@@ -2046,7 +2035,7 @@ private fun TestBlockingStep(
             PetPersonality.TOUGH -> "앱 실행해봐."
             PetPersonality.CUTE -> "앱 실행해봐! 고고~"
             PetPersonality.TSUNDERE -> "앱 실행해봐... 뭐해?"
-            PetPersonality.DIALECT -> "앱 실행해보이소~"
+            PetPersonality.DIALECT -> "앱 실행해봐"
             PetPersonality.TIMID -> "앱을 실행해보세요..."
             PetPersonality.POSITIVE -> "앱 실행 테스트!"
         }
@@ -2123,9 +2112,9 @@ private fun GoalInputStep(
 
     val speechText = when (petType.personality) {
         PetPersonality.TOUGH -> "목표를 정해."
-        PetPersonality.CUTE -> "목표 정하자! 간바!"
+        PetPersonality.CUTE -> "목표 정하자! ㄱㄱ!"
         PetPersonality.TSUNDERE -> "목표... 적당히 해."
-        PetPersonality.DIALECT -> "목표 정해보이소~"
+        PetPersonality.DIALECT -> "목표 정해봐"
         PetPersonality.TIMID -> "목표를 정해주세요..."
         PetPersonality.POSITIVE -> "목표 설정 화이팅!"
     }
@@ -2231,7 +2220,7 @@ private fun ControlDaysStep(
         PetPersonality.TOUGH -> "제어할 요일 골라."
         PetPersonality.CUTE -> "요일 선택! 고고~"
         PetPersonality.TSUNDERE -> "요일... 빨리 골라."
-        PetPersonality.DIALECT -> "요일 골라보이소~"
+        PetPersonality.DIALECT -> "요일 골라봐"
         PetPersonality.TIMID -> "요일을 선택해주세요..."
         PetPersonality.POSITIVE -> "어떤 요일에 제어할까?"
     }
@@ -2340,7 +2329,7 @@ private fun BlockTimeStep(
         PetPersonality.TOUGH -> "차단 시간 정해."
         PetPersonality.CUTE -> "시간 정하자! 렛츠고~"
         PetPersonality.TSUNDERE -> "시간... 골라."
-        PetPersonality.DIALECT -> "시간 정해보이소~"
+        PetPersonality.DIALECT -> "시간 정해봐"
         PetPersonality.TIMID -> "시간을 정해주세요..."
         PetPersonality.POSITIVE -> "언제 제어할까?"
     }
@@ -2455,11 +2444,11 @@ private fun WalkingTestStep(
 
     var baselineSteps by remember { mutableIntStateOf(repository.getTodaySteps()) }
     var currentSteps by remember { mutableIntStateOf(0) }
-    var manualOffset by remember { mutableIntStateOf(0) }  // +5 버튼용 수동 오프셋
+    var manualOffset by remember { mutableIntStateOf(0) }  // 걷기 어려울 때 버튼용 수동 오프셋
     val targetSteps = repository.getGoal()
     var goalAchieved by remember { mutableStateOf(false) }
 
-    // Health Connect 초기 베이스라인 설정
+    // Health Connect 초기 베이스라인 설정 및 StepCounterService 시작
     LaunchedEffect(useHealthConnect) {
         if (useHealthConnect && healthConnectManager != null) {
             try {
@@ -2468,6 +2457,14 @@ private fun WalkingTestStep(
             } catch (e: Exception) {
                 android.util.Log.e("WalkingTest", "Failed to get baseline: ${e.message}")
             }
+        } else {
+            // Health Connect 미사용 시 StepCounterService 시작 (걸음 측정용)
+            android.util.Log.d("WalkingTest", "Starting StepCounterService for step counting")
+            StepCounterService.start(context)
+            // 서비스 시작 후 현재 걸음수로 baseline 업데이트
+            kotlinx.coroutines.delay(500)
+            baselineSteps = repository.getTodaySteps()
+            android.util.Log.d("WalkingTest", "Sensor baseline: $baselineSteps")
         }
     }
 
@@ -2485,7 +2482,9 @@ private fun WalkingTestStep(
                     repository.getTodaySteps()
                 }
             } else {
-                repository.getTodaySteps()
+                val steps = repository.getTodaySteps()
+                android.util.Log.d("WalkingTest", "Sensor steps: $steps, baseline: $baselineSteps")
+                steps
             }
 
             val newSteps = maxOf(0, rawSteps - baselineSteps) + manualOffset
@@ -2503,7 +2502,7 @@ private fun WalkingTestStep(
     val speechText = when {
         goalAchieved -> when (petType.personality) {
             PetPersonality.TOUGH -> "잘했어."
-            PetPersonality.CUTE -> "스고이! 대단해!"
+            PetPersonality.CUTE -> "대박! 대단해ㅋㅋ"
             PetPersonality.TSUNDERE -> "뭐, 괜찮네."
             PetPersonality.DIALECT -> "잘했다 아이가~"
             PetPersonality.TIMID -> "정말 잘하셨어요...!"
@@ -2511,9 +2510,9 @@ private fun WalkingTestStep(
         }
         else -> when (petType.personality) {
             PetPersonality.TOUGH -> "걸어."
-            PetPersonality.CUTE -> "걸어보자! 이쿠요~"
+            PetPersonality.CUTE -> "걸어보자! ㄱㄱ~"
             PetPersonality.TSUNDERE -> "걸어... 빨리."
-            PetPersonality.DIALECT -> "걸어보이소~"
+            PetPersonality.DIALECT -> "걸어봐"
             PetPersonality.TIMID -> "걸어주세요..."
             PetPersonality.POSITIVE -> "걷기 화이팅!"
         }
@@ -2593,17 +2592,17 @@ private fun WalkingTestStep(
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            // 테스트 버튼 (+5)
+            // 걷기 어려울 때 버튼
             if (!goalAchieved) {
                 Button(
                     onClick = {
-                        manualOffset += 5  // Health Connect 모드에서도 작동
+                        manualOffset += 10  // Health Connect 모드에서도 작동
                         hapticManager?.lightClick()
                     },
                     colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF666666)),
                     shape = RoundedCornerShape(8.dp)
                 ) {
-                    Text("+5", color = Color.White)
+                    Text("지금은 걷기 어려워요.", color = Color.White, fontSize = 13.sp)
                 }
             }
         }
@@ -2691,7 +2690,7 @@ private fun EmergencyButtonStep(
         PetPersonality.TOUGH -> "급할 땐 쉬어가."
         PetPersonality.CUTE -> "급하면 쉬어가! 다이죠부~"
         PetPersonality.TSUNDERE -> "급하면... 쉬어가."
-        PetPersonality.DIALECT -> "급하면 쉬어가이소~"
+        PetPersonality.DIALECT -> "급하면 쉬어가"
         PetPersonality.TIMID -> "급하시면 쉬어가세요..."
         PetPersonality.POSITIVE -> "가끔은 쉬어가도 돼!"
     }
@@ -2756,7 +2755,7 @@ private fun WidgetSetupStep(
         PetPersonality.TOUGH -> "위젯 추가해."
         PetPersonality.CUTE -> "위젯 추가! 고고~"
         PetPersonality.TSUNDERE -> "위젯... 추가해줘."
-        PetPersonality.DIALECT -> "위젯 추가해보이소~"
+        PetPersonality.DIALECT -> "위젯 추가해봐"
         PetPersonality.TIMID -> "위젯을 추가해주세요..."
         PetPersonality.POSITIVE -> "위젯으로 한눈에 확인!"
     }
@@ -2883,17 +2882,15 @@ private fun WidgetSetupStep(
 }
 
 // =====================================================
-// STEP 15: Payment (결제) - 네비게이션 닷 표시
+// STEP 15: Payment (결제) - 재결제 화면으로도 사용 가능
 // =====================================================
 @Composable
-private fun PaymentStep(
+fun PaymentScreen(
     petType: PetType,
     petName: String,
-    dotStep: Int,
-    totalDots: Int,
     preferenceManager: PreferenceManager,
     hapticManager: HapticManager?,
-    onNext: () -> Unit
+    onComplete: () -> Unit
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -2926,12 +2923,12 @@ private fun PaymentStep(
             PetPersonality.POSITIVE -> "공짜라니! 최고의 시작이야!"
         }
         else -> when (petType.personality) {
-            PetPersonality.TOUGH -> "열심히 하면 평생 공짜야.\n나만 믿어."
-            PetPersonality.CUTE -> "같이 간바루 하면\n평생 무료! 사이코~"
-            PetPersonality.TSUNDERE -> "열심히 하면 돈 안 내도 돼...\n내가 도와줄게."
-            PetPersonality.DIALECT -> "열심히 하믄\n평생 공짜라카이!"
-            PetPersonality.TIMID -> "저, 저랑 열심히 하면...\n평생 무료예요...!"
-            PetPersonality.POSITIVE -> "목표 달성하면 평생 무료!\n같이 해보자!"
+            PetPersonality.TOUGH -> "커피 한 잔 값으로\n인생이 바뀌어."
+            PetPersonality.CUTE -> "커피 한 잔 값이면 돼!\n같이 해보자~"
+            PetPersonality.TSUNDERE -> "커피 한 잔 값밖에 안 해...\n뭐, 해볼래?"
+            PetPersonality.DIALECT -> "커피 한 잔 값이면\n되는기라! 해보자이~"
+            PetPersonality.TIMID -> "커, 커피 한 잔 값이면...\n같이 할 수 있어요...!"
+            PetPersonality.POSITIVE -> "커피 한 잔 값으로 새 시작!\n완전 좋아!"
         }
     }
 
@@ -2974,7 +2971,7 @@ private fun PaymentStep(
 
                     isProcessing = false
                     hapticManager?.success()
-                    onNext()
+                    onComplete()
                     return@launch
                 }
 
@@ -3012,7 +3009,7 @@ private fun PaymentStep(
 
                                     isProcessing = false
                                     hapticManager?.success()
-                                    onNext()
+                                    onComplete()
                                 } else {
                                     errorMessage = "구독 정보 저장 실패"
                                     isProcessing = false
@@ -3339,7 +3336,7 @@ private fun PaymentStep(
                     preferenceManager.saveTrialEndDate(sdf.format(pastDate.time))
                     preferenceManager.saveTodaySteps(0)
                     hapticManager?.success()
-                    onNext()
+                    onComplete()
                 },
                 modifier = Modifier.fillMaxWidth(),
                 colors = ButtonDefaults.outlinedButtonColors(
