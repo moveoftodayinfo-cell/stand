@@ -187,7 +187,11 @@ class MainActivity : ComponentActivity() {
         val lastReset = preferenceManager.getLastResetDate()
 
         if (lastReset != today) {
-            // 새로운 날
+            // 새로운 날 - 먼저 어제 걸음수 저장 (리셋 전에!)
+            val currentSteps = repository.getTodaySteps()
+            repository.saveYesterdaySteps(currentSteps)
+            Log.d(TAG, "📊 Saved yesterday steps before reset: $currentSteps")
+
             val lastCheckDate = preferenceManager.getLastCheckDate()
             if (lastCheckDate != today && lastCheckDate.isNotEmpty()) {
                 checkYesterdayGoal(lastCheckDate)
@@ -210,7 +214,7 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun checkYesterdayGoal(yesterday: String) {
-        val yesterdaySteps = repository.getTodaySteps()
+        val yesterdaySteps = repository.getYesterdaySteps()
         val goal = repository.getGoal()
 
         try {
