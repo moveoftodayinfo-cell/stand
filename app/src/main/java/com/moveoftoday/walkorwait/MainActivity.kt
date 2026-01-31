@@ -403,6 +403,15 @@ fun WalkOrWaitScreen(
         if (isTutorialCompleted) {
             // 1. 프로모션 코드 사용자: 프로모션 기간 체크
             if (currentPromoCodeType != null) {
+                // 마이그레이션: promoFreeEndDate가 없는 기존 사용자 → 30일 후로 설정
+                if (preferenceManager?.getPromoFreeEndDate() == null) {
+                    val calendar = java.util.Calendar.getInstance()
+                    calendar.add(java.util.Calendar.DAY_OF_MONTH, 30)
+                    val endDate = java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.getDefault()).format(calendar.time)
+                    preferenceManager?.savePromoFreeEndDate(endDate)
+                    Log.d("MainActivity", "💳 Migration: Set promo end date to $endDate for existing user")
+                }
+
                 val isPromoValid = preferenceManager?.isInPromoFreePeriod() ?: false
                 Log.d("MainActivity", "💳 Promo user - isPromoValid: $isPromoValid")
                 if (!isPromoValid) {

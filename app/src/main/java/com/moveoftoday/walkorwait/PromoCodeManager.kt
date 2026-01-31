@@ -116,6 +116,9 @@ class PromoCodeManager(private val context: Context) {
             preferenceManager.savePromoCodeType("FRIEND_INVITE")
             preferenceManager.savePromoHostId(hostId)
 
+            // 프로모션 종료일 저장 (30일 후)
+            savePromoEndDate(30)
+
             // Analytics: 친구 초대 코드 사용 추적
             AnalyticsManager.trackPromoCodeUsed("FRIEND_INVITE")
             AnalyticsManager.trackSubscriptionStart("friend_invite")
@@ -180,6 +183,11 @@ class PromoCodeManager(private val context: Context) {
             preferenceManager.saveUsedPromoCode(code)
             preferenceManager.savePromoCodeType("EVENT")
 
+            // 프로모션 종료일 저장
+            if (freeDays > 0) {
+                savePromoEndDate(freeDays)
+            }
+
             // Analytics: 이벤트 코드 사용 추적
             AnalyticsManager.trackPromoCodeUsed("EVENT")
             AnalyticsManager.trackSubscriptionStart("event_code")
@@ -207,6 +215,9 @@ class PromoCodeManager(private val context: Context) {
         preferenceManager.saveUsedPromoCode("TEST-FREE")
         preferenceManager.savePromoCodeType("TEST")
 
+        // 프로모션 종료일 저장 (30일 후)
+        savePromoEndDate(30)
+
         // Analytics: 테스트 코드 사용 추적
         AnalyticsManager.trackPromoCodeUsed("TEST-FREE")
         AnalyticsManager.trackSubscriptionStart("test_code")
@@ -227,6 +238,9 @@ class PromoCodeManager(private val context: Context) {
     private fun applyRebonFreeCode(): PromoResult {
         preferenceManager.saveUsedPromoCode("REBONFREE")
         preferenceManager.savePromoCodeType("LAUNCH_EVENT")
+
+        // 프로모션 종료일 저장 (30일 후)
+        savePromoEndDate(30)
 
         // Analytics: 출시 프로모션 코드 사용 추적
         AnalyticsManager.trackPromoCodeUsed("REBONFREE")
@@ -292,6 +306,17 @@ class PromoCodeManager(private val context: Context) {
             .addOnSuccessListener {
                 Log.d(TAG, "Settings document created for promo user: $userId")
             }
+    }
+
+    /**
+     * 프로모션 종료일 저장 (현재 날짜 + days)
+     */
+    private fun savePromoEndDate(days: Int) {
+        val calendar = Calendar.getInstance()
+        calendar.add(Calendar.DAY_OF_MONTH, days)
+        val endDate = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(calendar.time)
+        preferenceManager.savePromoFreeEndDate(endDate)
+        Log.d(TAG, "✅ Promo end date saved: $endDate (${days}일 후)")
     }
 
     /**
