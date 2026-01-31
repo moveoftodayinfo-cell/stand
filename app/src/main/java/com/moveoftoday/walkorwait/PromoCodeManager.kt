@@ -58,7 +58,8 @@ class PromoCodeManager(private val context: Context) {
         }
 
         return when {
-            trimmedCode.startsWith("REBON-") -> validateFriendInviteCode(trimmedCode)
+            trimmedCode.startsWith("REBON-") -> validateBasicInviteCode(trimmedCode)
+            trimmedCode.startsWith("BONUS-") -> validateBonusInviteCode(trimmedCode)
             trimmedCode.startsWith("EVENT-") -> validateEventCode(trimmedCode)
             trimmedCode == "TEST-FREE" -> applyTestCode()
             trimmedCode == "REBONFREE" -> applyRebonFreeCode()
@@ -67,9 +68,10 @@ class PromoCodeManager(private val context: Context) {
     }
 
     /**
-     * 친구 초대 코드 검증 (REBON-XXXXXX)
+     * 기본 친구 초대 코드 검증 (REBON-XXXXXX)
+     * 정기결제 시 발급되는 코드
      */
-    private suspend fun validateFriendInviteCode(code: String): PromoResult {
+    private suspend fun validateBasicInviteCode(code: String): PromoResult {
         val currentUserId = auth.currentUser?.uid
             ?: return PromoResult.Error("로그인이 필요합니다")
 
@@ -96,7 +98,7 @@ class PromoCodeManager(private val context: Context) {
             }
 
             // 이미 게스트가 있는지 확인
-            val guestId = hostDoc.getString("guestId")
+            val guestId = hostDoc.getString("inviteGuestId")
             if (guestId != null) {
                 return PromoResult.Error("이미 사용된 초대 코드입니다")
             }
@@ -105,9 +107,9 @@ class PromoCodeManager(private val context: Context) {
             val guestEmail = FirebaseAuth.getInstance().currentUser?.email ?: ""
             hostDoc.reference.update(
                 mapOf(
-                    "guestId" to currentUserId,
-                    "guestUsedAt" to com.google.firebase.Timestamp.now(),
-                    "guestEmail" to guestEmail
+                    "inviteGuestId" to currentUserId,
+                    "inviteGuestUsedAt" to com.google.firebase.Timestamp.now(),
+                    "inviteGuestEmail" to guestEmail
                 )
             ).await()
 
@@ -117,14 +119,14 @@ class PromoCodeManager(private val context: Context) {
             preferenceManager.savePromoHostId(hostId)
 
             // 프로모션 종료일 저장 (30일 후)
-            savePromoEndDate(30)
+            val endDate = savePromoEndDate(30)
 
             // Analytics: 친구 초대 코드 사용 추적
             AnalyticsManager.trackPromoCodeUsed("FRIEND_INVITE")
             AnalyticsManager.trackSubscriptionStart("friend_invite")
 
             // 대시보드 추적용 사용자 문서 생성
-            createUserDocument("FRIEND_INVITE")
+            createUserDocument("FRIEND_INVITE", endDate)
 
             return PromoResult.Success(
                 type = PromoType.FRIEND_INVITE,
@@ -133,7 +135,86 @@ class PromoCodeManager(private val context: Context) {
             )
 
         } catch (e: Exception) {
-            Log.e(TAG, "❌ Failed to validate invite code: ${e.message}")
+            Log.e(TAG, "❌ Failed to validate basic invite code: ${e.message}")
+            return PromoResult.Error("코드 확인 중 오류가 발생했습니다")
+        }
+    }
+
+    /**
+     * 보너스 초대 코드 검증 (BONUS-XXXXXX)
+     * 95% 달성 시 활성화되는 코드
+     */
+    private suspend fun validateBonusInviteCode(code: String): PromoResult {
+        val currentUserId = auth.currentUser?.uid
+            ?: return PromoResult.Error("로그인이 필요합니다")
+
+        try {
+            // Firebase에서 보너스 초대 코드 검색
+            val snapshot = db.collectionGroup("subscriptions")
+                .whereEqualTo("bonusInviteCode", code)
+                .whereEqualTo("isActive", true)
+                .limit(1)
+                .get()
+                .await()
+
+            if (snapshot.isEmpty) {
+                return PromoResult.Error("유효하지 않은 보너스 코드입니다")
+            }
+
+            val hostDoc = snapshot.documents.first()
+            val hostPath = hostDoc.reference.path
+            val hostId = hostPath.split("/")[1]
+
+            // 자기 자신 초대 방지
+            if (hostId == currentUserId) {
+                return PromoResult.Error("자신의 코드는 사용할 수 없습니다")
+            }
+
+            // Host가 95% 달성했는지 확인
+            val earnedFriendCoupon = hostDoc.getBoolean("earnedFriendCoupon") ?: false
+            if (!earnedFriendCoupon) {
+                return PromoResult.Error("호스트가 아직 95% 달성을 완료하지 않았습니다")
+            }
+
+            // 이미 게스트가 있는지 확인
+            val guestId = hostDoc.getString("bonusGuestId")
+            if (guestId != null) {
+                return PromoResult.Error("이미 사용된 보너스 코드입니다")
+            }
+
+            // Firebase에 guestId 및 사용 정보 업데이트 (중복 사용 방지)
+            val guestEmail = FirebaseAuth.getInstance().currentUser?.email ?: ""
+            hostDoc.reference.update(
+                mapOf(
+                    "bonusGuestId" to currentUserId,
+                    "bonusGuestUsedAt" to com.google.firebase.Timestamp.now(),
+                    "bonusGuestEmail" to guestEmail
+                )
+            ).await()
+
+            // 코드 사용 기록 저장
+            preferenceManager.saveUsedPromoCode(code)
+            preferenceManager.savePromoCodeType("FRIEND_INVITE_BONUS")
+            preferenceManager.savePromoHostId(hostId)
+
+            // 프로모션 종료일 저장 (30일 후)
+            val endDate = savePromoEndDate(30)
+
+            // Analytics: 보너스 초대 코드 사용 추적
+            AnalyticsManager.trackPromoCodeUsed("FRIEND_INVITE_BONUS")
+            AnalyticsManager.trackSubscriptionStart("friend_invite_bonus")
+
+            // 대시보드 추적용 사용자 문서 생성
+            createUserDocument("FRIEND_INVITE_BONUS", endDate)
+
+            return PromoResult.Success(
+                type = PromoType.FRIEND_INVITE,
+                message = "보너스 초대 코드가 적용되었습니다!\n1달간 무료로 사용하세요",
+                freeDays = 30
+            )
+
+        } catch (e: Exception) {
+            Log.e(TAG, "❌ Failed to validate bonus invite code: ${e.message}")
             return PromoResult.Error("코드 확인 중 오류가 발생했습니다")
         }
     }
@@ -184,16 +265,16 @@ class PromoCodeManager(private val context: Context) {
             preferenceManager.savePromoCodeType("EVENT")
 
             // 프로모션 종료일 저장
-            if (freeDays > 0) {
+            val endDate = if (freeDays > 0) {
                 savePromoEndDate(freeDays)
-            }
+            } else ""
 
             // Analytics: 이벤트 코드 사용 추적
             AnalyticsManager.trackPromoCodeUsed("EVENT")
             AnalyticsManager.trackSubscriptionStart("event_code")
 
             // 대시보드 추적용 사용자 문서 생성
-            createUserDocument("EVENT")
+            createUserDocument("EVENT", endDate)
 
             return PromoResult.Success(
                 type = PromoType.EVENT_CODE,
@@ -216,14 +297,14 @@ class PromoCodeManager(private val context: Context) {
         preferenceManager.savePromoCodeType("TEST")
 
         // 프로모션 종료일 저장 (30일 후)
-        savePromoEndDate(30)
+        val endDate = savePromoEndDate(30)
 
         // Analytics: 테스트 코드 사용 추적
         AnalyticsManager.trackPromoCodeUsed("TEST-FREE")
         AnalyticsManager.trackSubscriptionStart("test_code")
 
         // 대시보드 추적용 사용자 문서 생성
-        createUserDocument("TEST")
+        createUserDocument("TEST", endDate)
 
         return PromoResult.Success(
             type = PromoType.TEST_CODE,
@@ -240,14 +321,14 @@ class PromoCodeManager(private val context: Context) {
         preferenceManager.savePromoCodeType("LAUNCH_EVENT")
 
         // 프로모션 종료일 저장 (30일 후)
-        savePromoEndDate(30)
+        val endDate = savePromoEndDate(30)
 
         // Analytics: 출시 프로모션 코드 사용 추적
         AnalyticsManager.trackPromoCodeUsed("REBONFREE")
         AnalyticsManager.trackSubscriptionStart("launch_promo")
 
         // 대시보드 추적용 사용자 문서 생성
-        createUserDocument("LAUNCH_EVENT")
+        createUserDocument("LAUNCH_EVENT", endDate)
 
         return PromoResult.Success(
             type = PromoType.EVENT_CODE,
@@ -269,7 +350,7 @@ class PromoCodeManager(private val context: Context) {
      * Firestore에 사용자 문서 생성 (대시보드 추적용)
      * 프로모션 코드 적용 시 호출
      */
-    private fun createUserDocument(promoCodeType: String) {
+    private fun createUserDocument(promoCodeType: String, promoEndDate: String) {
         val userId = auth.currentUser?.uid ?: return
         val userEmail = auth.currentUser?.email ?: ""
         val now = System.currentTimeMillis()
@@ -296,6 +377,7 @@ class PromoCodeManager(private val context: Context) {
         val settingsDoc = hashMapOf(
             "lastActiveAt" to now,
             "promoCodeType" to promoCodeType,
+            "promoFreeEndDate" to promoEndDate,
             "paidDeposit" to false  // 프로모션 사용자는 결제자 아님
         )
         db.collection("users")
@@ -310,13 +392,15 @@ class PromoCodeManager(private val context: Context) {
 
     /**
      * 프로모션 종료일 저장 (현재 날짜 + days)
+     * @return 저장된 종료일 문자열 (yyyy-MM-dd)
      */
-    private fun savePromoEndDate(days: Int) {
+    private fun savePromoEndDate(days: Int): String {
         val calendar = Calendar.getInstance()
         calendar.add(Calendar.DAY_OF_MONTH, days)
         val endDate = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(calendar.time)
         preferenceManager.savePromoFreeEndDate(endDate)
         Log.d(TAG, "✅ Promo end date saved: $endDate (${days}일 후)")
+        return endDate
     }
 
     /**

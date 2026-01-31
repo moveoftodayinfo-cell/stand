@@ -41,9 +41,19 @@ data class SubscriptionData(
     val controlDays: List<Int> = emptyList(),
     val startDate: Date? = null,
     val endDate: Date? = null,
-    val inviteCode: String? = null, // 친구 초대용 코드
+    // 기본 초대 코드 (정기결제 시 발급)
+    val inviteCode: String? = null,
+    val inviteGuestId: String? = null,
+    val inviteGuestEmail: String? = null,
+    val inviteGuestUsedAt: Date? = null,
+    // 보너스 초대 코드 (95% 달성 시 발급)
+    val bonusInviteCode: String? = null,
+    val bonusGuestId: String? = null,
+    val bonusGuestEmail: String? = null,
+    val bonusGuestUsedAt: Date? = null,
+    // Guest 관련
     val hostId: String? = null, // Guest인 경우 Host의 userId
-    val guestId: String? = null, // Host가 초대한 친구의 userId
+    val guestId: String? = null, // (deprecated) 이전 버전 호환용
     val guestExpiresAt: Date? = null, // Guest 만료 시간
     val createdAt: Date = Date(),
     val updatedAt: Date = Date()
@@ -107,8 +117,9 @@ class SubscriptionManager(private val context: Context) {
             calendar.set(Calendar.DAY_OF_MONTH, calendar.getActualMaximum(Calendar.DAY_OF_MONTH))
             val endDate = calendar.time
 
-            // 친구 초대 코드 생성
-            val inviteCode = generateInviteCode(userId)
+            // 친구 초대 코드 생성 (매달 새로운 코드)
+            val inviteCode = generateInviteCode(userId, monthId)
+            val bonusInviteCode = generateBonusInviteCode(userId, monthId)
 
             val subscription = SubscriptionData(
                 monthId = monthId,
@@ -129,6 +140,13 @@ class SubscriptionManager(private val context: Context) {
                 startDate = startDate,
                 endDate = endDate,
                 inviteCode = inviteCode,
+                inviteGuestId = null,
+                inviteGuestEmail = null,
+                inviteGuestUsedAt = null,
+                bonusInviteCode = bonusInviteCode,
+                bonusGuestId = null,
+                bonusGuestEmail = null,
+                bonusGuestUsedAt = null,
                 hostId = null,
                 guestId = null,
                 guestExpiresAt = null,
@@ -146,6 +164,9 @@ class SubscriptionManager(private val context: Context) {
             // 대시보드 추적용 사용자 문서 생성
             createUserDocument(userId, goal)
 
+            // Analytics: 초대 코드 생성 추적
+            AnalyticsManager.trackInviteCodeGenerated()
+
             Log.d(TAG, "✅ Subscription created: $monthId, inviteCode=$inviteCode")
             return Result.success(subscription)
 
@@ -156,10 +177,23 @@ class SubscriptionManager(private val context: Context) {
     }
 
     /**
-     * 친구 초대 코드 생성
+     * 기본 초대 코드 생성 (정기결제 시 발급)
+     * 형식: REBON-{userId앞3자}{monthId해시4자}
      */
-    private fun generateInviteCode(userId: String): String {
-        return "REBON-${userId.take(6).uppercase()}"
+    private fun generateInviteCode(userId: String, monthId: String): String {
+        val userPart = userId.take(3).uppercase()
+        val monthHash = (userId + monthId).hashCode().toString(16).takeLast(4).uppercase()
+        return "REBON-$userPart$monthHash"
+    }
+
+    /**
+     * 보너스 초대 코드 생성 (95% 달성 시 활성화)
+     * 형식: BONUS-{userId앞3자}{monthId해시4자}
+     */
+    private fun generateBonusInviteCode(userId: String, monthId: String): String {
+        val userPart = userId.take(3).uppercase()
+        val monthHash = (userId + monthId + "bonus").hashCode().toString(16).takeLast(4).uppercase()
+        return "BONUS-$userPart$monthHash"
     }
 
     /**

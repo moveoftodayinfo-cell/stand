@@ -13,6 +13,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -693,16 +694,18 @@ fun SettingsScreen(
                                     ) {
                                         Column {
                                             Text(
-                                                text = if (earnedCoupon) "친구 초대 쿠폰 획득!" else "95% 달성하면",
+                                                text = if (earnedCoupon) "친구 초대 쿠폰 획득!" else "95% 달성 시 친구 초대 쿠폰!",
                                                 fontSize = 15.sp,
                                                 fontWeight = FontWeight.Bold,
                                                 color = if (earnedCoupon) MockupColors.Blue else MockupColors.TextPrimary
                                             )
-                                            Text(
-                                                text = if (earnedCoupon) "친구에게 1달 무료 선물하세요" else "친구 초대 쿠폰을 드려요!",
-                                                fontSize = 13.sp,
-                                                color = if (earnedCoupon) MockupColors.Blue else MockupColors.TextMuted
-                                            )
+                                            if (earnedCoupon) {
+                                                Text(
+                                                    text = "친구에게 1달 무료 선물하세요",
+                                                    fontSize = 13.sp,
+                                                    color = MockupColors.Blue
+                                                )
+                                            }
                                         }
                                         PixelIcon(
                                             iconName = if (earnedCoupon) "icon_trophy" else "icon_chest",
@@ -769,12 +772,73 @@ fun SettingsScreen(
 
                     // 친구 초대 카드
                     val userId = FirebaseAuth.getInstance().currentUser?.uid ?: ""
-                    val inviteCode = if (userId.isNotEmpty()) "REBON-${userId.take(6).uppercase()}" else ""
+                    val monthId = java.text.SimpleDateFormat("yyyy-MM", java.util.Locale.getDefault()).format(java.util.Date())
+
+                    // 코드 생성 (SubscriptionManager와 동일한 알고리즘)
+                    val userPart = userId.take(3).uppercase()
+                    val basicHash = (userId + monthId).hashCode().toString(16).takeLast(4).uppercase()
+                    val bonusHash = (userId + monthId + "bonus").hashCode().toString(16).takeLast(4).uppercase()
+                    val basicInviteCode = if (userId.isNotEmpty()) "REBON-$userPart$basicHash" else ""
+                    val bonusInviteCode = if (userId.isNotEmpty()) "BONUS-$userPart$bonusHash" else ""
 
                     // 프로모션 코드 사용자인지 확인 (무료 사용자는 초대 코드 발급 불가)
-                    val promoCodeType = preferenceManager?.getPromoCodeType()
-                    val isPromoUser = promoCodeType != null
-                    val canShareInviteCode = isPaidDeposit && !isPromoUser && inviteCode.isNotEmpty()
+                    val promoCodeTypeForInvite = preferenceManager?.getPromoCodeType()
+                    val isPromoUserForInvite = promoCodeTypeForInvite != null
+                    val canShareInviteCode = isPaidDeposit && !isPromoUserForInvite && basicInviteCode.isNotEmpty()
+
+                    // 95% 달성 여부 (보너스 코드 활성화 조건) - earnedCoupon은 이미 위에서 정의됨
+
+                    // Guest 정보 상태
+                    var basicGuestEmail by remember { mutableStateOf<String?>(null) }
+                    var basicGuestInfo by remember { mutableStateOf<String?>(null) }
+                    var bonusGuestEmail by remember { mutableStateOf<String?>(null) }
+                    var bonusGuestInfo by remember { mutableStateOf<String?>(null) }
+
+                    // Firebase에서 Guest 정보 가져오기
+                    LaunchedEffect(userId, monthId) {
+                        if (userId.isNotEmpty() && isPaidDeposit) {
+                            try {
+                                val db = com.google.firebase.firestore.FirebaseFirestore.getInstance()
+                                val subDoc = db.collection("users").document(userId)
+                                    .collection("subscriptions").document(monthId).get().await()
+                                if (subDoc.exists()) {
+                                    basicGuestEmail = subDoc.getString("inviteGuestEmail")
+                                    bonusGuestEmail = subDoc.getString("bonusGuestEmail")
+
+                                    // 기본 게스트 정보 가져오기
+                                    val basicGuestId = subDoc.getString("inviteGuestId")
+                                    if (basicGuestId != null) {
+                                        val guestDoc = db.collection("users").document(basicGuestId).get().await()
+                                        if (guestDoc.exists()) {
+                                            val petName = guestDoc.getString("petName") ?: "-"
+                                            val goal = guestDoc.getLong("goal")?.toInt() ?: 0
+                                            val success = guestDoc.getLong("successDays")?.toInt() ?: 0
+                                            val total = guestDoc.getLong("totalDays")?.toInt() ?: 0
+                                            basicGuestInfo = "$petName / ${goal}보 / $success/$total"
+                                        }
+                                    }
+
+                                    // 보너스 게스트 정보 가져오기
+                                    val bonusGuestId = subDoc.getString("bonusGuestId")
+                                    android.util.Log.d("SettingsScreen", "bonusGuestId: $bonusGuestId")
+                                    if (bonusGuestId != null) {
+                                        val guestDoc = db.collection("users").document(bonusGuestId).get().await()
+                                        android.util.Log.d("SettingsScreen", "guestDoc.exists: ${guestDoc.exists()}")
+                                        if (guestDoc.exists()) {
+                                            val petName = guestDoc.getString("petName") ?: "-"
+                                            val goal = guestDoc.getLong("goal")?.toInt() ?: 0
+                                            val success = guestDoc.getLong("successDays")?.toInt() ?: 0
+                                            val total = guestDoc.getLong("totalDays")?.toInt() ?: 0
+                                            bonusGuestInfo = "$petName / ${goal}보 / $success/$total"
+                                            android.util.Log.d("SettingsScreen", "bonusGuestInfo: $bonusGuestInfo")
+                                        }
+                                    }
+                                }
+                            } catch (e: Exception) {
+                                android.util.Log.e("SettingsScreen", "Error fetching guest info", e)
+                            }
+                        }
+                    }
 
                     Box(
                         modifier = Modifier
@@ -801,54 +865,215 @@ fun SettingsScreen(
                             Spacer(modifier = Modifier.height(12.dp))
 
                             if (canShareInviteCode) {
-                                // 유료 결제 사용자: 초대 코드 표시
+                                // ===== 기본 초대 코드 =====
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Icon(
+                                        imageVector = Icons.Filled.Info,
+                                        contentDescription = null,
+                                        tint = MockupColors.Blue,
+                                        modifier = Modifier.size(18.dp)
+                                    )
+                                    Spacer(modifier = Modifier.width(4.dp))
+                                    Text(
+                                        text = "기본 초대 코드",
+                                        fontSize = 14.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = MockupColors.TextPrimary
+                                    )
+                                }
+                                Spacer(modifier = Modifier.height(8.dp))
+
                                 Box(
                                     modifier = Modifier
                                         .fillMaxWidth()
-                                        .border(2.dp, MockupColors.Border, RoundedCornerShape(8.dp))
-                                        .background(MockupColors.Background, RoundedCornerShape(8.dp))
+                                        .border(2.dp, if (basicGuestEmail != null) MockupColors.Green else MockupColors.Border, RoundedCornerShape(8.dp))
+                                        .background(if (basicGuestEmail != null) MockupColors.GreenLight else MockupColors.Background, RoundedCornerShape(8.dp))
                                         .padding(12.dp)
                                 ) {
-                                    Row(
-                                        modifier = Modifier.fillMaxWidth(),
-                                        horizontalArrangement = Arrangement.SpaceBetween,
-                                        verticalAlignment = Alignment.CenterVertically
-                                    ) {
+                                    if (basicGuestEmail != null) {
+                                        // 사용됨 - 코드 숨김
                                         Column {
+                                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                                Icon(
+                                                    imageVector = Icons.Filled.CheckCircle,
+                                                    contentDescription = null,
+                                                    tint = MockupColors.Green,
+                                                    modifier = Modifier.size(18.dp)
+                                                )
+                                                Spacer(modifier = Modifier.width(4.dp))
+                                                Text(
+                                                    text = "${basicGuestEmail?.substringBefore("@")}님이 사용 중",
+                                                    fontSize = 14.sp,
+                                                    fontWeight = FontWeight.Bold,
+                                                    color = MockupColors.Green
+                                                )
+                                            }
+                                            if (basicGuestInfo != null) {
+                                                Spacer(modifier = Modifier.height(4.dp))
+                                                Text(
+                                                    text = basicGuestInfo!!,
+                                                    fontSize = 12.sp,
+                                                    color = MockupColors.TextSecondary
+                                                )
+                                            }
+                                        }
+                                    } else {
+                                        // 미사용 - 코드 표시
+                                        Row(
+                                            modifier = Modifier.fillMaxWidth(),
+                                            horizontalArrangement = Arrangement.SpaceBetween,
+                                            verticalAlignment = Alignment.CenterVertically
+                                        ) {
                                             Text(
-                                                text = "내 초대 코드",
-                                                fontSize = 12.sp,
-                                                color = MockupColors.TextMuted
-                                            )
-                                            Spacer(modifier = Modifier.height(4.dp))
-                                            Text(
-                                                text = inviteCode,
+                                                text = basicInviteCode,
                                                 fontSize = 17.sp,
                                                 fontWeight = FontWeight.Bold,
                                                 color = MockupColors.Blue,
                                                 fontFamily = kenneyFont
                                             )
+                                            Box(
+                                                modifier = Modifier
+                                                    .border(2.dp, MockupColors.Blue, RoundedCornerShape(6.dp))
+                                                    .background(MockupColors.CardBackground, RoundedCornerShape(6.dp))
+                                                    .clickable {
+                                                        hapticManager.success()
+                                                        val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                                                        val clip = ClipData.newPlainText("invite_code", basicInviteCode)
+                                                        clipboard.setPrimaryClip(clip)
+                                                        Toast.makeText(context, "복사 완료!", Toast.LENGTH_SHORT).show()
+                                                    }
+                                                    .padding(horizontal = 12.dp, vertical = 6.dp)
+                                            ) {
+                                                Text(
+                                                    text = "복사",
+                                                    fontSize = 13.sp,
+                                                    fontWeight = FontWeight.Bold,
+                                                    color = MockupColors.Blue,
+                                                    fontFamily = kenneyFont
+                                                )
+                                            }
                                         }
-                                        Box(
-                                            modifier = Modifier
-                                                .border(2.dp, MockupColors.Blue, RoundedCornerShape(6.dp))
-                                                .background(MockupColors.CardBackground, RoundedCornerShape(6.dp))
-                                                .clickable {
-                                                    hapticManager.success()
-                                                    val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-                                                    val clip = ClipData.newPlainText("invite_code", inviteCode)
-                                                    clipboard.setPrimaryClip(clip)
-                                                    Toast.makeText(context, "복사 완료!", Toast.LENGTH_SHORT).show()
+                                    }
+                                }
+
+                                Spacer(modifier = Modifier.height(16.dp))
+
+                                // ===== 보너스 초대 코드 (95% 달성 시) =====
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Icon(
+                                        imageVector = Icons.Filled.Info,
+                                        contentDescription = null,
+                                        tint = if (earnedCoupon) MockupColors.Purple else MockupColors.TextMuted,
+                                        modifier = Modifier.size(18.dp)
+                                    )
+                                    Spacer(modifier = Modifier.width(4.dp))
+                                    Text(
+                                        text = "보너스 초대 코드 ${if (earnedCoupon) "" else "(95% 달성 시 활성화)"}",
+                                        fontSize = 14.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = if (earnedCoupon) MockupColors.TextPrimary else MockupColors.TextMuted
+                                    )
+                                }
+                                Spacer(modifier = Modifier.height(8.dp))
+
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .border(2.dp, when {
+                                            bonusGuestEmail != null -> MockupColors.Purple
+                                            earnedCoupon -> MockupColors.Purple
+                                            else -> MockupColors.Border
+                                        }, RoundedCornerShape(8.dp))
+                                        .background(when {
+                                            bonusGuestEmail != null -> MockupColors.PurpleLight
+                                            earnedCoupon -> MockupColors.PurpleLight
+                                            else -> MockupColors.Background.copy(alpha = 0.5f)
+                                        }, RoundedCornerShape(8.dp))
+                                        .padding(12.dp)
+                                ) {
+                                    when {
+                                        // 사용됨 - 코드 숨김
+                                        bonusGuestEmail != null -> {
+                                            Column {
+                                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                                    Icon(
+                                                        imageVector = Icons.Filled.CheckCircle,
+                                                        contentDescription = null,
+                                                        tint = MockupColors.Purple,
+                                                        modifier = Modifier.size(18.dp)
+                                                    )
+                                                    Spacer(modifier = Modifier.width(4.dp))
+                                                    Text(
+                                                        text = "${bonusGuestEmail?.substringBefore("@")}님이 사용 중",
+                                                        fontSize = 14.sp,
+                                                        fontWeight = FontWeight.Bold,
+                                                        color = MockupColors.Purple
+                                                    )
                                                 }
-                                                .padding(horizontal = 12.dp, vertical = 6.dp)
-                                        ) {
-                                            Text(
-                                                text = "복사",
-                                                fontSize = 13.sp,
-                                                fontWeight = FontWeight.Bold,
-                                                color = MockupColors.Blue,
-                                                fontFamily = kenneyFont
-                                            )
+                                                if (bonusGuestInfo != null) {
+                                                    Spacer(modifier = Modifier.height(4.dp))
+                                                    Text(
+                                                        text = bonusGuestInfo!!,
+                                                        fontSize = 12.sp,
+                                                        color = MockupColors.TextSecondary
+                                                    )
+                                                }
+                                            }
+                                        }
+                                        // 95% 달성 & 미사용 - 코드 표시
+                                        earnedCoupon -> {
+                                            Row(
+                                                modifier = Modifier.fillMaxWidth(),
+                                                horizontalArrangement = Arrangement.SpaceBetween,
+                                                verticalAlignment = Alignment.CenterVertically
+                                            ) {
+                                                Text(
+                                                    text = bonusInviteCode,
+                                                    fontSize = 17.sp,
+                                                    fontWeight = FontWeight.Bold,
+                                                    color = MockupColors.Purple,
+                                                    fontFamily = kenneyFont
+                                                )
+                                                Box(
+                                                    modifier = Modifier
+                                                        .border(2.dp, MockupColors.Purple, RoundedCornerShape(6.dp))
+                                                        .background(MockupColors.CardBackground, RoundedCornerShape(6.dp))
+                                                        .clickable {
+                                                            hapticManager.success()
+                                                            val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                                                            val clip = ClipData.newPlainText("bonus_code", bonusInviteCode)
+                                                            clipboard.setPrimaryClip(clip)
+                                                            Toast.makeText(context, "보너스 코드 복사 완료!", Toast.LENGTH_SHORT).show()
+                                                        }
+                                                        .padding(horizontal = 12.dp, vertical = 6.dp)
+                                                ) {
+                                                    Text(
+                                                        text = "복사",
+                                                        fontSize = 13.sp,
+                                                        fontWeight = FontWeight.Bold,
+                                                        color = MockupColors.Purple,
+                                                        fontFamily = kenneyFont
+                                                    )
+                                                }
+                                            }
+                                        }
+                                        // 95% 미달성 - 잠금
+                                        else -> {
+                                            Column {
+                                                Text(
+                                                    text = "🔒 ${bonusInviteCode.take(10)}...",
+                                                    fontSize = 17.sp,
+                                                    fontWeight = FontWeight.Bold,
+                                                    color = MockupColors.TextMuted,
+                                                    fontFamily = kenneyFont
+                                                )
+                                                Spacer(modifier = Modifier.height(4.dp))
+                                                Text(
+                                                    text = "현재 달성률: ${String.format("%.0f", achievementRate)}% → 95% 필요",
+                                                    fontSize = 11.sp,
+                                                    color = MockupColors.TextMuted
+                                                )
+                                            }
                                         }
                                     }
                                 }
@@ -859,6 +1084,9 @@ fun SettingsScreen(
                                     text = "초대 코드와 함께 공유",
                                     onClick = {
                                         hapticManager.click()
+                                        // Analytics: 초대 코드 공유 추적
+                                        AnalyticsManager.trackInviteCodeShared()
+
                                         val shareText = """
 🏃 rebon - 걸어서 앱을 해제하세요!
 
@@ -867,7 +1095,7 @@ fun SettingsScreen(
 
 📱 앱 다운로드: https://play.google.com/store/apps/details?id=com.moveoftoday.walkorwait
 
-🎁 초대 코드: $inviteCode
+🎁 초대 코드: $basicInviteCode
 위 코드를 입력하면 1달 무료!
                                         """.trimIndent()
 
@@ -894,7 +1122,7 @@ fun SettingsScreen(
                                     Row(
                                         verticalAlignment = Alignment.CenterVertically
                                     ) {
-                                        Text("", fontSize = 16.sp)
+                                        Text("🔒", fontSize = 16.sp)
                                         Spacer(modifier = Modifier.width(8.dp))
                                         Text(
                                             text = "유료 결제 시 초대 코드를 받을 수 있어요",
@@ -932,6 +1160,57 @@ fun SettingsScreen(
                                 )
                             }
                         }
+                    }
+
+                    // 🔧 디버그 전용: 96% 달성률 설정 버튼
+                    if (BuildConfig.DEBUG) {
+                        Spacer(modifier = Modifier.height(12.dp))
+                        val coroutineScope = rememberCoroutineScope()
+                        RetroButton(
+                            text = "🔧 [DEBUG] 96% 달성률로 설정",
+                            onClick = {
+                                hapticManager.click()
+                                coroutineScope.launch {
+                                    try {
+                                        val uid = FirebaseAuth.getInstance().currentUser?.uid ?: return@launch
+                                        val currentMonthId = java.text.SimpleDateFormat("yyyy-MM", java.util.Locale.getDefault()).format(java.util.Date())
+                                        val db = com.google.firebase.firestore.FirebaseFirestore.getInstance()
+
+                                        // 96% = 24/25
+                                        val successDays = 24
+                                        val totalDays = 25
+                                        val newAchievementRate = 96f
+
+                                        // Firebase 업데이트
+                                        db.collection("users").document(uid)
+                                            .collection("subscriptions").document(currentMonthId)
+                                            .update(mapOf(
+                                                "successDays" to successDays,
+                                                "totalDays" to totalDays,
+                                                "achievementRate" to newAchievementRate,
+                                                "earnedFriendCoupon" to true
+                                            )).await()
+
+                                        // 로컬 저장소 업데이트
+                                        repository?.saveSuccessDays(successDays)
+
+                                        // settings 문서도 업데이트
+                                        db.collection("users").document(uid)
+                                            .collection("userData").document("settings")
+                                            .update(mapOf(
+                                                "successDays" to successDays,
+                                                "totalDays" to totalDays
+                                            )).await()
+
+                                        Toast.makeText(context, "✅ 96% 달성률 설정 완료! 화면을 새로고침하세요", Toast.LENGTH_LONG).show()
+                                    } catch (e: Exception) {
+                                        Toast.makeText(context, "❌ 오류: ${e.message}", Toast.LENGTH_SHORT).show()
+                                    }
+                                }
+                            },
+                            backgroundColor = MockupColors.Orange,
+                            fontFamily = kenneyFont
+                        )
                     }
 
                     Spacer(modifier = Modifier.height(16.dp))

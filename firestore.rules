@@ -1,0 +1,117 @@
+rules_version = '2';
+  service cloud.firestore {
+    match /databases/{database}/documents {
+
+      // 관리자 확인
+      function isAdmin() {
+        return request.auth != null &&
+               request.auth.token.email == 'moveoftoday.info@gmail.com';
+      }
+
+      // API 설정 - 읽기만 허용 (앱에서 API 키 로드용)
+      match /apiConfig/{document=**} {
+        allow read: if true;
+        allow write: if isAdmin();
+      }
+
+      // 공지사항
+      match /announcements/{docId} {
+        allow read: if true;
+        allow write: if isAdmin();
+      }
+
+      // 프로모션 코드
+      match /promoCodes/{code} {
+        allow read: if true;
+        allow create, delete: if isAdmin();
+        allow update: if request.auth != null;
+      }
+
+      // 채팅 로그
+      match /chatLogs/{docId} {
+        allow read: if isAdmin();
+        allow create: if request.auth != null;
+        allow update, delete: if isAdmin();
+      }
+
+      // 피드백
+      match /feedback/{docId} {
+        allow read: if isAdmin();
+        allow create: if true;
+        allow update, delete: if isAdmin();
+      }
+
+      // 펫 교체 이력 (전체 - 대시보드용)
+      match /petChangeHistory/{docId} {
+        allow read: if isAdmin();
+        allow create: if request.auth != null;
+        allow update, delete: if isAdmin();
+      }
+
+      // 초대 코드 검색용 (collectionGroup 쿼리)
+      match /{path=**}/subscriptions/{subscriptionId} {
+        allow read: if request.auth != null;
+      }
+
+      // 사용자 데이터
+      match /users/{userId} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+        allow read: if isAdmin();
+        // 호스트가 자신의 게스트 정보 읽기 허용
+        allow read: if request.auth != null && resource.data.promoHostId == request.auth.uid;
+
+        match /subscriptions/{subId} {
+          // 본인 읽기/쓰기
+          allow read, write: if request.auth != null && request.auth.uid == userId;
+          // 관리자 읽기
+          allow read: if isAdmin();
+          // 친구 초대: 다른 사용자가 guest 필드 업데이트 허용 (기본 + 보너스 코드)
+          allow update: if request.auth != null
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+              'guestId', 'guestUsedAt', 'guestEmail',
+              'inviteGuestId', 'inviteGuestEmail', 'inviteGuestUsedAt',
+              'bonusGuestId', 'bonusGuestEmail', 'bonusGuestUsedAt'
+            ]);
+        }
+
+        match /dailyRecords/{recordId} {
+          allow read, write: if request.auth != null && request.auth.uid == userId;
+          allow read: if isAdmin();
+        }
+
+        match /userData/{dataId} {
+          allow read, write: if request.auth != null && request.auth.uid == userId;
+          allow read: if isAdmin();
+        }
+
+        match /dailySteps/{stepId} {
+          allow read, write: if request.auth != null && request.auth.uid == userId;
+          allow read: if isAdmin();
+        }
+
+        // 챌린지 완료 이력
+        match /challengeHistory/{historyId} {
+          allow read, write: if request.auth != null && request.auth.uid == userId;
+          allow read: if isAdmin();
+        }
+
+        // 일일 챌린지 통계
+        match /challengeStats/{date} {
+          allow read, write: if request.auth != null && request.auth.uid == userId;
+          allow read: if isAdmin();
+        }
+
+        // 획득한 칭호
+        match /unlockedTitles/{titleId} {
+          allow read, write: if request.auth != null && request.auth.uid == userId;
+          allow read: if isAdmin();
+        }
+
+        // 펫 교체 이력
+        match /petChanges/{changeId} {
+          allow read, write: if request.auth != null && request.auth.uid == userId;
+          allow read: if isAdmin();
+        }
+      }
+    }
+  }
