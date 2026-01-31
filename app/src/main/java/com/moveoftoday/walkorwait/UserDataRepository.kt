@@ -482,6 +482,10 @@ class UserDataRepository(
             kotlinx.coroutines.withTimeout(10000) {
                 val timestamp = System.currentTimeMillis()
 
+                // 기존 문서에서 createdAt 확인
+                val existingDoc = firestore.collection("users").document(userId).get().await()
+                val existingCreatedAt = existingDoc.getLong("createdAt")
+
                 // 로컬 칭호 데이터 가져오기
                 val challengePrefs = context.getSharedPreferences("challenge_prefs", android.content.Context.MODE_PRIVATE)
                 val localUnlockedTitles = challengePrefs.getStringSet("unlocked_titles", emptySet()) ?: emptySet()
@@ -495,6 +499,8 @@ class UserDataRepository(
                     "lastUpdated" to timestamp,
                     "lastActiveAt" to timestamp,
                     "lastSyncTimestamp" to timestamp,
+                    // createdAt은 없을 때만 설정 (최초 가입 시간)
+                    "createdAt" to (existingCreatedAt ?: timestamp),
 
                     // 펫 정보
                     "petType" to settings.petType,
