@@ -41,6 +41,28 @@ google-services.json
 *.pem
 *.p12
 credentials.json
+serviceAccountKey*.json
+
+# Admin/Debug scripts
+check_*.js
+fix_*.js
+reset_*.js
+restore_*.js
+find_*.js
+
+# Logs and debug files
+*.log
+crash_log.txt
+logcat.txt
+temp_log.txt
+*.stackdump
+
+# Firebase cache
+.firebase/
+
+# Node.js
+node_modules/
+package-lock.json
 
 # Error logs
 hs_err_pid*.log
