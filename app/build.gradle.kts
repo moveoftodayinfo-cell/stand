@@ -108,8 +108,8 @@ dependencies {
     // Google Play Billing
     implementation(libs.billing)
 
-    // Health Connect
-    implementation("androidx.health.connect:connect-client:1.1.0-alpha10")
+    // Health Connect (1.1.0-alpha11: 안정성 개선)
+    implementation("androidx.health.connect:connect-client:1.1.0-alpha11")
 
     // Coroutines
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")

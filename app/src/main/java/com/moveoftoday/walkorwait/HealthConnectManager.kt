@@ -33,9 +33,23 @@ class HealthConnectManager(private val context: Context) {
         )
     }
 
-    private val healthConnectClient by lazy {
-        HealthConnectClient.getOrCreate(context)
+    // 방어적 초기화: SDK 버전 불일치 등으로 인한 크래시 방지
+    private val healthConnectClient: HealthConnectClient? by lazy {
+        try {
+            HealthConnectClient.getOrCreate(context)
+        } catch (e: Exception) {
+            Log.e(TAG, "❌ HealthConnectClient 초기화 실패: ${e.message}")
+            null
+        } catch (e: Error) {
+            Log.e(TAG, "❌ HealthConnectClient 초기화 Error: ${e.message}")
+            null
+        }
     }
+
+    /**
+     * HealthConnectClient가 정상적으로 초기화되었는지 확인
+     */
+    fun isClientAvailable(): Boolean = healthConnectClient != null
 
     /**
      * Health Connect 사용 가능 여부 확인
@@ -51,8 +65,9 @@ class HealthConnectManager(private val context: Context) {
      * 권한 확인
      */
     suspend fun hasAllPermissions(): Boolean {
+        val client = healthConnectClient ?: return false
         return try {
-            val granted = healthConnectClient.permissionController.getGrantedPermissions()
+            val granted = client.permissionController.getGrantedPermissions()
             PERMISSIONS.all { it in granted }
         } catch (e: Exception) {
             Log.e(TAG, "Failed to check permissions: ${e.message}")
@@ -86,6 +101,10 @@ class HealthConnectManager(private val context: Context) {
      * 오늘 걸음 수 가져오기
      */
     suspend fun getTodaySteps(): Int {
+        val client = healthConnectClient ?: run {
+            Log.w(TAG, "⚠️ HealthConnectClient not available")
+            return 0
+        }
         return try {
             val today = LocalDate.now()
             val startOfDay = today.atStartOfDay(ZoneId.systemDefault()).toInstant()
@@ -96,7 +115,7 @@ class HealthConnectManager(private val context: Context) {
                 timeRangeFilter = TimeRangeFilter.between(startOfDay, endOfDay)
             )
 
-            val response = healthConnectClient.readRecords(request)
+            val response = client.readRecords(request)
             val totalSteps = response.records.sumOf { it.count.toInt() }
 
             Log.d(TAG, "✅ Today's steps from Health Connect: $totalSteps")
@@ -112,6 +131,7 @@ class HealthConnectManager(private val context: Context) {
      * 오늘 거리 가져오기 (미터 단위)
      */
     suspend fun getTodayDistance(): Double {
+        val client = healthConnectClient ?: return 0.0
         return try {
             val today = LocalDate.now()
             val startOfDay = today.atStartOfDay(ZoneId.systemDefault()).toInstant()
@@ -122,7 +142,7 @@ class HealthConnectManager(private val context: Context) {
                 timeRangeFilter = TimeRangeFilter.between(startOfDay, endOfDay)
             )
 
-            val response = healthConnectClient.readRecords(request)
+            val response = client.readRecords(request)
             val totalDistance = response.records.sumOf { it.distance.inMeters }
 
             Log.d(TAG, "✅ Today's distance: ${totalDistance}m")
@@ -138,6 +158,7 @@ class HealthConnectManager(private val context: Context) {
      * 특정 날짜의 걸음 수 가져오기
      */
     suspend fun getStepsForDate(date: LocalDate): Int {
+        val client = healthConnectClient ?: return 0
         return try {
             val startOfDay = date.atStartOfDay(ZoneId.systemDefault()).toInstant()
             val endOfDay = date.plusDays(1).atStartOfDay(ZoneId.systemDefault()).toInstant()
@@ -147,7 +168,7 @@ class HealthConnectManager(private val context: Context) {
                 timeRangeFilter = TimeRangeFilter.between(startOfDay, endOfDay)
             )
 
-            val response = healthConnectClient.readRecords(request)
+            val response = client.readRecords(request)
             response.records.sumOf { it.count.toInt() }
 
         } catch (e: Exception) {
@@ -160,6 +181,7 @@ class HealthConnectManager(private val context: Context) {
      * 특정 기간의 걸음 수 가져오기
      */
     suspend fun getStepsForPeriod(startDate: LocalDate, endDate: LocalDate): Map<LocalDate, Int> {
+        val client = healthConnectClient ?: return emptyMap()
         return try {
             val start = startDate.atStartOfDay(ZoneId.systemDefault()).toInstant()
             val end = endDate.plusDays(1).atStartOfDay(ZoneId.systemDefault()).toInstant()
@@ -169,7 +191,7 @@ class HealthConnectManager(private val context: Context) {
                 timeRangeFilter = TimeRangeFilter.between(start, end)
             )
 
-            val response = healthConnectClient.readRecords(request)
+            val response = client.readRecords(request)
 
             // 날짜별로 그룹화
             response.records

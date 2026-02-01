@@ -81,6 +81,8 @@ object MockupColors {
     val RedLight = Color(0xFFFFEBEE)      // Red background
     val Green = Color(0xFF43A047)         // Success, local data
     val GreenLight = Color(0xFFE8F5E9)    // Green background
+    val Purple = Color(0xFF7B1FA2)        // Bonus, special
+    val PurpleLight = Color(0xFFF3E5F5)   // Purple background
     val Orange = Color(0xFFF57C00)        // Warning, attention
 
     // State backgrounds (using Blue for positive states)
