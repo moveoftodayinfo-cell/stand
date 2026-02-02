@@ -47,3 +47,11 @@
 
 # 앱 모델 클래스 유지
 -keep class com.moveoftoday.walkorwait.** { *; }
+
+# 릴리즈 빌드에서 로그 제거 (성능 최적화)
+-assumenosideeffects class android.util.Log {
+    public static int v(...);
+    public static int d(...);
+    public static int i(...);
+    public static int w(...);
+}

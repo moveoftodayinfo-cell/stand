@@ -440,7 +440,7 @@ class UserDataRepository(
             Log.d(TAG, "🔄 ChallengeManager reloaded after title restoration")
 
             // 오늘의 챌린지 통계도 Firebase에서 로드
-            kotlinx.coroutines.GlobalScope.launch {
+            repositoryScope.launch {
                 challengeManager.loadTodayStatsFromFirebase()
             }
         } catch (e: Exception) {
