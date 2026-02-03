@@ -27,9 +27,12 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.animation.core.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.foundation.Canvas
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
@@ -42,6 +45,7 @@ import androidx.compose.ui.res.painterResource
 import coil.compose.AsyncImage
 import com.moveoftoday.walkorwait.R
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -968,6 +972,12 @@ private fun TutorialItemRow(
 }
 
 // =====================================================
+// 미니게임용 클래스들
+// =====================================================
+private enum class DinoGameState { IDLE, PLAYING, GAME_OVER }
+private data class GameObstacle(val x: Float, val type: Int, val iconIndex: Int = 0)
+
+// =====================================================
 // STEP 0: Google Sign-In (데이터 백업)
 // =====================================================
 @Composable
@@ -1150,36 +1160,180 @@ private fun GoogleSignInStep(
         }
     }
 
-    // Platformer animation state
-    val infiniteTransition = rememberInfiniteTransition(label = "platformer")
+    // ===== 공룡 게임 스타일 미니게임 =====
+    var gameState by remember { mutableStateOf(DinoGameState.IDLE) }
+    var score by remember { mutableIntStateOf(0) }
+    var highScore by remember { mutableIntStateOf(0) }
 
-    // Pet jump animation (synchronized with obstacles passing)
-    val petJumpOffset by infiniteTransition.animateFloat(
-        initialValue = 0f,
-        targetValue = 0f,
-        animationSpec = infiniteRepeatable(
-            animation = keyframes {
-                durationMillis = 1000  // Jump every ~1 second as icons pass
-                0f at 0
-                -70f at 350
-                -70f at 550
-                0f at 1000
-            },
-            repeatMode = RepeatMode.Restart
-        ),
-        label = "petJump"
+    // Player physics
+    var playerY by remember { mutableFloatStateOf(0f) }  // 0 = ground
+    var velocityY by remember { mutableFloatStateOf(0f) }
+    val gravity = 1800f  // pixels per second^2
+    val jumpVelocity = -900f  // negative = up
+    val groundY = 0f
+
+    // Obstacles: list of (x position, type: 0=icon, 1=tree)
+    var obstacles by remember { mutableStateOf(listOf<GameObstacle>()) }
+    var gameSpeed by remember { mutableFloatStateOf(300f) }  // pixels per second
+    val maxSpeed = 1000f  // 최대 속도 증가
+
+    // Obstacle icons
+    val iconList = listOf(
+        R.drawable.social_icon_01,
+        R.drawable.social_icon_02,
+        R.drawable.social_icon_03,
+        R.drawable.social_icon_04,
+        R.drawable.social_icon_05,
+        R.drawable.social_icon_06,
+        R.drawable.social_icon_07,
+        R.drawable.social_icon_08,
+        R.drawable.social_icon_09,
+        R.drawable.social_icon_10
     )
 
-    // Obstacles scroll animation (screen-width range for visibility)
-    val obstaclesOffset by infiniteTransition.animateFloat(
-        initialValue = 1200f,  // Start from right off-screen
-        targetValue = -600f,   // End at left off-screen
-        animationSpec = infiniteRepeatable(
-            animation = tween(6000, easing = LinearEasing),
-            repeatMode = RepeatMode.Restart
-        ),
-        label = "obstaclesScroll"
-    )
+    // Game dimensions (in dp, converted to px in game loop)
+    val playerSize = 60.dp
+    val obstacleWidth = 28.dp
+    val obstacleHeight = 28.dp  // 정사각형
+    val treeWidth = 20.dp
+    val treeHeight = 50.dp
+    val cactusWidth = 20.dp   // 나무와 같은 크기
+    val cactusHeight = 50.dp
+    val rockWidth = 15.dp     // 바위 크기 증가
+    val rockHeight = 20.dp
+    val gameAreaWidth = 400.dp
+
+    // Convert dp to px
+    val density = LocalDensity.current
+    val playerSizePx = with(density) { playerSize.toPx() }
+    val obstacleWidthPx = with(density) { obstacleWidth.toPx() }
+    val obstacleHeightPx = with(density) { obstacleHeight.toPx() }
+    val treeWidthPx = with(density) { treeWidth.toPx() }
+    val treeHeightPx = with(density) { treeHeight.toPx() }
+    val gameAreaWidthPx = with(density) { gameAreaWidth.toPx() }
+    val playerXPx = with(density) { 70.dp.toPx() }  // Player X position
+
+    // Jump function
+    fun jump() {
+        if (playerY >= groundY - 1f) {  // On or near ground
+            velocityY = jumpVelocity
+            hapticManager?.click()
+        }
+    }
+
+    // Start/Restart game
+    fun startGame() {
+        gameState = DinoGameState.PLAYING
+        score = 0
+        playerY = 0f
+        velocityY = 0f
+        obstacles = listOf()
+        gameSpeed = 300f
+        hapticManager?.click()
+    }
+
+    // Flying obstacle height
+    val flyingHeightPx = with(density) { 50.dp.toPx() }
+
+    // Collision detection
+    fun checkCollision(): Boolean {
+        val playerLeft = playerXPx
+        val playerRight = playerXPx + playerSizePx * 0.6f
+        val playerBottom = -playerY
+        val playerTop = playerBottom + playerSizePx * 0.6f
+
+        for (obstacle in obstacles) {
+            // 배경 장식(나무, 선인장, 바위)은 충돌 없음
+            if (obstacle.type == 1 || obstacle.type == 3 || obstacle.type == 4) continue
+
+            val obsWidth = obstacleWidthPx
+            val obsHeight = obstacleHeightPx
+
+            val obsLeft = obstacle.x
+            val obsRight = obstacle.x + obsWidth
+
+            // 날아오는 아이콘(type=2)은 위에서
+            val obsBottom = if (obstacle.type == 2) flyingHeightPx else 0f
+            val obsTop = obsBottom + obsHeight
+
+            // AABB collision (아이콘만)
+            if (playerRight > obsLeft && playerLeft < obsRight &&
+                playerTop > obsBottom && playerBottom < obsTop) {
+                return true
+            }
+        }
+        return false
+    }
+
+    // Game loop
+    LaunchedEffect(gameState) {
+        if (gameState == DinoGameState.PLAYING) {
+            var lastTime = System.nanoTime()
+            var obstacleSpawnTimer = 0f
+            val minSpawnInterval = 0.5f  // seconds
+            val maxSpawnInterval = 2.5f  // seconds
+            var nextSpawnTime = (minSpawnInterval + Math.random() * (maxSpawnInterval - minSpawnInterval)).toFloat()
+
+            while (gameState == DinoGameState.PLAYING) {
+                val currentTime = System.nanoTime()
+                val deltaTime = (currentTime - lastTime) / 1_000_000_000f  // Convert to seconds
+                lastTime = currentTime
+
+                // Update player physics
+                velocityY += gravity * deltaTime
+                playerY += velocityY * deltaTime
+
+                // Ground collision
+                if (playerY > groundY) {
+                    playerY = groundY
+                    velocityY = 0f
+                }
+
+                // Update obstacles
+                obstacles = obstacles.map {
+                    it.copy(x = it.x - gameSpeed * deltaTime)
+                }.filter { it.x > -100f }  // Remove off-screen obstacles
+
+                // Spawn new obstacles
+                obstacleSpawnTimer += deltaTime
+                if (obstacleSpawnTimer >= nextSpawnTime) {
+                    obstacleSpawnTimer = 0f
+                    nextSpawnTime = (minSpawnInterval + Math.random() * (maxSpawnInterval - minSpawnInterval)).toFloat()
+
+                    // Random obstacle type: 40% 바닥 아이콘, 15% 나무, 15% 선인장, 15% 바위, 15% 날아오는 아이콘
+                    val rand = Math.random()
+                    val type = when {
+                        rand < 0.40 -> 0   // 바닥 아이콘
+                        rand < 0.55 -> 1   // 나무 (배경)
+                        rand < 0.70 -> 3   // 선인장 (배경)
+                        rand < 0.85 -> 4   // 바위 (배경)
+                        else -> 2          // 날아오는 아이콘
+                    }
+                    val iconIndex = (Math.random() * iconList.size).toInt()
+                    obstacles = obstacles + GameObstacle(gameAreaWidthPx + 50f, type, iconIndex)
+                }
+
+                // Update score
+                score++
+
+                // Increase speed gradually
+                if (gameSpeed < maxSpeed) {
+                    gameSpeed += 12f * deltaTime  // 난이도 증가 속도 2.4배
+                }
+
+                // Check collision
+                if (checkCollision()) {
+                    gameState = DinoGameState.GAME_OVER
+                    if (score > highScore) {
+                        highScore = score
+                    }
+                    hapticManager?.click()  // Game over feedback
+                }
+
+                delay(16)  // ~60 FPS
+            }
+        }
+    }
 
     Column(
         modifier = Modifier
@@ -1247,52 +1401,294 @@ private fun GoogleSignInStep(
             lineHeight = 22.sp
         )
 
-        Spacer(modifier = Modifier.height(30.dp))
+        Spacer(modifier = Modifier.height(40.dp))
 
-        // Platformer animation area
+        // ===== 미니게임 영역 =====
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(120.dp)
+                .height(200.dp)
+                .background(Color.White)
+                .clickable {
+                    when (gameState) {
+                        DinoGameState.IDLE -> startGame()
+                        DinoGameState.PLAYING -> jump()
+                        DinoGameState.GAME_OVER -> startGame()
+                    }
+                }
         ) {
-            // Ground line
-            Box(
+            // Score display (top right)
+            if (gameState != DinoGameState.IDLE) {
+                Text(
+                    text = "SCORE: $score",
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .padding(8.dp),
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Bold,
+                    fontFamily = kenneyFont,
+                    color = Color.Black
+                )
+            }
+
+            // High score (top left)
+            if (highScore > 0) {
+                Text(
+                    text = "HI: $highScore",
+                    modifier = Modifier
+                        .align(Alignment.TopStart)
+                        .padding(8.dp),
+                    fontSize = 12.sp,
+                    fontFamily = kenneyFont,
+                    color = Color.Black
+                )
+            }
+
+            // Ground line - 픽셀 점선 패턴
+            Canvas(
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
                     .fillMaxWidth()
-                    .height(2.dp)
-                    .background(MockupColors.TextPrimary)
-            )
-
-            // Scrolling obstacles (app icons)
-            Row(
-                modifier = Modifier
-                    .align(Alignment.BottomStart)
-                    .offset { IntOffset(obstaclesOffset.toInt(), -4) },
-                horizontalArrangement = Arrangement.spacedBy(100.dp)
+                    .height(4.dp)
+                    .padding(horizontal = 8.dp)
+                    .offset(y = (-30).dp)
             ) {
-                listOf("icon_dialog", "icon_play", "icon_card", "icon_signal").forEach { iconName ->
-                    DrawableIcon(
-                        iconName = iconName,
-                        size = 36.dp,
-                        tint = MockupColors.TextPrimary
+                val dotSize = 6f
+                val gap = 6f
+                var x = 0f
+                while (x < size.width) {
+                    drawRect(
+                        color = Color(0xFF333333),
+                        topLeft = Offset(x, 0f),
+                        size = Size(dotSize, size.height)
+                    )
+                    x += dotSize + gap
+                }
+            }
+
+            // Game content area
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(160.dp)
+                    .align(Alignment.BottomCenter)
+                    .padding(bottom = 30.dp)
+            ) {
+                // Obstacles
+                obstacles.forEach { obstacle ->
+                    val xDp = with(density) { obstacle.x.toDp() }
+
+                    when (obstacle.type) {
+                        0 -> {
+                            // 바닥 아이콘
+                            Box(
+                                modifier = Modifier
+                                    .align(Alignment.BottomStart)
+                                    .offset(x = xDp, y = (-4).dp)
+                                    .size(obstacleWidth, obstacleHeight)
+                                    .border(2.dp, Color(0xFF333333), RoundedCornerShape(4.dp))
+                                    .background(Color.White, RoundedCornerShape(4.dp)),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Image(
+                                    painter = painterResource(id = iconList[obstacle.iconIndex]),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(20.dp),
+                                    colorFilter = ColorFilter.tint(Color(0xFF333333))
+                                )
+                            }
+                        }
+                        1 -> {
+                            // 나무 (배경 장식)
+                            Canvas(
+                                modifier = Modifier
+                                    .align(Alignment.BottomStart)
+                                    .offset(x = xDp, y = (-4).dp)
+                                    .size(treeWidth, treeHeight)
+                            ) {
+                                // Tree trunk
+                                drawRect(
+                                    color = Color(0xFF333333),
+                                    topLeft = Offset(size.width * 0.35f, size.height * 0.5f),
+                                    size = Size(size.width * 0.3f, size.height * 0.5f)
+                                )
+                                // Tree top
+                                drawRect(
+                                    color = Color(0xFF333333),
+                                    topLeft = Offset(0f, size.height * 0.1f),
+                                    size = Size(size.width, size.height * 0.5f)
+                                )
+                                drawRect(
+                                    color = Color(0xFF333333),
+                                    topLeft = Offset(size.width * 0.15f, 0f),
+                                    size = Size(size.width * 0.7f, size.height * 0.3f)
+                                )
+                            }
+                        }
+                        2 -> {
+                            // 날아오는 아이콘 (위에서)
+                            Box(
+                                modifier = Modifier
+                                    .align(Alignment.BottomStart)
+                                    .offset(x = xDp, y = (-54).dp)  // 위쪽에 배치
+                                    .size(obstacleWidth, obstacleHeight)
+                                    .border(2.dp, Color(0xFF333333), RoundedCornerShape(4.dp))
+                                    .background(Color.White, RoundedCornerShape(4.dp)),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Image(
+                                    painter = painterResource(id = iconList[obstacle.iconIndex]),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(20.dp),
+                                    colorFilter = ColorFilter.tint(Color(0xFF333333))
+                                )
+                            }
+                        }
+                        3 -> {
+                            // 선인장 (배경 장식) - 나무의 1/2
+                            Canvas(
+                                modifier = Modifier
+                                    .align(Alignment.BottomStart)
+                                    .offset(x = xDp, y = (-4).dp)
+                                    .size(cactusWidth, cactusHeight)
+                            ) {
+                                // 선인장 몸통
+                                drawRect(
+                                    color = Color(0xFF333333),
+                                    topLeft = Offset(size.width * 0.3f, size.height * 0.2f),
+                                    size = Size(size.width * 0.4f, size.height * 0.8f)
+                                )
+                                // 왼쪽 팔
+                                drawRect(
+                                    color = Color(0xFF333333),
+                                    topLeft = Offset(0f, size.height * 0.4f),
+                                    size = Size(size.width * 0.3f, size.height * 0.15f)
+                                )
+                                drawRect(
+                                    color = Color(0xFF333333),
+                                    topLeft = Offset(0f, size.height * 0.25f),
+                                    size = Size(size.width * 0.15f, size.height * 0.3f)
+                                )
+                                // 오른쪽 팔
+                                drawRect(
+                                    color = Color(0xFF333333),
+                                    topLeft = Offset(size.width * 0.7f, size.height * 0.5f),
+                                    size = Size(size.width * 0.3f, size.height * 0.15f)
+                                )
+                                drawRect(
+                                    color = Color(0xFF333333),
+                                    topLeft = Offset(size.width * 0.85f, size.height * 0.35f),
+                                    size = Size(size.width * 0.15f, size.height * 0.3f)
+                                )
+                            }
+                        }
+                        4 -> {
+                            // 바위 (배경 장식) - 나무의 1/4
+                            Canvas(
+                                modifier = Modifier
+                                    .align(Alignment.BottomStart)
+                                    .offset(x = xDp, y = (-4).dp)
+                                    .size(rockWidth, rockHeight)
+                            ) {
+                                // 바위 모양
+                                drawRect(
+                                    color = Color(0xFF333333),
+                                    topLeft = Offset(0f, size.height * 0.3f),
+                                    size = Size(size.width, size.height * 0.7f)
+                                )
+                                drawRect(
+                                    color = Color(0xFF333333),
+                                    topLeft = Offset(size.width * 0.2f, 0f),
+                                    size = Size(size.width * 0.6f, size.height * 0.5f)
+                                )
+                            }
+                        }
+                    }
+                }
+
+                // Player (dog sprite)
+                val playerYDp = with(density) { playerY.toDp() }
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.BottomStart)
+                        .offset(x = 70.dp, y = playerYDp)
+                ) {
+                    PetSprite(
+                        petType = PetType.DOG1,
+                        isWalking = gameState == DinoGameState.PLAYING && playerY >= -1f,
+                        size = playerSize,
+                        monochrome = true
                     )
                 }
             }
 
-            // Pet sprite (jumping over obstacles)
-            Box(
-                modifier = Modifier
-                    .align(Alignment.BottomStart)
-                    .offset(x = 40.dp)
-                    .offset { IntOffset(0, petJumpOffset.toInt()) }
-            ) {
-                PetSprite(
-                    petType = PetType.DOG1,
-                    isWalking = true,
-                    size = 72.dp,
-                    monochrome = true
-                )
+            // IDLE state overlay
+            if (gameState == DinoGameState.IDLE) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(Color.White),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text(
+                            text = "TAP TO START",
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.Bold,
+                            fontFamily = kenneyFont,
+                            color = Color.Black
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = "탭해서 점프!",
+                            fontSize = 12.sp,
+                            color = Color.Black
+                        )
+                    }
+                }
+            }
+
+            // GAME OVER overlay
+            if (gameState == DinoGameState.GAME_OVER) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(Color.White),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text(
+                            text = "GAME OVER",
+                            fontSize = 24.sp,
+                            fontWeight = FontWeight.Bold,
+                            fontFamily = kenneyFont,
+                            color = Color.Black
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            text = "SCORE: $score",
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.Bold,
+                            fontFamily = kenneyFont,
+                            color = Color.Black
+                        )
+                        if (score >= highScore && score > 0) {
+                            Text(
+                                text = "NEW BEST!",
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color.Black
+                            )
+                        }
+                        Spacer(modifier = Modifier.height(12.dp))
+                        Text(
+                            text = "TAP TO RESTART",
+                            fontSize = 14.sp,
+                            fontFamily = kenneyFont,
+                            color = Color.Black
+                        )
+                    }
+                }
             }
         }
 
@@ -1320,13 +1716,14 @@ private fun GoogleSignInStep(
             Spacer(modifier = Modifier.height(12.dp))
         }
 
-        // Google 로그인 버튼 (필수)
+        // Google 로그인 버튼 (필수) - 다마고치 스타일
         if (!isSignedIn) {
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(56.dp)
-                    .background(MockupColors.TextPrimary, RoundedCornerShape(12.dp))
+                    .border(Border.medium, MockupColors.Border, RoundedCornerShape(Radius.sm))
+                    .background(MockupColors.Border, RoundedCornerShape(Radius.sm))
                     .clickable(enabled = !isLoading) {
                         hapticManager?.click()
                         errorMessage = null
@@ -1341,22 +1738,35 @@ private fun GoogleSignInStep(
                         strokeWidth = 2.dp
                     )
                 } else {
-                    Text(
-                        text = "Google 로그인",
-                        fontSize = 17.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color.White,
-                        fontFamily = kenneyFont
-                    )
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Center
+                    ) {
+                        // Google 'G' 픽셀 아이콘
+                        DrawableIcon(
+                            iconName = "icon_google",
+                            size = 20.dp,
+                            tint = Color.White
+                        )
+                        Spacer(modifier = Modifier.width(10.dp))
+                        Text(
+                            text = "Google 로그인",
+                            fontSize = 17.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White,
+                            fontFamily = kenneyFont
+                        )
+                    }
                 }
             }
         } else {
-            // Signed in state
+            // Signed in state - 성공 스타일
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(56.dp)
-                    .background(MockupColors.Blue, RoundedCornerShape(12.dp)),
+                    .border(Border.medium, MockupColors.Blue, RoundedCornerShape(Radius.sm))
+                    .background(MockupColors.Blue, RoundedCornerShape(Radius.sm)),
                 contentAlignment = Alignment.Center
             ) {
                 if (isLoading) {
@@ -1370,7 +1780,11 @@ private fun GoogleSignInStep(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.Center
                     ) {
-                        Text(text = "✓", fontSize = 20.sp, color = Color.White)
+                        PixelIcon(
+                            iconName = "icon_check",
+                            size = 20.dp,
+                            tint = Color.White
+                        )
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
                             text = "로그인 완료",
