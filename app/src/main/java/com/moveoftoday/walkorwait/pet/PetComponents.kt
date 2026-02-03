@@ -114,8 +114,8 @@ fun rememberAssetIcon(assetPath: String): ImageBitmap? {
 }
 
 /**
- * Pixel icon component with grayscale filter (from assets)
- * tint 파라미터가 있으면 해당 색상으로 tint, 없으면 grayscale
+ * Pixel icon component with tint (from assets)
+ * 기본적으로 검정색 tint 적용 (흰색 아이콘을 검정색으로 표시)
  */
 @Composable
 fun PixelIcon(
@@ -123,7 +123,7 @@ fun PixelIcon(
     modifier: Modifier = Modifier,
     size: Dp = 16.dp,
     alpha: Float = 1f,
-    tint: Color? = null
+    tint: Color = MockupColors.Border  // 기본값: 검정색 (0xFF333333)
 ) {
     val icon = rememberAssetIcon("icons/$iconName.png")
 
@@ -132,13 +132,7 @@ fun PixelIcon(
             bitmap = it,
             contentDescription = iconName,
             modifier = modifier.size(size),
-            colorFilter = if (tint != null) {
-                ColorFilter.tint(tint)
-            } else {
-                ColorFilter.colorMatrix(
-                    ColorMatrix().apply { setToSaturation(0f) }
-                )
-            },
+            colorFilter = ColorFilter.tint(tint),
             alpha = alpha
         )
     }
