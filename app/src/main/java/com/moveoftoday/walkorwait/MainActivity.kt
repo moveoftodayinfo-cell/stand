@@ -187,10 +187,18 @@ class MainActivity : ComponentActivity() {
         val lastReset = preferenceManager.getLastResetDate()
 
         if (lastReset != today) {
-            // 새로운 날 - 먼저 어제 걸음수 저장 (리셋 전에!)
+            // 새로운 날 - 먼저 어제 걸음수/목표 저장 (리셋 전에!)
             val currentSteps = repository.getTodaySteps()
             repository.saveYesterdaySteps(currentSteps)
             Log.d(TAG, "📊 Saved yesterday steps before reset: $currentSteps")
+
+            // 주간 그래프용 - 어제 날짜의 걸음수/목표 저장
+            if (lastReset.isNotEmpty()) {
+                val yesterdayGoal = preferenceManager.getGoal()
+                preferenceManager.saveDailySteps(lastReset, currentSteps)
+                preferenceManager.saveDailyGoal(lastReset, yesterdayGoal)
+                Log.d(TAG, "📊 Weekly graph: saved $lastReset steps=$currentSteps, goal=$yesterdayGoal")
+            }
 
             val lastCheckDate = preferenceManager.getLastCheckDate()
             if (lastCheckDate != today && lastCheckDate.isNotEmpty()) {
@@ -254,6 +262,10 @@ class MainActivity : ComponentActivity() {
                     preferenceManager.resetConsecutiveDays()
                     Log.d(TAG, "❌ Yesterday FAILED: $yesterdaySteps < $goal. Consecutive days reset.")
                 }
+            } else {
+                // 자유시간: 자동 성공으로 기록 (streak 유지)
+                preferenceManager.recordFreeDayAsSuccess(yesterday)
+                Log.d(TAG, "🆓 Yesterday was FREE DAY - auto success for streak")
             }
         } catch (e: Exception) {
             Log.e(TAG, "Error checking yesterday: ${e.message}")
@@ -494,11 +506,35 @@ fun WalkOrWaitScreen(
         }
     }
 
-    // 0. Firebase 동기화 및 업데이트 체크 대기 중 로딩 화면
-    // 업데이트 확인이 완료되지 않았거나, 동기화가 완료되지 않은 경우 로딩 화면 표시
-    val shouldShowLoading = !syncCompleted || (!updateCheckCompleted && !showUpdateDialog)
+    // 0. Firebase 동기화 완료 전에는 무조건 로딩 화면 표시
+    // 동기화가 완료되어야 tutorialCompleted 상태를 정확히 알 수 있음
+    if (!syncCompleted) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(MockupColors.Background),
+            contentAlignment = Alignment.Center
+        ) {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                CircularProgressIndicator(
+                    color = MockupColors.Border,
+                    modifier = Modifier.size(48.dp)
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+                Text(
+                    text = "데이터 불러오는 중...",
+                    color = MockupColors.TextSecondary,
+                    fontSize = 14.sp
+                )
+            }
+        }
+        return
+    }
 
-    if (shouldShowLoading || showUpdateDialog) {
+    // 1. 업데이트 체크 대기 중 로딩 또는 업데이트 다이얼로그 표시
+    if (!updateCheckCompleted || showUpdateDialog) {
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -516,7 +552,7 @@ fun WalkOrWaitScreen(
                     )
                     Spacer(modifier = Modifier.height(16.dp))
                     Text(
-                        text = "데이터 불러오는 중...",
+                        text = "업데이트 확인 중...",
                         color = MockupColors.TextSecondary,
                         fontSize = 14.sp
                     )
@@ -539,8 +575,7 @@ fun WalkOrWaitScreen(
             }
         }
 
-        // 동기화 완료 + 업데이트 체크 완료 + 다이얼로그 닫힘 전까지 리턴
-        if (!syncCompleted || !updateCheckCompleted || showUpdateDialog) {
+        if (!updateCheckCompleted || showUpdateDialog) {
             return
         }
     }
@@ -755,28 +790,12 @@ fun WalkOrWaitScreen(
 
     var previousGoalAchieved by remember { mutableStateOf(false) }
     var triggerCelebration by remember { mutableStateOf(false) }
+    var showGoalAchievedDialog by remember { mutableStateOf(false) }  // 100% 달성 다이얼로그
 
     // 연속 달성 (Streak) 관련
     var showStreakCelebration by remember { mutableStateOf(false) }
     var currentStreak by remember { mutableIntStateOf(preferenceManager?.getStreak() ?: 0) }
     var weeklyAchievements by remember { mutableStateOf(preferenceManager?.getWeeklyAchievements() ?: List(7) { false }) }
-
-    // 연속 달성 축하 다이얼로그
-    if (showStreakCelebration) {
-        StreakCelebrationDialog(
-            streakCount = currentStreak,
-            weeklyAchievements = weeklyAchievements,
-            onDismiss = {
-                preferenceManager?.setStreakCelebrationSeen()
-                showStreakCelebration = false
-            },
-            hapticManager = hapticManager,
-            petType = petType,
-            petName = petName,
-            isFirstWeek = preferenceManager?.isFirstWeekOfStreak() ?: false,
-            streakStartDayOfWeek = preferenceManager?.getStreakStartDayOfWeek() ?: 0
-        )
-    }
 
     var deposit by remember { mutableIntStateOf(preferenceManager?.getDeposit() ?: 0) }
     var successDays by remember { mutableIntStateOf(preferenceManager?.getSuccessDays() ?: 0) }
@@ -811,14 +830,20 @@ fun WalkOrWaitScreen(
                 hapticManager.goalAchieved()
                 notificationHelper.showGoalAchievedNotification(goalDisplay, goalUnit)
                 triggerCelebration = true
-                preferenceManager?.checkAndRecordTodaySuccess()
+                preferenceManager?.recordTodaySuccess()  // 자유시간 포함 달성일수 기록
                 successDays = preferenceManager?.getSuccessDays() ?: 0
+
+                // 날짜별 목표/걸음수 저장 (주간 그래프용)
+                val today = java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.getDefault()).format(java.util.Date())
+                preferenceManager?.saveDailyGoal(today, goal.toInt())
+                preferenceManager?.saveDailySteps(today, currentProgress.toInt())
 
                 // Analytics: 목표 달성 추적
                 AnalyticsManager.trackGoalAchieved(goal.toInt(), currentProgress.toInt())
 
                 // 연속 달성 업데이트 및 축하 다이얼로그 표시
-                if (preferenceManager?.hasSeenStreakCelebrationToday() == false) {
+                // (디버그 다이얼로그가 이미 열려있으면 중복 방지)
+                if (preferenceManager?.hasSeenStreakCelebrationToday() == false && !showGoalAchievedDialog) {
                     currentStreak = preferenceManager.updateStreakOnGoalAchieved()
                     weeklyAchievements = preferenceManager.getWeeklyAchievements()
                     showStreakCelebration = true
@@ -829,7 +854,7 @@ fun WalkOrWaitScreen(
                     }
                 }
             } else if (isNowAchieved) {
-                preferenceManager?.checkAndRecordTodaySuccess()
+                preferenceManager?.recordTodaySuccess()  // 자유시간 포함 달성일수 기록
                 successDays = preferenceManager?.getSuccessDays() ?: 0
             }
             previousGoalAchieved = isNowAchieved
@@ -990,9 +1015,53 @@ fun WalkOrWaitScreen(
                 hapticManager.click()
                 showChallengeScreen = true
             },
+            onQuickStartChallenge = { challengeType ->
+                hapticManager.click()
+                // 해당 챌린지 타입에 맞는 Challenge 찾기
+                val challenge = challengeManager.allChallenges.find { it.type == challengeType }
+                if (challenge != null) {
+                    selectedChallenge = challenge
+                    challengeManager.prepareChallenge(challenge)
+                    showChallengeTimer = true
+                }
+            },
             hapticManager = hapticManager,
             modifier = modifier,
-            isFreeTime = isFreeTime
+            isFreeTime = isFreeTime,
+            onTestGoalClick = {
+                // 🧪 테스트: 목표의 10%씩 증가
+                val increment = (goal * 0.1).toInt().coerceAtLeast(100)  // 최소 100보
+                val wasAchieved = currentProgress >= goal  // 이전 달성 상태
+                val testSteps = currentProgress.toInt() + increment
+                currentProgress = testSteps.toDouble()
+                repository.saveTodaySteps(testSteps)
+
+                // 날짜별 목표/걸음수 저장 (주간 그래프용)
+                val today = java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.getDefault()).format(java.util.Date())
+                preferenceManager?.saveDailyGoal(today, goal.toInt())
+                preferenceManager?.saveDailySteps(today, testSteps)
+
+                // 총거리 누적 (자유시간 포함)
+                preferenceManager?.addPetSteps(increment)
+
+                // 목표 100% 달성 시 처리 (자유시간 포함)
+                val nowAchieved = testSteps >= goal
+                if (nowAchieved) {
+                    // 테스트용: 중복 체크 우회
+                    preferenceManager?.clearLastSuccessDate()
+                    preferenceManager?.recordTodaySuccess()
+                    successDays = preferenceManager?.getSuccessDays() ?: 0
+
+                    // 처음 100% 달성 시 다이얼로그 표시
+                    if (!wasAchieved) {
+                        showGoalAchievedDialog = true
+                    }
+                }
+
+                Log.d("MainActivity", "🧪 Test +10%: steps=$testSteps (+$increment), goal=$goal, totalSteps=${preferenceManager?.getPetTotalSteps()}")
+            },
+            showGoalAchievedDialog = showGoalAchievedDialog,
+            onDismissGoalDialog = { showGoalAchievedDialog = false }
         )
     }
 
@@ -1004,6 +1073,9 @@ fun WalkOrWaitScreen(
 
     // 연속 달성 축하 다이얼로그
     if (showStreakCelebration) {
+        val petTotalSteps = preferenceManager?.getPetTotalSteps() ?: 0L
+        val totalDistanceKm = petTotalSteps * 0.0007f
+
         StreakCelebrationDialog(
             streakCount = currentStreak,
             weeklyAchievements = weeklyAchievements,
@@ -1014,6 +1086,8 @@ fun WalkOrWaitScreen(
             hapticManager = hapticManager,
             petType = petType,
             petName = petName,
+            successDays = preferenceManager?.getSuccessDays() ?: 0,
+            totalKm = totalDistanceKm,
             isFirstWeek = preferenceManager?.isFirstWeekOfStreak() ?: false,
             streakStartDayOfWeek = preferenceManager?.getStreakStartDayOfWeek() ?: 0
         )

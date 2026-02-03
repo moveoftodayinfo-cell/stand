@@ -71,7 +71,9 @@ fun StreakCelebrationDialog(
     isQuickShare: Boolean = false,
     currentSpeech: String = "",
     currentSteps: Int = 0,
-    goalSteps: Int = 0
+    goalSteps: Int = 0,
+    goalUnit: String = "steps",  // "steps" 또는 "km"
+    currentDistance: Double = 0.0  // km 모드용 현재 거리
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -107,8 +109,10 @@ fun StreakCelebrationDialog(
         }
     }
 
-    // Progress 계산 (빠른 공유용)
-    val progressPercent = if (goalSteps > 0) ((currentSteps.toFloat() / goalSteps) * 100).toInt().coerceIn(0, 100) else 0
+    // Progress 계산 (빠른 공유용) - 음수 방지
+    val safeCurrentSteps = currentSteps.coerceAtLeast(0)
+    val progressPercent = if (goalSteps > 0) ((safeCurrentSteps.toFloat() / goalSteps) * 100).toInt().coerceIn(0, 100) else 0
+    val isKmMode = goalUnit == "km"
 
     // Get today's day of week (0 = Sunday, 1 = Monday, ..., 6 = Saturday)
     val today = remember { Calendar.getInstance().get(Calendar.DAY_OF_WEEK) - 1 }
@@ -155,7 +159,10 @@ fun StreakCelebrationDialog(
                             goalSteps = goalSteps,
                             progressPercent = progressPercent,
                             isFirstWeek = isFirstWeek,
-                            streakStartDayOfWeek = streakStartDayOfWeek
+                            streakStartDayOfWeek = streakStartDayOfWeek,
+                            isKmMode = isKmMode,
+                            currentDistance = currentDistance,
+                            safeCurrentSteps = safeCurrentSteps
                         )
                     }
                     1 -> {
@@ -265,7 +272,10 @@ private fun FullCardContent(
     goalSteps: Int = 0,
     progressPercent: Int = 0,
     isFirstWeek: Boolean = false,
-    streakStartDayOfWeek: Int = 0
+    streakStartDayOfWeek: Int = 0,
+    isKmMode: Boolean = false,
+    currentDistance: Double = 0.0,
+    safeCurrentSteps: Int = 0
 ) {
     val stripeWidth = 4.dp
 
@@ -322,11 +332,13 @@ private fun FullCardContent(
                     }
                     .border(3.dp, MockupColors.Border, RoundedCornerShape(16.dp))
             ) {
-                // Speech bubble (상단 고정)
+                // Speech bubble (하단이 디스플레이 정중앙에 위치)
                 Box(
                     modifier = Modifier
-                        .align(Alignment.TopCenter)
-                        .padding(top = 12.dp)
+                        .align(Alignment.TopStart)
+                        .fillMaxWidth()
+                        .height(120.dp),  // 디스플레이 절반 (240dp / 2)
+                    contentAlignment = Alignment.BottomCenter
                 ) {
                     SpeechBubbleMultiline(text = petSpeech, fontSize = 12.sp, maxWidth = 220.dp)
                 }
@@ -392,10 +404,21 @@ private fun FullCardContent(
                 )
                 Text(
                     text = buildAnnotatedString {
-                        withStyle(SpanStyle(fontWeight = FontWeight.Bold)) {
-                            append("%,d".format(currentSteps))
+                        if (isKmMode) {
+                            // km 모드: 거리로 표시
+                            val goalKm = goalSteps / 1300.0
+                            val safeDistance = currentDistance.coerceAtLeast(0.0)
+                            withStyle(SpanStyle(fontWeight = FontWeight.Bold)) {
+                                append("%.2f".format(safeDistance))
+                            }
+                            append(" / %.2f km".format(goalKm))
+                        } else {
+                            // 걸음 모드
+                            withStyle(SpanStyle(fontWeight = FontWeight.Bold)) {
+                                append("%,d".format(safeCurrentSteps))
+                            }
+                            append(" / %,d 보".format(goalSteps))
                         }
-                        append(" / %,d 보".format(goalSteps))
                     },
                     fontSize = 16.sp,
                     color = MockupColors.TextMuted
@@ -591,7 +614,7 @@ private fun StickerContent(
     kenneyFont: androidx.compose.ui.text.font.FontFamily,
     graphicsLayer: androidx.compose.ui.graphics.layer.GraphicsLayer
 ) {
-    // Dialog wrapper like Full Card
+    // Dialog wrapper (내용에 맞게 크기 조절)
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -619,7 +642,7 @@ private fun StickerContent(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(230.dp)
+                    .height(240.dp)
                     .clip(RoundedCornerShape(16.dp))
                     .drawBehind {
                         val squareSize = 16.dp.toPx()
@@ -661,11 +684,13 @@ private fun StickerContent(
                         }
                         .padding(12.dp)
                 ) {
-                    // Speech bubble (상단 고정)
+                    // Speech bubble (하단이 디스플레이 정중앙에 위치)
                     Box(
                         modifier = Modifier
-                            .align(Alignment.TopCenter)
-                            .padding(top = 4.dp)
+                            .align(Alignment.TopStart)
+                            .fillMaxWidth()
+                            .height(108.dp),  // (240dp - padding 24dp) / 2 = 108dp
+                        contentAlignment = Alignment.BottomCenter
                     ) {
                         SpeechBubbleMultiline(text = petSpeech, fontSize = 11.sp, maxWidth = 200.dp)
                     }

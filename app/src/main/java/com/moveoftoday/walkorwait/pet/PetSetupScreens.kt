@@ -471,7 +471,7 @@ fun PetHealthConnectScreen(
                             color = MockupColors.TextPrimary
                         )
                         Spacer(modifier = Modifier.height(8.dp))
-                        listOf("📱 삼성 헬스", "🏃 Google Fit", "⌚ Garmin Connect").forEach { app ->
+                        listOf("📱 삼성 헬스", "🏃 Google Fit").forEach { app ->
                             Text(
                                 text = "• $app",
                                 fontSize = 12.sp,

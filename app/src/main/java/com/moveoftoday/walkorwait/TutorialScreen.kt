@@ -774,9 +774,9 @@ fun FitnessAppConnectionTutorialStep(
                     // 추천 앱 목록
                     listOf(
                         "삼성 헬스",
-                        "Google Fit",
-                        "Garmin Connect",
-                        "Fitbit"
+                        "Google Fit"
+                        // "Garmin Connect", // 테스트 미완료
+                        // "Fitbit"          // 테스트 미완료
                     ).forEach { appName ->
                         Text(
                             text = "• $appName",

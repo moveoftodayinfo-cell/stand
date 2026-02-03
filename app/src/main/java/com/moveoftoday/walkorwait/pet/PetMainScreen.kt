@@ -1,8 +1,10 @@
 package com.moveoftoday.walkorwait.pet
 
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.IconButton
@@ -11,7 +13,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.compose.ui.text.font.FontWeight
@@ -20,9 +24,14 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.material3.Text
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
+import androidx.compose.foundation.Image
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.graphics.ColorFilter
 import com.moveoftoday.walkorwait.BuildConfig
 import com.moveoftoday.walkorwait.ChallengeManager
+import com.moveoftoday.walkorwait.ChallengeType
 import com.moveoftoday.walkorwait.HapticManager
+import com.moveoftoday.walkorwait.R
 import com.moveoftoday.walkorwait.PreferenceManager
 import com.moveoftoday.walkorwait.StreakCelebrationDialog
 import kotlinx.coroutines.delay
@@ -81,11 +90,14 @@ fun PetMainScreen(
     streakCount: Int,
     onSettingsClick: () -> Unit,
     onChallengeClick: () -> Unit = {},
+    onQuickStartChallenge: (ChallengeType) -> Unit = {},  // 추천 챌린지 바로 시작
     hapticManager: HapticManager? = null,
     modifier: Modifier = Modifier,
     isFreeTime: Boolean = false,  // 자유로운 날/시간 (제어 요일 아니거나 제어 시간대 아님)
     petStateV2: PetState? = null,  // V2 펫 상태 (있으면 V2 스프라이트 사용)
-    onTestGoalClick: () -> Unit = {}  // 🧪 테스트: 목표 달성 시뮬레이션
+    onTestGoalClick: () -> Unit = {},  // 🧪 테스트: 목표 달성 시뮬레이션
+    showGoalAchievedDialog: Boolean = false,  // 100% 달성 시 다이얼로그 표시
+    onDismissGoalDialog: () -> Unit = {}  // 다이얼로그 닫기 콜백
 ) {
     val kenneyFont = rememberKenneyFont()
     val isGoalAchieved = stepCount >= goalSteps
@@ -107,9 +119,12 @@ fun PetMainScreen(
     val goalUnit = preferenceManager.getGoalUnit()
     val isKmMode = goalUnit == "km"
 
+    // 실제 목표 (항상 최신 값 사용)
+    val actualGoal = preferenceManager.getGoal()
+
     // 표시용 값 (단위에 맞게 변환)
     val displayCurrent = if (isKmMode) preferenceManager.getTodayDistance() else stepCount.toDouble()
-    val displayGoal = if (isKmMode) goalSteps / 1300.0 else goalSteps.toDouble()
+    val displayGoal = if (isKmMode) actualGoal / 1300.0 else actualGoal.toDouble()
     val displayRemaining = (displayGoal - displayCurrent).coerceAtLeast(0.0)
     val unitText = if (isKmMode) "km" else "보"
 
@@ -127,6 +142,7 @@ fun PetMainScreen(
     val justEndedChallenge by challengeManager.justEndedChallenge.collectAsState()
     val equippedTitle by challengeManager.equippedTitle.collectAsState()
     val justUnlockedTitle by challengeManager.justUnlockedTitle.collectAsState()
+    val todayCompletionCounts by challengeManager.todayCompletionCounts.collectAsState()
 
     // 칭호가 적용된 펫 이름
     val displayPetName = challengeManager.getPetNameWithTitle(petName)
@@ -251,6 +267,14 @@ fun PetMainScreen(
     var showShareDialog by remember { mutableStateOf(false) }
     var isQuickShareMode by remember { mutableStateOf(false) }
 
+    // 100% 달성 다이얼로그 표시 (외부에서 제어)
+    LaunchedEffect(showGoalAchievedDialog) {
+        if (showGoalAchievedDialog) {
+            isQuickShareMode = false
+            showShareDialog = true
+        }
+    }
+
     // Reset pet response after delay (1분 유지)
     LaunchedEffect(petResponse) {
         if (petResponse.isNotEmpty()) {
@@ -313,10 +337,11 @@ fun PetMainScreen(
         val totalDistanceKm = petTotalSteps * 0.0007f
 
         StreakCelebrationDialog(
-            streakCount = streakCount.coerceAtLeast(1),
+            streakCount = streakCount,
             weeklyAchievements = realWeeklyAchievements,
             onDismiss = {
                 showShareDialog = false
+                onDismissGoalDialog()  // 외부 상태도 리셋
                 isQuickShareMode = false
             },
             hapticManager = hapticManager,
@@ -332,7 +357,9 @@ fun PetMainScreen(
             isQuickShare = isQuickShareMode,
             currentSpeech = displaySpeech,
             currentSteps = stepCount,
-            goalSteps = goalSteps
+            goalSteps = actualGoal,  // 항상 최신 목표 사용
+            goalUnit = goalUnit,
+            currentDistance = preferenceManager.getTodayDistance()
         )
     }
 
@@ -340,8 +367,7 @@ fun PetMainScreen(
         modifier = modifier
             .fillMaxSize()
             .background(backgroundColor)
-            .padding(horizontal = 20.dp)
-            .padding(bottom = 24.dp),
+            .padding(horizontal = Padding.screen),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Spacer(modifier = Modifier.height(8.dp))
@@ -355,14 +381,27 @@ fun PetMainScreen(
                 modifier = Modifier.align(Alignment.CenterStart)
             )
 
-            // 중앙: Title "rebon"
+            // 중앙: Title "rebon" (DEBUG: 길게 누르면 테스트)
             Text(
                 text = "rebon",
                 fontSize = 32.sp,
                 fontFamily = kenneyFont,
                 fontWeight = FontWeight.Bold,
                 color = MockupColors.TextPrimary,
-                modifier = Modifier.align(Alignment.Center)
+                modifier = Modifier
+                    .align(Alignment.Center)
+                    .then(
+                        if (BuildConfig.DEBUG) {
+                            @OptIn(ExperimentalFoundationApi::class)
+                            Modifier.combinedClickable(
+                                onClick = { },
+                                onLongClick = {
+                                    hapticManager?.click()
+                                    onTestGoalClick()
+                                }
+                            )
+                        } else Modifier
+                    )
             )
 
             // 우측: Settings icon
@@ -389,8 +428,8 @@ fun PetMainScreen(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(240.dp)
-                .clip(RoundedCornerShape(20.dp))
+                .height(Size.displayAreaHeight)
+                .clip(RoundedCornerShape(Radius.md))
                 .background(Color.White)
                 .drawBehind {
                     val stripeHeightPx = stripeWidth.toPx()
@@ -405,22 +444,24 @@ fun PetMainScreen(
                         y += stripeHeightPx * 2
                     }
                 }
-                .border(3.dp, MockupColors.Border, RoundedCornerShape(20.dp))
+                .border(Border.thick, MockupColors.Border, RoundedCornerShape(Radius.md))
         ) {
-            // 말풍선 (상단 고정)
-            Box(
-                modifier = Modifier
-                    .align(Alignment.TopCenter)
-                    .padding(top = 8.dp)
-            ) {
-                SpeechBubble(text = displaySpeech, fontSize = 14.sp)
+            // 말풍선 (하단이 디스플레이 정중앙에 위치)
+            if (displaySpeech.isNotEmpty()) {
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.TopStart)
+                        .fillMaxWidth()
+                        .height(120.dp),  // 디스플레이 절반 (240dp / 2)
+                    contentAlignment = Alignment.BottomCenter
+                ) {
+                    SpeechBubble(text = displaySpeech, fontSize = 14.sp, maxLines = 5)
+                }
             }
 
-            // 펫 스프라이트 + 이름 (하단 고정)
+            // 펫 스프라이트 + 이름 (하단 정렬)
             Column(
-                modifier = Modifier
-                    .align(Alignment.BottomCenter)
-                    .padding(bottom = 10.dp),
+                modifier = Modifier.align(Alignment.BottomCenter),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 // 펫 스프라이트 (V2 우선, 없으면 V1)
@@ -484,6 +525,8 @@ fun PetMainScreen(
                         )
                     )
                 }
+
+                Spacer(modifier = Modifier.height(8.dp))
             }
 
             // 공유 아이콘 (우측 상단)
@@ -517,11 +560,6 @@ fun PetMainScreen(
             modifier = Modifier.fillMaxWidth(),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            // My message bubble (if there's a recent message)
-            if (showUserMessage && lastUserMessage.isNotEmpty()) {
-                MyMessageBubble(text = lastUserMessage)
-            }
-
             // Talk input area
             TalkInputArea(
                 value = talkInput,
@@ -561,9 +599,9 @@ fun PetMainScreen(
                                 petType = petType.name,
                                 responseType = responseType
                             )
+                            // 대화 후 기본 대사도 갱신 (대화 응답이 사라지면 새로운 대사 표시)
+                            speechRefreshTrigger++
                         }
-                        // 대화 후 기본 대사도 갱신 (대화 응답이 사라지면 새로운 대사 표시)
-                        speechRefreshTrigger++
                     }
                 },
                 petName = petName
@@ -572,101 +610,107 @@ fun PetMainScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // 3. Instruction - "오늘 목표 달성률" (22sp)
-        Text(
-            text = "오늘 목표 달성률",
-            fontSize = 22.sp,
-            fontFamily = kenneyFont,
-            fontWeight = FontWeight.Bold,
-            color = MockupColors.TextPrimary
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // 4. Middle Content - 달성률 표시 (자유 시간일 때는 다르게)
+        // 3. 달성률 표시 (컴팩트 레이아웃)
+        // 통합 레이아웃: 자유시간/제어시간 동일한 구조
         Column(
             modifier = Modifier.fillMaxWidth(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            if (isFreeTime) {
-                // 자유 시간 UI - 프로그레스바 없이 간단하게
-                Text(
-                    text = "자유 시간",
-                    fontSize = 32.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color(0xFF4CAF50)  // 녹색
-                )
-
-                Spacer(modifier = Modifier.height(12.dp))
-
-                // 오늘 걸음수/거리 표시
-                Text(
-                    text = if (isKmMode) "%.2f km".format(displayCurrent) else "%,d 보".format(stepCount),
-                    fontSize = 24.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = MockupColors.TextPrimary
-                )
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                // 자유롭게 즐기라는 안내
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(4.dp)
-                ) {
-                    PixelIcon(iconName = "icon_check", size = 16.dp, tint = Color(0xFF4CAF50))
+            // 상단 배지
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center
+            ) {
+                if (isFreeTime) {
+                    PixelIcon(iconName = "icon_check", size = 16.dp, tint = MockupColors.TextMuted)
+                    Spacer(modifier = Modifier.width(6.dp))
                     Text(
-                        text = "앱 제한 없음",
+                        text = "자유 시간",
                         fontSize = 14.sp,
-                        color = Color(0xFF4CAF50)
+                        fontWeight = FontWeight.Medium,
+                        color = MockupColors.TextMuted
+                    )
+                } else {
+                    PixelIcon(iconName = "icon_star", size = 16.dp, tint = MockupColors.TextSecondary)
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text(
+                        text = "목표 진행중",
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Medium,
+                        color = MockupColors.TextSecondary
                     )
                 }
-            } else {
-                // 일반 제어 시간 UI
-                // 달성률 퍼센트 (큰 글씨)
-                Text(
-                    text = "${progressPercent}%",
-                    fontSize = 48.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = MockupColors.TextPrimary
-                )
+            }
 
-                Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(4.dp))
 
-                // 걸음수/거리 정보
-                Text(
-                    text = if (isKmMode) "%.2f / %.2f km".format(displayCurrent, displayGoal) else "%,d / %,d 보".format(stepCount, goalSteps),
-                    fontSize = 16.sp,
-                    color = MockupColors.TextMuted
-                )
+            // 퍼센트 (대형)
+            Text(
+                text = "${progressPercent}%",
+                fontSize = 52.sp,
+                fontWeight = FontWeight.Bold,
+                color = if (isFreeTime) MockupColors.TextMuted else MockupColors.TextPrimary
+            )
 
-                Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(8.dp))
 
-                // 프로그레스 바
+            // 프로그레스 바
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(16.dp)
+                    .clip(RoundedCornerShape(8.dp))
+                    .background(Color(0xFFE8E8E8))
+            ) {
+                val progress = (stepCount.toFloat() / goalSteps).coerceIn(0f, 1f)
                 Box(
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .height(20.dp)
-                        .clip(RoundedCornerShape(10.dp))
-                        .background(Color(0xFFE0E0E0))
-                        .border(2.dp, MockupColors.Border, RoundedCornerShape(10.dp))
-                ) {
-                    val progress = (stepCount.toFloat() / goalSteps).coerceIn(0f, 1f)
-                    Box(
-                        modifier = Modifier
-                            .fillMaxHeight()
-                            .fillMaxWidth(progress)
-                            .background(MockupColors.Border)
+                        .fillMaxHeight()
+                        .fillMaxWidth(progress)
+                        .background(
+                            if (isFreeTime) MockupColors.TextMuted else MockupColors.Border,
+                            RoundedCornerShape(8.dp)
+                        )
+                )
+            }
+
+            Spacer(modifier = Modifier.height(6.dp))
+
+            // 걸음수/거리 표시
+            val remainingKm = (displayGoal - displayCurrent).coerceAtLeast(0.0)
+            val remainingSteps = (goalSteps - stepCount).coerceAtLeast(0)
+            Text(
+                text = if (isFreeTime) {
+                    // 자유시간: "오늘 X보" 형식
+                    if (isKmMode) "오늘 %.2f km".format(displayCurrent) else "오늘 %,d 보".format(stepCount)
+                } else if (isGoalAchieved) {
+                    // 목표 달성 후에도 걸은 만큼 표시
+                    if (isKmMode) "%.2f km 달성!".format(displayCurrent) else "%,d 보 달성!".format(stepCount)
+                } else if (isKmMode) {
+                    "%.2f km 남음".format(remainingKm)
+                } else {
+                    "%,d 보 남음".format(remainingSteps)
+                },
+                fontSize = 15.sp,
+                fontWeight = FontWeight.Medium,
+                color = MockupColors.TextMuted
+            )
+
+            Spacer(modifier = Modifier.height(4.dp))
+
+            // 상태 메시지
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                if (isFreeTime) {
+                    PixelIcon(iconName = "icon_check", size = 16.dp, tint = MockupColors.TextMuted)
+                    Text(
+                        text = "앱 자유롭게 사용",
+                        fontSize = 14.sp,
+                        color = MockupColors.TextMuted
                     )
-                }
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                // 앱 차단 시간 표시
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(4.dp)
-                ) {
+                } else {
                     PixelIcon(iconName = "icon_time", size = 16.dp, tint = MockupColors.TextSecondary)
                     Text(
                         text = if (isGoalAchieved) "목표 달성! 앱 사용 가능" else "앱 차단 ${getBlockedTimeText()}",
@@ -677,43 +721,29 @@ fun PetMainScreen(
             }
         }
 
+        Spacer(modifier = Modifier.height(12.dp))
+
+        // 주간 미니 그래프
+        WeeklyMiniGraph(
+            todaySteps = stepCount,
+            goalSteps = goalSteps,
+            preferenceManager = preferenceManager,
+            isFreeTime = isFreeTime
+        )
+
         Spacer(modifier = Modifier.weight(1f))
 
-        // 🧪 개발용: 목표 달성 테스트 버튼
-        if (BuildConfig.DEBUG) {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(bottom = 8.dp)
-                    .clip(RoundedCornerShape(12.dp))
-                    .background(Color(0xFFFFCDD2))
-                    .border(2.dp, Color(0xFFE53935), RoundedCornerShape(12.dp))
-                    .clickable {
-                        hapticManager?.click()
-                        onTestGoalClick()  // 걸음수 채우기
-                        isQuickShareMode = false  // 달성 모드
-                        showShareDialog = true
-                    }
-                    .padding(12.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = "🧪 목표 달성 테스트",
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color(0xFFE53935)
-                )
-            }
-        }
-
-        // 5. Action Button - 챌린지 하러가기
+        // 5. Action Button - 챌린지 하러가기 (큰 CTA 버튼)
         MockupButton(
             text = "챌린지 하러가기",
             onClick = {
                 hapticManager?.click()
                 onChallengeClick()
-            }
+            },
+            height = 56.dp
         )
+
+        Spacer(modifier = Modifier.height(8.dp))
     }
 }
 
@@ -733,7 +763,7 @@ fun ComingSoonDialog(
                 .fillMaxWidth()
                 .clip(RoundedCornerShape(20.dp))
                 .background(Color.White)
-                .border(3.dp, MockupColors.Border, RoundedCornerShape(20.dp))
+                .border(Border.thick, MockupColors.Border, RoundedCornerShape(Radius.md))
                 .padding(24.dp)
         ) {
             Column(
@@ -835,9 +865,12 @@ fun PetMainContent(
     val goalUnit = preferenceManager.getGoalUnit()
     val isKmMode = goalUnit == "km"
 
+    // 실제 목표 (항상 최신 값 사용)
+    val actualGoal = preferenceManager.getGoal()
+
     // 표시용 값 (단위에 맞게 변환)
     val displayCurrent = if (isKmMode) preferenceManager.getTodayDistance() else stepCount.toDouble()
-    val displayGoal = if (isKmMode) goalSteps / 1300.0 else goalSteps.toDouble()
+    val displayGoal = if (isKmMode) actualGoal / 1300.0 else actualGoal.toDouble()
     val displayRemaining = (displayGoal - displayCurrent).coerceAtLeast(0.0)
     val unitText = if (isKmMode) "km" else "보"
 
@@ -884,24 +917,25 @@ fun PetMainContent(
                         y += stripeHeightPx * 2
                     }
                 }
-                .border(3.dp, MockupColors.Border, RoundedCornerShape(20.dp))
+                .border(Border.thick, MockupColors.Border, RoundedCornerShape(Radius.md))
         ) {
+            // 펫 + 말풍선 (말풍선이 펫 바로 위, 위로 확장)
             Column(
-                modifier = Modifier.fillMaxSize(),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.SpaceBetween
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .align(Alignment.BottomCenter)
+                    .padding(bottom = 10.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                // Speech bubble at top
+                // Speech bubble (directly above pet)
                 if (displaySpeech.isNotEmpty()) {
                     SpeechBubble(
                         text = displaySpeech,
-                        modifier = Modifier.padding(top = 12.dp)
+                        modifier = Modifier.padding(bottom = 4.dp)
                     )
-                } else {
-                    Spacer(modifier = Modifier.height(12.dp))
                 }
 
-                // Pet sprite in center
+                // Pet sprite
                 PetSprite(
                     petType = petType,
                     isWalking = isWalking || isGoalAchieved,
@@ -938,8 +972,8 @@ fun PetMainContent(
                 .fillMaxWidth()
                 .clip(RoundedCornerShape(15.dp))
                 .background(cardBackgroundColor)
-                .border(3.dp, MockupColors.Border, RoundedCornerShape(15.dp))
-                .padding(20.dp)
+                .border(Border.medium, MockupColors.Border, RoundedCornerShape(Radius.sm))
+                .padding(Padding.card)
         ) {
             Column(
                 modifier = Modifier.fillMaxWidth(),
@@ -952,7 +986,7 @@ fun PetMainContent(
                 ) {
                     Text(
                         text = if (isKmMode) "%.2f".format(displayCurrent) else "%,d".format(stepCount),
-                        fontSize = 56.sp,
+                        fontSize = FontSize.display,
                         fontWeight = FontWeight.Bold,
                         color = MockupColors.TextPrimary
                     )
@@ -971,10 +1005,10 @@ fun PetMainContent(
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(16.dp)
-                        .clip(RoundedCornerShape(8.dp))
+                        .height(Size.progressBarHeight)
+                        .clip(RoundedCornerShape(Radius.xs))
                         .background(Color(0xFFE0E0E0))
-                        .border(2.dp, MockupColors.Border, RoundedCornerShape(8.dp))
+                        .border(Border.thin, MockupColors.Border, RoundedCornerShape(Radius.xs))
                 ) {
                     val progress = (stepCount.toFloat() / goalSteps).coerceIn(0f, 1f)
                     Box(
@@ -1020,11 +1054,6 @@ fun PetMainContent(
             modifier = Modifier.fillMaxWidth(),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            // My message bubble
-            if (showUserMessage && lastUserMessage.isNotEmpty()) {
-                MyMessageBubble(text = lastUserMessage)
-            }
-
             // Talk input area
             TalkInputArea(
                 value = talkInput,
@@ -1316,6 +1345,321 @@ private fun TitleOptionItem(
                     fontSize = 11.sp,
                     color = Color(0xFF666666)
                 )
+            }
+        }
+    }
+}
+
+/**
+ * 최근 챌린지 아이콘 Row
+ * - 오늘 완료한 챌린지가 있으면: 완료된 것은 체크 표시, 나머지는 흐리게
+ * - 챌린지 0개면: 추천 챌린지 3개 표시 (각 카테고리에서 1개씩)
+ */
+@Composable
+private fun RecentChallengesRow(
+    todayCompletionCounts: Map<ChallengeType, Int>,
+    onQuickStartChallenge: (ChallengeType) -> Unit
+) {
+    // 추천 챌린지 (각 카테고리에서 가장 짧은 것)
+    val recommendedChallenges = listOf(
+        ChallengeType.READING_15,    // 독서 15분
+        ChallengeType.MEDITATION_5,  // 명상 5분
+        ChallengeType.STUDY_30       // 공부 30분
+    )
+
+    val hasCompletedToday = todayCompletionCounts.isNotEmpty()
+
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.Center,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        if (hasCompletedToday) {
+            // 오늘 완료한 챌린지 표시
+            recommendedChallenges.forEach { challengeType ->
+                val isCompleted = todayCompletionCounts.containsKey(challengeType) ||
+                    todayCompletionCounts.keys.any { it.category == challengeType.category }
+
+                ChallengeIconItem(
+                    challengeType = challengeType,
+                    isCompleted = isCompleted,
+                    onClick = { onQuickStartChallenge(challengeType) }
+                )
+
+                Spacer(modifier = Modifier.width(16.dp))
+            }
+        } else {
+            // 추천 챌린지 표시
+            Text(
+                text = "추천",
+                fontSize = 12.sp,
+                color = MockupColors.TextMuted
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+
+            recommendedChallenges.forEach { challengeType ->
+                ChallengeIconItem(
+                    challengeType = challengeType,
+                    isCompleted = false,
+                    isRecommended = true,
+                    onClick = { onQuickStartChallenge(challengeType) }
+                )
+
+                Spacer(modifier = Modifier.width(16.dp))
+            }
+        }
+    }
+}
+
+@Composable
+private fun ChallengeIconItem(
+    challengeType: ChallengeType,
+    isCompleted: Boolean,
+    isRecommended: Boolean = false,
+    onClick: () -> Unit
+) {
+    val iconRes = when (challengeType.category) {
+        "독서" -> R.drawable.challenge_reading
+        "명상" -> R.drawable.challenge_meditation
+        "공부" -> R.drawable.challenge_study
+        else -> R.drawable.challenge_reading
+    }
+
+    Box(
+        modifier = Modifier
+            .size(56.dp)
+            .clip(RoundedCornerShape(12.dp))
+            .background(if (isCompleted) MockupColors.BlueLight else Color.White)
+            .border(
+                width = if (isCompleted) 2.dp else 1.5.dp,
+                color = if (isCompleted) MockupColors.Blue else MockupColors.Border.copy(alpha = 0.4f),
+                shape = RoundedCornerShape(12.dp)
+            )
+            .clickable { onClick() },
+        contentAlignment = Alignment.Center
+    ) {
+        Image(
+            painter = painterResource(id = iconRes),
+            contentDescription = challengeType.displayName,
+            modifier = Modifier.size(40.dp),
+            alpha = if (isCompleted || isRecommended) 1f else 0.4f
+        )
+
+        // 완료 체크 표시
+        if (isCompleted) {
+            Box(
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .offset(x = 6.dp, y = (-6).dp)
+                    .size(20.dp)
+                    .background(MockupColors.Blue, RoundedCornerShape(10.dp)),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = "✓",
+                    fontSize = 12.sp,
+                    color = Color.White,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+        }
+    }
+}
+
+/**
+ * 주간 미니 그래프 - 이번 주 걸음 수 추세
+ */
+@Composable
+private fun WeeklyMiniGraph(
+    todaySteps: Int,
+    goalSteps: Int,
+    preferenceManager: com.moveoftoday.walkorwait.PreferenceManager? = null,
+    isFreeTime: Boolean = false  // 오늘이 자유시간이면 별 표시
+) {
+    // 요일 라벨
+    val dayLabels = listOf("월", "화", "수", "목", "금", "토", "일")
+
+    // 오늘이 무슨 요일인지 (0=일, 1=월, ..., 6=토)
+    val calendar = java.util.Calendar.getInstance()
+    val todayDayOfWeek = calendar.get(java.util.Calendar.DAY_OF_WEEK)
+    // 월요일 기준 인덱스 (0=월, 1=화, ..., 6=일)
+    val todayIndex = if (todayDayOfWeek == java.util.Calendar.SUNDAY) 6 else todayDayOfWeek - 2
+
+    // 실제 주간 데이터 가져오기 (날짜별 걸음수, 목표)
+    val weeklyPairData = remember(todaySteps) {
+        preferenceManager?.getWeeklyData() ?: (0..6).map { Pair(0, goalSteps) }
+    }
+
+    // 걸음수 리스트 (그래프 표시용)
+    val weeklyData = weeklyPairData.map { it.first }
+
+    val maxSteps = maxOf(weeklyData.maxOrNull() ?: 1, goalSteps)
+
+    // 바 높이 (100% = 80% 높이로 표시, 위에 20% 여유)
+    val barHeight = 70.dp
+    val maxBarFraction = 0.80f  // 100% 달성 시 80% 높이까지만 (위에 여유)
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(Color.White, RoundedCornerShape(12.dp))
+            .border(1.5.dp, MockupColors.Border.copy(alpha = 0.3f), RoundedCornerShape(12.dp))
+            .padding(horizontal = 12.dp, vertical = 12.dp)
+    ) {
+        // 그래프 영역 (점선 + 바)
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(barHeight)
+        ) {
+            // 점선 기준선 그리기 (50%, 100% - maxBarFraction 기준)
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .drawBehind {
+                        val dashEffect = PathEffect.dashPathEffect(floatArrayOf(6f, 6f), 0f)
+                        // 50% 점선 (아래에서 50% * 0.8 = 40% 위치 → 위에서 60%)
+                        val y50 = size.height * (1f - 0.5f * maxBarFraction)
+                        drawLine(
+                            color = Color(0xFFDDDDDD),
+                            start = Offset(0f, y50),
+                            end = Offset(size.width, y50),
+                            strokeWidth = 1f,
+                            pathEffect = dashEffect
+                        )
+                        // 100% 점선 (아래에서 100% * 0.8 = 80% 위치 → 위에서 20%)
+                        val y100 = size.height * (1f - 1.0f * maxBarFraction)
+                        drawLine(
+                            color = Color(0xFFDDDDDD),
+                            start = Offset(0f, y100),
+                            end = Offset(size.width, y100),
+                            strokeWidth = 1f,
+                            pathEffect = dashEffect
+                        )
+                    }
+            )
+
+            // 좌측 Y축 라벨 (점선과 같은 높이에 배치)
+            Box(
+                modifier = Modifier
+                    .align(Alignment.CenterStart)
+                    .fillMaxHeight()
+                    .width(28.dp)
+            ) {
+                // 100% 라벨 (위에서 20% 위치)
+                Text(
+                    text = "100%",
+                    fontSize = 9.sp,
+                    color = MockupColors.TextMuted.copy(alpha = 0.6f),
+                    modifier = Modifier
+                        .align(Alignment.TopStart)
+                        .offset(y = (barHeight.value * (1f - 1.0f * maxBarFraction) - 5).dp)
+                )
+                // 50% 라벨 (위에서 60% 위치)
+                Text(
+                    text = "50%",
+                    fontSize = 9.sp,
+                    color = MockupColors.TextMuted.copy(alpha = 0.6f),
+                    modifier = Modifier
+                        .align(Alignment.TopStart)
+                        .offset(y = (barHeight.value * (1f - 0.5f * maxBarFraction) - 5).dp)
+                )
+            }
+
+            // 바 그래프
+            Row(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(start = 28.dp),
+                horizontalArrangement = Arrangement.SpaceEvenly,
+                verticalAlignment = Alignment.Bottom
+            ) {
+                weeklyPairData.forEachIndexed { index, (steps, dayGoal) ->
+                    // 목표 대비 퍼센트로 바 높이 계산 (해당 날짜의 목표 사용)
+                    val percent = if (dayGoal > 0) (steps.toFloat() / dayGoal) else 0f
+                    val targetHeightFraction = (percent * maxBarFraction).coerceIn(0.02f, maxBarFraction)
+
+                    // 애니메이션으로 부드럽게 막대 높이 변경
+                    val animatedHeightFraction by androidx.compose.animation.core.animateFloatAsState(
+                        targetValue = targetHeightFraction,
+                        animationSpec = androidx.compose.animation.core.tween(
+                            durationMillis = 500,
+                            easing = androidx.compose.animation.core.FastOutSlowInEasing
+                        ),
+                        label = "barHeight"
+                    )
+
+                    val isToday = index == todayIndex
+                    val isFuture = index > todayIndex
+                    val achieved100 = percent >= 1.0f  // 100% 달성
+                    // 오늘이 자유시간이면 별 표시 (목표 달성 여부 무관)
+                    val showStar = (!isFuture) && (achieved100 || (isToday && isFreeTime))
+
+                    // 바 + 별 (별이 막대 위에 위치)
+                    BoxWithConstraints(
+                        modifier = Modifier
+                            .width(28.dp)
+                            .fillMaxHeight(),
+                        contentAlignment = Alignment.BottomCenter
+                    ) {
+                        val barHeightDp = maxHeight * animatedHeightFraction
+
+                        // 막대 그래프 (애니메이션 적용)
+                        Box(
+                            modifier = Modifier
+                                .width(20.dp)
+                                .height(barHeightDp)
+                                .background(
+                                    color = when {
+                                        isFuture -> Color(0xFFE0E0E0)
+                                        isToday && isFreeTime -> Color(0xFF9E9E9E)  // 자유시간: 회색
+                                        achieved100 -> Color(0xFF2D2D2D)  // 100% 달성: 진한 검정
+                                        isToday -> Color(0xFF4A4A4A)  // 오늘: 검정
+                                        else -> Color(0xFF6A6A6A)  // 과거: 어두운 회색
+                                    },
+                                    shape = RoundedCornerShape(topStart = 3.dp, topEnd = 3.dp)
+                                )
+                        )
+
+                        // 별 아이콘 - 막대 바로 위에 표시
+                        if (showStar) {
+                            Image(
+                                painter = painterResource(id = R.drawable.icon_star),
+                                contentDescription = "달성",
+                                modifier = Modifier
+                                    .size(14.dp)
+                                    .align(Alignment.BottomCenter)
+                                    .offset(y = -(barHeightDp + 2.dp)),
+                                colorFilter = ColorFilter.tint(Color.Black)
+                            )
+                        }
+                    }
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(6.dp))
+
+        // 요일 라벨 Row
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(start = 28.dp),
+            horizontalArrangement = Arrangement.SpaceEvenly
+        ) {
+            weeklyData.forEachIndexed { index, _ ->
+                val isToday = index == todayIndex
+                Box(
+                    modifier = Modifier.width(28.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = dayLabels[index],
+                        fontSize = 11.sp,
+                        fontWeight = if (isToday) FontWeight.Bold else FontWeight.Normal,
+                        color = if (isToday) MockupColors.TextPrimary else MockupColors.TextMuted
+                    )
+                }
             }
         }
     }

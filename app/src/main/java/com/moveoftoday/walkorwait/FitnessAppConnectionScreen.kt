@@ -415,8 +415,10 @@ fun FitnessAppConnectionScreen(
                             Spacer(modifier = Modifier.height(16.dp))
                         }
 
-                        // 설치되지 않은 앱
-                        val notInstalledApps = FitnessApp.values().filter { it !in installedApps }
+                        // 설치되지 않은 앱 (테스트 미완료 앱 제외: GOOGLE_FIT, GARMIN, FITBIT)
+                        val notInstalledApps = FitnessApp.values()
+                            .filter { it !in installedApps }
+                            .filter { it != FitnessApp.GOOGLE_FIT && it != FitnessApp.GARMIN && it != FitnessApp.FITBIT }
                         if (notInstalledApps.isNotEmpty()) {
                             Text(
                                 text = "설치 가능한 앱",

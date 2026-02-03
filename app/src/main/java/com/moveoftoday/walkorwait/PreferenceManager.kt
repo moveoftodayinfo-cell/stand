@@ -450,8 +450,41 @@ class PreferenceManager(context: Context) {
         }
     }
 
+    /**
+     * 오늘 목표 달성 기록 (자유시간 포함, 제어요일 체크 안 함)
+     * 달성일수 +1, 연속달성일 +1, streak 업데이트
+     */
+    fun recordTodaySuccess() {
+        val today = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+        val lastSuccessDate = prefs.getString("last_success_date", "") ?: ""
+
+        // 이미 오늘 기록했으면 무시
+        if (lastSuccessDate == today) {
+            android.util.Log.d("PreferenceManager", "✅ Already recorded today: $today")
+            return
+        }
+
+        // 달성일수 +1
+        incrementSuccessDay()
+        // 연속달성일 +1
+        incrementConsecutiveDays()
+        // streak 업데이트
+        updateStreakOnGoalAchieved()
+        // 오늘 기록 완료 표시
+        prefs.edit().putString("last_success_date", today).apply()
+
+        android.util.Log.d("PreferenceManager", "✅ recordTodaySuccess: successDays=${getSuccessDays()}, streak=${getStreak()}")
+    }
+
     fun getLastSuccessDate(): String {
         return prefs.getString("last_success_date", "") ?: ""
+    }
+
+    /**
+     * 테스트용: last_success_date 초기화 (중복 체크 우회)
+     */
+    fun clearLastSuccessDate() {
+        prefs.edit().remove("last_success_date").apply()
     }
 
     // Firebase 동기화 타임스탬프
@@ -860,7 +893,7 @@ class PreferenceManager(context: Context) {
     }
 
     fun useHealthConnect(): Boolean {
-        val value = prefs.getBoolean("use_health_connect", false)
+        val value = prefs.getBoolean("use_health_connect", true)
         android.util.Log.d("PreferenceManager", "🔍 useHealthConnect: $value")
         return value
     }
@@ -1279,6 +1312,53 @@ class PreferenceManager(context: Context) {
         return newStreak
     }
 
+    /**
+     * 자유시간 날짜를 자동 성공으로 기록 (streak 유지용)
+     * @param date 자유시간이었던 날짜 (yyyy-MM-dd 형식)
+     */
+    fun recordFreeDayAsSuccess(date: String) {
+        val lastAchievedDate = getLastAchievedDate()
+
+        // 이미 해당 날짜가 기록되어 있으면 무시
+        if (lastAchievedDate == date) {
+            android.util.Log.d("PreferenceManager", "🆓 Free day $date already recorded")
+            return
+        }
+
+        val currentStreak = getStreak()
+        val sdf = java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.getDefault())
+
+        try {
+            val freeDayDate = sdf.parse(date) ?: return
+            val lastDate = if (lastAchievedDate.isNotEmpty()) sdf.parse(lastAchievedDate) else null
+
+            val newStreak = if (lastDate != null) {
+                val diffInDays = ((freeDayDate.time - lastDate.time) / (1000 * 60 * 60 * 24)).toInt()
+                if (diffInDays == 1) {
+                    // 연속 - streak 증가
+                    currentStreak + 1
+                } else if (diffInDays <= 0) {
+                    // 같은 날 또는 과거 - 변경 없음
+                    currentStreak
+                } else {
+                    // 연속 끊김 - 1부터 다시 시작
+                    setStreakStartDate(date)
+                    1
+                }
+            } else {
+                // 첫 기록
+                setStreakStartDate(date)
+                1
+            }
+
+            setStreak(newStreak)
+            setLastAchievedDate(date)
+            android.util.Log.d("PreferenceManager", "🆓 Free day recorded: $date, streak: $newStreak")
+        } catch (e: Exception) {
+            android.util.Log.e("PreferenceManager", "Error recording free day: ${e.message}")
+        }
+    }
+
     // ===== 평소 운동 시간 추적 (걱정 알림용) =====
 
     /**
@@ -1401,6 +1481,68 @@ class PreferenceManager(context: Context) {
         }
 
         return achievements
+    }
+
+    // ========== 날짜별 목표/걸음수 기록 ==========
+
+    /**
+     * 특정 날짜의 목표를 저장 (목표 달성 시 호출)
+     */
+    fun saveDailyGoal(date: String, goal: Int) {
+        prefs.edit().putInt("daily_goal_$date", goal).apply()
+    }
+
+    /**
+     * 특정 날짜의 목표를 가져옴 (없으면 현재 목표 반환)
+     */
+    fun getDailyGoal(date: String): Int {
+        return prefs.getInt("daily_goal_$date", getGoal())
+    }
+
+    /**
+     * 특정 날짜의 걸음수를 저장
+     */
+    fun saveDailySteps(date: String, steps: Int) {
+        prefs.edit().putInt("daily_steps_$date", steps).apply()
+    }
+
+    /**
+     * 특정 날짜의 걸음수를 가져옴
+     */
+    fun getDailySteps(date: String): Int {
+        return prefs.getInt("daily_steps_$date", 0)
+    }
+
+    /**
+     * 주간 데이터 가져오기 (날짜별 걸음수와 목표)
+     * @return List of Pair(steps, goal) for each day (월~일)
+     */
+    fun getWeeklyData(): List<Pair<Int, Int>> {
+        val sdf = java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.getDefault())
+        val calendar = java.util.Calendar.getInstance()
+        val today = sdf.format(java.util.Date())
+
+        // 이번 주 월요일로 이동
+        val dayOfWeek = calendar.get(java.util.Calendar.DAY_OF_WEEK)
+        val daysFromMonday = if (dayOfWeek == java.util.Calendar.SUNDAY) 6 else dayOfWeek - 2
+        calendar.add(java.util.Calendar.DAY_OF_MONTH, -daysFromMonday)
+
+        val weeklyData = mutableListOf<Pair<Int, Int>>()
+
+        // 월~일 7일간
+        for (i in 0 until 7) {
+            val dateStr = sdf.format(calendar.time)
+            val steps = if (dateStr == today) {
+                getTodaySteps()  // 오늘은 현재 걸음수
+            } else {
+                getDailySteps(dateStr)  // 과거는 저장된 걸음수
+            }
+            val goal = getDailyGoal(dateStr)  // 해당 날짜의 목표
+            weeklyData.add(Pair(steps, goal))
+            calendar.add(java.util.Calendar.DAY_OF_MONTH, 1)
+        }
+
+        return weeklyData
     }
 
     // ========== 공지/팝업 ==========

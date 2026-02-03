@@ -93,6 +93,7 @@ fun SettingsScreen(
 
     var currentSteps by remember { mutableIntStateOf(repository.getTodaySteps()) }
     var goal by remember { mutableIntStateOf(repository.getGoal()) }
+    var goalUnit by remember { mutableStateOf(preferenceManager?.getGoalUnit() ?: "steps") }
     var deposit by remember { mutableIntStateOf(repository.getDeposit()) }
     var successDays by remember { mutableIntStateOf(repository.getSuccessDays()) }
     var totalDays by remember { mutableIntStateOf(preferenceManager?.getTotalControlDays() ?: 0) }
@@ -435,6 +436,7 @@ fun SettingsScreen(
             onConfirm = { newGoal ->
                 repository.saveGoal(newGoal)
                 goal = newGoal
+                goalUnit = preferenceManager?.getGoalUnit() ?: "steps"  // 단위도 업데이트
                 showGoalDialog = false
                 // 위젯 업데이트 (목표 단위 변경 시 위젯 반영)
                 StepWidgetProvider.updateAllWidgets(context)
@@ -1265,8 +1267,8 @@ fun SettingsScreen(
                             RetroSectionTitle(title = "목표 설정", fontFamily = kenneyFont)
 
                             RetroSettingsItem(
-                        title = "일일 걸음 목표",
-                        value = "${goal}보",
+                        title = "일일 목표",
+                        value = if (goalUnit == "km") "%.2f km".format(goal / 1300.0) else "%,d보".format(goal),
                         onClick = {
                             hapticManager.click()
                             showChangeConfirmDialog = "goal"
@@ -1527,6 +1529,42 @@ fun SettingsScreen(
                     val isHealthConnectAvailable = remember { healthConnectManager.isAvailable() }
                     val isHealthConnectConnected = preferenceManager?.isHealthConnectConnected() ?: false
                     val connectedAppName = preferenceManager?.getConnectedFitnessAppName() ?: ""
+
+                    // Health Connect 연결 필요 경고 배너
+                    if (isHealthConnectAvailable && !isHealthConnectConnected) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(bottom = 12.dp)
+                                .clip(RoundedCornerShape(8.dp))
+                                .background(Color(0xFFFFF3E0))
+                                .border(1.dp, Color(0xFFFF9800), RoundedCornerShape(8.dp))
+                                .padding(12.dp)
+                        ) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    text = "⚠️",
+                                    fontSize = 18.sp
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text(
+                                        text = "Health Connect 연결 필요",
+                                        fontSize = 14.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = Color(0xFFE65100)
+                                    )
+                                    Text(
+                                        text = "걸음수를 정확히 측정하려면 아래에서 연결해주세요",
+                                        fontSize = 12.sp,
+                                        color = Color(0xFFF57C00)
+                                    )
+                                }
+                            }
+                        }
+                    }
 
                     Box(
                         modifier = Modifier

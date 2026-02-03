@@ -221,7 +221,8 @@ fun SpeechBubble(
     text: String,
     modifier: Modifier = Modifier,
     fontSize: androidx.compose.ui.unit.TextUnit = 14.sp,
-    maxWidth: Dp = 250.dp
+    maxWidth: Dp = 250.dp,
+    maxLines: Int = Int.MAX_VALUE
 ) {
     Box(
         modifier = modifier
@@ -239,7 +240,8 @@ fun SpeechBubble(
             fontSize = fontSize,
             fontWeight = FontWeight.Medium,
             textAlign = TextAlign.Center,
-            lineHeight = fontSize * 1.3f
+            lineHeight = fontSize * 1.3f,
+            maxLines = maxLines
         )
     }
 }
@@ -261,10 +263,10 @@ fun PetArea(
     Box(
         modifier = modifier
             .fillMaxWidth()
-            .height(180.dp)
-            .clip(RoundedCornerShape(20.dp))
+            .height(Size.displayAreaHeight)
+            .clip(RoundedCornerShape(Radius.md))
             .background(backgroundColor)
-            .border(3.dp, MockupColors.Border, RoundedCornerShape(20.dp))
+            .border(Border.thick, MockupColors.Border, RoundedCornerShape(Radius.md))
     ) {
         Column(
             modifier = Modifier.fillMaxSize(),
@@ -328,17 +330,17 @@ fun StatsCard(
     Card(
         modifier = modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(containerColor = backgroundColor),
-        shape = RoundedCornerShape(15.dp),
-        border = androidx.compose.foundation.BorderStroke(3.dp, MockupColors.Border)
+        shape = RoundedCornerShape(Radius.sm),
+        border = androidx.compose.foundation.BorderStroke(Border.medium, MockupColors.Border)
     ) {
         Column(
-            modifier = Modifier.padding(15.dp),
+            modifier = Modifier.padding(Padding.card),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             // Large step count
             Text(
                 text = "%,d".format(stepCount),
-                fontSize = 48.sp,
+                fontSize = FontSize.xxl,
                 fontWeight = FontWeight.Bold,
                 color = MockupColors.TextPrimary
             )
@@ -371,10 +373,10 @@ fun StatsCard(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(20.dp)
-                    .clip(RoundedCornerShape(10.dp))
+                    .height(Size.progressBarHeight)
+                    .clip(RoundedCornerShape(Radius.xs))
                     .background(Color(0xFFE0E0E0))
-                    .border(2.dp, MockupColors.Border, RoundedCornerShape(10.dp))
+                    .border(Border.thin, MockupColors.Border, RoundedCornerShape(Radius.xs))
             ) {
                 Box(
                     modifier = Modifier
@@ -498,11 +500,11 @@ fun TalkInputArea(
             onValueChange = onValueChange,
             modifier = Modifier
                 .weight(1f)
-                .height(48.dp)
-                .clip(RoundedCornerShape(15.dp))
+                .height(Size.inputHeight)
+                .clip(RoundedCornerShape(Radius.md))
                 .background(Color.White)
-                .border(3.dp, MockupColors.Border, RoundedCornerShape(15.dp))
-                .padding(horizontal = 15.dp, vertical = 12.dp),
+                .border(Border.thick, MockupColors.Border, RoundedCornerShape(Radius.md))
+                .padding(horizontal = Padding.speechBubble, vertical = Spacing.sm),
             textStyle = TextStyle(
                 fontSize = 16.sp,
                 color = MockupColors.TextPrimary
@@ -511,7 +513,10 @@ fun TalkInputArea(
             keyboardOptions = KeyboardOptions(imeAction = ImeAction.Send),
             keyboardActions = KeyboardActions(onSend = { onSend() }),
             decorationBox = { innerTextField ->
-                Box {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.CenterStart
+                ) {
                     if (value.isEmpty()) {
                         Text(
                             text = "${petName}에게 말하기...",
@@ -527,16 +532,15 @@ fun TalkInputArea(
         // Send button
         Button(
             onClick = onSend,
-            modifier = Modifier.size(48.dp),
-            shape = RoundedCornerShape(12.dp),
+            modifier = Modifier.size(Size.buttonHeight),
+            shape = RoundedCornerShape(Radius.md),
             colors = ButtonDefaults.buttonColors(containerColor = MockupColors.Border),
             contentPadding = PaddingValues(0.dp)
         ) {
-            Text(
-                text = "→",
-                fontSize = 20.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color.White
+            PixelIcon(
+                iconName = "icon_send",
+                size = 20.dp,
+                tint = Color.White
             )
         }
     }
@@ -585,21 +589,23 @@ fun MyMessageBubble(
 
 /**
  * Standard button matching mockup
+ * @param height 버튼 높이 (기본값: Size.buttonHeight = 48dp)
  */
 @Composable
 fun MockupButton(
     text: String,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
-    enabled: Boolean = true
+    enabled: Boolean = true,
+    height: Dp = Size.buttonHeight
 ) {
     Button(
         onClick = onClick,
         enabled = enabled,
         modifier = modifier
             .fillMaxWidth()
-            .height(52.dp),
-        shape = RoundedCornerShape(12.dp),
+            .height(height),
+        shape = RoundedCornerShape(Radius.sm),
         colors = ButtonDefaults.buttonColors(
             containerColor = MockupColors.Border,
             disabledContainerColor = Color(0xFFCCCCCC)
@@ -607,7 +613,7 @@ fun MockupButton(
     ) {
         Text(
             text = text,
-            fontSize = 20.sp,
+            fontSize = FontSize.lg,
             fontWeight = FontWeight.Bold,
             color = Color.White
         )
@@ -675,7 +681,7 @@ fun TutorialStepLayout(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(horizontal = 20.dp)
+            .padding(horizontal = Padding.screen)
             .padding(bottom = 72.dp),  // 3버튼 네비게이션 고려
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
@@ -696,8 +702,8 @@ fun TutorialStepLayout(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(240.dp)
-                .clip(RoundedCornerShape(20.dp))
+                .height(Size.displayAreaHeight)
+                .clip(RoundedCornerShape(Radius.md))
                 .background(Color.White)
                 .drawBehind {
                     val stripeHeightPx = stripeWidth.toPx()
@@ -712,14 +718,14 @@ fun TutorialStepLayout(
                         y += stripeHeightPx * 2
                     }
                 }
-                .border(3.dp, MockupColors.Border, RoundedCornerShape(20.dp)),
+                .border(Border.thick, MockupColors.Border, RoundedCornerShape(Radius.md)),
             contentAlignment = Alignment.Center
         ) {
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
-                SpeechBubble(text = speechText, fontSize = 18.sp)
+                SpeechBubble(text = speechText, fontSize = FontSize.sm)
                 Spacer(modifier = Modifier.height(8.dp))
                 PetSpriteWithSyncedGlow(
                     petType = petType,
