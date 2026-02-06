@@ -95,6 +95,8 @@ fun PetMainScreen(
     goalSteps: Int,
     streakCount: Int,
     onSettingsClick: () -> Unit,
+    onNotificationClick: () -> Unit = {},  // 알림 센터 클릭
+    notificationCount: Int = 0,  // 읽지 않은 알림 개수
     onChallengeClick: () -> Unit = {},
     onQuickStartChallenge: (ChallengeType) -> Unit = {},  // 추천 챌린지 바로 시작
     hapticManager: HapticManager? = null,
@@ -453,21 +455,53 @@ fun PetMainScreen(
                     )
             )
 
-            // 우측: Settings icon
-            IconButton(
-                onClick = {
-                    hapticManager?.click()
-                    onSettingsClick()
-                },
-                modifier = Modifier
-                    .size(40.dp)
-                    .align(Alignment.CenterEnd)
+            // 우측: Notification + Settings icons
+            Row(
+                modifier = Modifier.align(Alignment.CenterEnd),
+                horizontalArrangement = Arrangement.spacedBy(0.dp),
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                PixelIcon(
-                    iconName = "icon_gear",
-                    size = 24.dp,
-                    alpha = if (happinessLevel <= 1) 0.7f else 1f
-                )
+                // 알림 아이콘
+                Box {
+                    IconButton(
+                        onClick = {
+                            hapticManager?.click()
+                            onNotificationClick()
+                        },
+                        modifier = Modifier.size(40.dp)
+                    ) {
+                        Text(
+                            text = "⊙",
+                            fontSize = 22.sp,
+                            color = if (notificationCount > 0) MockupColors.TextPrimary else MockupColors.TextMuted
+                        )
+                    }
+                    // 알림 배지 (빨간 점)
+                    if (notificationCount > 0) {
+                        Box(
+                            modifier = Modifier
+                                .size(10.dp)
+                                .align(Alignment.TopEnd)
+                                .offset(x = (-6).dp, y = 6.dp)
+                                .background(MockupColors.Red, RoundedCornerShape(50))
+                        )
+                    }
+                }
+
+                // 설정 아이콘
+                IconButton(
+                    onClick = {
+                        hapticManager?.click()
+                        onSettingsClick()
+                    },
+                    modifier = Modifier.size(40.dp)
+                ) {
+                    PixelIcon(
+                        iconName = "icon_gear",
+                        size = 24.dp,
+                        alpha = if (happinessLevel <= 1) 0.7f else 1f
+                    )
+                }
             }
         }
 

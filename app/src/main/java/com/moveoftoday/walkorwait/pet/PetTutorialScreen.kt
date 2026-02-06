@@ -232,21 +232,11 @@ fun PetOnboardingScreen(
                 hapticManager = hapticManager,
                 onNext = {
                     hapticManager?.click()
-                    currentStep = 5
+                    currentStep = 6  // FitnessConnectionStep(5) 스킵 - 기본 센서 사용
                 }
             )
-            5 -> FitnessConnectionStep(
-                petType = selectedPetType!!,
-                petName = petName,
-                dotStep = dotStep,
-                totalDots = totalDots,
-                preferenceManager = prefManager,
-                hapticManager = hapticManager,
-                onNext = {
-                    hapticManager?.click()
-                    currentStep = 6
-                }
-            )
+            // Step 5 (FitnessConnectionStep) 제거됨 - 기본 센서를 디폴트로 사용
+            // 피트니스 앱 연결은 설정 > 앱 제어에서 선택적으로 가능
             6 -> AccessibilityStep(
                 petType = selectedPetType!!,
                 petName = petName,

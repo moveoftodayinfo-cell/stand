@@ -67,6 +67,7 @@ class StepCounterService : Service() {
                 // 걸음 기록 저장 (평균 속도 계산용)
                 preferenceManager.saveStepRecord(System.currentTimeMillis(), steps)
                 StepWidgetProvider.updateAllWidgets(this)
+                PetWidget2x2Provider.updateAllWidgets(this)
                 updateNotification(steps)
             }
             stepSensorManager.onDistanceChanged = { distanceKm ->

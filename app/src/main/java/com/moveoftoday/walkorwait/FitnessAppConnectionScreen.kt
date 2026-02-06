@@ -67,16 +67,14 @@ fun FitnessAppConnectionScreen(
         }
     }
 
-    // 초기화
+    // 초기화 - hasAllPermissions() 호출 제거 (Health Connect 앱이 잠깐 깜빡이는 문제 방지)
     LaunchedEffect(Unit) {
         isHealthConnectAvailable = healthConnectManager.isAvailable()
         installedApps = healthConnectManager.getInstalledFitnessApps()
 
-        if (isHealthConnectAvailable) {
-            hasPermissions = healthConnectManager.hasAllPermissions()
-            if (hasPermissions && preferenceManager.isHealthConnectConnected()) {
-                selectedAppName = preferenceManager.getConnectedFitnessAppName()
-            }
+        // PreferenceManager 기준으로 연결 상태 확인 (SDK 호출 없이)
+        if (isHealthConnectAvailable && preferenceManager.isHealthConnectConnected()) {
+            selectedAppName = preferenceManager.getConnectedFitnessAppName()
         }
     }
 
@@ -358,11 +356,10 @@ fun FitnessAppConnectionScreen(
                                 Spacer(modifier = Modifier.height(12.dp))
 
                                 // 연결 해제 버튼
-                                Text(
-                                    text = "연결 해제",
-                                    fontSize = 14.sp,
-                                    color = MockupColors.TextMuted,
+                                Box(
                                     modifier = Modifier
+                                        .fillMaxWidth()
+                                        .border(2.dp, MockupColors.Red, RoundedCornerShape(8.dp))
                                         .clickable {
                                             hapticManager.warning()
                                             preferenceManager.disconnectHealthConnect()
@@ -373,12 +370,20 @@ fun FitnessAppConnectionScreen(
 
                                             android.widget.Toast.makeText(
                                                 context,
-                                                "연결이 해제되었습니다",
+                                                "연결이 해제되었습니다. 기본 센서를 사용합니다.",
                                                 android.widget.Toast.LENGTH_SHORT
                                             ).show()
                                         }
-                                        .padding(vertical = 8.dp)
-                                )
+                                        .padding(12.dp),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Text(
+                                        text = "Health Connect 연결 해제",
+                                        fontSize = 14.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = MockupColors.Red
+                                    )
+                                }
                             }
                         }
                     }

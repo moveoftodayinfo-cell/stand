@@ -205,7 +205,7 @@ private fun SettingsMainContent(
             ) {
                 // 1. 내 정보
                 SettingsMenuCard(
-                    icon = "👤",
+                    icon = "○",
                     title = "내 정보",
                     subtitle = if (isGoogleSignedIn) googleEmail else "로그인하여 데이터 백업",
                     kenneyFont = kenneyFont,
@@ -217,7 +217,7 @@ private fun SettingsMainContent(
 
                 // 2. 펫 관리
                 SettingsMenuCard(
-                    icon = "🐕",
+                    icon = "◆",
                     title = "펫 관리",
                     subtitle = "$petName Lv.${petLevel.level}",
                     kenneyFont = kenneyFont,
@@ -238,7 +238,7 @@ private fun SettingsMainContent(
                     controlDays.sorted().map { dayNames[it % 7] }.joinToString("")
                 }
                 SettingsMenuCard(
-                    icon = "🎯",
+                    icon = "◎",
                     title = "목표 설정",
                     subtitle = "$goalText / $daysText",
                     kenneyFont = kenneyFont,
@@ -250,7 +250,7 @@ private fun SettingsMainContent(
 
                 // 4. 앱 제어
                 SettingsMenuCard(
-                    icon = "📱",
+                    icon = "▣",
                     title = "앱 제어",
                     subtitle = if (lockedApps.isEmpty()) "잠금 앱 없음" else "${lockedApps.size}개 앱 잠금 중",
                     kenneyFont = kenneyFont,
@@ -260,19 +260,16 @@ private fun SettingsMainContent(
                     }
                 )
 
-                // 5. 고객 지원
-                SettingsMenuCard(
-                    icon = "💬",
-                    title = "고객 지원",
-                    subtitle = "v${BuildConfig.VERSION_NAME}",
+                Spacer(modifier = Modifier.height(32.dp))
+
+                // 푸터 영역
+                SettingsFooter(
                     kenneyFont = kenneyFont,
-                    onClick = {
-                        hapticManager.click()
-                        onNavigate(SettingsDestination.SUPPORT)
-                    }
+                    hapticManager = hapticManager,
+                    onNavigateSupport = { onNavigate(SettingsDestination.SUPPORT) }
                 )
 
-                Spacer(modifier = Modifier.height(32.dp))
+                Spacer(modifier = Modifier.height(24.dp))
             }
         }
     }
@@ -347,7 +344,7 @@ private fun SettingsMenuCard(
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .border(3.dp, MockupColors.Border, RoundedCornerShape(12.dp))
+            .border(2.dp, MockupColors.Border, RoundedCornerShape(12.dp))
             .background(MockupColors.CardBackground, RoundedCornerShape(12.dp))
             .clickable(onClick = onClick)
             .padding(16.dp)
@@ -391,5 +388,86 @@ private fun SettingsMenuCard(
                 fontFamily = kenneyFont
             )
         }
+    }
+}
+
+/**
+ * 설정 푸터 (버전, 링크, 브랜딩)
+ */
+@Composable
+private fun SettingsFooter(
+    kenneyFont: androidx.compose.ui.text.font.FontFamily,
+    hapticManager: HapticManager,
+    onNavigateSupport: () -> Unit
+) {
+    val context = LocalContext.current
+
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        // 버전 + 링크
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = "v${BuildConfig.VERSION_NAME}",
+                fontSize = 13.sp,
+                color = MockupColors.TextMuted,
+                fontFamily = kenneyFont
+            )
+            Text(
+                text = "·",
+                fontSize = 13.sp,
+                color = MockupColors.TextMuted
+            )
+            Text(
+                text = "피드백",
+                fontSize = 13.sp,
+                color = MockupColors.TextSecondary,
+                modifier = Modifier.clickable {
+                    hapticManager.click()
+                    onNavigateSupport()
+                }
+            )
+            Text(
+                text = "·",
+                fontSize = 13.sp,
+                color = MockupColors.TextMuted
+            )
+            Text(
+                text = "약관",
+                fontSize = 13.sp,
+                color = MockupColors.TextSecondary,
+                modifier = Modifier.clickable {
+                    hapticManager.click()
+                    val intent = android.content.Intent(
+                        android.content.Intent.ACTION_VIEW,
+                        android.net.Uri.parse("https://stand-64c11.web.app/terms.html")
+                    )
+                    context.startActivity(intent)
+                }
+            )
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // 브랜딩
+        Text(
+            text = "rebon",
+            fontSize = 24.sp,
+            fontWeight = FontWeight.Bold,
+            color = MockupColors.Border,
+            fontFamily = kenneyFont
+        )
+
+        Spacer(modifier = Modifier.height(4.dp))
+
+        Text(
+            text = "© 2025 moveoftoday",
+            fontSize = 11.sp,
+            color = MockupColors.TextMuted
+        )
     }
 }

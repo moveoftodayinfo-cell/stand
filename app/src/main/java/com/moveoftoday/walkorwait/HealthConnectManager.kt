@@ -31,6 +31,14 @@ class HealthConnectManager(private val context: Context) {
             HealthPermission.getReadPermission(DistanceRecord::class),
             HealthPermission.getReadPermission(TotalCaloriesBurnedRecord::class)
         )
+
+        // 캐시된 SDK 상태 (앱 시작 시 한 번만 체크)
+        @Volatile
+        private var cachedSdkAvailable: Boolean? = null
+
+        // 캐시된 설치된 피트니스 앱 목록
+        @Volatile
+        private var cachedInstalledApps: List<FitnessApp>? = null
     }
 
     // 방어적 초기화: SDK 버전 불일치 등으로 인한 크래시 방지
@@ -52,12 +60,16 @@ class HealthConnectManager(private val context: Context) {
     fun isClientAvailable(): Boolean = healthConnectClient != null
 
     /**
-     * Health Connect 사용 가능 여부 확인
+     * Health Connect 사용 가능 여부 확인 (캐시 사용)
+     * SDK 상태는 앱 실행 중 변경되지 않으므로 캐시해서 반복 호출 방지
      */
     fun isAvailable(): Boolean {
+        cachedSdkAvailable?.let { return it }
+
         val status = HealthConnectClient.getSdkStatus(context)
         val available = status == HealthConnectClient.SDK_AVAILABLE
-        Log.d(TAG, "🔍 isAvailable - status: $status, available: $available")
+        cachedSdkAvailable = available
+        Log.d(TAG, "🔍 isAvailable (first check) - status: $status, available: $available")
         return available
     }
 
@@ -83,11 +95,13 @@ class HealthConnectManager(private val context: Context) {
     }
 
     /**
-     * 설치된 피트니스 앱 감지
+     * 설치된 피트니스 앱 감지 (캐시 사용)
      */
     fun getInstalledFitnessApps(): List<FitnessApp> {
+        cachedInstalledApps?.let { return it }
+
         val packageManager = context.packageManager
-        return FitnessApp.values().filter { app ->
+        val apps = FitnessApp.values().filter { app ->
             try {
                 packageManager.getPackageInfo(app.packageName, 0)
                 true
@@ -95,6 +109,8 @@ class HealthConnectManager(private val context: Context) {
                 false
             }
         }
+        cachedInstalledApps = apps
+        return apps
     }
 
     /**
