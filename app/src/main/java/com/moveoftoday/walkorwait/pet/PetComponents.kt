@@ -656,7 +656,7 @@ fun TutorialNavigationDots(
  */
 @Composable
 fun TutorialStepLayout(
-    petType: PetType,
+    petType: PetTypeV2,
     speechText: String,
     instructionText: String,
     buttonText: String,
@@ -721,13 +721,15 @@ fun TutorialStepLayout(
             ) {
                 SpeechBubble(text = speechText, fontSize = FontSize.sm)
                 Spacer(modifier = Modifier.height(8.dp))
-                PetSpriteWithSyncedGlow(
+                // V2 펫 스프라이트 사용
+                PetSpriteV2WithGlow(
                     petType = petType,
-                    isWalking = isWalking,
+                    stage = PetGrowthStage.BABY,
+                    animationType = if (isWalking) PetAnimationTypeV2.WALK else PetAnimationTypeV2.IDLE,
                     size = displayPetSize,
                     monochrome = true,
-                    frameDurationMs = 500,
-                    enableRandomAnimation = !isWalking
+                    showGlow = true,
+                    applyDisplayScale = false
                 )
             }
         }

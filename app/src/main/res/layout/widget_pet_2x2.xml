@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/widget_container"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/widget_background"
+    android:padding="12dp"
+    android:orientation="vertical">
+
+    <!-- Header: Streak + Title -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginBottom="6dp">
+
+        <!-- Streak Badge -->
+        <ImageView
+            android:id="@+id/widget_streak_icon"
+            android:layout_width="14dp"
+            android:layout_height="14dp"
+            android:src="@drawable/ic_lightning"
+            android:contentDescription="streak" />
+
+        <TextView
+            android:id="@+id/widget_streak"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="3 연속"
+            android:textColor="#222222"
+            android:textSize="12sp"
+            android:textStyle="bold"
+            android:layout_marginStart="3dp" />
+
+        <FrameLayout
+            android:layout_width="0dp"
+            android:layout_height="1dp"
+            android:layout_weight="1" />
+
+        <!-- Title -->
+        <TextView
+            android:id="@+id/widget_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="rebon"
+            android:textColor="#222222"
+            android:textSize="16sp"
+            android:textStyle="bold" />
+    </LinearLayout>
+
+    <!-- Pet Display Area with Stripes -->
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:background="@drawable/widget_pet_area_background">
+
+        <!-- Speech Bubble (top center) -->
+        <TextView
+            android:id="@+id/widget_speech"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="top|center_horizontal"
+            android:layout_marginTop="7dp"
+            android:text="산책하자!"
+            android:textColor="#222222"
+            android:textSize="9sp"
+            android:background="@drawable/widget_speech_bubble_down"
+            android:paddingLeft="8dp"
+            android:paddingRight="8dp"
+            android:paddingTop="4dp"
+            android:paddingBottom="4dp"
+            android:maxLines="2"
+            android:ellipsize="end" />
+
+        <!-- Pet Icon (center, moved down) -->
+        <ImageView
+            android:id="@+id/widget_pet_icon"
+            android:layout_width="56dp"
+            android:layout_height="56dp"
+            android:layout_gravity="center"
+            android:layout_marginTop="16dp"
+            android:scaleType="fitCenter"
+            android:contentDescription="pet" />
+
+        <!-- Emotion Symbol (near pet, top-right of pet) -->
+        <TextView
+            android:id="@+id/widget_emotion"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_marginStart="24dp"
+            android:layout_marginBottom="8dp"
+            android:text="zzZ"
+            android:textColor="#222222"
+            android:textSize="10sp"
+            android:textStyle="bold"
+            android:fontFamily="sans-serif" />
+
+        <!-- Pet Name (bottom center) -->
+        <TextView
+            android:id="@+id/widget_pet_name"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom|center_horizontal"
+            android:layout_marginBottom="2dp"
+            android:text="멍멍이"
+            android:textColor="#666666"
+            android:textSize="10sp" />
+    </FrameLayout>
+
+    <!-- Bottom: Steps + Progress -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:layout_marginTop="6dp">
+
+        <!-- Steps Text -->
+        <TextView
+            android:id="@+id/widget_steps_text"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="8,234 / 10,000 보"
+            android:textColor="#666666"
+            android:textSize="11sp"
+            android:textStyle="bold"
+            android:gravity="center"
+            android:layout_marginBottom="5dp" />
+
+        <!-- Progress Row -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+
+            <!-- Progress Bar -->
+            <ProgressBar
+                android:id="@+id/widget_progress_bar"
+                style="@android:style/Widget.ProgressBar.Horizontal"
+                android:layout_width="0dp"
+                android:layout_height="12dp"
+                android:layout_weight="1"
+                android:max="100"
+                android:progress="82"
+                android:progressDrawable="@drawable/widget_progress_drawable" />
+
+            <!-- Percent -->
+            <TextView
+                android:id="@+id/widget_percent"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:text="82%"
+                android:textColor="#222222"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                android:minWidth="32dp"
+                android:gravity="end" />
+        </LinearLayout>
+    </LinearLayout>
+
+</LinearLayout>

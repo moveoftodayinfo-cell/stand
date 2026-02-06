@@ -299,4 +299,382 @@ object PetDialoguesV2 {
         }
         return messages.random()
     }
+
+    // ===== 오랜만에 접속 (daysSinceLastVisit일 만에) =====
+    fun getLongTimeNoSeeMessage(personality: PetPersonalityV2, daysSinceLastVisit: Int): String {
+        return when (personality) {
+            PetPersonalityV2.LOYAL -> when {
+                daysSinceLastVisit >= 7 -> "일주일이나... 걱정했어."
+                daysSinceLastVisit >= 3 -> "어디 갔었어? 기다렸는데."
+                else -> "왔구나. 보고 싶었어."
+            }
+            PetPersonalityV2.TSUNDERE -> when {
+                daysSinceLastVisit >= 7 -> "흥, 일주일? ...많이 걱정했거든!"
+                daysSinceLastVisit >= 3 -> "뭐야, 이제 와? ...기다린 거 아니야."
+                else -> "왔어? ...뭐, 상관없지만."
+            }
+            PetPersonalityV2.FOODIE -> when {
+                daysSinceLastVisit >= 7 -> "일주일?! 밥은 먹었어?! 나도 배고파!"
+                daysSinceLastVisit >= 3 -> "어디서 맛있는 거 먹고 왔어?!"
+                else -> "왔다! 같이 밥 먹자!"
+            }
+            PetPersonalityV2.PLAYFUL -> when {
+                daysSinceLastVisit >= 7 -> "일주일?! 완전 심심했어!! 놀자!!"
+                daysSinceLastVisit >= 3 -> "어디 갔었어?! 나 혼자 뭐하라고!"
+                else -> "왔다!! 빨리 놀자!!"
+            }
+            PetPersonalityV2.TIMID -> when {
+                daysSinceLastVisit >= 7 -> "일주일이요...? 저, 정말 외로웠어요..."
+                daysSinceLastVisit >= 3 -> "보고 싶었어요... 많이요..."
+                else -> "다, 다행이에요... 왔네요..."
+            }
+            PetPersonalityV2.CLUMSY -> when {
+                daysSinceLastVisit >= 7 -> "일주일?! 기다리다 넘어졌어 여러 번!"
+                daysSinceLastVisit >= 3 -> "어디 갔었어! 찾으러 가다가 앗-"
+                else -> "왔다! 반가- 앗 미끄러!"
+            }
+        }
+    }
+
+    // ===== 스트릭 축하 (연속 N일) =====
+    fun getStreakCelebrationMessage(personality: PetPersonalityV2, streakDays: Int): String {
+        return when (personality) {
+            PetPersonalityV2.LOYAL -> when {
+                streakDays >= 30 -> "한 달 연속. 대단하다. 진심으로."
+                streakDays >= 14 -> "2주 연속이다. 자랑스럽다."
+                streakDays >= 7 -> "일주일 연속. 잘하고 있어."
+                else -> "${streakDays}일 연속. 계속 가자."
+            }
+            PetPersonalityV2.TSUNDERE -> when {
+                streakDays >= 30 -> "한 달이라니... 좀 감동이야. 아니, 그게 아니라!"
+                streakDays >= 14 -> "2주? 뭐, 대단하긴 해. ...진짜로."
+                streakDays >= 7 -> "일주일... 인정해줄게."
+                else -> "${streakDays}일 연속이네. ...나쁘지 않아."
+            }
+            PetPersonalityV2.FOODIE -> when {
+                streakDays >= 30 -> "한 달?! 대박! 파티다 파티! 맛있는 거!!"
+                streakDays >= 14 -> "2주! 축하 간식 먹자!!"
+                streakDays >= 7 -> "일주일! 밥 한 끼 더 먹어도 돼?!"
+                else -> "${streakDays}일! 간식 시간이다 꿀꿀!"
+            }
+            PetPersonalityV2.PLAYFUL -> when {
+                streakDays >= 30 -> "한 달?! 미쳤다!! 레전드!!!"
+                streakDays >= 14 -> "2주다!! 완전 대박!!"
+                streakDays >= 7 -> "일주일! 우와아! 최고야!"
+                else -> "${streakDays}일! 신난다!!"
+            }
+            PetPersonalityV2.TIMID -> when {
+                streakDays >= 30 -> "한 달이에요...! 저, 정말 감동이에요...!"
+                streakDays >= 14 -> "2주라니... 대단해요..."
+                streakDays >= 7 -> "일주일... 정말 잘하고 계세요..."
+                else -> "${streakDays}일째에요... 응원할게요..."
+            }
+            PetPersonalityV2.CLUMSY -> when {
+                streakDays >= 30 -> "한 달?! 축하 춤! 뒤뚱- 앗 넘어질뻔!"
+                streakDays >= 14 -> "2주! 대단해! 앗 발 걸려- 괜찮아!"
+                streakDays >= 7 -> "일주일! 최고! 점프- 앗 착지 실패!"
+                else -> "${streakDays}일! 축하해! 뒤뚱뒤뚱~"
+            }
+        }
+    }
+
+    // ===== 스트릭 끊김 (아쉬움) =====
+    fun getStreakBrokenMessage(personality: PetPersonalityV2, previousStreak: Int): String {
+        return when (personality) {
+            PetPersonalityV2.LOYAL -> when {
+                previousStreak >= 7 -> "${previousStreak}일이었는데... 괜찮아. 다시 하면 돼."
+                else -> "연속 기록이 끊겼어. 다시 시작하자."
+            }
+            PetPersonalityV2.TSUNDERE -> when {
+                previousStreak >= 7 -> "${previousStreak}일이었는데... 아쉬워. 아, 아니 그냥!"
+                else -> "끊겼네... 뭐, 다시 하면 되지."
+            }
+            PetPersonalityV2.FOODIE -> when {
+                previousStreak >= 7 -> "${previousStreak}일이었는데 ㅠㅠ 힘내! 밥 먹고 다시!"
+                else -> "괜찮아! 먹고 힘내자!"
+            }
+            PetPersonalityV2.PLAYFUL -> when {
+                previousStreak >= 7 -> "${previousStreak}일이었는데... 에이! 다시 하면 돼!"
+                else -> "괜찮아괜찮아! 리트라이!!"
+            }
+            PetPersonalityV2.TIMID -> when {
+                previousStreak >= 7 -> "${previousStreak}일이었는데... 괜, 괜찮아요..."
+                else -> "저, 저도 응원할게요... 다시 해봐요..."
+            }
+            PetPersonalityV2.CLUMSY -> when {
+                previousStreak >= 7 -> "${previousStreak}일이었는데... 나도 자주 넘어져! 일어나면 돼!"
+                else -> "괜찮아! 나도 맨날 넘어지는걸! 파이팅!"
+            }
+        }
+    }
+
+    // ===== 시간대별 인사 =====
+    fun getTimeOfDayGreeting(personality: PetPersonalityV2, hour: Int): String {
+        val timeOfDay = when {
+            hour in 5..8 -> "early_morning"   // 이른 아침
+            hour in 9..11 -> "morning"        // 아침
+            hour in 12..13 -> "lunch"         // 점심
+            hour in 14..17 -> "afternoon"     // 오후
+            hour in 18..21 -> "evening"       // 저녁
+            else -> "night"                   // 밤
+        }
+
+        return when (personality) {
+            PetPersonalityV2.LOYAL -> when (timeOfDay) {
+                "early_morning" -> "일찍 일어났네. 좋은 아침."
+                "morning" -> "좋은 아침이다."
+                "lunch" -> "점심 먹었어?"
+                "afternoon" -> "오후도 화이팅."
+                "evening" -> "저녁이다. 오늘 수고했어."
+                else -> "밤이네. 푹 쉬어."
+            }
+            PetPersonalityV2.TSUNDERE -> when (timeOfDay) {
+                "early_morning" -> "벌써 일어났어? ...부지런하네."
+                "morning" -> "아침이야... 뭐, 좋은 아침."
+                "lunch" -> "밥은 먹었어? ...그냥 물어본 거야."
+                "afternoon" -> "나른하네... 졸린 거 아니야."
+                "evening" -> "저녁이다... 오늘도 수고. ...진심이야."
+                else -> "밤이네... 잘 자. 내일 봐."
+            }
+            PetPersonalityV2.FOODIE -> when (timeOfDay) {
+                "early_morning" -> "아침밥 시간!! 일어났어?!"
+                "morning" -> "좋은 아침! 아침밥 뭐야?!"
+                "lunch" -> "점심이다!! 뭐 먹지?!"
+                "afternoon" -> "간식 타임이다~ 꿀꿀!"
+                "evening" -> "저녁!! 맛있는 거 먹자!!"
+                else -> "야식 먹을까? ...아 살찐다!"
+            }
+            PetPersonalityV2.PLAYFUL -> when (timeOfDay) {
+                "early_morning" -> "우와 일찍이다! 놀 시간 많다!"
+                "morning" -> "좋은 아침!! 오늘 뭐 하지?!"
+                "lunch" -> "점심이다! 먹고 놀자!"
+                "afternoon" -> "오후다! 심심해! 뭐 하지?!"
+                "evening" -> "저녁이다~ 불금?! 아 평일이네"
+                else -> "밤이다! 밤새 놀자! ...농담!"
+            }
+            PetPersonalityV2.TIMID -> when (timeOfDay) {
+                "early_morning" -> "아, 안녕하세요... 일찍 일어나셨네요..."
+                "morning" -> "좋, 좋은 아침이에요..."
+                "lunch" -> "점심... 드셨나요...?"
+                "afternoon" -> "오후예요... 힘내세요..."
+                "evening" -> "저녁이에요... 오늘도 수고하셨어요..."
+                else -> "밤이에요... 푹 쉬세요..."
+            }
+            PetPersonalityV2.CLUMSY -> when (timeOfDay) {
+                "early_morning" -> "좋은 아침! 앗 아직 졸려서 비틀-"
+                "morning" -> "아침이다! 스트레칭- 앗 뻐근!"
+                "lunch" -> "점심!! 밥 먹다가 흘리면 안 돼!"
+                "afternoon" -> "오후다! 산책- 앗 문턱!"
+                "evening" -> "저녁이다! 앗 어두워서 안 보- 쿵!"
+                else -> "밤이다! 잘 자- 앗 이불에 걸려!"
+            }
+        }
+    }
+
+    // ===== 터치/상호작용 반응 =====
+    fun getTouchReactionMessage(personality: PetPersonalityV2): String {
+        val messages = when (personality) {
+            PetPersonalityV2.LOYAL -> listOf(
+                "왜? 무슨 일이야?",
+                "쓰다듬는 거야? 좋네.",
+                "그래그래.",
+                "뭐, 싫지 않아.",
+                "...좋아."
+            )
+            PetPersonalityV2.TSUNDERE -> listOf(
+                "뭐, 뭐야?!",
+                "만지지 마! ...조금만.",
+                "흥, 뭔데? ...기분 나쁘진 않아.",
+                "갑자기 왜 그래! ...더 해도 돼.",
+                "부, 부끄러워!"
+            )
+            PetPersonalityV2.FOODIE -> listOf(
+                "뭐야? 간식?!",
+                "쓰다듬어 줘? 히히~",
+                "좋다~ 꿀꿀!",
+                "배 만지면 안 돼! 간지러워!",
+                "더 해줘~ 기분 좋아!"
+            )
+            PetPersonalityV2.PLAYFUL -> listOf(
+                "뭐야뭐야?! 놀자?!",
+                "우와! 기분 좋아!",
+                "더더더! 신난다!",
+                "간지러워 히히히!",
+                "좋아좋아!! 최고야!"
+            )
+            PetPersonalityV2.TIMID -> listOf(
+                "앗...! 깜짝이야...",
+                "저, 저요...?",
+                "부, 부드럽게요...",
+                "...좋아요...",
+                "감사해요... 헤헤..."
+            )
+            PetPersonalityV2.CLUMSY -> listOf(
+                "앗! 깜짝이- 비틀!",
+                "간지러워! 앗 넘어질-",
+                "좋다! 뒤뚱뒤뚱~",
+                "더 해줘! 앗 균형이-",
+                "히히! 앗 미끄러질뻔!"
+            )
+        }
+        return messages.random()
+    }
+
+    // ===== 목표 실패 (오늘 못 채웠을 때) =====
+    fun getGoalFailedMessage(personality: PetPersonalityV2, achievedPercent: Int): String {
+        return when (personality) {
+            PetPersonalityV2.LOYAL -> when {
+                achievedPercent >= 80 -> "아깝다. ${achievedPercent}%였어. 내일은 해내자."
+                achievedPercent >= 50 -> "절반은 했네. 다음엔 더 잘할 수 있어."
+                else -> "오늘은 힘들었나 보네. 괜찮아. 내일이 있어."
+            }
+            PetPersonalityV2.TSUNDERE -> when {
+                achievedPercent >= 80 -> "${achievedPercent}%... 아까워. ...다음엔 꼭 해."
+                achievedPercent >= 50 -> "절반은 했네... 뭐, 안 한 것보단 낫지."
+                else -> "오늘은... 그래, 쉬는 날도 필요해. ...걱정이야."
+            }
+            PetPersonalityV2.FOODIE -> when {
+                achievedPercent >= 80 -> "${achievedPercent}%! 아깝다! 내일 밥 먹고 도전!"
+                achievedPercent >= 50 -> "절반! 괜찮아! 밥 먹고 힘내자!"
+                else -> "오늘은 쉬어! 맛있는 거 먹으면 기운 나!"
+            }
+            PetPersonalityV2.PLAYFUL -> when {
+                achievedPercent >= 80 -> "${achievedPercent}%?! 아까워! 내일 리벤지!!"
+                achievedPercent >= 50 -> "절반! 괜찮아괜찮아! 다음엔 더 재밌게!"
+                else -> "오늘은 쉬어! 내일 더 신나게 하자!"
+            }
+            PetPersonalityV2.TIMID -> when {
+                achievedPercent >= 80 -> "${achievedPercent}%에요... 아, 아깝지만 잘했어요..."
+                achievedPercent >= 50 -> "절반이나 했어요... 대단해요..."
+                else -> "괜, 괜찮아요... 쉬는 것도 중요해요..."
+            }
+            PetPersonalityV2.CLUMSY -> when {
+                achievedPercent >= 80 -> "${achievedPercent}%! 아깝다! 나도 자주 실패해! 괜찮아!"
+                achievedPercent >= 50 -> "절반! 나도 반은 넘어지니까 괜찮아!"
+                else -> "오늘은 쉬어! 나도 자주 쉬는- 앗 거짓말!"
+            }
+        }
+    }
+
+    // ===== 목표 초과 달성 (120% 이상) =====
+    fun getOverAchievementMessage(personality: PetPersonalityV2, achievedPercent: Int): String {
+        return when (personality) {
+            PetPersonalityV2.LOYAL -> when {
+                achievedPercent >= 200 -> "200%?! ...대단하다. 진심으로 감동이야."
+                achievedPercent >= 150 -> "150%. 열심히 했네. 자랑스럽다."
+                else -> "초과 달성. 멋있어."
+            }
+            PetPersonalityV2.TSUNDERE -> when {
+                achievedPercent >= 200 -> "200%?! 미, 미쳤어?! ...대단해."
+                achievedPercent >= 150 -> "150%... 오버하는 거 아니야? ...멋있긴 해."
+                else -> "목표 넘겼네. ...뭐, 잘했어."
+            }
+            PetPersonalityV2.FOODIE -> when {
+                achievedPercent >= 200 -> "200%?! 밥 두 배로 먹어도 돼!!"
+                achievedPercent >= 150 -> "150%! 간식 추가다!!"
+                else -> "초과 달성! 맛있는 거 먹을 자격 있어!"
+            }
+            PetPersonalityV2.PLAYFUL -> when {
+                achievedPercent >= 200 -> "200%?! 미쳤다!! 전설이야!!!"
+                achievedPercent >= 150 -> "150%!! 대박대박!! 파티다!!"
+                else -> "초과!! 우와아!! 신난다!!"
+            }
+            PetPersonalityV2.TIMID -> when {
+                achievedPercent >= 200 -> "200%...?! 저, 정말 대단해요...!"
+                achievedPercent >= 150 -> "150%... 너무 멋있어요..."
+                else -> "초과 달성이에요... 정말 잘하셨어요..."
+            }
+            PetPersonalityV2.CLUMSY -> when {
+                achievedPercent >= 200 -> "200%?! 축하 점프!! 앗 착지 실패!! 괜찮아!!"
+                achievedPercent >= 150 -> "150%!! 대단해! 춤출- 앗 넘어져!"
+                else -> "초과다!! 최고! 뒤뚱뒤뚱~ 앗!"
+            }
+        }
+    }
+
+    // ===== 특별한 날 (기념일 등) =====
+    fun getSpecialDayMessage(personality: PetPersonalityV2, dayType: String): String {
+        return when (dayType) {
+            "first_meeting" -> when (personality) {  // 만난 지 100일
+                PetPersonalityV2.LOYAL -> "벌써 100일이야. 앞으로도 함께하자."
+                PetPersonalityV2.TSUNDERE -> "100일이라니... 뭐, 축하해. ...나도 기뻐."
+                PetPersonalityV2.FOODIE -> "100일!! 케이크 먹자!!"
+                PetPersonalityV2.PLAYFUL -> "100일이다!! 파티파티!!"
+                PetPersonalityV2.TIMID -> "100일이에요... 감사해요..."
+                PetPersonalityV2.CLUMSY -> "100일! 축하 춤! 앗 넘어졌다!"
+            }
+            "new_year" -> when (personality) {  // 새해
+                PetPersonalityV2.LOYAL -> "새해 복 많이 받아."
+                PetPersonalityV2.TSUNDERE -> "새해다... 뭐, 올해도 잘 부탁해."
+                PetPersonalityV2.FOODIE -> "새해! 떡국 먹자!!"
+                PetPersonalityV2.PLAYFUL -> "새해다!! 올해도 신나게!!"
+                PetPersonalityV2.TIMID -> "새해 복 많이 받으세요..."
+                PetPersonalityV2.CLUMSY -> "새해! 올해는 안 넘어질- 앗!"
+            }
+            "birthday" -> when (personality) {  // 생일 (펫 생성일 기준)
+                PetPersonalityV2.LOYAL -> "생일 축하해. 태어나줘서 고마워."
+                PetPersonalityV2.TSUNDERE -> "생일이잖아... 축하해. ...진심이야."
+                PetPersonalityV2.FOODIE -> "생일이다!! 케이크 케이크!!"
+                PetPersonalityV2.PLAYFUL -> "생일!! 축하해!! 파티다!!"
+                PetPersonalityV2.TIMID -> "생, 생일 축하드려요..."
+                PetPersonalityV2.CLUMSY -> "생일 축하! 촛불 불- 앗 얼굴에!"
+            }
+            else -> when (personality) {  // 기본
+                PetPersonalityV2.LOYAL -> "오늘도 좋은 하루 되길."
+                PetPersonalityV2.TSUNDERE -> "뭐, 오늘도 화이팅."
+                PetPersonalityV2.FOODIE -> "오늘도 맛있는 하루!"
+                PetPersonalityV2.PLAYFUL -> "오늘도 재밌는 하루!"
+                PetPersonalityV2.TIMID -> "오늘도 좋은 하루 되세요..."
+                PetPersonalityV2.CLUMSY -> "오늘도 화이팅! 조심조심!"
+            }
+        }
+    }
+
+    // ===== 챌린지 시작 =====
+    fun getChallengeStartMessage(personality: PetPersonalityV2): String {
+        return when (personality) {
+            PetPersonalityV2.LOYAL -> "챌린지 시작. 같이 가자."
+            PetPersonalityV2.TSUNDERE -> "챌린지? ...뭐, 도와줄게."
+            PetPersonalityV2.FOODIE -> "챌린지다! 끝나면 간식!"
+            PetPersonalityV2.PLAYFUL -> "챌린지!! 신난다!! 고고!!"
+            PetPersonalityV2.TIMID -> "챌린지... 같이 해요..."
+            PetPersonalityV2.CLUMSY -> "챌린지! 시작! 앗 출발부터 비틀!"
+        }
+    }
+
+    // ===== 배고픔 상태 (happiness 낮을 때) =====
+    fun getHungryMessage(personality: PetPersonalityV2, happiness: Int): String {
+        return when (personality) {
+            PetPersonalityV2.LOYAL -> when {
+                happiness < 30 -> "...배고파."
+                happiness < 50 -> "밥 때 아니야?"
+                else -> "간식 있어?"
+            }
+            PetPersonalityV2.TSUNDERE -> when {
+                happiness < 30 -> "배고프다고! ...미안, 좀 예민해."
+                happiness < 50 -> "밥... 언제 줘? 기다리는 거 아니야!"
+                else -> "간식... 있으면 좋겠다고. 달라는 거 아니야!"
+            }
+            PetPersonalityV2.FOODIE -> when {
+                happiness < 30 -> "배고파아아!! 밥!! 밥 줘!!"
+                happiness < 50 -> "꼬르륵... 배고파~ 밥~"
+                else -> "간식 타임 아니야?"
+            }
+            PetPersonalityV2.PLAYFUL -> when {
+                happiness < 30 -> "배고파서 힘이 안 나..."
+                happiness < 50 -> "밥 먹고 놀자! 배고파!"
+                else -> "간식 먹고 더 놀자!"
+            }
+            PetPersonalityV2.TIMID -> when {
+                happiness < 30 -> "저, 저... 배가 고파요..."
+                happiness < 50 -> "혹시... 밥... 있나요...?"
+                else -> "간식... 주실 수 있을까요...?"
+            }
+            PetPersonalityV2.CLUMSY -> when {
+                happiness < 30 -> "배고파서 비틀비틀... 앗!"
+                happiness < 50 -> "밥 어디야! 찾다가 넘어- 앗!"
+                else -> "간식! 앗 흘렸다!"
+            }
+        }
+    }
 }

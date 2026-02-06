@@ -73,7 +73,8 @@ fun StreakCelebrationDialog(
     currentSteps: Int = 0,
     goalSteps: Int = 0,
     goalUnit: String = "steps",  // "steps" 또는 "km"
-    currentDistance: Double = 0.0  // km 모드용 현재 거리
+    currentDistance: Double = 0.0,  // km 모드용 현재 거리
+    petStateV2: PetState? = null  // V2 펫 상태 (있으면 V2 스프라이트 사용)
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -162,7 +163,8 @@ fun StreakCelebrationDialog(
                             streakStartDayOfWeek = streakStartDayOfWeek,
                             isKmMode = isKmMode,
                             currentDistance = currentDistance,
-                            safeCurrentSteps = safeCurrentSteps
+                            safeCurrentSteps = safeCurrentSteps,
+                            petStateV2 = petStateV2
                         )
                     }
                     1 -> {
@@ -173,7 +175,8 @@ fun StreakCelebrationDialog(
                             equippedTitle = equippedTitle,
                             petSpeech = petSpeech,
                             kenneyFont = kenneyFont,
-                            graphicsLayer = stickerGraphicsLayer
+                            graphicsLayer = stickerGraphicsLayer,
+                            petStateV2 = petStateV2
                         )
                     }
                 }
@@ -275,7 +278,8 @@ private fun FullCardContent(
     streakStartDayOfWeek: Int = 0,
     isKmMode: Boolean = false,
     currentDistance: Double = 0.0,
-    safeCurrentSteps: Int = 0
+    safeCurrentSteps: Int = 0,
+    petStateV2: PetState? = null
 ) {
     val stripeWidth = 4.dp
 
@@ -347,16 +351,46 @@ private fun FullCardContent(
                 Column(
                     modifier = Modifier
                         .align(Alignment.BottomCenter)
-                        .padding(bottom = 8.dp),
+                        .padding(bottom = 4.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    PetSpriteWithSyncedGlow(
-                        petType = petType,
-                        isWalking = false,
-                        size = 80.dp,
-                        monochrome = true,
-                        frameDurationMs = 200
-                    )
+                    // V2 펫 상태가 있으면 V2 스프라이트 사용, 없으면 V1 폴백
+                    // FullCard용 펫별 Y offset
+                    val fullCardYOffset = petStateV2?.let {
+                        val baseOffset = it.petType.getDisplayYOffsetDp(it.stage)
+                        // PIG는 fullcard에서 main보다 5dp 덜 올림 (main: -12dp, fullcard: -7dp)
+                        if (it.petType == com.moveoftoday.walkorwait.pet.PetTypeV2.PIG) {
+                            baseOffset + 5f
+                        } else {
+                            baseOffset
+                        }
+                    } ?: 0f
+
+                    // 고정 크기 Box로 감싸서 스프라이트 내부 움직임이 이름 위치에 영향주지 않도록
+                    Box(
+                        modifier = Modifier
+                            .size(160.dp)
+                            .offset(y = 40.dp + fullCardYOffset.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        if (petStateV2 != null) {
+                            PetSpriteFromState(
+                                petState = petStateV2,
+                                isWalking = false,
+                                progressPercent = 0,
+                                baseSizeDp = 160,
+                                monochrome = true
+                            )
+                        } else {
+                            PetSpriteWithSyncedGlow(
+                                petType = petType,
+                                isWalking = false,
+                                size = 160.dp,
+                                monochrome = true,
+                                frameDurationMs = 200
+                            )
+                        }
+                    }
 
                     // 칭호 + 펫 이름 (스프라이트 아래) - 칭호만 볼드, 이름은 노말
                     if (petName.isNotEmpty() || equippedTitle != null) {
@@ -379,7 +413,7 @@ private fun FullCardContent(
                                     blurRadius = 4f
                                 )
                             ),
-                            modifier = Modifier.offset(y = 5.dp)
+                            modifier = Modifier.offset(y = (-9).dp)  // 펫 이름 1dp 내림
                         )
                     }
                 }
@@ -612,7 +646,8 @@ private fun StickerContent(
     equippedTitle: String? = null,
     petSpeech: androidx.compose.ui.text.AnnotatedString,
     kenneyFont: androidx.compose.ui.text.font.FontFamily,
-    graphicsLayer: androidx.compose.ui.graphics.layer.GraphicsLayer
+    graphicsLayer: androidx.compose.ui.graphics.layer.GraphicsLayer,
+    petStateV2: PetState? = null
 ) {
     // Dialog wrapper (내용에 맞게 크기 조절)
     Box(
@@ -702,14 +737,44 @@ private fun StickerContent(
                             .align(Alignment.BottomCenter)
                             .padding(bottom = 4.dp)
                     ) {
-                        // Pet with glow
-                        PetSpriteWithSyncedGlow(
-                            petType = petType,
-                            isWalking = false,
-                            size = 70.dp,
-                            monochrome = true,
-                            frameDurationMs = 200
-                        )
+                        // V2 펫 상태가 있으면 V2 스프라이트 사용, 없으면 V1 폴백
+                        // 고정 크기 Box로 감싸서 스프라이트 내부 움직임이 이름 위치에 영향주지 않도록
+                        // Sticker용 펫별 Y offset (main과 다른 보정이 필요한 경우)
+                        val stickerYOffset = petStateV2?.let {
+                            val baseOffset = it.petType.getDisplayYOffsetDp(it.stage)
+                            when (it.petType) {
+                                // PIG: main -12dp, sticker -4dp (8dp 덜 올림)
+                                com.moveoftoday.walkorwait.pet.PetTypeV2.PIG -> baseOffset + 8f
+                                // HAMSTER: main -12dp, sticker -5dp (7dp 덜 올림)
+                                com.moveoftoday.walkorwait.pet.PetTypeV2.HAMSTER -> baseOffset + 7f
+                                else -> baseOffset
+                            }
+                        } ?: 0f
+
+                        Box(
+                            modifier = Modifier
+                                .size(140.dp)
+                                .offset(y = 57.dp + stickerYOffset.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            if (petStateV2 != null) {
+                                PetSpriteFromState(
+                                    petState = petStateV2,
+                                    isWalking = false,
+                                    progressPercent = 0,
+                                    baseSizeDp = 140,
+                                    monochrome = true
+                                )
+                            } else {
+                                PetSpriteWithSyncedGlow(
+                                    petType = petType,
+                                    isWalking = false,
+                                    size = 140.dp,
+                                    monochrome = true,
+                                    frameDurationMs = 200
+                                )
+                            }
+                        }
 
                         // 칭호 + 펫 이름 (스프라이트 아래) - 칭호만 볼드, 이름은 노말
                         if (petName.isNotEmpty() || equippedTitle != null) {
@@ -732,7 +797,7 @@ private fun StickerContent(
                                         blurRadius = 4f
                                     )
                                 ),
-                                modifier = Modifier.offset(y = 5.dp)
+                                modifier = Modifier.offset(y = 10.dp)  // 펫 이름
                             )
                         }
 

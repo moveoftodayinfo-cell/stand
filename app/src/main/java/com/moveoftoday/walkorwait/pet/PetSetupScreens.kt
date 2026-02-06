@@ -975,7 +975,7 @@ private fun getCategoryIcon(category: AppCategory): String {
  */
 @Composable
 fun RealGoalSetupScreen(
-    petType: PetType,
+    petType: PetTypeV2,
     petName: String,
     preferenceManager: PreferenceManager?,
     hapticManager: HapticManager?,
@@ -1004,12 +1004,12 @@ fun RealGoalSetupScreen(
     }
 
     val speechText = when (petType.personality) {
-        PetPersonality.TOUGH -> "매일 달성할 목표 정해."
-        PetPersonality.CUTE -> "매일 목표! 얼마나 걸을래~?"
-        PetPersonality.TSUNDERE -> "매일 달성할 목표... 정해."
-        PetPersonality.DIALECT -> "매일 얼마나 걸을끼고?"
-        PetPersonality.TIMID -> "매일 달성할 목표를 정해주세요..."
-        PetPersonality.POSITIVE -> "매일 달성할 목표를 정하자!"
+        PetPersonalityV2.LOYAL -> "매일 달성할 목표 정해."
+        PetPersonalityV2.TSUNDERE -> "매일 달성할 목표... 정해."
+        PetPersonalityV2.FOODIE -> "매일 목표! 얼마나 걸을래~?"
+        PetPersonalityV2.PLAYFUL -> "매일 얼마나 걸을끼고?"
+        PetPersonalityV2.TIMID -> "매일 달성할 목표를 정해주세요..."
+        PetPersonalityV2.CLUMSY -> "매일 달성할 목표를 정하자!"
     }
 
     Column(
@@ -1062,13 +1062,14 @@ fun RealGoalSetupScreen(
             ) {
                 SpeechBubble(text = speechText, fontSize = 18.sp)
                 Spacer(modifier = Modifier.height(8.dp))
-                PetSpriteWithSyncedGlow(
+                PetSpriteV2WithGlow(
                     petType = petType,
-                    isWalking = false,
+                    stage = PetGrowthStage.BABY,
+                    animationType = PetAnimationTypeV2.IDLE,
                     size = 140.dp,
                     monochrome = true,
-                    frameDurationMs = 500,
-                    enableRandomAnimation = true
+                    showGlow = true,
+                    applyDisplayScale = false
                 )
             }
         }

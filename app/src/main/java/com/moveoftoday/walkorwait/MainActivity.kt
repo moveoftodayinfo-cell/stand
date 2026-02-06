@@ -482,11 +482,12 @@ fun WalkOrWaitScreen(
     LaunchedEffect(syncCompleted, isTutorialCompleted) {
         Log.d("MainActivity", "🔄 LaunchedEffect - syncCompleted: $syncCompleted, isTutorialCompleted: $isTutorialCompleted, userSettings: ${userSettings?.tutorialCompleted}, prefManager: ${preferenceManager?.isTutorialCompleted()}")
         if (syncCompleted) {
+            // 튜토리얼 미완료 시 온보딩 표시 (DEBUG 모드에서도 테스트 가능)
             showPetOnboarding = !isTutorialCompleted
-            Log.d("MainActivity", "📱 showPetOnboarding set to: $showPetOnboarding")
+            Log.d("MainActivity", "📱 showPetOnboarding set to: $showPetOnboarding (DEBUG: ${BuildConfig.DEBUG})")
             // showRealGoalSetup이 이미 true면 덮어쓰지 않음 (onComplete 콜백에서 설정된 경우)
             if (!showRealGoalSetup) {
-                showRealGoalSetup = needsRealGoal && isTutorialCompleted
+                showRealGoalSetup = needsRealGoal && (isTutorialCompleted || BuildConfig.DEBUG)
             }
         }
     }
@@ -496,6 +497,32 @@ fun WalkOrWaitScreen(
     var petTypeName by remember { mutableStateOf(userSettings?.petType ?: preferenceManager?.getPetType() ?: "DOG1") }
     var petType by remember { mutableStateOf(PetType.entries.find { it.name == petTypeName } ?: PetType.DOG1) }
     var petName by remember { mutableStateOf(userSettings?.petName ?: preferenceManager?.getPetName() ?: "멍이") }
+
+    // V2 펫 상태 (새로운 진화 시스템)
+    var petStateV2 by remember { mutableStateOf(preferenceManager?.let { PetSystemV2.getPetState(it) }) }
+
+    // V2 레벨업/진화 다이얼로그 상태
+    var showLevelUpDialog by remember { mutableStateOf(false) }
+    var levelUpOldLevel by remember { mutableIntStateOf(0) }
+    var levelUpNewLevel by remember { mutableIntStateOf(0) }
+
+    // V2 펫 자동 초기화 - 튜토리얼 테스트를 위해 비활성화
+    // LaunchedEffect(Unit) {
+    //     if (BuildConfig.DEBUG && preferenceManager?.isPetV2Initialized() != true) {
+    //         preferenceManager?.savePetTypeV2(com.moveoftoday.walkorwait.pet.PetTypeV2.CAT)
+    //         preferenceManager?.savePetNameV2("고양이")
+    //         preferenceManager?.savePetLevelV2(
+    //             com.moveoftoday.walkorwait.pet.PetLevel(level = 1, currentExp = 0, totalExp = 0)
+    //         )
+    //         preferenceManager?.savePetHappinessV2(80)
+    //         preferenceManager?.setTutorialCompleted(true)
+    //         if (preferenceManager?.getGoal() == 0) {
+    //             preferenceManager?.saveGoal(6000)
+    //         }
+    //         petStateV2 = preferenceManager?.let { com.moveoftoday.walkorwait.pet.PetSystemV2.getPetState(it) }
+    //         Log.i("V2Test", "V2 펫 초기화 완료: CAT BABY (레벨 1)")
+    //     }
+    // }
 
     // Firebase 동기화 완료 후 펫 정보 업데이트
     LaunchedEffect(userSettings?.petType, userSettings?.petName) {
@@ -583,31 +610,42 @@ fun WalkOrWaitScreen(
     // 1. Pet onboarding - 16단계 통합 튜토리얼 (펫 선택부터 결제/위젯까지)
     if (showPetOnboarding) {
         PetOnboardingScreen(
-            onComplete = { selectedPetType, selectedPetName ->
-                preferenceManager?.savePetType(selectedPetType.name)
-                preferenceManager?.savePetName(selectedPetName)
-                preferenceManager?.savePetHappiness(3)
+            onComplete = { selectedPetTypeV2, selectedPetName ->
+                // V2 펫 데이터 저장
+                preferenceManager?.savePetTypeV2(selectedPetTypeV2)
+                preferenceManager?.savePetNameV2(selectedPetName)
+                preferenceManager?.savePetLevelV2(com.moveoftoday.walkorwait.pet.PetLevel(level = 1, currentExp = 0, totalExp = 0))
+                preferenceManager?.savePetHappinessV2(100)
                 // 위젯 업데이트
                 StepWidgetProvider.updateAllWidgets(context)
-                // 선택한 펫 정보 업데이트
-                petType = selectedPetType
+                // 선택한 펫 정보 업데이트 (V2 -> V1 호환)
+                petTypeName = selectedPetTypeV2.name
                 petName = selectedPetName
-                petTypeName = selectedPetType.name
+                // V2 상태 새로고침
+                petStateV2 = preferenceManager?.let { com.moveoftoday.walkorwait.pet.PetSystemV2.getPetState(it) }
                 showPetOnboarding = false
                 // 튜토리얼 완료 후 실제 목표 설정 화면 표시
                 showRealGoalSetup = true
             },
             onDataRestored = {
                 // Google 로그인으로 기존 데이터 복원됨 - 튜토리얼 스킵
-                val restoredPetTypeName = preferenceManager?.getPetType()
-                val restoredPetName = preferenceManager?.getPetName() ?: "반려동물"
-                val restoredPetType = restoredPetTypeName?.let {
-                    PetType.entries.find { pet -> pet.name == it }
-                } ?: PetType.DOG1
+                // V2 펫 데이터 우선, 없으면 V1 데이터 사용
+                val restoredPetTypeV2 = preferenceManager?.getPetTypeV2()
+                val restoredPetNameV2 = preferenceManager?.getPetNameV2()
 
-                petType = restoredPetType
-                petName = restoredPetName
-                petTypeName = restoredPetTypeName ?: "DOG1"
+                if (restoredPetTypeV2 != null && restoredPetNameV2?.isNotBlank() == true) {
+                    // V2 데이터 복원
+                    petTypeName = restoredPetTypeV2.name
+                    petName = restoredPetNameV2
+                    petStateV2 = preferenceManager?.let { com.moveoftoday.walkorwait.pet.PetSystemV2.getPetState(it) }
+                } else {
+                    // V1 데이터로 폴백
+                    val restoredPetTypeName = preferenceManager?.getPetType()
+                    val restoredPetName = preferenceManager?.getPetName() ?: "반려동물"
+                    petTypeName = restoredPetTypeName ?: "DOG1"
+                    petName = restoredPetName
+                }
+
                 showPetOnboarding = false
                 // 데이터 복원이므로 실제 목표 설정 화면 표시하지 않음
                 showRealGoalSetup = false
@@ -625,9 +663,14 @@ fun WalkOrWaitScreen(
 
     // 2. 실제 목표 설정 (튜토리얼 완료 후)
     if (showRealGoalSetup) {
+        // V2 펫 타입 사용
+        val goalPetType = petStateV2?.petType
+            ?: preferenceManager?.getPetTypeV2()
+            ?: com.moveoftoday.walkorwait.pet.PetTypeV2.SHIBA
+
         RealGoalSetupScreen(
-            petType = petType,
-            petName = petName,
+            petType = goalPetType,
+            petName = petStateV2?.name ?: petName,
             preferenceManager = preferenceManager,
             hapticManager = hapticManager,
             onComplete = {
@@ -640,15 +683,21 @@ fun WalkOrWaitScreen(
 
     // 3. 구독 만료 시 결제 화면 (PaymentScreen - 재결제용)
     if (showExpiredPaymentScreen) {
+        // V2 펫 타입 우선, 없으면 기본 SHIBA 사용
+        val paymentPetType = petStateV2?.petType
+            ?: preferenceManager?.getPetTypeV2()
+            ?: com.moveoftoday.walkorwait.pet.PetTypeV2.SHIBA
+
         com.moveoftoday.walkorwait.pet.PaymentScreen(
-            petType = petType,
-            petName = petName,
+            petType = paymentPetType,
+            petName = petStateV2?.name ?: petName,  // V2 이름 우선
             preferenceManager = preferenceManager!!,
             hapticManager = hapticManager,
             onComplete = {
                 // 결제 완료 시
                 showExpiredPaymentScreen = false
-            }
+            },
+            petStateV2 = petStateV2  // V2 펫 상태 전달
         )
         return
     }
@@ -779,6 +828,14 @@ fun WalkOrWaitScreen(
             }
             if (savedPetName != null && savedPetName != petName) {
                 petName = savedPetName
+            }
+            // V2 펫 상태 다시 로드 (펫 교체 시 반영)
+            preferenceManager?.let { pm ->
+                val newPetState = com.moveoftoday.walkorwait.pet.PetSystemV2.getPetState(pm)
+                Log.i("MainActivity", "V2 펫 로드: 기존=${petStateV2?.petType?.name}, 새로운=${newPetState?.petType?.name}")
+                // 항상 새로고침 (비교 대신)
+                petStateV2 = newPetState
+                Log.i("MainActivity", "V2 펫 상태 새로고침 완료: ${newPetState?.petType?.name}")
             }
             // 목표 단위 및 목표 값 다시 로드
             goalUnit = preferenceManager?.getGoalUnit() ?: "steps"
@@ -1029,6 +1086,22 @@ fun WalkOrWaitScreen(
             modifier = modifier,
             isFreeTime = isFreeTime,
             onTestGoalClick = {
+                // V2 펫 테스트 초기화 (초기화 안 되어있으면 SHIBA BABY, 레벨업 직전으로 시작)
+                if (preferenceManager?.isPetV2Initialized() != true) {
+                    preferenceManager?.savePetTypeV2(com.moveoftoday.walkorwait.pet.PetTypeV2.SHIBA)
+                    preferenceManager?.savePetNameV2("시바")
+                    preferenceManager?.savePetLevelV2(
+                        com.moveoftoday.walkorwait.pet.PetLevel(level = 1, currentExp = 295, totalExp = 295)
+                    )
+                    preferenceManager?.savePetHappinessV2(80)
+                    petStateV2 = preferenceManager?.let { com.moveoftoday.walkorwait.pet.PetSystemV2.getPetState(it) }
+                    Log.i("V2Test", "🧪 V2 Pet initialized: SHIBA BABY Lv.1, exp 295/300")
+                }
+
+                // V2 상태 로그
+                val currentLevel = preferenceManager?.getPetLevelV2()
+                Log.i("V2Test", "📊 Current V2: Lv.${currentLevel?.level}, exp ${currentLevel?.totalExp}/300")
+
                 // 🧪 테스트: 목표의 10%씩 증가
                 val increment = (goal * 0.1).toInt().coerceAtLeast(100)  // 최소 100보
                 val wasAchieved = currentProgress >= goal  // 이전 달성 상태
@@ -1043,6 +1116,24 @@ fun WalkOrWaitScreen(
 
                 // 총거리 누적 (자유시간 포함)
                 preferenceManager?.addPetSteps(increment)
+
+                // V2 경험치 추가 및 레벨업 체크
+                if (preferenceManager?.isPetV2Initialized() == true) {
+                    val oldLevel = preferenceManager.getPetLevelV2()
+                    val (newLevel, leveledUp) = com.moveoftoday.walkorwait.pet.PetSystemV2.addStepsAndCheckLevelUp(preferenceManager, increment)
+
+                    if (leveledUp) {
+                        // 레벨업 또는 진화 발생
+                        levelUpOldLevel = oldLevel.level
+                        levelUpNewLevel = newLevel.level
+                        petStateV2 = com.moveoftoday.walkorwait.pet.PetSystemV2.getPetState(preferenceManager)
+                        showLevelUpDialog = true
+                        Log.d("MainActivity", "🎉 V2 Level Up! ${oldLevel.level} → ${newLevel.level}")
+                    } else {
+                        // 경험치만 증가
+                        petStateV2 = com.moveoftoday.walkorwait.pet.PetSystemV2.getPetState(preferenceManager)
+                    }
+                }
 
                 // 목표 100% 달성 시 처리 (자유시간 포함)
                 val nowAchieved = testSteps >= goal
@@ -1061,7 +1152,8 @@ fun WalkOrWaitScreen(
                 Log.d("MainActivity", "🧪 Test +10%: steps=$testSteps (+$increment), goal=$goal, totalSteps=${preferenceManager?.getPetTotalSteps()}")
             },
             showGoalAchievedDialog = showGoalAchievedDialog,
-            onDismissGoalDialog = { showGoalAchievedDialog = false }
+            onDismissGoalDialog = { showGoalAchievedDialog = false },
+            petStateV2 = petStateV2  // V2 펫 스프라이트 사용
         )
     }
 
@@ -1090,6 +1182,17 @@ fun WalkOrWaitScreen(
             totalKm = totalDistanceKm,
             isFirstWeek = preferenceManager?.isFirstWeekOfStreak() ?: false,
             streakStartDayOfWeek = preferenceManager?.getStreakStartDayOfWeek() ?: 0
+        )
+    }
+
+    // V2 레벨업/진화 축하 다이얼로그
+    if (showLevelUpDialog && petStateV2 != null) {
+        com.moveoftoday.walkorwait.pet.LevelUpCelebrationDialog(
+            petState = petStateV2!!,
+            oldLevel = levelUpOldLevel,
+            newLevel = levelUpNewLevel,
+            onDismiss = { showLevelUpDialog = false },
+            hapticManager = hapticManager
         )
     }
 

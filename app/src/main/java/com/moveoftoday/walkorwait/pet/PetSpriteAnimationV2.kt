@@ -36,20 +36,53 @@ object FrameLoader {
      * @param context Context
      * @param folderPath 폴더 경로 (예: "pets/shiba/baby/idle/")
      * @param monochrome 모노크롬 적용 여부
+     * @param fallbackPath 프레임이 없을 때 대체 경로
      */
-    fun loadFrames(context: Context, folderPath: String, monochrome: Boolean = true): List<Bitmap> {
+    fun loadFrames(
+        context: Context,
+        folderPath: String,
+        monochrome: Boolean = true,
+        fallbackPath: String? = null
+    ): List<Bitmap> {
         val cacheKey = "$folderPath-$monochrome"
 
         // 캐시에서 먼저 확인
-        frameCache[cacheKey]?.let { return it }
+        frameCache[cacheKey]?.let {
+            android.util.Log.i("FrameLoader", "✅ Cache hit: $folderPath (${it.size} frames)")
+            return it
+        }
 
+        android.util.Log.i("FrameLoader", "📂 Loading from: $folderPath")
+        val frames = loadFramesFromPath(context, folderPath, monochrome)
+        android.util.Log.i("FrameLoader", "   → Found ${frames.size} frames")
+
+        // 프레임이 없으면 폴백 경로 시도
+        if (frames.isEmpty() && fallbackPath != null) {
+            android.util.Log.i("FrameLoader", "⚠️ No frames, trying fallback: $fallbackPath")
+            val fallbackFrames = loadFramesFromPath(context, fallbackPath, monochrome)
+            android.util.Log.i("FrameLoader", "   → Fallback found ${fallbackFrames.size} frames")
+            if (fallbackFrames.isNotEmpty()) {
+                frameCache[cacheKey] = fallbackFrames
+                return fallbackFrames
+            }
+        }
+
+        // 캐시에 저장
+        if (frames.isNotEmpty()) {
+            frameCache[cacheKey] = frames
+        }
+
+        return frames
+    }
+
+    private fun loadFramesFromPath(context: Context, folderPath: String, monochrome: Boolean): List<Bitmap> {
         val frames = mutableListOf<Bitmap>()
 
         try {
             // 폴더 내 파일 목록 가져오기
             val files = context.assets.list(folderPath.trimEnd('/')) ?: emptyArray()
 
-            // frame_000.png, frame_001.png 순서로 정렬
+            // frame_000.png, frame_001.png 또는 frame1.png 등 순서로 정렬
             val sortedFiles = files
                 .filter { it.endsWith(".png") }
                 .sortedBy { it }
@@ -65,16 +98,11 @@ object FrameLoader {
                         }
                     }
                 } catch (e: IOException) {
-                    e.printStackTrace()
+                    // 파일 열기 실패 - 무시
                 }
             }
         } catch (e: IOException) {
-            e.printStackTrace()
-        }
-
-        // 캐시에 저장
-        if (frames.isNotEmpty()) {
-            frameCache[cacheKey] = frames
+            // 폴더 열기 실패 - 무시
         }
 
         return frames
@@ -134,9 +162,16 @@ fun PetSpriteV2(
         petType.getAnimationFolderPath(stage, animationType)
     }
 
-    // 프레임 로드
-    val frames = remember(folderPath, monochrome) {
-        FrameLoader.loadFrames(context, folderPath, monochrome)
+    // 폴백 경로 (idle로 폴백)
+    val fallbackPath = if (stage == PetGrowthStage.EGG) {
+        EggAnimationConfig.getAnimationFolderPath(PetAnimationTypeV2.IDLE)
+    } else {
+        petType.getAnimationFolderPath(stage, PetAnimationTypeV2.IDLE)
+    }
+
+    // 프레임 로드 (없으면 idle로 폴백)
+    val frames = remember(folderPath, fallbackPath, monochrome) {
+        FrameLoader.loadFrames(context, folderPath, monochrome, fallbackPath)
     }
 
     // 현재 프레임 인덱스
@@ -205,8 +240,12 @@ fun PetSpriteV2WithGlow(
     modifier: Modifier = Modifier,
     size: Dp = 96.dp,
     monochrome: Boolean = true,
-    showGlow: Boolean = true
+    showGlow: Boolean = true,
+    applyDisplayScale: Boolean = true  // displayScale 적용 여부
 ) {
+    // displayScale 적용: cat baby 기준으로 모든 펫/단계 크기 정규화
+    val scaledSize = if (applyDisplayScale) size * petType.getDisplayScale(stage) else size
+
     Box(modifier = modifier, contentAlignment = Alignment.Center) {
         // Glow layer
         if (showGlow) {
@@ -219,7 +258,7 @@ fun PetSpriteV2WithGlow(
                     petType = petType,
                     stage = stage,
                     animationType = animationType,
-                    size = size,
+                    size = scaledSize,
                     monochrome = monochrome
                 )
             }
@@ -230,7 +269,7 @@ fun PetSpriteV2WithGlow(
             petType = petType,
             stage = stage,
             animationType = animationType,
-            size = size,
+            size = scaledSize,
             monochrome = monochrome
         )
     }
@@ -247,7 +286,8 @@ fun PetSpriteFromState(
     modifier: Modifier = Modifier,
     baseSizeDp: Int = 96,
     monochrome: Boolean = true,
-    isNightMode: Boolean = false
+    isNightMode: Boolean = false,
+    applyDisplayScale: Boolean = true  // displayScale 적용 여부
 ) {
     val animationType = petState.getCurrentAnimationType(isWalking, progressPercent, isNightMode)
     val sizeDp = petState.getSizeDp(baseSizeDp).dp
@@ -258,7 +298,8 @@ fun PetSpriteFromState(
         animationType = animationType,
         size = sizeDp,
         monochrome = monochrome,
-        modifier = modifier
+        modifier = modifier,
+        applyDisplayScale = applyDisplayScale
     )
 }
 
@@ -276,9 +317,10 @@ fun EggSprite(
 
     val animConfig = EggAnimationConfig.animations[animationType] ?: AnimationConfig(4, 200)
     val folderPath = EggAnimationConfig.getAnimationFolderPath(animationType)
+    val fallbackPath = EggAnimationConfig.getAnimationFolderPath(PetAnimationTypeV2.IDLE)
 
     val frames = remember(folderPath, monochrome) {
-        FrameLoader.loadFrames(context, folderPath, monochrome)
+        FrameLoader.loadFrames(context, folderPath, monochrome, fallbackPath)
     }
 
     var currentFrame by remember { mutableIntStateOf(0) }

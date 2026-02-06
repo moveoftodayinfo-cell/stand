@@ -51,6 +51,11 @@ import com.moveoftoday.walkorwait.pet.MockupColors
 import com.moveoftoday.walkorwait.pet.PetDepositSettingScreen
 import com.moveoftoday.walkorwait.pet.PetSprite
 import com.moveoftoday.walkorwait.pet.PetType
+import com.moveoftoday.walkorwait.pet.PetTypeV2
+import com.moveoftoday.walkorwait.pet.PetGrowthStage
+import com.moveoftoday.walkorwait.pet.PetAnimationTypeV2
+import com.moveoftoday.walkorwait.pet.PetSpriteV2WithGlow
+import com.moveoftoday.walkorwait.pet.PetLevel
 import com.moveoftoday.walkorwait.pet.PixelIcon
 import com.moveoftoday.walkorwait.pet.rememberKenneyFont
 import com.moveoftoday.walkorwait.ui.theme.StandColors
@@ -289,8 +294,9 @@ fun SettingsScreen(
     // 펫 변경용 BillingManager (nullable state - 다이얼로그 열 때 생성)
     var petChangeBillingManager by remember { mutableStateOf<BillingManager?>(null) }
 
-    // 펫 변경 결제 시작 함수
-    fun startPetChangePurchase(newPetType: PetType, newPetName: String) {
+    // 펫 변경 결제 시작 함수 (V2)
+    fun startPetChangePurchase(newPetType: PetTypeV2, newPetName: String) {
+        android.util.Log.d("PetChange", "🚀 startPetChangePurchase - newPetType=${newPetType.name}, newPetName=$newPetName")
         // PreferenceManager에 임시 저장 (Activity 재생성 대비)
         preferenceManager?.savePendingPetChange(newPetType.name, newPetName)
 
@@ -303,19 +309,29 @@ fun SettingsScreen(
         scope.launch {
             kotlinx.coroutines.delay(100)
 
-            if (petChangeBillingManager == null) {
-                petChangeBillingManager = BillingManager(
+            // 매번 새로운 BillingManager 생성 (콜백 stale 방지)
+            petChangeBillingManager = BillingManager(
                     context = context,
                     onPurchaseSuccess = { purchase ->
                         // 결제 성공 시 펫 변경 저장 - PreferenceManager에서 읽기
                         val petTypeName = preferenceManager?.getPendingPetType()
                         val petName = preferenceManager?.getPendingPetName() ?: ""
+                        android.util.Log.d("PetChange", "🔥 onPurchaseSuccess - petTypeName=$petTypeName, petName=$petName")
 
                         if (petTypeName != null) {
                             try {
                                 val appContext = context.applicationContext
-                                preferenceManager?.savePetType(petTypeName)
-                                preferenceManager?.savePetName(petName)
+                                // V2 펫 타입으로 저장
+                                val petTypeV2 = try { PetTypeV2.valueOf(petTypeName) } catch (e: Exception) { PetTypeV2.SHIBA }
+                                preferenceManager?.savePetTypeV2(petTypeV2)
+                                preferenceManager?.savePetNameV2(petName)
+
+                                // 기존 레벨 유지, 없으면 레벨 1로 시작
+                                val existingLevel = preferenceManager?.getPetLevelV2()
+                                if (existingLevel == null || existingLevel.level == 0) {
+                                    preferenceManager?.savePetLevelV2(PetLevel(level = 1, currentExp = 0, totalExp = 0))
+                                }
+
                                 // Firebase에도 동기화
                                 val app = appContext as WalkorWaitApp
                                 app.userDataRepository.savePetInfo(petTypeName, petName)
@@ -337,8 +353,7 @@ fun SettingsScreen(
                         preferenceManager?.clearPendingPetChange()
                         Toast.makeText(context, error, Toast.LENGTH_LONG).show()
                     }
-                )
-            }
+            )
             petChangeBillingManager?.startPetChangePurchase(activity)
         }
     }
@@ -730,6 +745,7 @@ fun SettingsScreen(
                             .border(3.dp, MockupColors.Border, RoundedCornerShape(12.dp))
                             .background(MockupColors.CardBackground, RoundedCornerShape(12.dp))
                             .clickable {
+                                android.widget.Toast.makeText(context, "펫 변경 클릭!", android.widget.Toast.LENGTH_SHORT).show()
                                 hapticManager.click()
                                 showPetChangeDialog = true
                             }
@@ -2789,23 +2805,23 @@ private fun RetroCard(
 }
 
 /**
- * 펫 변경 다이얼로그
+ * 펫 변경 다이얼로그 (V2)
  */
 @Composable
 private fun PetChangeDialog(
     currentPetType: String?,
     currentPetName: String,
     onDismiss: () -> Unit,
-    onConfirm: (PetType, String) -> Unit,
+    onConfirm: (PetTypeV2, String) -> Unit,
     hapticManager: HapticManager
 ) {
     val kenneyFont = rememberKenneyFont()
-    var selectedPet by remember { mutableStateOf<PetType?>(currentPetType?.let {
-        try { PetType.valueOf(it) } catch (e: Exception) { null }
+    var selectedPet by remember { mutableStateOf<PetTypeV2?>(currentPetType?.let {
+        try { PetTypeV2.valueOf(it) } catch (e: Exception) { null }
     }) }
     var petName by remember { mutableStateOf(currentPetName) }
 
-    val petTypes = PetType.entries.toList()
+    val petTypes = PetTypeV2.entries.toList()
 
     // 풀스크린 오버레이
     Box(
@@ -2846,11 +2862,11 @@ private fun PetChangeDialog(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // 펫 선택 그리드 (3x2) - 튜토리얼 스타일
+                // 펫 선택 그리드 (3x2) - V2 펫 6종, Baby 모습
                 Column(
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    // Row 1
+                    // Row 1 (3마리)
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -2878,18 +2894,19 @@ private fun PetChangeDialog(
                                     modifier = Modifier.fillMaxSize(),
                                     contentAlignment = Alignment.Center
                                 ) {
-                                    PetSprite(
+                                    PetSpriteV2WithGlow(
                                         petType = pet,
-                                        isWalking = false,
+                                        stage = PetGrowthStage.BABY,
+                                        animationType = PetAnimationTypeV2.IDLE,
                                         size = 56.dp,
                                         monochrome = true,
-                                        frameDurationMs = 500
+                                        showGlow = false
                                     )
                                 }
                             }
                         }
                     }
-                    // Row 2
+                    // Row 2 (3마리)
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -2917,12 +2934,13 @@ private fun PetChangeDialog(
                                     modifier = Modifier.fillMaxSize(),
                                     contentAlignment = Alignment.Center
                                 ) {
-                                    PetSprite(
+                                    PetSpriteV2WithGlow(
                                         petType = pet,
-                                        isWalking = false,
+                                        stage = PetGrowthStage.BABY,
+                                        animationType = PetAnimationTypeV2.IDLE,
                                         size = 56.dp,
                                         monochrome = true,
-                                        frameDurationMs = 500
+                                        showGlow = false
                                     )
                                 }
                             }

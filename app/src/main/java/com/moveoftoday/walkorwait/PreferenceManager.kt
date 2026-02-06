@@ -1193,6 +1193,57 @@ class PreferenceManager(context: Context) {
         prefs.edit().putInt("streak_count", count).apply()
     }
 
+    // 명언 위젯 인덱스
+    fun getQuoteIndex(): Int {
+        return prefs.getInt("quote_widget_index", 0)
+    }
+
+    fun setQuoteIndex(index: Int) {
+        prefs.edit().putInt("quote_widget_index", index).apply()
+    }
+
+    // 스도쿠 위젯
+    fun getSudokuPuzzleIndex(): Int {
+        return prefs.getInt("sudoku_puzzle_index", 0)
+    }
+
+    fun setSudokuPuzzleIndex(index: Int) {
+        prefs.edit().putInt("sudoku_puzzle_index", index).apply()
+    }
+
+    fun getSudokuSelectedCell(widgetId: Int): Pair<Int, Int> {
+        val row = prefs.getInt("sudoku_${widgetId}_sel_row", -1)
+        val col = prefs.getInt("sudoku_${widgetId}_sel_col", -1)
+        return Pair(row, col)
+    }
+
+    fun setSudokuSelectedCell(widgetId: Int, row: Int, col: Int) {
+        prefs.edit()
+            .putInt("sudoku_${widgetId}_sel_row", row)
+            .putInt("sudoku_${widgetId}_sel_col", col)
+            .apply()
+    }
+
+    fun getSudokuCellValue(widgetId: Int, row: Int, col: Int): Int {
+        return prefs.getInt("sudoku_${widgetId}_cell_${row}_${col}", 0)
+    }
+
+    fun setSudokuCellValue(widgetId: Int, row: Int, col: Int, value: Int) {
+        prefs.edit().putInt("sudoku_${widgetId}_cell_${row}_${col}", value).apply()
+    }
+
+    fun clearSudokuProgress(widgetId: Int) {
+        val editor = prefs.edit()
+        for (row in 0..3) {
+            for (col in 0..3) {
+                editor.remove("sudoku_${widgetId}_cell_${row}_${col}")
+            }
+        }
+        editor.putInt("sudoku_${widgetId}_sel_row", -1)
+        editor.putInt("sudoku_${widgetId}_sel_col", -1)
+        editor.apply()
+    }
+
     // 마지막 달성 날짜
     fun getLastAchievedDate(): String {
         return prefs.getString("last_achieved_date", "") ?: ""
@@ -1709,5 +1760,51 @@ class PreferenceManager(context: Context) {
     fun setGoalNotificationShown() {
         val today = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
         prefs.edit().putString("goal_notification_shown_date", today).apply()
+    }
+
+    // ========== 날씨 ==========
+
+    /**
+     * 날씨 데이터 저장
+     */
+    fun saveWeather(temperature: Int, description: String, icon: String) {
+        prefs.edit()
+            .putInt("weather_temperature", temperature)
+            .putString("weather_description", description)
+            .putString("weather_icon", icon)
+            .putLong("weather_updated_at", System.currentTimeMillis())
+            .apply()
+    }
+
+    /**
+     * 저장된 온도 가져오기 (없으면 null)
+     */
+    fun getWeatherTemperature(): Int? {
+        return if (prefs.contains("weather_temperature")) {
+            prefs.getInt("weather_temperature", 0)
+        } else null
+    }
+
+    /**
+     * 저장된 날씨 설명 가져오기
+     */
+    fun getWeatherDescription(): String? {
+        return prefs.getString("weather_description", null)
+    }
+
+    /**
+     * 저장된 날씨 아이콘 가져오기
+     */
+    fun getWeatherIcon(): String? {
+        return prefs.getString("weather_icon", null)
+    }
+
+    /**
+     * 날씨 캐시가 유효한지 확인 (1시간 이내)
+     */
+    fun isWeatherCacheValid(): Boolean {
+        val updatedAt = prefs.getLong("weather_updated_at", 0)
+        val oneHour = 60 * 60 * 1000L
+        return (System.currentTimeMillis() - updatedAt) < oneHour
     }
 }

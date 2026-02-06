@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/widget_container"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/widget_background"
+    android:padding="12dp"
+    android:orientation="vertical">
+
+    <!-- Header: Title + Refresh -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="10dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="오늘의 명언"
+            android:textColor="#222222"
+            android:textSize="12sp"
+            android:textStyle="bold" />
+
+        <FrameLayout
+            android:layout_width="0dp"
+            android:layout_height="1dp"
+            android:layout_weight="1" />
+
+        <!-- Refresh button -->
+        <ImageView
+            android:id="@+id/widget_refresh"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:src="@drawable/ic_refresh"
+            android:contentDescription="refresh"
+            android:padding="2dp" />
+    </LinearLayout>
+
+    <!-- Quote Text (centered, fixed height area) -->
+    <TextView
+        android:id="@+id/widget_quote_text"
+        android:layout_width="match_parent"
+        android:layout_height="30dp"
+        android:text="천 리 길도 한 걸음부터"
+        android:textColor="#222222"
+        android:textSize="11sp"
+        android:gravity="center"
+        android:maxLines="2"
+        android:ellipsize="end" />
+
+    <!-- Author -->
+    <TextView
+        android:id="@+id/widget_quote_author"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="- 노자"
+        android:textColor="#666666"
+        android:textSize="10sp"
+        android:gravity="center"
+        android:layout_marginTop="6dp"
+        android:layout_marginBottom="2dp" />
+
+    <!-- Pet Area with Emotion (centered, moved down) -->
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:layout_gravity="center">
+
+        <!-- Pet Icon -->
+        <ImageView
+            android:id="@+id/widget_pet_icon"
+            android:layout_width="56dp"
+            android:layout_height="56dp"
+            android:layout_gravity="center"
+            android:layout_marginTop="12dp"
+            android:scaleType="fitCenter"
+            android:contentDescription="pet" />
+
+        <!-- Emotion Symbol (closer to pet, more left) -->
+        <TextView
+            android:id="@+id/widget_emotion"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_marginStart="24dp"
+            android:layout_marginBottom="6dp"
+            android:text="zzZ"
+            android:textColor="#222222"
+            android:textSize="10sp"
+            android:textStyle="bold"
+            android:fontFamily="sans-serif" />
+    </FrameLayout>
+
+    <!-- Rebon Logo (bottom center) -->
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="rebon"
+        android:textColor="#222222"
+        android:textSize="11sp"
+        android:textStyle="bold"
+        android:gravity="center"
+        android:layout_marginTop="4dp" />
+
+</LinearLayout>

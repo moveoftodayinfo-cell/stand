@@ -1,7 +1,12 @@
 package com.moveoftoday.walkorwait.pet
 
+import androidx.compose.animation.core.LinearOutSlowInEasing
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
@@ -13,6 +18,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.PathEffect
@@ -106,6 +112,39 @@ fun PetMainScreen(
 
     // 배경색 항상 흰색
     val backgroundColor = MockupColors.Background
+
+    // 펫 터치 감정표현 상태 (V3)
+    var showTouchEmotion by remember { mutableStateOf(false) }
+    var currentSymbol by remember { mutableStateOf("") }
+    var currentAnimationType by remember { mutableStateOf(EmotionAnimationType.FLOAT_UP) }
+    var emotionKey by remember { mutableIntStateOf(0) }  // 새 애니메이션 트리거용
+    val touchState = remember { TouchState() }
+
+    // 펫 돌아다니기 상태
+    var wanderTargetX by remember { mutableFloatStateOf(0f) }
+    var isWandering by remember { mutableStateOf(false) }
+    var isFacingLeft by remember { mutableStateOf(false) }  // 왼쪽 바라보기 (미러링)
+    val wanderX by animateFloatAsState(
+        targetValue = wanderTargetX,
+        animationSpec = tween(durationMillis = 2000, easing = LinearOutSlowInEasing),
+        finishedListener = { isWandering = false },
+        label = "wanderX"
+    )
+
+    // 펫 돌아다니기 애니메이션 (3~6초마다 랜덤 위치)
+    LaunchedEffect(Unit) {
+        val random = java.util.Random()
+        while (true) {
+            delay((3000 + random.nextInt(3000)).toLong())
+            val newTarget = -40f + random.nextFloat() * 80f
+            isFacingLeft = newTarget < wanderX  // 현재 위치보다 왼쪽으로 가면 미러링
+            isWandering = true
+            wanderTargetX = newTarget
+        }
+    }
+
+    // 진행률 변화 감지용
+    var lastProgressMilestone by remember { mutableIntStateOf(0) }
 
     // Pet speech 로직 - 백그라운드 복귀 또는 새 대화 시에만 변경
     var petResponse by remember { mutableStateOf("") }
@@ -210,9 +249,14 @@ fun PetMainScreen(
 
     // 앱 시작 시 AI 명언 생성 및 대사 설정
     LaunchedEffect(Unit) {
-        // 초기 대사 설정 (기본값)
+        // V2 시간대별 인사 (첫 실행 시)
+        val personality = petStateV2?.personality ?: PetPersonalityV2.LOYAL
+        val hour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
+        val timeGreeting = PetDialoguesV2.getTimeOfDayGreeting(personality, hour)
+
+        // 초기 대사 설정 (시간대별 인사 우선)
         if (defaultSpeech.isEmpty()) {
-            defaultSpeech = getCurrentSpeech()
+            defaultSpeech = timeGreeting
         }
         // AI 명언 생성 (완료 후 대사 갱신)
         PetAIQuoteManager.generateQuotes(petType.personality, petName)
@@ -272,6 +316,10 @@ fun PetMainScreen(
         if (showGoalAchievedDialog) {
             isQuickShareMode = false
             showShareDialog = true
+            // 목표 달성 감정표현 (V3)
+            currentSymbol = RetroSymbols.HEARTS_3
+            currentAnimationType = EmotionAnimationType.BURST
+            showTouchEmotion = true
         }
     }
 
@@ -346,7 +394,7 @@ fun PetMainScreen(
             },
             hapticManager = hapticManager,
             petType = petType,
-            petName = petName,  // 펫 이름만 전달
+            petName = petStateV2?.name ?: petName,  // V2 이름 우선
             equippedTitle = equippedTitle?.title,  // 칭호는 별도로 전달 (볼드용)
             successDays = preferenceManager.getSuccessDays(),
             totalKm = totalDistanceKm,
@@ -359,7 +407,8 @@ fun PetMainScreen(
             currentSteps = stepCount,
             goalSteps = actualGoal,  // 항상 최신 목표 사용
             goalUnit = goalUnit,
-            currentDistance = preferenceManager.getTodayDistance()
+            currentDistance = preferenceManager.getTodayDistance(),
+            petStateV2 = petStateV2  // V2 펫 상태 전달
         )
     }
 
@@ -446,13 +495,14 @@ fun PetMainScreen(
                 }
                 .border(Border.thick, MockupColors.Border, RoundedCornerShape(Radius.md))
         ) {
-            // 말풍선 (하단이 디스플레이 정중앙에 위치)
+            // 말풍선 (하단이 디스플레이 정중앙에 위치) - 펫 X축 따라다님
             if (displaySpeech.isNotEmpty()) {
                 Box(
                     modifier = Modifier
                         .align(Alignment.TopStart)
                         .fillMaxWidth()
-                        .height(120.dp),  // 디스플레이 절반 (240dp / 2)
+                        .height(120.dp)  // 디스플레이 절반 (240dp / 2)
+                        .offset(x = wanderX.dp),  // 펫 X축 따라다님
                     contentAlignment = Alignment.BottomCenter
                 ) {
                     SpeechBubble(text = displaySpeech, fontSize = 14.sp, maxLines = 5)
@@ -461,35 +511,113 @@ fun PetMainScreen(
 
             // 펫 스프라이트 + 이름 (하단 정렬)
             Column(
-                modifier = Modifier.align(Alignment.BottomCenter),
+                modifier = Modifier
+                    .align(Alignment.BottomCenter),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 // 펫 스프라이트 (V2 우선, 없으면 V1)
-                if (petStateV2 != null) {
-                    // V2 스프라이트
-                    PetSpriteFromState(
-                        petState = petStateV2,
-                        isWalking = isWalking || isGoalAchieved,
-                        progressPercent = progressPercent,
-                        baseSizeDp = 120,
-                        monochrome = true
-                    )
-                } else {
-                    // V1 스프라이트 (폴백)
-                    PetSpriteWithSyncedGlow(
-                        petType = petType,
-                        isWalking = isWalking || isGoalAchieved,
-                        size = 120.dp,
-                        monochrome = true,
-                        frameDurationMs = 500,
-                        enableRandomAnimation = !isWalking && !isGoalAchieved
-                    )
+                // ⚠️ 중요: offset(y = 32.dp)는 모든 펫/진화 단계에서 동일하게 적용
+                // 이 값을 변경하면 펫이 텍스트와 멀어지거나 겹침
+                // 펫별 Y offset 계산 (dp 단위로 직접 적용)
+                val petYOffset = petStateV2?.let { state ->
+                    32.dp + state.petType.getDisplayYOffsetDp(state.stage).dp
+                } ?: 32.dp
+
+                // 펫이 움직이는 중인지 (걷기 + 돌아다니기)
+                val isPetMoving = isWalking || isGoalAchieved || isWandering
+
+                // Compose 햅틱 피드백
+                val view = androidx.compose.ui.platform.LocalView.current
+
+                Box(
+                    modifier = Modifier
+                        .offset(x = wanderX.dp, y = petYOffset)
+                        .size(140.dp)  // 터치 영역 확보
+                        .combinedClickable(
+                            onClick = {
+                                // V3 터치 시스템 - View 햅틱 사용
+                                view.performHapticFeedback(android.view.HapticFeedbackConstants.LONG_PRESS)
+                                val personality = petStateV2?.personality ?: PetPersonalityV2.LOYAL
+                                val touchResult = touchState.onTouch()
+
+                                // 터치 결과에 따른 심볼 결정
+                                val (symbol, animType) = when (touchResult) {
+                                    TouchState.TouchResult.WELCOME_BACK -> {
+                                        PersonalityTouchReaction.getWelcomeBackSymbol(personality)
+                                    }
+                                    TouchState.TouchResult.RAPID_TAP, TouchState.TouchResult.COMBO -> {
+                                        PersonalityTouchReaction.getSymbol(personality, touchState.touchCount, true)
+                                    }
+                                    else -> {
+                                        PersonalityTouchReaction.getSymbol(personality, touchState.touchCount, false)
+                                    }
+                                }
+
+                                currentSymbol = symbol
+                                currentAnimationType = animType
+                                emotionKey++  // 새 애니메이션 시작
+                                showTouchEmotion = true
+
+                                // 터치 반응 대사도 표시
+                                petResponse = PetDialoguesV2.getTouchReactionMessage(personality)
+                            }
+                        ),
+                    contentAlignment = Alignment.Center
+                ) {
+                    // 왼쪽으로 이동 시 미러링
+                    val mirrorScale = if (isFacingLeft) -1f else 1f
+
+                    Box(
+                        modifier = Modifier.graphicsLayer(scaleX = mirrorScale)
+                    ) {
+                        if (petStateV2 != null) {
+                            // V2 스프라이트
+                            PetSpriteFromState(
+                                petState = petStateV2,
+                                isWalking = isPetMoving,
+                                progressPercent = progressPercent,
+                                baseSizeDp = 120,
+                                monochrome = true
+                            )
+                        } else {
+                            // V1 스프라이트 (폴백)
+                            PetSpriteWithSyncedGlow(
+                                petType = petType,
+                                isWalking = isPetMoving,
+                                size = 120.dp,
+                                monochrome = true,
+                                frameDurationMs = 500,
+                                enableRandomAnimation = !isPetMoving
+                            )
+                        }
+                    }
+
+                    // 감정 심볼 오버레이 (펫 머리 위) - V3 모노크롬
+                    if (showTouchEmotion && currentSymbol.isNotEmpty()) {
+                        key(emotionKey) {  // key로 새 애니메이션 인스턴스 생성
+                            Box(
+                                modifier = Modifier
+                                    .align(Alignment.TopCenter)
+                                    .offset(y = (-30).dp)
+                            ) {
+                                EmotionSymbolDisplay(
+                                    symbol = currentSymbol,
+                                    animationType = currentAnimationType,
+                                    size = 28.dp,
+                                    onAnimationEnd = {
+                                        showTouchEmotion = false
+                                        currentSymbol = ""
+                                    }
+                                )
+                            }
+                        }
+                    }
                 }
 
-                // 칭호 + 펫 이름 (스프라이트 아래, 클릭하여 칭호 변경)
+                // 칭호 + 펫 이름 (클릭하여 칭호 변경) - 펫 X축 따라다님
                 Row(
                     modifier = Modifier
-                        .offset(y = 6.dp)
+                        .offset(x = wanderX.dp, y = (-1).dp)  // 펫 X축 따라다님
                         .clickable {
                             hapticManager?.click()
                             showTitleSelectionDialog = true
@@ -512,7 +640,7 @@ fun PetMainScreen(
                         )
                     }
                     Text(
-                        text = petName,
+                        text = petStateV2?.name ?: petName,  // V2 이름 우선
                         fontSize = 13.sp,
                         fontWeight = FontWeight.Normal,
                         color = MockupColors.TextSecondary,
@@ -525,8 +653,6 @@ fun PetMainScreen(
                         )
                     )
                 }
-
-                Spacer(modifier = Modifier.height(8.dp))
             }
 
             // 공유 아이콘 (우측 상단)

@@ -67,12 +67,16 @@ enum class PetGrowthStage(
 
 /**
  * 새로운 펫 타입 (6종)
+ * displayScales: cat baby 기준으로 모든 펫/단계의 크기 정규화
+ * displayYOffsetsDp: cat baby 기준으로 하단 정렬을 위한 Y offset (dp 단위, 음수=위로)
  */
 enum class PetTypeV2(
     val displayName: String,
     val personality: PetPersonalityV2,
     val folderName: String,
-    val defaultAnimationFrames: Map<PetAnimationTypeV2, AnimationConfig>
+    val defaultAnimationFrames: Map<PetAnimationTypeV2, AnimationConfig>,
+    val displayScales: Map<PetGrowthStage, Float>,  // 단계별 스케일 (cat baby 기준)
+    val displayYOffsetsDp: Map<PetGrowthStage, Float>   // 단계별 Y offset (dp 단위, 음수=위로)
 ) {
     SHIBA(
         displayName = "멍이",
@@ -84,6 +88,18 @@ enum class PetTypeV2(
             PetAnimationTypeV2.RUN to AnimationConfig(6, 100),
             PetAnimationTypeV2.BARK to AnimationConfig(6, 200),
             PetAnimationTypeV2.SNEAK to AnimationConfig(8, 200)
+        ),
+        displayScales = mapOf(
+            PetGrowthStage.EGG to 1.0f,
+            PetGrowthStage.BABY to 0.94f,
+            PetGrowthStage.TEEN to 0.89f,
+            PetGrowthStage.ADULT to 0.92f
+        ),
+        displayYOffsetsDp = mapOf(
+            PetGrowthStage.EGG to 0f,
+            PetGrowthStage.BABY to 0f,
+            PetGrowthStage.TEEN to 0f,
+            PetGrowthStage.ADULT to 0f
         )
     ),
     CAT(
@@ -96,6 +112,18 @@ enum class PetTypeV2(
             PetAnimationTypeV2.RUN to AnimationConfig(6, 100),
             PetAnimationTypeV2.BARK to AnimationConfig(6, 200),
             PetAnimationTypeV2.SNEAK to AnimationConfig(8, 200)
+        ),
+        displayScales = mapOf(
+            PetGrowthStage.EGG to 1.0f,
+            PetGrowthStage.BABY to 1.0f,
+            PetGrowthStage.TEEN to 0.94f,
+            PetGrowthStage.ADULT to 0.85f
+        ),
+        displayYOffsetsDp = mapOf(
+            PetGrowthStage.EGG to 0f,
+            PetGrowthStage.BABY to 0f,
+            PetGrowthStage.TEEN to 0f,
+            PetGrowthStage.ADULT to 0f
         )
     ),
     PIG(
@@ -108,6 +136,18 @@ enum class PetTypeV2(
             PetAnimationTypeV2.RUN to AnimationConfig(6, 100),
             PetAnimationTypeV2.BARK to AnimationConfig(6, 200),
             PetAnimationTypeV2.SNEAK to AnimationConfig(8, 200)
+        ),
+        displayScales = mapOf(
+            PetGrowthStage.EGG to 1.0f,
+            PetGrowthStage.BABY to 0.72f,
+            PetGrowthStage.TEEN to 0.76f,
+            PetGrowthStage.ADULT to 0.74f
+        ),
+        displayYOffsetsDp = mapOf(
+            PetGrowthStage.EGG to 0f,
+            PetGrowthStage.BABY to -12f,
+            PetGrowthStage.TEEN to -12f,
+            PetGrowthStage.ADULT to -12f
         )
     ),
     RACCOON(
@@ -120,6 +160,18 @@ enum class PetTypeV2(
             PetAnimationTypeV2.RUN to AnimationConfig(6, 100),
             PetAnimationTypeV2.BARK to AnimationConfig(6, 200),
             PetAnimationTypeV2.SNEAK to AnimationConfig(8, 200)
+        ),
+        displayScales = mapOf(
+            PetGrowthStage.EGG to 1.0f,
+            PetGrowthStage.BABY to 0.76f,
+            PetGrowthStage.TEEN to 0.79f,
+            PetGrowthStage.ADULT to 0.71f
+        ),
+        displayYOffsetsDp = mapOf(
+            PetGrowthStage.EGG to 0f,
+            PetGrowthStage.BABY to 0f,
+            PetGrowthStage.TEEN to 0f,
+            PetGrowthStage.ADULT to 0f
         )
     ),
     HAMSTER(
@@ -132,6 +184,18 @@ enum class PetTypeV2(
             PetAnimationTypeV2.RUN to AnimationConfig(6, 100),
             PetAnimationTypeV2.BARK to AnimationConfig(6, 200),
             PetAnimationTypeV2.SNEAK to AnimationConfig(8, 200)
+        ),
+        displayScales = mapOf(
+            PetGrowthStage.EGG to 1.0f,
+            PetGrowthStage.BABY to 0.72f,
+            PetGrowthStage.TEEN to 0.74f,
+            PetGrowthStage.ADULT to 0.74f
+        ),
+        displayYOffsetsDp = mapOf(
+            PetGrowthStage.EGG to 0f,
+            PetGrowthStage.BABY to -12f,
+            PetGrowthStage.TEEN to -12f,
+            PetGrowthStage.ADULT to -12f
         )
     ),
     PENGUIN(
@@ -144,8 +208,26 @@ enum class PetTypeV2(
             PetAnimationTypeV2.RUN to AnimationConfig(6, 100),
             PetAnimationTypeV2.BARK to AnimationConfig(6, 200),
             PetAnimationTypeV2.SNEAK to AnimationConfig(8, 200)
+        ),
+        displayScales = mapOf(
+            PetGrowthStage.EGG to 1.0f,
+            PetGrowthStage.BABY to 0.87f,
+            PetGrowthStage.TEEN to 0.89f,
+            PetGrowthStage.ADULT to 0.89f
+        ),
+        displayYOffsetsDp = mapOf(
+            PetGrowthStage.EGG to 0f,
+            PetGrowthStage.BABY to 0f,
+            PetGrowthStage.TEEN to 0f,
+            PetGrowthStage.ADULT to 0f
         )
     );
+
+    /** 특정 단계의 displayScale 반환 */
+    fun getDisplayScale(stage: PetGrowthStage): Float = displayScales[stage] ?: 1.0f
+
+    /** 특정 단계의 Y offset 반환 (dp 단위, 음수=위로) */
+    fun getDisplayYOffsetDp(stage: PetGrowthStage): Float = displayYOffsetsDp[stage] ?: 0f
 
     /**
      * 애니메이션 폴더 경로 생성

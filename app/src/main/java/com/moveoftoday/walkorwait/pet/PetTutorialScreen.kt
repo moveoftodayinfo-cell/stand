@@ -106,7 +106,7 @@ import android.util.Log
  */
 @Composable
 fun PetOnboardingScreen(
-    onComplete: (PetType, String) -> Unit,
+    onComplete: (PetTypeV2, String) -> Unit,
     onDataRestored: () -> Unit = {},  // 기존 데이터 복원 시 튜토리얼 스킵
     hapticManager: HapticManager? = null,
     preferenceManager: PreferenceManager? = null
@@ -114,11 +114,11 @@ fun PetOnboardingScreen(
     val context = LocalContext.current
     val prefManager = preferenceManager ?: remember { PreferenceManager(context) }
 
-    // 저장된 펫 정보 불러오기
-    val savedPetTypeName = remember { prefManager.getPetType() }
-    val savedPetName = remember { prefManager.getPetName() }
+    // 저장된 펫 정보 불러오기 (V2)
+    val savedPetTypeName = remember { prefManager.getPetTypeV2()?.name }
+    val savedPetName = remember { prefManager.getPetNameV2() }
     val savedPetType = remember {
-        if (savedPetTypeName != null) PetType.entries.find { it.name == savedPetTypeName } else null
+        if (savedPetTypeName != null) PetTypeV2.entries.find { it.name == savedPetTypeName } else null
     }
 
     // 저장된 단계 불러오기 (펫 정보가 있어야만 복원)
@@ -185,8 +185,8 @@ fun PetOnboardingScreen(
                 selectedPet = selectedPetType,
                 onPetSelected = {
                     selectedPetType = it
-                    // 펫 선택 시 바로 저장
-                    prefManager.savePetType(it.name)
+                    // 펫 선택 시 바로 저장 (V2)
+                    prefManager.savePetTypeV2(it)
                     // 위젯 업데이트
                     StepWidgetProvider.updateAllWidgets(context)
                     // Analytics: 펫 선택 추적
@@ -203,8 +203,8 @@ fun PetOnboardingScreen(
                 currentName = petName,
                 onNameChanged = {
                     petName = it
-                    // 이름 입력 시 바로 저장
-                    prefManager.savePetName(it)
+                    // 이름 입력 시 바로 저장 (V2)
+                    prefManager.savePetNameV2(it)
                 },
                 onNext = {
                     hapticManager?.click()
@@ -411,12 +411,12 @@ fun PetOnboardingScreen(
 }
 
 /**
- * Step 1: Pet Selection - basic.png 목업 + Game Boy LCD 스타일
+ * Step 1: Pet Selection - basic.png 목업 + Game Boy LCD 스타일 (V2 펫 사용)
  */
 @Composable
 private fun PetSelectionStep(
-    selectedPet: PetType?,
-    onPetSelected: (PetType) -> Unit,
+    selectedPet: PetTypeV2?,
+    onPetSelected: (PetTypeV2) -> Unit,
     onNext: () -> Unit,
     hapticManager: HapticManager?
 ) {
@@ -475,21 +475,22 @@ private fun PetSelectionStep(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Center
                 ) {
-                    // Speech bubble
-                    val greeting = PetDialogues.getWelcomeMessage(selectedPet.personality, "")
+                    // Speech bubble (V2 성격 사용)
+                    val greeting = PetDialoguesV2.getWelcomeMessage(selectedPet.personality, "")
                     SpeechBubble(
                         text = greeting,
                         fontSize = 18.sp
                     )
                     Spacer(modifier = Modifier.height(8.dp))
-                    // Pet sprite with synced glow
-                    PetSpriteWithSyncedGlow(
+                    // Pet sprite with glow (V2 - BABY 단계 표시)
+                    PetSpriteV2WithGlow(
                         petType = selectedPet,
-                        isWalking = false,
+                        stage = PetGrowthStage.BABY,
+                        animationType = PetAnimationTypeV2.IDLE,
                         size = displayPetSize,
                         monochrome = true,
-                        frameDurationMs = 500,
-                        enableRandomAnimation = true
+                        showGlow = true,
+                        applyDisplayScale = false  // 선택화면에서는 원본 크기 유지
                     )
                 }
             } else {
@@ -518,13 +519,13 @@ private fun PetSelectionStep(
         Column(
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            // Row 1
+            // Row 1 (SHIBA, CAT, PIG)
             Row(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 modifier = Modifier.fillMaxWidth()
             ) {
-                PetType.entries.take(3).forEach { petType ->
-                    SmallPetCard(
+                PetTypeV2.entries.take(3).forEach { petType ->
+                    SmallPetCardV2(
                         petType = petType,
                         isSelected = selectedPet == petType,
                         onClick = {
@@ -535,13 +536,13 @@ private fun PetSelectionStep(
                     )
                 }
             }
-            // Row 2
+            // Row 2 (RACCOON, HAMSTER, PENGUIN)
             Row(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 modifier = Modifier.fillMaxWidth()
             ) {
-                PetType.entries.drop(3).take(3).forEach { petType ->
-                    SmallPetCard(
+                PetTypeV2.entries.drop(3).take(3).forEach { petType ->
+                    SmallPetCardV2(
                         petType = petType,
                         isSelected = selectedPet == petType,
                         onClick = {
@@ -567,7 +568,7 @@ private fun PetSelectionStep(
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
-                text = getPetDescription(selectedPet),
+                text = getPetDescriptionV2(selectedPet),
                 fontSize = 21.sp,
                 color = MockupColors.TextSecondary,
                 textAlign = TextAlign.Center,
@@ -587,7 +588,7 @@ private fun PetSelectionStep(
 }
 
 /**
- * 펫 특징 설명 (3줄)
+ * 펫 특징 설명 (3줄) - V1 레거시
  */
 private fun getPetDescription(petType: PetType): String {
     return when (petType) {
@@ -601,7 +602,21 @@ private fun getPetDescription(petType: PetType): String {
 }
 
 /**
- * Small pet card for selection - 원래 크기, 펫만 크게
+ * 펫 특징 설명 (3줄) - V2 새 펫들
+ */
+private fun getPetDescriptionV2(petType: PetTypeV2): String {
+    return when (petType) {
+        PetTypeV2.SHIBA -> "충성스럽고 씩씩한 시바견\n조금 고집 세지만 정은 많아요\n당신과 함께라면 어디든 갈 준비 됐어요"
+        PetTypeV2.CAT -> "도도하지만 은근 살갑게 다가와요\n자기만의 매력이 철철 넘쳐요\n츤데레? 네, 맞아요 그게 저예요"
+        PetTypeV2.PIG -> "먹는 걸 좋아하는 복돼지\n느긋하지만 의외로 똑똑해요\n함께 있으면 행운이 따라올 거예요"
+        PetTypeV2.RACCOON -> "호기심 많고 장난기 넘치는 친구\n귀여운 눈망울에 속지 마세요\n엉뚱하지만 당신 곁을 지켜줄 거예요"
+        PetTypeV2.HAMSTER -> "작지만 용감한 햄스터\n볼에 가득 채운 건 당신을 향한 마음\n포동포동 귀여움으로 응원할게요"
+        PetTypeV2.PENGUIN -> "느긋하고 여유로운 펭귄\n뒤뚱뒤뚱 걸어도 마음은 빨라요\n시원한 친구와 함께 힘내봐요"
+    }
+}
+
+/**
+ * Small pet card for selection - 원래 크기, 펫만 크게 (V1 레거시)
  */
 @Composable
 private fun SmallPetCard(
@@ -638,11 +653,50 @@ private fun SmallPetCard(
 }
 
 /**
- * Step 2: Pet Name Input - basic.png 목업 정확히 따름
+ * Small pet card for selection - V2 펫 사용
+ */
+@Composable
+private fun SmallPetCardV2(
+    petType: PetTypeV2,
+    isSelected: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Card(
+        onClick = onClick,
+        modifier = modifier.height(80.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = if (isSelected) Color(0xFFD0D0D0) else MockupColors.CardBackground
+        ),
+        shape = RoundedCornerShape(8.dp),
+        border = androidx.compose.foundation.BorderStroke(
+            width = if (isSelected) 3.dp else 2.dp,
+            color = MockupColors.Border
+        )
+    ) {
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
+        ) {
+            PetSpriteV2WithGlow(
+                petType = petType,
+                stage = PetGrowthStage.BABY,
+                animationType = PetAnimationTypeV2.IDLE,
+                size = 64.dp,
+                monochrome = true,
+                showGlow = false,
+                applyDisplayScale = false  // 선택화면에서는 원본 크기 유지
+            )
+        }
+    }
+}
+
+/**
+ * Step 2: Pet Name Input - basic.png 목업 정확히 따름 (V2 펫 사용)
  */
 @Composable
 private fun PetNameInputStep(
-    petType: PetType,
+    petType: PetTypeV2,
     currentName: String,
     onNameChanged: (String) -> Unit,
     onNext: () -> Unit,
@@ -709,14 +763,15 @@ private fun PetNameInputStep(
             ) {
                 SpeechBubble(text = speechText, fontSize = 18.sp)
                 Spacer(modifier = Modifier.height(8.dp))
-                // Pet sprite with synced glow
-                PetSpriteWithSyncedGlow(
+                // Pet sprite with glow (V2)
+                PetSpriteV2WithGlow(
                     petType = petType,
-                    isWalking = false,
+                    stage = PetGrowthStage.BABY,
+                    animationType = PetAnimationTypeV2.IDLE,
                     size = displayPetSize,
                     monochrome = true,
-                    frameDurationMs = 500,
-                    enableRandomAnimation = true
+                    showGlow = true,
+                    applyDisplayScale = false
                 )
             }
         }
@@ -792,11 +847,11 @@ private fun PetNameInputStep(
 }
 
 /**
- * Tutorial All-in-One: 3가지 튜토리얼 항목을 한 화면에
+ * Tutorial All-in-One: 3가지 튜토리얼 항목을 한 화면에 (V2 펫 사용)
  */
 @Composable
 private fun TutorialAllInOneStep(
-    petType: PetType,
+    petType: PetTypeV2,
     petName: String,
     hapticManager: HapticManager?,
     onNext: () -> Unit  // 다음 단계로
@@ -807,12 +862,12 @@ private fun TutorialAllInOneStep(
     val stripeWidth = 4.dp
 
     val speechText = when (petType.personality) {
-        PetPersonality.TOUGH -> "준비됐어. 시작하자."
-        PetPersonality.CUTE -> "같이 가보자고! ㄱㄱ~"
-        PetPersonality.TSUNDERE -> "뭐, 잘 부탁해."
-        PetPersonality.DIALECT -> "자 시작하자"
-        PetPersonality.TIMID -> "잘, 잘 부탁드려요..."
-        PetPersonality.POSITIVE -> "우리 함께 화이팅!"
+        PetPersonalityV2.LOYAL -> "준비됐어. 시작하자."
+        PetPersonalityV2.TSUNDERE -> "뭐, 잘 부탁해."
+        PetPersonalityV2.FOODIE -> "같이 가보자고! ㄱㄱ~"
+        PetPersonalityV2.PLAYFUL -> "자 시작하자"
+        PetPersonalityV2.TIMID -> "잘, 잘 부탁드려요..."
+        PetPersonalityV2.CLUMSY -> "우리 함께 화이팅!"
     }
 
     Column(
@@ -864,14 +919,15 @@ private fun TutorialAllInOneStep(
             ) {
                 SpeechBubble(text = speechText, fontSize = 18.sp)
                 Spacer(modifier = Modifier.height(8.dp))
-                // Pet sprite with synced glow
-                PetSpriteWithSyncedGlow(
+                // Pet sprite with glow (V2)
+                PetSpriteV2WithGlow(
                     petType = petType,
-                    isWalking = false,
+                    stage = PetGrowthStage.BABY,
+                    animationType = PetAnimationTypeV2.IDLE,
                     size = displayPetSize,
                     monochrome = true,
-                    frameDurationMs = 500,
-                    enableRandomAnimation = true
+                    showGlow = true,
+                    applyDisplayScale = false
                 )
             }
         }
@@ -1613,11 +1669,16 @@ private fun GoogleSignInStep(
                         .align(Alignment.BottomStart)
                         .offset(x = 70.dp, y = playerYDp)
                 ) {
-                    PetSprite(
-                        petType = PetType.DOG1,
-                        isWalking = gameState == DinoGameState.PLAYING && playerY >= -1f,
+                    // 미니게임 플레이어 - SHIBA 사용
+                    PetSpriteV2WithGlow(
+                        petType = PetTypeV2.SHIBA,
+                        stage = PetGrowthStage.BABY,
+                        animationType = if (gameState == DinoGameState.PLAYING && playerY >= -1f)
+                            PetAnimationTypeV2.WALK else PetAnimationTypeV2.IDLE,
                         size = playerSize,
-                        monochrome = true
+                        monochrome = true,
+                        showGlow = false,
+                        applyDisplayScale = false
                     )
                 }
             }
@@ -1829,7 +1890,7 @@ private fun GoogleSignInStep(
 // =====================================================
 @Composable
 private fun PermissionSettingsStep(
-    petType: PetType,
+    petType: PetTypeV2,
     petName: String,
     dotStep: Int,
     totalDots: Int,
@@ -1858,12 +1919,12 @@ private fun PermissionSettingsStep(
     }
 
     val speechText = when (petType.personality) {
-        PetPersonality.TOUGH -> "권한 좀 줘."
-        PetPersonality.CUTE -> "권한 부탁! 오네가이~"
-        PetPersonality.TSUNDERE -> "뭐, 권한이 필요해."
-        PetPersonality.DIALECT -> "권한 좀 줘봐"
-        PetPersonality.TIMID -> "저, 권한이 필요해요..."
-        PetPersonality.POSITIVE -> "권한 설정 화이팅!"
+        PetPersonalityV2.LOYAL -> "권한 좀 줘."
+        PetPersonalityV2.TSUNDERE -> "뭐, 권한이 필요해."
+        PetPersonalityV2.FOODIE -> "권한 부탁! 오네가이~"
+        PetPersonalityV2.PLAYFUL -> "권한 좀 줘봐"
+        PetPersonalityV2.TIMID -> "저, 권한이 필요해요..."
+        PetPersonalityV2.CLUMSY -> "권한 설정 화이팅!"
     }
 
     TutorialStepLayout(
@@ -1993,7 +2054,7 @@ private fun PermissionCard(
 // =====================================================
 @Composable
 private fun FitnessConnectionStep(
-    petType: PetType,
+    petType: PetTypeV2,
     petName: String,
     dotStep: Int,
     totalDots: Int,
@@ -2046,12 +2107,12 @@ private fun FitnessConnectionStep(
     }
 
     val speechText = when (petType.personality) {
-        PetPersonality.TOUGH -> "피트니스 앱 연결해."
-        PetPersonality.CUTE -> "피트니스 연결! 가보자고~"
-        PetPersonality.TSUNDERE -> "연결 안 해도 되긴 해..."
-        PetPersonality.DIALECT -> "피트니스 연결해봐"
-        PetPersonality.TIMID -> "연결하면 좋을 것 같아요..."
-        PetPersonality.POSITIVE -> "연결하면 더 정확해!"
+        PetPersonalityV2.LOYAL -> "피트니스 앱 연결해."
+        PetPersonalityV2.TSUNDERE -> "연결 안 해도 되긴 해..."
+        PetPersonalityV2.FOODIE -> "피트니스 연결! 가보자고~"
+        PetPersonalityV2.PLAYFUL -> "피트니스 연결해봐"
+        PetPersonalityV2.TIMID -> "연결하면 좋을 것 같아요..."
+        PetPersonalityV2.CLUMSY -> "연결하면 더 정확해!"
     }
 
     TutorialStepLayout(
@@ -2138,7 +2199,7 @@ private fun FitnessConnectionStep(
 // =====================================================
 @Composable
 private fun AccessibilityStep(
-    petType: PetType,
+    petType: PetTypeV2,
     petName: String,
     dotStep: Int,
     totalDots: Int,
@@ -2169,12 +2230,12 @@ private fun AccessibilityStep(
     }
 
     val speechText = when (petType.personality) {
-        PetPersonality.TOUGH -> "접근성 ON 해."
-        PetPersonality.CUTE -> "접근성 켜줘! 오네가이~"
-        PetPersonality.TSUNDERE -> "접근성 켜줘... 부탁이야."
-        PetPersonality.DIALECT -> "접근성 켜줘"
-        PetPersonality.TIMID -> "접근성을 켜주세요..."
-        PetPersonality.POSITIVE -> "접근성 설정 화이팅!"
+        PetPersonalityV2.LOYAL -> "접근성 ON 해."
+        PetPersonalityV2.TSUNDERE -> "접근성 켜줘... 부탁이야."
+        PetPersonalityV2.FOODIE -> "접근성 켜줘! 오네가이~"
+        PetPersonalityV2.PLAYFUL -> "접근성 켜줘"
+        PetPersonalityV2.TIMID -> "접근성을 켜주세요..."
+        PetPersonalityV2.CLUMSY -> "접근성 설정 화이팅!"
     }
 
     TutorialStepLayout(
@@ -2232,7 +2293,7 @@ private fun AccessibilityStep(
 // =====================================================
 @Composable
 private fun AppSelectionStep(
-    petType: PetType,
+    petType: PetTypeV2,
     petName: String,
     dotStep: Int,
     totalDots: Int,
@@ -2246,12 +2307,12 @@ private fun AppSelectionStep(
     var expandedCategories by remember { mutableStateOf(setOf<AppCategory>()) }
 
     val speechText = when (petType.personality) {
-        PetPersonality.TOUGH -> "제어할 앱 골라."
-        PetPersonality.CUTE -> "앱 선택! 고고~"
-        PetPersonality.TSUNDERE -> "앱 선택해... 빨리."
-        PetPersonality.DIALECT -> "앱 골라봐"
-        PetPersonality.TIMID -> "앱을 선택해주세요..."
-        PetPersonality.POSITIVE -> "어떤 앱을 제어할까?"
+        PetPersonalityV2.LOYAL -> "제어할 앱 골라."
+        PetPersonalityV2.TSUNDERE -> "앱 선택해... 빨리."
+        PetPersonalityV2.FOODIE -> "앱 선택! 고고~"
+        PetPersonalityV2.PLAYFUL -> "앱 골라봐"
+        PetPersonalityV2.TIMID -> "앱을 선택해주세요..."
+        PetPersonalityV2.CLUMSY -> "어떤 앱을 제어할까?"
     }
 
     TutorialStepLayout(
@@ -2387,7 +2448,7 @@ private fun getCategoryIcon(category: AppCategory): String {
 // =====================================================
 @Composable
 private fun TestBlockingStep(
-    petType: PetType,
+    petType: PetTypeV2,
     petName: String,
     dotStep: Int,
     totalDots: Int,
@@ -2437,21 +2498,21 @@ private fun TestBlockingStep(
 
     val speechText = when {
         canProceed -> when (petType.personality) {
-            PetPersonality.TOUGH -> "좋아. 해봤군."
-            PetPersonality.CUTE -> "잘함! 나이스~"
-            PetPersonality.TSUNDERE -> "뭐, 괜찮네."
-            PetPersonality.DIALECT -> "잘했다 아이가~"
-            PetPersonality.TIMID -> "잘 하셨어요...!"
-            PetPersonality.POSITIVE -> "완벽해!"
+            PetPersonalityV2.LOYAL -> "좋아. 해봤군."
+            PetPersonalityV2.TSUNDERE -> "뭐, 괜찮네."
+            PetPersonalityV2.FOODIE -> "잘함! 나이스~"
+            PetPersonalityV2.PLAYFUL -> "잘했다 아이가~"
+            PetPersonalityV2.TIMID -> "잘 하셨어요...!"
+            PetPersonalityV2.CLUMSY -> "완벽해!"
         }
         testStarted -> "확인 중..."
         else -> when (petType.personality) {
-            PetPersonality.TOUGH -> "앱 실행해봐."
-            PetPersonality.CUTE -> "앱 실행해봐! 고고~"
-            PetPersonality.TSUNDERE -> "앱 실행해봐... 뭐해?"
-            PetPersonality.DIALECT -> "앱 실행해봐"
-            PetPersonality.TIMID -> "앱을 실행해보세요..."
-            PetPersonality.POSITIVE -> "앱 실행 테스트!"
+            PetPersonalityV2.LOYAL -> "앱 실행해봐."
+            PetPersonalityV2.TSUNDERE -> "앱 실행해봐... 뭐해?"
+            PetPersonalityV2.FOODIE -> "앱 실행해봐! 고고~"
+            PetPersonalityV2.PLAYFUL -> "앱 실행해봐"
+            PetPersonalityV2.TIMID -> "앱을 실행해보세요..."
+            PetPersonalityV2.CLUMSY -> "앱 실행 테스트!"
         }
     }
 
@@ -2514,7 +2575,7 @@ private fun TestBlockingStep(
 // =====================================================
 @Composable
 private fun GoalInputStep(
-    petType: PetType,
+    petType: PetTypeV2,
     petName: String,
     dotStep: Int,
     totalDots: Int,
@@ -2525,12 +2586,12 @@ private fun GoalInputStep(
     var stepsSliderValue by remember { mutableFloatStateOf(60f) }
 
     val speechText = when (petType.personality) {
-        PetPersonality.TOUGH -> "목표를 정해."
-        PetPersonality.CUTE -> "목표 정하자! ㄱㄱ!"
-        PetPersonality.TSUNDERE -> "목표... 적당히 해."
-        PetPersonality.DIALECT -> "목표 정해봐"
-        PetPersonality.TIMID -> "목표를 정해주세요..."
-        PetPersonality.POSITIVE -> "목표 설정 화이팅!"
+        PetPersonalityV2.LOYAL -> "목표를 정해."
+        PetPersonalityV2.TSUNDERE -> "목표... 적당히 해."
+        PetPersonalityV2.FOODIE -> "목표 정하자! ㄱㄱ!"
+        PetPersonalityV2.PLAYFUL -> "목표 정해봐"
+        PetPersonalityV2.TIMID -> "목표를 정해주세요..."
+        PetPersonalityV2.CLUMSY -> "목표 설정 화이팅!"
     }
 
     TutorialStepLayout(
@@ -2619,7 +2680,7 @@ private fun GoalInputStep(
 // =====================================================
 @Composable
 private fun ControlDaysStep(
-    petType: PetType,
+    petType: PetTypeV2,
     petName: String,
     dotStep: Int,
     totalDots: Int,
@@ -2631,12 +2692,12 @@ private fun ControlDaysStep(
     val dayNames = listOf("일", "월", "화", "수", "목", "금", "토")
 
     val speechText = when (petType.personality) {
-        PetPersonality.TOUGH -> "제어할 요일 골라."
-        PetPersonality.CUTE -> "요일 선택! 고고~"
-        PetPersonality.TSUNDERE -> "요일... 빨리 골라."
-        PetPersonality.DIALECT -> "요일 골라봐"
-        PetPersonality.TIMID -> "요일을 선택해주세요..."
-        PetPersonality.POSITIVE -> "어떤 요일에 제어할까?"
+        PetPersonalityV2.LOYAL -> "제어할 요일 골라."
+        PetPersonalityV2.TSUNDERE -> "요일... 빨리 골라."
+        PetPersonalityV2.FOODIE -> "요일 선택! 고고~"
+        PetPersonalityV2.PLAYFUL -> "요일 골라봐"
+        PetPersonalityV2.TIMID -> "요일을 선택해주세요..."
+        PetPersonalityV2.CLUMSY -> "어떤 요일에 제어할까?"
     }
 
     TutorialStepLayout(
@@ -2723,7 +2784,7 @@ private fun ControlDaysStep(
 // =====================================================
 @Composable
 private fun BlockTimeStep(
-    petType: PetType,
+    petType: PetTypeV2,
     petName: String,
     dotStep: Int,
     totalDots: Int,
@@ -2740,12 +2801,12 @@ private fun BlockTimeStep(
     )
 
     val speechText = when (petType.personality) {
-        PetPersonality.TOUGH -> "차단 시간 정해."
-        PetPersonality.CUTE -> "시간 정하자! 렛츠고~"
-        PetPersonality.TSUNDERE -> "시간... 골라."
-        PetPersonality.DIALECT -> "시간 정해봐"
-        PetPersonality.TIMID -> "시간을 정해주세요..."
-        PetPersonality.POSITIVE -> "언제 제어할까?"
+        PetPersonalityV2.LOYAL -> "차단 시간 정해."
+        PetPersonalityV2.TSUNDERE -> "시간... 골라."
+        PetPersonalityV2.FOODIE -> "시간 정하자! 렛츠고~"
+        PetPersonalityV2.PLAYFUL -> "시간 정해봐"
+        PetPersonalityV2.TIMID -> "시간을 정해주세요..."
+        PetPersonalityV2.CLUMSY -> "언제 제어할까?"
     }
 
     TutorialStepLayout(
@@ -2838,7 +2899,7 @@ private fun BlockTimeStep(
 // =====================================================
 @Composable
 private fun WalkingTestStep(
-    petType: PetType,
+    petType: PetTypeV2,
     petName: String,
     dotStep: Int,
     totalDots: Int,
@@ -2915,20 +2976,20 @@ private fun WalkingTestStep(
 
     val speechText = when {
         goalAchieved -> when (petType.personality) {
-            PetPersonality.TOUGH -> "잘했어."
-            PetPersonality.CUTE -> "대박! 대단해ㅋㅋ"
-            PetPersonality.TSUNDERE -> "뭐, 괜찮네."
-            PetPersonality.DIALECT -> "잘했다 아이가~"
-            PetPersonality.TIMID -> "정말 잘하셨어요...!"
-            PetPersonality.POSITIVE -> "완벽해! 최고야!"
+            PetPersonalityV2.LOYAL -> "잘했어."
+            PetPersonalityV2.TSUNDERE -> "뭐, 괜찮네."
+            PetPersonalityV2.FOODIE -> "대박! 대단해ㅋㅋ"
+            PetPersonalityV2.PLAYFUL -> "잘했다 아이가~"
+            PetPersonalityV2.TIMID -> "정말 잘하셨어요...!"
+            PetPersonalityV2.CLUMSY -> "완벽해! 최고야!"
         }
         else -> when (petType.personality) {
-            PetPersonality.TOUGH -> "걸어."
-            PetPersonality.CUTE -> "걸어보자! ㄱㄱ~"
-            PetPersonality.TSUNDERE -> "걸어... 빨리."
-            PetPersonality.DIALECT -> "걸어봐"
-            PetPersonality.TIMID -> "걸어주세요..."
-            PetPersonality.POSITIVE -> "걷기 화이팅!"
+            PetPersonalityV2.LOYAL -> "걸어."
+            PetPersonalityV2.TSUNDERE -> "걸어... 빨리."
+            PetPersonalityV2.FOODIE -> "걸어보자! ㄱㄱ~"
+            PetPersonalityV2.PLAYFUL -> "걸어봐"
+            PetPersonalityV2.TIMID -> "걸어주세요..."
+            PetPersonalityV2.CLUMSY -> "걷기 화이팅!"
         }
     }
 
@@ -3028,7 +3089,7 @@ private fun WalkingTestStep(
 // =====================================================
 @Composable
 private fun UnlockedStep(
-    petType: PetType,
+    petType: PetTypeV2,
     petName: String,
     dotStep: Int,
     totalDots: Int,
@@ -3036,12 +3097,12 @@ private fun UnlockedStep(
     onNext: () -> Unit
 ) {
     val speechText = when (petType.personality) {
-        PetPersonality.TOUGH -> "해제됐어."
-        PetPersonality.CUTE -> "해제됐어! 야타~"
-        PetPersonality.TSUNDERE -> "뭐, 해제됐네."
-        PetPersonality.DIALECT -> "해제됐다 아이가~"
-        PetPersonality.TIMID -> "해제되었어요...!"
-        PetPersonality.POSITIVE -> "앱이 해제됐어!"
+        PetPersonalityV2.LOYAL -> "해제됐어."
+        PetPersonalityV2.TSUNDERE -> "뭐, 해제됐네."
+        PetPersonalityV2.FOODIE -> "해제됐어! 야타~"
+        PetPersonalityV2.PLAYFUL -> "해제됐다 아이가~"
+        PetPersonalityV2.TIMID -> "해제되었어요...!"
+        PetPersonalityV2.CLUMSY -> "앱이 해제됐어!"
     }
 
     TutorialStepLayout(
@@ -3093,7 +3154,7 @@ private fun UnlockedStep(
 // =====================================================
 @Composable
 private fun EmergencyButtonStep(
-    petType: PetType,
+    petType: PetTypeV2,
     petName: String,
     dotStep: Int,
     totalDots: Int,
@@ -3101,12 +3162,12 @@ private fun EmergencyButtonStep(
     onNext: () -> Unit
 ) {
     val speechText = when (petType.personality) {
-        PetPersonality.TOUGH -> "급할 땐 쉬어가."
-        PetPersonality.CUTE -> "급하면 쉬어가! 다이죠부~"
-        PetPersonality.TSUNDERE -> "급하면... 쉬어가."
-        PetPersonality.DIALECT -> "급하면 쉬어가"
-        PetPersonality.TIMID -> "급하시면 쉬어가세요..."
-        PetPersonality.POSITIVE -> "가끔은 쉬어가도 돼!"
+        PetPersonalityV2.LOYAL -> "급할 땐 쉬어가."
+        PetPersonalityV2.TSUNDERE -> "급하면... 쉬어가."
+        PetPersonalityV2.FOODIE -> "급하면 쉬어가! 다이죠부~"
+        PetPersonalityV2.PLAYFUL -> "급하면 쉬어가"
+        PetPersonalityV2.TIMID -> "급하시면 쉬어가세요..."
+        PetPersonalityV2.CLUMSY -> "가끔은 쉬어가도 돼!"
     }
 
     TutorialStepLayout(
@@ -3156,7 +3217,7 @@ private fun EmergencyButtonStep(
 // =====================================================
 @Composable
 private fun WidgetSetupStep(
-    petType: PetType,
+    petType: PetTypeV2,
     petName: String,
     hapticManager: HapticManager?,
     onComplete: () -> Unit
@@ -3166,12 +3227,12 @@ private fun WidgetSetupStep(
     val stripeWidth = 4.dp
 
     val speechText = when (petType.personality) {
-        PetPersonality.TOUGH -> "위젯 추가해."
-        PetPersonality.CUTE -> "위젯 추가! 고고~"
-        PetPersonality.TSUNDERE -> "위젯... 추가해줘."
-        PetPersonality.DIALECT -> "위젯 추가해봐"
-        PetPersonality.TIMID -> "위젯을 추가해주세요..."
-        PetPersonality.POSITIVE -> "위젯으로 한눈에 확인!"
+        PetPersonalityV2.LOYAL -> "위젯 추가해."
+        PetPersonalityV2.TSUNDERE -> "위젯... 추가해줘."
+        PetPersonalityV2.FOODIE -> "위젯 추가! 고고~"
+        PetPersonalityV2.PLAYFUL -> "위젯 추가해봐"
+        PetPersonalityV2.TIMID -> "위젯을 추가해주세요..."
+        PetPersonalityV2.CLUMSY -> "위젯으로 한눈에 확인!"
     }
 
     Column(
@@ -3223,13 +3284,14 @@ private fun WidgetSetupStep(
             ) {
                 SpeechBubble(text = speechText, fontSize = 18.sp)
                 Spacer(modifier = Modifier.height(8.dp))
-                PetSpriteWithSyncedGlow(
+                PetSpriteV2WithGlow(
                     petType = petType,
-                    isWalking = false,
+                    stage = PetGrowthStage.BABY,
+                    animationType = PetAnimationTypeV2.IDLE,
                     size = displayPetSize,
                     monochrome = true,
-                    frameDurationMs = 500,
-                    enableRandomAnimation = true
+                    showGlow = true,
+                    applyDisplayScale = false
                 )
             }
         }
@@ -3300,11 +3362,12 @@ private fun WidgetSetupStep(
 // =====================================================
 @Composable
 fun PaymentScreen(
-    petType: PetType,
+    petType: PetTypeV2,
     petName: String,
     preferenceManager: PreferenceManager,
     hapticManager: HapticManager?,
-    onComplete: () -> Unit
+    onComplete: () -> Unit,
+    petStateV2: PetState? = null  // V2 펫 상태 (있으면 V2 스프라이트 사용)
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -3329,20 +3392,20 @@ fun PaymentScreen(
 
     val speechText = when {
         isPromoFree -> when (petType.personality) {
-            PetPersonality.TOUGH -> "공짜로 가는 거야. 준비해."
-            PetPersonality.CUTE -> "우와 공짜야! 야타~!"
-            PetPersonality.TSUNDERE -> "뭐, 운 좋네. 공짜래."
-            PetPersonality.DIALECT -> "공짜라카네! 좋다 아이가!"
-            PetPersonality.TIMID -> "무, 무료래요...! 다행이에요..."
-            PetPersonality.POSITIVE -> "공짜라니! 최고의 시작이야!"
+            PetPersonalityV2.LOYAL -> "공짜로 가는 거야. 준비해."
+            PetPersonalityV2.TSUNDERE -> "뭐, 운 좋네. 공짜래."
+            PetPersonalityV2.FOODIE -> "우와 공짜야! 야타~!"
+            PetPersonalityV2.PLAYFUL -> "공짜라카네! 좋다 아이가!"
+            PetPersonalityV2.TIMID -> "무, 무료래요...! 다행이에요..."
+            PetPersonalityV2.CLUMSY -> "공짜라니! 최고의 시작이야!"
         }
         else -> when (petType.personality) {
-            PetPersonality.TOUGH -> "커피 한 잔 값으로\n인생이 바뀌어."
-            PetPersonality.CUTE -> "커피 한 잔 값이면 돼!\n같이 해보자~"
-            PetPersonality.TSUNDERE -> "커피 한 잔 값밖에 안 해...\n뭐, 해볼래?"
-            PetPersonality.DIALECT -> "커피 한 잔 값이면\n되는기라! 해보자이~"
-            PetPersonality.TIMID -> "커, 커피 한 잔 값이면...\n같이 할 수 있어요...!"
-            PetPersonality.POSITIVE -> "커피 한 잔 값으로 새 시작!\n완전 좋아!"
+            PetPersonalityV2.LOYAL -> "커피 한 잔 값으로\n인생이 바뀌어."
+            PetPersonalityV2.TSUNDERE -> "커피 한 잔 값밖에 안 해...\n뭐, 해볼래?"
+            PetPersonalityV2.FOODIE -> "커피 한 잔 값이면 돼!\n같이 해보자~"
+            PetPersonalityV2.PLAYFUL -> "커피 한 잔 값이면\n되는기라! 해보자이~"
+            PetPersonalityV2.TIMID -> "커, 커피 한 잔 값이면...\n같이 할 수 있어요...!"
+            PetPersonalityV2.CLUMSY -> "커피 한 잔 값으로 새 시작!\n완전 좋아!"
         }
     }
 
@@ -3500,15 +3563,26 @@ fun PaymentScreen(
                 // Speech bubble (SpeechBubble 컴포넌트 사용)
                 SpeechBubble(text = speechText, fontSize = 16.sp)
                 Spacer(modifier = Modifier.height(8.dp))
-                // Pet sprite with glow (PetSelectionStep과 동일)
-                PetSpriteWithSyncedGlow(
-                    petType = petType,
-                    isWalking = false,
-                    size = 140.dp,
-                    monochrome = true,
-                    frameDurationMs = 500,
-                    enableRandomAnimation = true
-                )
+                // V2 펫 상태가 있으면 V2 스프라이트 사용, 없으면 V2 기본 BABY로 표시
+                if (petStateV2 != null) {
+                    PetSpriteFromState(
+                        petState = petStateV2,
+                        isWalking = false,
+                        progressPercent = 0,
+                        baseSizeDp = 140,
+                        monochrome = true
+                    )
+                } else {
+                    PetSpriteV2WithGlow(
+                        petType = petType,
+                        stage = PetGrowthStage.BABY,
+                        animationType = PetAnimationTypeV2.IDLE,
+                        size = 140.dp,
+                        monochrome = true,
+                        showGlow = true,
+                        applyDisplayScale = false
+                    )
+                }
             }
         }
 
