@@ -1042,7 +1042,7 @@ fun WalkOrWaitScreen(
             }
         )
     } else if (showSettingsScreen) {
-        SettingsScreen(
+        com.moveoftoday.walkorwait.settings.SettingsMainScreen(
             preferenceManager = preferenceManager,
             onBack = { showSettingsScreen = false }
         )

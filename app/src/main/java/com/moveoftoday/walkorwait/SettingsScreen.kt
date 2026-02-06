@@ -2175,7 +2175,7 @@ fun SettingsScreen(
 }
 
 @Composable
-private fun BlockingPeriodsDialog(
+fun BlockingPeriodsDialog(
     currentPeriods: Set<String>,
     canRemove: Boolean,
     nextRemoveDate: String,
@@ -2395,7 +2395,7 @@ private fun BlockingPeriodsDialog(
 }
 
 @Composable
-private fun ControlDaysDialog(
+fun ControlDaysDialog(
     currentDays: Set<Int>,
     canRemove: Boolean,
     nextRemoveDate: String,
