@@ -175,6 +175,45 @@
                 android:resource="@xml/widget_weather_info" />
         </receiver>
 
+        <!-- 여행 회화 위젯 (영어) -->
+        <receiver
+            android:name=".TravelPhraseWidgetProvider"
+            android:exported="true"
+            android:label="여행 영어">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_travel_phrase_info" />
+        </receiver>
+
+        <!-- 여행 회화 위젯 (일본어) -->
+        <receiver
+            android:name=".TravelPhraseJapaneseWidgetProvider"
+            android:exported="true"
+            android:label="여행 일본어">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_travel_phrase_jp_info" />
+        </receiver>
+
+        <!-- 여행 회화 위젯 (중국어) -->
+        <receiver
+            android:name=".TravelPhraseChineseWidgetProvider"
+            android:exported="true"
+            android:label="여행 중국어">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_travel_phrase_cn_info" />
+        </receiver>
+
         <service
             android:name=".StepCounterService"
             android:foregroundServiceType="health" />
