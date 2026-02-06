@@ -23,6 +23,12 @@
         android:requiresSmallestWidthDp="0"
         android:compatibleWidthLimitDp="599" />
 
+    <!-- 인터넷 (날씨 API) -->
+    <uses-permission android:name="android.permission.INTERNET" />
+
+    <!-- 위치 (날씨 조회용) -->
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+
     <!-- Health Connect 권한 -->
     <uses-permission android:name="android.permission.health.READ_STEPS" />
     <uses-permission android:name="android.permission.health.READ_DISTANCE" />
@@ -104,15 +110,69 @@
                 android:resource="@xml/accessibility_service_config" />
         </service>
 
+        <!-- 기존 걸음수 위젯 (2x1) -->
         <receiver
             android:name=".StepWidgetProvider"
-            android:exported="true">
+            android:exported="true"
+            android:label="걸음수">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
             </intent-filter>
             <meta-data
                 android:name="android.appwidget.provider"
                 android:resource="@xml/widget_info" />
+        </receiver>
+
+        <!-- 2x2 펫 위젯 -->
+        <receiver
+            android:name=".PetWidget2x2Provider"
+            android:exported="true"
+            android:label="펫 위젯">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_pet_2x2_info" />
+        </receiver>
+
+        <!-- 명언 위젯 -->
+        <receiver
+            android:name=".QuoteWidgetProvider"
+            android:exported="true"
+            android:label="오늘의 명언">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_quote_info" />
+        </receiver>
+
+        <!-- 스도쿠 위젯 -->
+        <receiver
+            android:name=".SudokuWidgetProvider"
+            android:exported="true"
+            android:label="스도쿠">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_sudoku_info" />
+        </receiver>
+
+        <!-- 날씨 위젯 -->
+        <receiver
+            android:name=".WeatherWidgetProvider"
+            android:exported="true"
+            android:label="날씨">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_weather_info" />
         </receiver>
 
         <service
