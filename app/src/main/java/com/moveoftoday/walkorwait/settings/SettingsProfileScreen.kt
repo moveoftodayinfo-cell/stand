@@ -516,7 +516,7 @@ private fun InviteCodeBox(
                 }
             } else {
                 Text(
-                    text = "🔒 ${code.take(10)}...",
+                    text = "▣ ${code.take(10)}...",
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold,
                     color = MockupColors.TextMuted,

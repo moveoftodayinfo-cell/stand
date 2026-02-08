@@ -543,31 +543,30 @@ fun PetMainScreen(
                 }
             }
 
-            // 펫 스프라이트 + 이름 (하단 정렬)
-            Column(
+            // 펫 스프라이트 + 이름 (절대 위치 - pet name 기준)
+            // 펫별 Y offset 계산
+            val petYOffsetValue = petStateV2?.let { state ->
+                state.petType.getDisplayYOffsetDp(state.stage)
+            } ?: 0f
+
+            val displayHeight = Size.displayAreaHeight
+            val petSize = 120.dp  // Sprite 크기 = Box 크기 (정확한 위치를 위해 동일하게)
+            val nameY = PetDisplayConstants.calculateNameY(displayHeight)
+            val petY = PetDisplayConstants.calculatePetY(displayHeight, petSize, petYOffsetValue)
+
+            // 펫이 움직이는 중인지 (걷기 + 돌아다니기)
+            val isPetMoving = isWalking || isGoalAchieved || isWandering
+
+            // Compose 햅틱 피드백
+            val view = androidx.compose.ui.platform.LocalView.current
+
+            // 펫 스프라이트 (절대 위치 + wanderX 수평 이동)
+            Box(
                 modifier = Modifier
-                    .align(Alignment.BottomCenter),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                // 펫 스프라이트 (V2 우선, 없으면 V1)
-                // ⚠️ 중요: offset(y = 32.dp)는 모든 펫/진화 단계에서 동일하게 적용
-                // 이 값을 변경하면 펫이 텍스트와 멀어지거나 겹침
-                // 펫별 Y offset 계산 (dp 단위로 직접 적용)
-                val petYOffset = petStateV2?.let { state ->
-                    32.dp + state.petType.getDisplayYOffsetDp(state.stage).dp
-                } ?: 32.dp
-
-                // 펫이 움직이는 중인지 (걷기 + 돌아다니기)
-                val isPetMoving = isWalking || isGoalAchieved || isWandering
-
-                // Compose 햅틱 피드백
-                val view = androidx.compose.ui.platform.LocalView.current
-
-                Box(
-                    modifier = Modifier
-                        .offset(x = wanderX.dp, y = petYOffset)
-                        .size(140.dp)  // 터치 영역 확보
-                        .combinedClickable(
+                    .align(Alignment.TopCenter)
+                    .offset(x = wanderX.dp, y = petY)
+                    .size(petSize)
+                    .combinedClickable(
                             onClick = {
                                 // V3 터치 시스템 - View 햅틱 사용
                                 view.performHapticFeedback(android.view.HapticFeedbackConstants.LONG_PRESS)
@@ -648,35 +647,22 @@ fun PetMainScreen(
                     }
                 }
 
-                // 칭호 + 펫 이름 (클릭하여 칭호 변경) - 펫 X축 따라다님
-                Row(
-                    modifier = Modifier
-                        .offset(x = wanderX.dp, y = (-1).dp)  // 펫 X축 따라다님
-                        .clickable {
-                            hapticManager?.click()
-                            showTitleSelectionDialog = true
-                        },
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    if (equippedTitle != null) {
-                        Text(
-                            text = "${equippedTitle!!.title} ",
-                            fontSize = 13.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = MockupColors.TextSecondary,
-                            style = androidx.compose.ui.text.TextStyle(
-                                shadow = androidx.compose.ui.graphics.Shadow(
-                                    color = Color.White,
-                                    offset = androidx.compose.ui.geometry.Offset(0f, 0f),
-                                    blurRadius = 4f
-                                )
-                            )
-                        )
-                    }
+            // 칭호 + 펫 이름 (절대 위치 + wanderX 수평 이동)
+            Row(
+                modifier = Modifier
+                    .align(Alignment.TopCenter)
+                    .offset(x = wanderX.dp, y = nameY)
+                    .clickable {
+                        hapticManager?.click()
+                        showTitleSelectionDialog = true
+                    },
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                if (equippedTitle != null) {
                     Text(
-                        text = petStateV2?.name ?: petName,  // V2 이름 우선
+                        text = "${equippedTitle!!.title} ",
                         fontSize = 13.sp,
-                        fontWeight = FontWeight.Normal,
+                        fontWeight = FontWeight.Bold,
                         color = MockupColors.TextSecondary,
                         style = androidx.compose.ui.text.TextStyle(
                             shadow = androidx.compose.ui.graphics.Shadow(
@@ -687,6 +673,19 @@ fun PetMainScreen(
                         )
                     )
                 }
+                Text(
+                    text = petStateV2?.name ?: petName,  // V2 이름 우선
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.Normal,
+                    color = MockupColors.TextSecondary,
+                    style = androidx.compose.ui.text.TextStyle(
+                        shadow = androidx.compose.ui.graphics.Shadow(
+                            color = Color.White,
+                            offset = androidx.compose.ui.geometry.Offset(0f, 0f),
+                            blurRadius = 4f
+                        )
+                    )
+                )
             }
 
             // 공유 아이콘 (우측 상단)

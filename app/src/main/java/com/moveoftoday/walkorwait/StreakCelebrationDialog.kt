@@ -347,75 +347,69 @@ private fun FullCardContent(
                     SpeechBubbleMultiline(text = petSpeech, fontSize = 12.sp, maxWidth = 220.dp)
                 }
 
-                // 스프라이트 + 펫 이름 (하단 고정)
-                Column(
+                // 스프라이트 + 펫 이름 (절대 위치 - pet name 기준)
+                // V2 펫 상태가 있으면 V2 스프라이트 사용, 없으면 V1 폴백
+                val fullCardYOffset = petStateV2?.let {
+                    it.petType.getDisplayYOffsetDp(it.stage)
+                } ?: 0f
+
+                val displayHeight = 240.dp
+                val petSize = 160.dp
+                val nameY = PetDisplayConstants.calculateNameY(displayHeight)
+                val petY = PetDisplayConstants.calculatePetY(displayHeight, petSize, fullCardYOffset)
+
+                // 펫 스프라이트 (절대 위치)
+                Box(
                     modifier = Modifier
-                        .align(Alignment.BottomCenter)
-                        .padding(bottom = 4.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
+                        .align(Alignment.TopCenter)
+                        .offset(y = petY)
+                        .size(petSize),
+                    contentAlignment = Alignment.Center
                 ) {
-                    // V2 펫 상태가 있으면 V2 스프라이트 사용, 없으면 V1 폴백
-                    // FullCard용 펫별 Y offset
-                    val fullCardYOffset = petStateV2?.let {
-                        val baseOffset = it.petType.getDisplayYOffsetDp(it.stage)
-                        // PIG는 fullcard에서 main보다 5dp 덜 올림 (main: -12dp, fullcard: -7dp)
-                        if (it.petType == com.moveoftoday.walkorwait.pet.PetTypeV2.PIG) {
-                            baseOffset + 5f
-                        } else {
-                            baseOffset
-                        }
-                    } ?: 0f
-
-                    // 고정 크기 Box로 감싸서 스프라이트 내부 움직임이 이름 위치에 영향주지 않도록
-                    Box(
-                        modifier = Modifier
-                            .size(160.dp)
-                            .offset(y = 40.dp + fullCardYOffset.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        if (petStateV2 != null) {
-                            PetSpriteFromState(
-                                petState = petStateV2,
-                                isWalking = false,
-                                progressPercent = 0,
-                                baseSizeDp = 160,
-                                monochrome = true
-                            )
-                        } else {
-                            PetSpriteWithSyncedGlow(
-                                petType = petType,
-                                isWalking = false,
-                                size = 160.dp,
-                                monochrome = true,
-                                frameDurationMs = 200
-                            )
-                        }
-                    }
-
-                    // 칭호 + 펫 이름 (스프라이트 아래) - 칭호만 볼드, 이름은 노말
-                    if (petName.isNotEmpty() || equippedTitle != null) {
-                        Text(
-                            text = buildAnnotatedString {
-                                if (equippedTitle != null) {
-                                    withStyle(SpanStyle(fontWeight = FontWeight.Bold)) {
-                                        append("$equippedTitle ")
-                                    }
-                                }
-                                append(petName)
-                            },
-                            fontSize = 11.sp,
-                            fontWeight = FontWeight.Normal,
-                            color = MockupColors.TextSecondary,
-                            style = androidx.compose.ui.text.TextStyle(
-                                shadow = Shadow(
-                                    color = Color.White,
-                                    offset = Offset(0f, 0f),
-                                    blurRadius = 4f
-                                )
-                            ),
-                            modifier = Modifier.offset(y = (-9).dp)  // 펫 이름 1dp 내림
+                    if (petStateV2 != null) {
+                        PetSpriteFromState(
+                            petState = petStateV2,
+                            isWalking = false,
+                            progressPercent = 0,
+                            baseSizeDp = 160,
+                            monochrome = true
+                        )
+                    } else {
+                        PetSpriteWithSyncedGlow(
+                            petType = petType,
+                            isWalking = false,
+                            size = 160.dp,
+                            monochrome = true,
+                            frameDurationMs = 200
                         )
                     }
+                }
+
+                // 칭호 + 펫 이름 (절대 위치 - 기준점)
+                if (petName.isNotEmpty() || equippedTitle != null) {
+                    Text(
+                        text = buildAnnotatedString {
+                            if (equippedTitle != null) {
+                                withStyle(SpanStyle(fontWeight = FontWeight.Bold)) {
+                                    append("$equippedTitle ")
+                                }
+                            }
+                            append(petName)
+                        },
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Normal,
+                        color = MockupColors.TextSecondary,
+                        style = androidx.compose.ui.text.TextStyle(
+                            shadow = Shadow(
+                                color = Color.White,
+                                offset = Offset(0f, 0f),
+                                blurRadius = 4f
+                            )
+                        ),
+                        modifier = Modifier
+                            .align(Alignment.TopCenter)
+                            .offset(y = nameY)
+                    )
                 }
             }
 
@@ -730,86 +724,82 @@ private fun StickerContent(
                         SpeechBubbleMultiline(text = petSpeech, fontSize = 11.sp, maxWidth = 200.dp)
                     }
 
-                    // 스프라이트 + 펫 이름 + rebon 로고 (하단 고정)
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
+                    // 스프라이트 + 펫 이름 + rebon 로고 (절대 위치 - pet name 기준)
+                    // V2 펫 상태가 있으면 V2 스프라이트 사용, 없으면 V1 폴백
+                    val stickerYOffset = petStateV2?.let {
+                        it.petType.getDisplayYOffsetDp(it.stage)
+                    } ?: 0f
+
+                    val displayHeight = 240.dp - 24.dp  // padding 제외
+                    val petSize = 140.dp
+                    val nameY = PetDisplayConstants.calculateNameY(displayHeight)
+                    val petY = PetDisplayConstants.calculatePetY(displayHeight, petSize, stickerYOffset)
+
+                    // 펫 스프라이트 (절대 위치)
+                    Box(
                         modifier = Modifier
-                            .align(Alignment.BottomCenter)
-                            .padding(bottom = 4.dp)
+                            .align(Alignment.TopCenter)
+                            .offset(y = petY)
+                            .size(petSize),
+                        contentAlignment = Alignment.Center
                     ) {
-                        // V2 펫 상태가 있으면 V2 스프라이트 사용, 없으면 V1 폴백
-                        // 고정 크기 Box로 감싸서 스프라이트 내부 움직임이 이름 위치에 영향주지 않도록
-                        // Sticker용 펫별 Y offset (main과 다른 보정이 필요한 경우)
-                        val stickerYOffset = petStateV2?.let {
-                            val baseOffset = it.petType.getDisplayYOffsetDp(it.stage)
-                            when (it.petType) {
-                                // PIG: main -12dp, sticker -4dp (8dp 덜 올림)
-                                com.moveoftoday.walkorwait.pet.PetTypeV2.PIG -> baseOffset + 8f
-                                // HAMSTER: main -12dp, sticker -5dp (7dp 덜 올림)
-                                com.moveoftoday.walkorwait.pet.PetTypeV2.HAMSTER -> baseOffset + 7f
-                                else -> baseOffset
-                            }
-                        } ?: 0f
-
-                        Box(
-                            modifier = Modifier
-                                .size(140.dp)
-                                .offset(y = 57.dp + stickerYOffset.dp),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            if (petStateV2 != null) {
-                                PetSpriteFromState(
-                                    petState = petStateV2,
-                                    isWalking = false,
-                                    progressPercent = 0,
-                                    baseSizeDp = 140,
-                                    monochrome = true
-                                )
-                            } else {
-                                PetSpriteWithSyncedGlow(
-                                    petType = petType,
-                                    isWalking = false,
-                                    size = 140.dp,
-                                    monochrome = true,
-                                    frameDurationMs = 200
-                                )
-                            }
-                        }
-
-                        // 칭호 + 펫 이름 (스프라이트 아래) - 칭호만 볼드, 이름은 노말
-                        if (petName.isNotEmpty() || equippedTitle != null) {
-                            Text(
-                                text = buildAnnotatedString {
-                                    if (equippedTitle != null) {
-                                        withStyle(SpanStyle(fontWeight = FontWeight.Bold)) {
-                                            append("$equippedTitle ")
-                                        }
-                                    }
-                                    append(petName)
-                                },
-                                fontSize = 10.sp,
-                                fontWeight = FontWeight.Normal,
-                                color = MockupColors.TextSecondary,
-                                style = androidx.compose.ui.text.TextStyle(
-                                    shadow = Shadow(
-                                        color = Color.White,
-                                        offset = Offset(0f, 0f),
-                                        blurRadius = 4f
-                                    )
-                                ),
-                                modifier = Modifier.offset(y = 10.dp)  // 펫 이름
+                        if (petStateV2 != null) {
+                            PetSpriteFromState(
+                                petState = petStateV2,
+                                isWalking = false,
+                                progressPercent = 0,
+                                baseSizeDp = 140,
+                                monochrome = true
+                            )
+                        } else {
+                            PetSpriteWithSyncedGlow(
+                                petType = petType,
+                                isWalking = false,
+                                size = 140.dp,
+                                monochrome = true,
+                                frameDurationMs = 200
                             )
                         }
+                    }
 
-                        // rebon 로고 (반투명)
+                    // 칭호 + 펫 이름 (절대 위치 - 기준점)
+                    if (petName.isNotEmpty() || equippedTitle != null) {
                         Text(
-                            text = "rebon",
-                            fontSize = 12.sp,
-                            fontFamily = kenneyFont,
-                            fontWeight = FontWeight.Bold,
-                            color = MockupColors.TextPrimary.copy(alpha = 0.5f)
+                            text = buildAnnotatedString {
+                                if (equippedTitle != null) {
+                                    withStyle(SpanStyle(fontWeight = FontWeight.Bold)) {
+                                        append("$equippedTitle ")
+                                    }
+                                }
+                                append(petName)
+                            },
+                            fontSize = 10.sp,
+                            fontWeight = FontWeight.Normal,
+                            color = MockupColors.TextSecondary,
+                            style = androidx.compose.ui.text.TextStyle(
+                                shadow = Shadow(
+                                    color = Color.White,
+                                    offset = Offset(0f, 0f),
+                                    blurRadius = 4f
+                                )
+                            ),
+                            modifier = Modifier
+                                .align(Alignment.TopCenter)
+                                .offset(y = nameY)
                         )
                     }
+
+                    // rebon 로고 (하단 고정)
+                    Text(
+                        text = "rebon",
+                        fontSize = 12.sp,
+                        fontFamily = kenneyFont,
+                        fontWeight = FontWeight.Bold,
+                        color = MockupColors.TextPrimary.copy(alpha = 0.5f),
+                        modifier = Modifier
+                            .align(Alignment.BottomCenter)
+                            .offset(y = 8.dp)  // 더 아래로 (Box 밖으로 나감)
+                    )
                 }
             }
 

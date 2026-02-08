@@ -97,9 +97,9 @@ enum class PetTypeV2(
         ),
         displayYOffsetsDp = mapOf(
             PetGrowthStage.EGG to 0f,
-            PetGrowthStage.BABY to 0f,
-            PetGrowthStage.TEEN to 0f,
-            PetGrowthStage.ADULT to 0f
+            PetGrowthStage.BABY to -12f,
+            PetGrowthStage.TEEN to -12f,
+            PetGrowthStage.ADULT to -12f
         )
     ),
     CAT(
@@ -121,9 +121,9 @@ enum class PetTypeV2(
         ),
         displayYOffsetsDp = mapOf(
             PetGrowthStage.EGG to 0f,
-            PetGrowthStage.BABY to 0f,
-            PetGrowthStage.TEEN to 0f,
-            PetGrowthStage.ADULT to 0f
+            PetGrowthStage.BABY to -12f,
+            PetGrowthStage.TEEN to -12f,
+            PetGrowthStage.ADULT to -12f
         )
     ),
     PIG(
@@ -169,9 +169,9 @@ enum class PetTypeV2(
         ),
         displayYOffsetsDp = mapOf(
             PetGrowthStage.EGG to 0f,
-            PetGrowthStage.BABY to 0f,
-            PetGrowthStage.TEEN to 0f,
-            PetGrowthStage.ADULT to 0f
+            PetGrowthStage.BABY to -12f,
+            PetGrowthStage.TEEN to -12f,
+            PetGrowthStage.ADULT to -12f
         )
     ),
     HAMSTER(
@@ -210,16 +210,16 @@ enum class PetTypeV2(
             PetAnimationTypeV2.SNEAK to AnimationConfig(8, 200)
         ),
         displayScales = mapOf(
-            PetGrowthStage.EGG to 1.0f,
-            PetGrowthStage.BABY to 0.87f,
-            PetGrowthStage.TEEN to 0.89f,
-            PetGrowthStage.ADULT to 0.89f
+            PetGrowthStage.EGG to 0.8f,
+            PetGrowthStage.BABY to 0.70f,  // 0.87 * 0.8
+            PetGrowthStage.TEEN to 0.71f,  // 0.89 * 0.8
+            PetGrowthStage.ADULT to 0.71f  // 0.89 * 0.8
         ),
         displayYOffsetsDp = mapOf(
             PetGrowthStage.EGG to 0f,
-            PetGrowthStage.BABY to 0f,
-            PetGrowthStage.TEEN to 0f,
-            PetGrowthStage.ADULT to 0f
+            PetGrowthStage.BABY to -17f,  // 3dp 더 위로 (-14 → -17)
+            PetGrowthStage.TEEN to -17f,
+            PetGrowthStage.ADULT to -17f
         )
     );
 

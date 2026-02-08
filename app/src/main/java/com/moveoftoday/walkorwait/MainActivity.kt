@@ -744,6 +744,10 @@ fun WalkOrWaitScreen(
     var goalDisplay by remember { mutableDoubleStateOf(preferenceManager?.getGoalForDisplay() ?: 8000.0) } // 표시용
     var showSettingsScreen by remember { mutableStateOf(false) }
     var showChallengeScreen by remember { mutableStateOf(false) }
+    var showNotificationPanel by remember { mutableStateOf(false) }
+
+    // 알림 상태
+    val notifications = rememberNotifications(context, preferenceManager)
 
     // 챌린지 관련 상태
     val challengeManager = remember { ChallengeManager.getInstance(context) }
@@ -1068,6 +1072,11 @@ fun WalkOrWaitScreen(
                 hapticManager.click()
                 showSettingsScreen = true
             },
+            onNotificationClick = {
+                hapticManager.click()
+                showNotificationPanel = true
+            },
+            notificationCount = notifications.size,
             onChallengeClick = {
                 hapticManager.click()
                 showChallengeScreen = true
@@ -1192,6 +1201,19 @@ fun WalkOrWaitScreen(
             oldLevel = levelUpOldLevel,
             newLevel = levelUpNewLevel,
             onDismiss = { showLevelUpDialog = false },
+            hapticManager = hapticManager
+        )
+    }
+
+    // 알림 센터 패널
+    if (showNotificationPanel) {
+        NotificationCenterPanel(
+            notifications = notifications,
+            onDismiss = { showNotificationPanel = false },
+            onNotificationClick = { notification ->
+                handleNotificationAction(context, notification)
+                showNotificationPanel = false
+            },
             hapticManager = hapticManager
         )
     }

@@ -343,23 +343,43 @@ class BillingManager(
     }
 
     /**
-     * 기존 구매 복원
+     * 기존 구매 복원 (구독 + 소비성 상품)
      */
     private fun queryPurchases() {
         CoroutineScope(Dispatchers.IO).launch {
-            val params = QueryPurchasesParams.newBuilder()
+            // 1. 구독 상품 조회
+            val subsParams = QueryPurchasesParams.newBuilder()
                 .setProductType(BillingClient.ProductType.SUBS)
                 .build()
 
-            val purchasesResult = billingClient.queryPurchasesAsync(params)
-            val purchases = purchasesResult.purchasesList
+            val subsResult = billingClient.queryPurchasesAsync(subsParams)
+            val subsPurchases = subsResult.purchasesList
 
-            if (purchases.isNotEmpty()) {
-                Log.d(TAG, "📦 Found ${purchases.size} existing purchases")
-                for (purchase in purchases) {
+            if (subsPurchases.isNotEmpty()) {
+                Log.d(TAG, "📦 Found ${subsPurchases.size} subscription(s)")
+                for (purchase in subsPurchases) {
                     handlePurchase(purchase)
                 }
-            } else {
+            }
+
+            // 2. 소비성 상품 조회 (unconsumed 펫 변경 감지)
+            val inappParams = QueryPurchasesParams.newBuilder()
+                .setProductType(BillingClient.ProductType.INAPP)
+                .build()
+
+            val inappResult = billingClient.queryPurchasesAsync(inappParams)
+            val inappPurchases = inappResult.purchasesList
+
+            if (inappPurchases.isNotEmpty()) {
+                Log.d(TAG, "📦 Found ${inappPurchases.size} unconsumed INAPP purchase(s)")
+                for (purchase in inappPurchases) {
+                    // Unconsumed purchase 발견 - 재시도
+                    Log.d(TAG, "🔄 Retrying unconsumed purchase: ${purchase.orderId}")
+                    handlePurchase(purchase)
+                }
+            }
+
+            if (subsPurchases.isEmpty() && inappPurchases.isEmpty()) {
                 Log.d(TAG, "📦 No existing purchases found")
             }
         }
@@ -484,25 +504,74 @@ class BillingManager(
     /**
      * 일회성 구매 소비 (재구매 가능하게)
      */
-    private fun consumePurchase(purchase: Purchase) {
+    private fun consumePurchase(purchase: Purchase, retryCount: Int = 0) {
         val consumeParams = ConsumeParams.newBuilder()
             .setPurchaseToken(purchase.purchaseToken)
             .build()
 
         CoroutineScope(Dispatchers.IO).launch {
-            val result = billingClient.consumePurchase(consumeParams)
-            if (result.billingResult.responseCode == BillingClient.BillingResponseCode.OK) {
-                Log.d(TAG, "✅ Purchase consumed (can buy again)")
+            // Analytics 추적 (consume 전에)
+            val productId = purchase.products.firstOrNull() ?: "pet_change"
 
-                // Analytics 추적
-                val productId = purchase.products.firstOrNull() ?: "pet_change"
+            // 첫 시도일 때만 purchase completed 추적
+            if (retryCount == 0) {
                 AnalyticsManager.trackPurchaseCompleted(productId, 1000.0)
 
+                // ✅ 결제는 완료되었으므로 일단 서비스 제공
                 withContext(Dispatchers.Main) {
                     onPurchaseSuccess(purchase)
                 }
+            }
+
+            // consume 시도 (재구매 가능하게)
+            val result = billingClient.consumePurchase(consumeParams)
+            val responseCode = result.billingResult.responseCode
+
+            if (responseCode == BillingClient.BillingResponseCode.OK) {
+                Log.d(TAG, "✅ Purchase consumed successfully (can buy again)")
+                if (retryCount > 0) {
+                    Log.d(TAG, "🔄 Consume succeeded after $retryCount retry(ies)")
+                }
             } else {
-                Log.e(TAG, "❌ Failed to consume purchase: ${result.billingResult.debugMessage}")
+                val errorMsg = result.billingResult.debugMessage
+                Log.e(TAG, "⚠️ Consume failed [attempt ${retryCount + 1}]: $responseCode - $errorMsg")
+
+                // Firebase Analytics: consume 실패 추적
+                AnalyticsManager.trackError(
+                    "billing_consume_failed",
+                    "code=$responseCode, retry=$retryCount, product=$productId"
+                )
+
+                // 에러 타입별 처리
+                when (responseCode) {
+                    BillingClient.BillingResponseCode.SERVICE_UNAVAILABLE,
+                    BillingClient.BillingResponseCode.SERVICE_DISCONNECTED,
+                    BillingClient.BillingResponseCode.NETWORK_ERROR -> {
+                        // 일시적 오류 - 재시도 (최대 3회)
+                        if (retryCount < 3) {
+                            val delayMs = (retryCount + 1) * 2000L // 2초, 4초, 6초
+                            Log.d(TAG, "🔄 Retrying consume in ${delayMs}ms...")
+                            kotlinx.coroutines.delay(delayMs)
+                            consumePurchase(purchase, retryCount + 1)
+                        } else {
+                            Log.e(TAG, "❌ Consume retry limit reached (3 attempts)")
+                            Log.d(TAG, "⚠️ Purchase will be retried on next app launch (queryPurchases)")
+                        }
+                    }
+                    BillingClient.BillingResponseCode.ITEM_NOT_OWNED -> {
+                        // 이미 소비되었거나 환불됨 - 재시도 불필요
+                        Log.w(TAG, "⚠️ Purchase not owned - already consumed or refunded")
+                    }
+                    else -> {
+                        // 기타 오류 - 다음 앱 실행 시 queryPurchases에서 재시도
+                        Log.e(TAG, "⚠️ Consume failed with code $responseCode")
+                        Log.d(TAG, "⚠️ Will retry on next app launch")
+                    }
+                }
+
+                if (retryCount == 0) {
+                    Log.d(TAG, "✅ Pet change already applied (user paid)")
+                }
             }
         }
     }
