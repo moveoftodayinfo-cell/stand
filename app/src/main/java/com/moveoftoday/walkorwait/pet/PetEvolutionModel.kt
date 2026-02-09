@@ -35,19 +35,19 @@ enum class PetGrowthStage(
         folderName = "egg"
     ),
     BABY(
-        displayName = "아기",
+        displayName = "새싹",
         levelRange = 1..10,
         sizeMultiplier = 1.0f,
         folderName = "baby"
     ),
     TEEN(
-        displayName = "성장기",
+        displayName = "성장",
         levelRange = 11..20,
         sizeMultiplier = 1.2f,
         folderName = "teen"
     ),
     ADULT(
-        displayName = "성체",
+        displayName = "완성",
         levelRange = 21..Int.MAX_VALUE,
         sizeMultiplier = 1.5f,
         folderName = "adult"
@@ -292,15 +292,16 @@ data class PetLevel(
     companion object {
         /**
          * 레벨업에 필요한 총 경험치 계산
-         * 레벨 1: 100 exp
-         * 레벨 2: 250 exp (150 더 필요)
-         * 레벨 3: 450 exp (200 더 필요)
-         * ...점점 더 많이 필요
+         * 2주 만에 성체(레벨 21) 도달 가능한 곡선
+         * 레벨 2: 8 exp (800 걸음, ~10분)
+         * 레벨 3: 20 exp (2,000 걸음, ~25분)
+         * 레벨 10: 216 exp (21,600 걸음, ~3일)
+         * 레벨 21: 920 exp (92,000 걸음, ~13일)
          */
         fun calculateExpForLevel(level: Int): Int {
             if (level <= 1) return 0
-            // 레벨 N까지 총 필요 경험치: 50 * N * (N + 1)
-            return 50 * level * (level + 1)
+            // 레벨 N까지 총 필요 경험치: 2 * N * (N + 1) - 4
+            return 2 * level * (level + 1) - 4
         }
 
         /**
@@ -359,9 +360,10 @@ data class PetState(
     val name: String,
     val level: PetLevel = PetLevel(),
     val happiness: Int = 100,  // 0-100
-    val lastInteractionTime: Long = System.currentTimeMillis()
+    val lastInteractionTime: Long = System.currentTimeMillis(),
+    val displayStageOverride: PetGrowthStage? = null  // 외형 오버라이드 (null이면 level에 맞는 기본값)
 ) {
-    val stage: PetGrowthStage get() = level.stage
+    val stage: PetGrowthStage get() = displayStageOverride ?: level.stage  // 오버라이드 우선
     val personality: PetPersonalityV2 get() = petType.personality
 
     /**

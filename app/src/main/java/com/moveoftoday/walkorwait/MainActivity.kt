@@ -134,6 +134,9 @@ class MainActivity : ComponentActivity() {
             Log.d(TAG, "Checking and resetting daily")
             checkAndResetDaily()
 
+            // 자정 자동 리셋 알람 설정
+            MidnightResetReceiver.scheduleMidnightAlarm(this)
+
             // 튜토리얼 완료된 경우에만 권한 요청 및 서비스 시작
             // (튜토리얼 중에는 PermissionSettingsStep에서 권한 요청)
             if (preferenceManager.isTutorialCompleted()) {

@@ -157,11 +157,10 @@ class StepWidgetProvider : AppWidgetProvider() {
             return try {
                 val petTypeV2 = prefs.getPetTypeV2()
                 if (petTypeV2 != null) {
-                    val petLevel = prefs.getPetLevelV2()
-                    val stage = petLevel.stage
+                    val stage = prefs.getEffectiveDisplayStage()  // 오버라이드 반영
                     val assetPath = "pets/${petTypeV2.folderName}/${stage.folderName}/$animationType/frame_000.png"
                     context.assets.open(assetPath).use { inputStream ->
-                        BitmapFactory.decodeStream(inputStream)
+                        BitmapFactory.decodeStream(inputStream)?.let { toGrayscale(it) }
                     }
                 } else {
                     null
@@ -171,11 +170,10 @@ class StepWidgetProvider : AppWidgetProvider() {
                 try {
                     val petTypeV2 = prefs.getPetTypeV2()
                     if (petTypeV2 != null) {
-                        val petLevel = prefs.getPetLevelV2()
-                        val stage = petLevel.stage
+                        val stage = prefs.getEffectiveDisplayStage()  // 오버라이드 반영
                         val fallbackPath = "pets/${petTypeV2.folderName}/${stage.folderName}/idle/frame_000.png"
                         context.assets.open(fallbackPath).use { inputStream ->
-                            BitmapFactory.decodeStream(inputStream)
+                            BitmapFactory.decodeStream(inputStream)?.let { toGrayscale(it) }
                         }
                     } else null
                 } catch (e2: Exception) {

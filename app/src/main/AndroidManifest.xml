@@ -12,6 +12,7 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_HEALTH" />
     <uses-permission android:name="android.permission.PACKAGE_USAGE_STATS" tools:ignore="ProtectedPermissions" />
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
     <uses-feature android:name="android.hardware.sensor.stepdetector" android:required="false" />
 
     <!-- 휴대폰만 지원, 태블릿 제외 -->
@@ -212,6 +213,15 @@
             <meta-data
                 android:name="android.appwidget.provider"
                 android:resource="@xml/widget_travel_phrase_cn_info" />
+        </receiver>
+
+        <!-- 자정 자동 리셋 (걸음수 + 위젯) -->
+        <receiver
+            android:name=".MidnightResetReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.moveoftoday.walkorwait.MIDNIGHT_RESET" />
+            </intent-filter>
         </receiver>
 
         <service

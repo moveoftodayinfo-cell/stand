@@ -470,10 +470,10 @@ fun PetMainScreen(
                         },
                         modifier = Modifier.size(40.dp)
                     ) {
-                        Text(
-                            text = "⊙",
-                            fontSize = 22.sp,
-                            color = if (notificationCount > 0) MockupColors.TextPrimary else MockupColors.TextMuted
+                        DrawableIcon(
+                            iconName = "icon_bell",
+                            size = 22.dp,
+                            tint = MockupColors.TextMuted  // 회색으로 통일
                         )
                     }
                     // 알림 배지 (빨간 점)

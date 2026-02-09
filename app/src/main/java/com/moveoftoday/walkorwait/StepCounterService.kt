@@ -63,7 +63,23 @@ class StepCounterService : Service() {
         try {
             stepSensorManager = StepSensorManager(this)
             stepSensorManager.onStepCountChanged = { steps ->
+                val previousSteps = preferenceManager.getTodaySteps()
                 preferenceManager.saveTodaySteps(steps)
+
+                // 실시간 경험치 추가 (걸음이 증가했을 때만)
+                val increment = steps - previousSteps
+                if (increment > 0 && preferenceManager.isPetV2Initialized()) {
+                    val oldLevel = preferenceManager.getPetLevelV2()
+                    val (newLevel, leveledUp) = com.moveoftoday.walkorwait.pet.PetSystemV2.addStepsAndCheckLevelUp(preferenceManager, increment)
+
+                    if (leveledUp) {
+                        android.util.Log.d("StepCounterService", "🎉 레벨업! ${oldLevel.level} → ${newLevel.level} (걸음: +$increment)")
+                        // TODO: 레벨업 알림 표시 (선택사항)
+                    } else {
+                        android.util.Log.d("StepCounterService", "📈 EXP 획득: +${increment/100} exp (걸음: +$increment, 레벨: ${newLevel.level}, ${newLevel.currentExp}/${newLevel.expToNextLevel})")
+                    }
+                }
+
                 // 걸음 기록 저장 (평균 속도 계산용)
                 preferenceManager.saveStepRecord(System.currentTimeMillis(), steps)
                 StepWidgetProvider.updateAllWidgets(this)

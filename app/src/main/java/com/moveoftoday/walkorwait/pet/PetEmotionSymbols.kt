@@ -25,24 +25,27 @@ import kotlinx.coroutines.delay
 
 // ===== 레트로 심볼 정의 =====
 object RetroSymbols {
-    // 하트 계열
-    const val HEART = "♥"
-    const val HEART_EMPTY = "♡"
-    const val HEARTS_2 = "♥♥"
-    const val HEARTS_3 = "♥♥♥"
+    // 텍스트 스타일 강제 (이모지 대신 흑백 텍스트로 렌더링)
+    private const val TEXT_SELECTOR = "\uFE0E"
 
-    // 별 계열
-    const val STAR = "★"
-    const val STAR_EMPTY = "☆"
-    const val STARS_2 = "★★"
-    const val STARS_3 = "★★★"
-    const val SPARKLE = "✧"
-    const val SPARKLES = "✧✧"
+    // 하트 계열 (흑백 텍스트)
+    const val HEART = "♥$TEXT_SELECTOR"
+    const val HEART_EMPTY = "♡$TEXT_SELECTOR"
+    const val HEARTS_2 = "♥$TEXT_SELECTOR♥$TEXT_SELECTOR"
+    const val HEARTS_3 = "♥$TEXT_SELECTOR♥$TEXT_SELECTOR♥$TEXT_SELECTOR"
 
-    // 음표 계열
-    const val NOTE = "♪"
-    const val NOTES = "♪♫"
-    const val NOTE_DOUBLE = "♫"
+    // 별 계열 (흑백 텍스트)
+    const val STAR = "★$TEXT_SELECTOR"
+    const val STAR_EMPTY = "☆$TEXT_SELECTOR"
+    const val STARS_2 = "★$TEXT_SELECTOR★$TEXT_SELECTOR"
+    const val STARS_3 = "★$TEXT_SELECTOR★$TEXT_SELECTOR★$TEXT_SELECTOR"
+    const val SPARKLE = "✧$TEXT_SELECTOR"
+    const val SPARKLES = "✧$TEXT_SELECTOR✧$TEXT_SELECTOR"
+
+    // 음표 계열 (흑백 텍스트)
+    const val NOTE = "♪$TEXT_SELECTOR"
+    const val NOTES = "♪$TEXT_SELECTOR♫$TEXT_SELECTOR"
+    const val NOTE_DOUBLE = "♫$TEXT_SELECTOR"
 
     // 감정 계열
     const val EXCLAIM = "!"

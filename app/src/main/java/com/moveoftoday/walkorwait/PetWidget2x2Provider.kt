@@ -187,8 +187,7 @@ class PetWidget2x2Provider : AppWidgetProvider() {
          * V2 펫 첫 프레임 로드 (진행률 기반 애니메이션)
          */
         private fun loadPetV2FirstFrame(context: Context, petType: PetTypeV2, prefs: PreferenceManager): Bitmap? {
-            val petLevel = prefs.getPetLevelV2()
-            val stage = petLevel.stage
+            val stage = prefs.getEffectiveDisplayStage()  // 오버라이드 반영
 
             // 진행률에 따른 애니메이션 타입 결정
             val currentProgress = prefs.getCurrentProgress()
@@ -204,14 +203,14 @@ class PetWidget2x2Provider : AppWidgetProvider() {
             return try {
                 val assetPath = "pets/${petType.folderName}/${stage.folderName}/$animationType/frame_000.png"
                 context.assets.open(assetPath).use { inputStream ->
-                    BitmapFactory.decodeStream(inputStream)
+                    BitmapFactory.decodeStream(inputStream)?.let { toGrayscale(it) }
                 }
             } catch (e: Exception) {
                 // 애니메이션 폴더가 없으면 idle로 폴백
                 try {
                     val fallbackPath = "pets/${petType.folderName}/${stage.folderName}/idle/frame_000.png"
                     context.assets.open(fallbackPath).use { inputStream ->
-                        BitmapFactory.decodeStream(inputStream)
+                        BitmapFactory.decodeStream(inputStream)?.let { toGrayscale(it) }
                     }
                 } catch (e2: Exception) {
                     null

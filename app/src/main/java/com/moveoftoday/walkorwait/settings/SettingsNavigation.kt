@@ -205,7 +205,7 @@ private fun SettingsMainContent(
             ) {
                 // 1. 내 정보
                 SettingsMenuCard(
-                    icon = "○",
+                    iconName = "icon_character",  // PNG 아이콘
                     title = "내 정보",
                     subtitle = if (isGoogleSignedIn) googleEmail else "로그인하여 데이터 백업",
                     kenneyFont = kenneyFont,
@@ -217,7 +217,7 @@ private fun SettingsMainContent(
 
                 // 2. 펫 관리
                 SettingsMenuCard(
-                    icon = "◆",
+                    iconName = "icon_beetle",  // PNG 아이콘
                     title = "펫 관리",
                     subtitle = "$petName Lv.${petLevel.level}",
                     kenneyFont = kenneyFont,
@@ -238,7 +238,7 @@ private fun SettingsMainContent(
                     controlDays.sorted().map { dayNames[it % 7] }.joinToString("")
                 }
                 SettingsMenuCard(
-                    icon = "◎",
+                    iconName = "icon_flag",  // PNG 아이콘
                     title = "목표 설정",
                     subtitle = "$goalText / $daysText",
                     kenneyFont = kenneyFont,
@@ -250,7 +250,7 @@ private fun SettingsMainContent(
 
                 // 4. 앱 제어
                 SettingsMenuCard(
-                    icon = "▣",
+                    iconName = "icon_shield",  // PNG 아이콘
                     title = "앱 제어",
                     subtitle = if (lockedApps.isEmpty()) "잠금 앱 없음" else "${lockedApps.size}개 앱 잠금 중",
                     kenneyFont = kenneyFont,
@@ -335,7 +335,7 @@ fun SettingsHeader(
  */
 @Composable
 private fun SettingsMenuCard(
-    icon: String,
+    iconName: String,  // PNG 아이콘 이름 (icon_bell 등)
     title: String,
     subtitle: String,
     kenneyFont: androidx.compose.ui.text.font.FontFamily,
@@ -357,10 +357,11 @@ private fun SettingsMenuCard(
             Row(
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // 아이콘
-                Text(
-                    text = icon,
-                    fontSize = 28.sp
+                // 아이콘 (IconGodotNode PNG)
+                DrawableIcon(
+                    iconName = iconName,
+                    size = 28.dp,
+                    tint = MockupColors.TextMuted  // 회색으로 통일
                 )
                 Spacer(modifier = Modifier.width(16.dp))
                 Column {

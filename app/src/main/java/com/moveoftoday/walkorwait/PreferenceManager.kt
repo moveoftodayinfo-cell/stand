@@ -1165,6 +1165,51 @@ class PreferenceManager(context: Context) {
             .apply()
     }
 
+    // ===== 펫 외형 오버라이드 (Pet Appearance Override) =====
+
+    /**
+     * 사용자가 선택한 외형 단계를 저장
+     * 예: TEEN 레벨이지만 BABY 외형 사용
+     */
+    fun saveDisplayStageOverride(stage: com.moveoftoday.walkorwait.pet.PetGrowthStage?) {
+        prefs.edit()
+            .putString("pet_display_stage_override", stage?.name)
+            .apply()
+    }
+
+    /**
+     * 저장된 외형 오버라이드 가져오기
+     * @return 오버라이드된 stage 또는 null (기본값 사용)
+     */
+    fun getDisplayStageOverride(): com.moveoftoday.walkorwait.pet.PetGrowthStage? {
+        val stageName = prefs.getString("pet_display_stage_override", null)
+        return stageName?.let {
+            try {
+                com.moveoftoday.walkorwait.pet.PetGrowthStage.valueOf(it)
+            } catch (e: Exception) {
+                // 잘못된 값이면 null 반환 (기본값 사용)
+                null
+            }
+        }
+    }
+
+    /**
+     * 외형 오버라이드 초기화 (기본값으로 복원)
+     */
+    fun clearDisplayStageOverride() {
+        prefs.edit().remove("pet_display_stage_override").apply()
+    }
+
+    /**
+     * 실제 표시할 stage 가져오기
+     * 오버라이드가 설정되어 있으면 오버라이드 값, 없으면 레벨에 맞는 기본 stage
+     * @return 표시할 PetGrowthStage
+     */
+    fun getEffectiveDisplayStage(): com.moveoftoday.walkorwait.pet.PetGrowthStage {
+        val override = getDisplayStageOverride()
+        return override ?: getPetLevelV2().stage
+    }
+
     // ===== 연속 달성 (Streak) =====
 
     // 듀오링고 스타일: 새벽 4시 기준으로 날짜 변경

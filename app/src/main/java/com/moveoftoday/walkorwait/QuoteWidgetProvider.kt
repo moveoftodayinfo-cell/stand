@@ -174,17 +174,16 @@ class QuoteWidgetProvider : AppWidgetProvider() {
         }
 
         /**
-         * 펫 아이콘 로드 (진행률 기반 애니메이션)
+         * 펫 아이콘 로드 (진행률 기반 애니메이션, grayscale)
          */
         private fun loadPetIconWithAnimation(context: Context, prefs: PreferenceManager, animationType: String): Bitmap? {
             return try {
                 val petTypeV2 = prefs.getPetTypeV2()
                 if (petTypeV2 != null) {
-                    val petLevel = prefs.getPetLevelV2()
-                    val stage = petLevel.stage
+                    val stage = prefs.getEffectiveDisplayStage()  // 오버라이드 반영
                     val assetPath = "pets/${petTypeV2.folderName}/${stage.folderName}/$animationType/frame_000.png"
                     context.assets.open(assetPath).use { inputStream ->
-                        BitmapFactory.decodeStream(inputStream)
+                        BitmapFactory.decodeStream(inputStream)?.let { toGrayscale(it) }
                     }
                 } else {
                     // V1 펫은 idle만 지원
@@ -197,7 +196,7 @@ class QuoteWidgetProvider : AppWidgetProvider() {
                             val spriteSheet = BitmapFactory.decodeStream(inputStream)
                             if (spriteSheet != null) {
                                 val frameWidth = spriteSheet.width / petType.idleFrames
-                                Bitmap.createBitmap(spriteSheet, 0, 0, frameWidth, spriteSheet.height)
+                                toGrayscale(Bitmap.createBitmap(spriteSheet, 0, 0, frameWidth, spriteSheet.height))
                             } else null
                         }
                     } else null
@@ -207,11 +206,10 @@ class QuoteWidgetProvider : AppWidgetProvider() {
                 try {
                     val petTypeV2 = prefs.getPetTypeV2()
                     if (petTypeV2 != null) {
-                        val petLevel = prefs.getPetLevelV2()
-                        val stage = petLevel.stage
+                        val stage = prefs.getEffectiveDisplayStage()  // 오버라이드 반영
                         val fallbackPath = "pets/${petTypeV2.folderName}/${stage.folderName}/idle/frame_000.png"
                         context.assets.open(fallbackPath).use { inputStream ->
-                            BitmapFactory.decodeStream(inputStream)
+                            BitmapFactory.decodeStream(inputStream)?.let { toGrayscale(it) }
                         }
                     } else null
                 } catch (e2: Exception) {

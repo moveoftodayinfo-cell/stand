@@ -123,7 +123,7 @@ fun PixelIcon(
     modifier: Modifier = Modifier,
     size: Dp = 16.dp,
     alpha: Float = 1f,
-    tint: Color = MockupColors.Border  // 기본값: 검정색 (0xFF333333)
+    tint: Color = MockupColors.TextMuted  // 기본값: 회색 (0xFF888888)
 ) {
     val icon = rememberAssetIcon("icons/$iconName.png")
 
@@ -147,7 +147,7 @@ fun DrawableIcon(
     iconName: String,
     modifier: Modifier = Modifier,
     size: Dp = 16.dp,
-    tint: Color = MockupColors.Border
+    tint: Color = MockupColors.TextMuted  // 기본값: 회색 (0xFF888888)
 ) {
     val context = LocalContext.current
     val icon = remember(iconName) {

@@ -7,6 +7,7 @@ import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.graphics.Canvas
 import android.util.Log
 import android.widget.RemoteViews
 import com.moveoftoday.walkorwait.pet.PetTypeV2
@@ -168,20 +169,33 @@ class WeatherWidgetProvider : AppWidgetProvider() {
     }
 
     /**
-     * 펫 첫 프레임 로드
+     * 펫 첫 프레임 로드 (grayscale)
      */
     private fun loadPetFirstFrame(context: Context, petType: PetTypeV2, prefs: PreferenceManager): Bitmap? {
-        val petLevel = prefs.getPetLevelV2()
-        val stage = petLevel.stage
+        val stage = prefs.getEffectiveDisplayStage()  // 오버라이드 반영
 
         return try {
             val assetPath = "pets/${petType.folderName}/${stage.folderName}/idle/frame_000.png"
             context.assets.open(assetPath).use { inputStream ->
-                BitmapFactory.decodeStream(inputStream)
+                BitmapFactory.decodeStream(inputStream)?.let { toGrayscale(it) }
             }
         } catch (e: Exception) {
             null
         }
+    }
+
+    /**
+     * 비트맵을 grayscale로 변환
+     */
+    private fun toGrayscale(original: Bitmap): Bitmap {
+        val grayscale = Bitmap.createBitmap(original.width, original.height, Bitmap.Config.ARGB_8888)
+        val canvas = Canvas(grayscale)
+        val paint = android.graphics.Paint()
+        val colorMatrix = android.graphics.ColorMatrix()
+        colorMatrix.setSaturation(0f)
+        paint.colorFilter = android.graphics.ColorMatrixColorFilter(colorMatrix)
+        canvas.drawBitmap(original, 0f, 0f, paint)
+        return grayscale
     }
 
     /**

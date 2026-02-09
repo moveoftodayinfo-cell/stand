@@ -87,13 +87,15 @@ object PetSystemV2 {
         val petLevel = preferenceManager.getPetLevelV2()
         val happiness = preferenceManager.getPetHappinessV2()
         val lastInteraction = preferenceManager.getPetLastInteractionTimeV2()
+        val displayStageOverride = preferenceManager.getDisplayStageOverride()  // 외형 오버라이드 가져오기
 
         return PetState(
             petType = petType,
             name = petName,
             level = petLevel,
             happiness = happiness,
-            lastInteractionTime = lastInteraction
+            lastInteractionTime = lastInteraction,
+            displayStageOverride = displayStageOverride  // 오버라이드 전달
         )
     }
 

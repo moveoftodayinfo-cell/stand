@@ -247,11 +247,10 @@ class TravelPhraseWidgetProvider : AppWidgetProvider() {
         }
 
         /**
-         * 펫 랜덤 프레임 로드
+         * 펫 랜덤 프레임 로드 (grayscale)
          */
         private fun loadPetRandomFrame(context: Context, petType: PetTypeV2, prefs: PreferenceManager): android.graphics.Bitmap? {
-            val petLevel = prefs.getPetLevelV2()
-            val stage = petLevel.stage
+            val stage = prefs.getEffectiveDisplayStage()  // 오버라이드 반영
 
             return try {
                 // idle 폴더에서 프레임 파일 목록 가져오기
@@ -263,11 +262,25 @@ class TravelPhraseWidgetProvider : AppWidgetProvider() {
                 val assetPath = "$idlePath/$randomFrame"
 
                 context.assets.open(assetPath).use { inputStream ->
-                    BitmapFactory.decodeStream(inputStream)
+                    BitmapFactory.decodeStream(inputStream)?.let { toGrayscale(it) }
                 }
             } catch (e: Exception) {
                 null
             }
+        }
+
+        /**
+         * 비트맵을 grayscale로 변환
+         */
+        private fun toGrayscale(original: android.graphics.Bitmap): android.graphics.Bitmap {
+            val grayscale = android.graphics.Bitmap.createBitmap(original.width, original.height, android.graphics.Bitmap.Config.ARGB_8888)
+            val canvas = android.graphics.Canvas(grayscale)
+            val paint = android.graphics.Paint()
+            val colorMatrix = android.graphics.ColorMatrix()
+            colorMatrix.setSaturation(0f)
+            paint.colorFilter = android.graphics.ColorMatrixColorFilter(colorMatrix)
+            canvas.drawBitmap(original, 0f, 0f, paint)
+            return grayscale
         }
 
         /**
