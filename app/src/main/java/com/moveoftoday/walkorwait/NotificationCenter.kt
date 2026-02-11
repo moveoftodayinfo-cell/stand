@@ -23,6 +23,7 @@ import androidx.compose.ui.unit.sp
 import com.moveoftoday.walkorwait.pet.MockupColors
 import com.moveoftoday.walkorwait.pet.rememberKenneyFont
 import kotlinx.coroutines.delay
+import androidx.compose.runtime.collectAsState
 
 /**
  * 알림 타입
@@ -31,7 +32,8 @@ enum class NotificationType {
     WARNING,      // 경고 (접근성, Health Connect 등)
     UPDATE,       // 앱 업데이트
     ANNOUNCEMENT, // 공지사항
-    EVENT         // 이벤트/프로모션
+    EVENT,        // 이벤트/프로모션
+    STATUS        // 상태 정보 (센서, 챌린지 등)
 }
 
 /**
@@ -57,14 +59,16 @@ sealed class NotificationAction {
 }
 
 /**
- * 알림 아이콘 (유니코드 텍스트 심볼)
+ * 알림 아이콘 (유니코드 텍스트 심볼 - 텍스트 스타일 강제)
  */
 object NotificationSymbols {
-    const val WARNING = "△"       // 경고 삼각형
-    const val UPDATE = "↑"        // 업데이트 화살표
-    const val ANNOUNCEMENT = "☆"  // 공지 별
-    const val EVENT = "◈"         // 이벤트 다이아몬드
-    const val CLOSE = "×"         // 닫기
+    private const val TEXT_STYLE = "\uFE0E"  // 텍스트 스타일 셀렉터 (모노크롬)
+    const val WARNING = "⚠$TEXT_STYLE"       // 경고
+    const val UPDATE = "⬆$TEXT_STYLE"        // 업데이트 화살표
+    const val ANNOUNCEMENT = "☆$TEXT_STYLE"  // 공지 별
+    const val EVENT = "◆$TEXT_STYLE"         // 이벤트 다이아몬드
+    const val STATUS = "ℹ$TEXT_STYLE"        // 상태 정보
+    const val CLOSE = "✕"                    // 닫기
 }
 
 /**
@@ -73,19 +77,84 @@ object NotificationSymbols {
 @Composable
 fun rememberNotifications(
     context: Context = LocalContext.current,
-    preferenceManager: PreferenceManager?
+    preferenceManager: PreferenceManager?,
+    stepSensorManager: StepSensorManager? = null,
+    challengeManager: ChallengeManager? = null
 ): List<NotificationItem> {
     var notifications by remember { mutableStateOf<List<NotificationItem>>(emptyList()) }
 
     // Health Connect 매니저
     val healthConnectManager = remember { HealthConnectManager(context) }
 
+    // 백그라운드 챌린지 상태 구독
+    val backgroundProgress = challengeManager?.backgroundProgress?.collectAsState()
+
     // 주기적으로 상태 체크
-    LaunchedEffect(Unit) {
+    LaunchedEffect(Unit, backgroundProgress?.value) {
         while (true) {
             val items = mutableListOf<NotificationItem>()
 
-            // 1. 접근성 서비스 체크
+            // ========== 상태 정보 (STATUS) ==========
+
+            // 1. 백그라운드 챌린지 상태 (간헐적 단식)
+            val bgProgress = backgroundProgress?.value
+            if (bgProgress != null && bgProgress.status == ChallengeStatus.RUNNING) {
+                val elapsedMinutes = bgProgress.elapsedSeconds / 60
+                val totalMinutes = (bgProgress.challenge.durationMinutes * 60).toInt() / 60
+                val elapsedHours = elapsedMinutes / 60
+                val elapsedMins = elapsedMinutes % 60
+                val totalHours = totalMinutes / 60
+
+                items.add(
+                    NotificationItem(
+                        id = "background_challenge",
+                        type = NotificationType.STATUS,
+                        title = "${bgProgress.challenge.name} 진행 중",
+                        subtitle = "${elapsedHours}시간 ${elapsedMins}분 / ${totalHours}시간",
+                        action = null,
+                        dismissible = false
+                    )
+                )
+            }
+
+            // 2. 현재 센서 상태 (직접 확인)
+            val sensorManager = context.getSystemService(Context.SENSOR_SERVICE) as android.hardware.SensorManager
+            val useHealthConnect = preferenceManager?.useHealthConnect() ?: false
+            val isHealthConnectAvailable = healthConnectManager.isAvailable()
+            val hasHealthConnectPermissions = try {
+                if (useHealthConnect && isHealthConnectAvailable) {
+                    healthConnectManager.hasAllPermissions()
+                } else false
+            } catch (e: Exception) { false }
+
+            val (sensorTitle, sensorSubtitle) = when {
+                // Health Connect: 설정 + 사용가능 + 권한 있어야 함
+                useHealthConnect && isHealthConnectAvailable && hasHealthConnectPermissions ->
+                    "Health Connect" to "연결된 앱에서 걸음수 측정"
+                sensorManager.getDefaultSensor(android.hardware.Sensor.TYPE_STEP_COUNTER) != null ->
+                    "기본 센서" to "기기 내장 센서로 걸음수 측정"
+                sensorManager.getDefaultSensor(android.hardware.Sensor.TYPE_STEP_DETECTOR) != null ->
+                    "스텝 감지기" to "기기 내장 센서로 걸음수 측정"
+                sensorManager.getDefaultSensor(android.hardware.Sensor.TYPE_ACCELEROMETER) != null ->
+                    "가속도계" to "기기 내장 센서로 걸음수 측정"
+                else ->
+                    "센서 없음" to "걸음수를 측정할 수 없습니다"
+            }
+
+            items.add(
+                NotificationItem(
+                    id = "sensor_status",
+                    type = NotificationType.STATUS,
+                    title = sensorTitle,
+                    subtitle = sensorSubtitle,
+                    action = null,
+                    dismissible = false
+                )
+            )
+
+            // ========== 경고 (WARNING) ==========
+
+            // 3. 접근성 서비스 체크
             val enabledServices = Settings.Secure.getString(
                 context.contentResolver,
                 Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES
@@ -105,10 +174,7 @@ fun rememberNotifications(
                 )
             }
 
-            // 2. Health Connect 권한 체크
-            val useHealthConnect = preferenceManager?.useHealthConnect() ?: false
-            val isHealthConnectAvailable = healthConnectManager.isAvailable()
-
+            // 4. Health Connect 권한 체크 (위에서 선언한 변수 재사용)
             if (useHealthConnect && isHealthConnectAvailable) {
                 val hasPermissions = try {
                     healthConnectManager.hasAllPermissions()
@@ -130,10 +196,10 @@ fun rememberNotifications(
                 }
             }
 
-            // 3. 앱 업데이트 체크 (Firebase Remote Config에서 가져옴)
+            // 5. 앱 업데이트 체크 (Firebase Remote Config에서 가져옴)
             // AppUpdateManager에서 처리하므로 여기서는 스킵
 
-            // 4. Firebase 공지사항 체크
+            // 6. Firebase 공지사항 체크
             // TODO: Firebase announcements 연동
 
             notifications = items
@@ -267,6 +333,7 @@ private fun NotificationItemCard(
         NotificationType.UPDATE -> Triple(MockupColors.Blue, MockupColors.BlueLight, MockupColors.Blue)
         NotificationType.ANNOUNCEMENT -> Triple(MockupColors.Purple, Color(0xFFF3E8FF), MockupColors.Purple)
         NotificationType.EVENT -> Triple(MockupColors.Green, MockupColors.GreenLight, MockupColors.Green)
+        NotificationType.STATUS -> Triple(MockupColors.Border, MockupColors.CardBackground, MockupColors.TextMuted)
     }
 
     val symbol = when (notification.type) {
@@ -274,6 +341,7 @@ private fun NotificationItemCard(
         NotificationType.UPDATE -> NotificationSymbols.UPDATE
         NotificationType.ANNOUNCEMENT -> NotificationSymbols.ANNOUNCEMENT
         NotificationType.EVENT -> NotificationSymbols.EVENT
+        NotificationType.STATUS -> NotificationSymbols.STATUS
     }
 
     Box(

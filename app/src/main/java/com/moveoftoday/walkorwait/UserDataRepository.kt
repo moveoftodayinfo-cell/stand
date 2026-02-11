@@ -182,7 +182,15 @@ class UserDataRepository(
                 val totalChallenges = userDoc.getLong("totalChallengesCompleted")?.toInt()
                     ?: oldSettingsDoc.getLong("totalChallengesCompleted")?.toInt()
 
+                // V2 펫 데이터 읽기
+                val petTypeV2Name = userDoc.getString("pet_type_v2") ?: oldSettingsDoc.getString("pet_type_v2")
+                val petNameV2 = userDoc.getString("pet_name_v2") ?: oldSettingsDoc.getString("pet_name_v2")
+                val petLevelV2 = userDoc.getLong("pet_level_v2")?.toInt() ?: oldSettingsDoc.getLong("pet_level_v2")?.toInt()
+                val petLevelExpV2 = userDoc.getLong("pet_level_exp_v2")?.toInt() ?: oldSettingsDoc.getLong("pet_level_exp_v2")?.toInt()
+                val petHappinessV2 = userDoc.getLong("pet_happiness_v2")?.toInt() ?: oldSettingsDoc.getLong("pet_happiness_v2")?.toInt()
+
                 Log.d(TAG, "🐾 Pet: $petType, $petName")
+                Log.d(TAG, "🐾 Pet V2: $petTypeV2Name, $petNameV2")
                 Log.d(TAG, "🔍 tutorialCompleted: $tutorialCompleted, paidDeposit: $paidDeposit, lockedApps: ${lockedApps.size}")
                 Log.d(TAG, "🏆 Titles: ${unlockedTitles.size}, equipped: $equippedTitle")
 
@@ -269,6 +277,9 @@ class UserDataRepository(
 
                     updateLocalSettings(finalSettings, remoteTimestamp)
 
+                    // V2 펫 데이터 복원
+                    restorePetV2Data(petTypeV2Name, petNameV2, petLevelV2, petLevelExpV2, petHappinessV2)
+
                     // 칭호 데이터 복원
                     if (unlockedTitles.isNotEmpty() || equippedTitle != null || totalChallenges != null) {
                         restoreTitleData(unlockedTitles, equippedTitle, totalChallenges)
@@ -278,6 +289,9 @@ class UserDataRepository(
                 else if (remoteTimestamp > localTimestamp) {
                     Log.d(TAG, "⬇️ Firebase data is newer, updating local")
                     updateLocalSettings(remoteSettings, remoteTimestamp)
+
+                    // V2 펫 데이터 복원
+                    restorePetV2Data(petTypeV2Name, petNameV2, petLevelV2, petLevelExpV2, petHappinessV2)
 
                     // 칭호 데이터도 복원
                     if (unlockedTitles.isNotEmpty() || equippedTitle != null || totalChallenges != null) {
@@ -413,6 +427,47 @@ class UserDataRepository(
     }
 
     /**
+     * V2 펫 데이터 복원
+     */
+    private fun restorePetV2Data(
+        petTypeV2Name: String?,
+        petNameV2: String?,
+        petLevelV2: Int?,
+        petLevelExpV2: Int?,
+        petHappinessV2: Int?
+    ) {
+        if (petTypeV2Name != null) {
+            try {
+                val petTypeV2 = com.moveoftoday.walkorwait.pet.PetTypeV2.valueOf(petTypeV2Name)
+                preferenceManager.savePetTypeV2(petTypeV2)
+                Log.d(TAG, "🐾 Restored V2 pet type: $petTypeV2Name")
+            } catch (e: Exception) {
+                Log.e(TAG, "❌ Failed to parse V2 pet type: $petTypeV2Name")
+            }
+        }
+
+        if (!petNameV2.isNullOrBlank()) {
+            preferenceManager.savePetNameV2(petNameV2)
+            Log.d(TAG, "🐾 Restored V2 pet name: $petNameV2")
+        }
+
+        if (petLevelV2 != null && petLevelExpV2 != null) {
+            val level = com.moveoftoday.walkorwait.pet.PetLevel(
+                level = petLevelV2,
+                currentExp = petLevelExpV2,
+                totalExp = 0  // totalExp는 재계산됨
+            )
+            preferenceManager.savePetLevelV2(level)
+            Log.d(TAG, "🐾 Restored V2 pet level: $petLevelV2 (exp: $petLevelExpV2)")
+        }
+
+        if (petHappinessV2 != null) {
+            preferenceManager.savePetHappinessV2(petHappinessV2)
+            Log.d(TAG, "🐾 Restored V2 pet happiness: $petHappinessV2")
+        }
+    }
+
+    /**
      * 칭호 데이터 복원 (ChallengeManager용 SharedPreferences에 저장)
      * 복원 후 ChallengeManager 리로드
      */
@@ -502,11 +557,18 @@ class UserDataRepository(
                     // createdAt은 없을 때만 설정 (최초 가입 시간)
                     "createdAt" to (existingCreatedAt ?: timestamp),
 
-                    // 펫 정보
+                    // 펫 정보 (V1)
                     "petType" to settings.petType,
                     "petName" to settings.petName,
                     "petHappiness" to settings.petHappiness,
                     "petTotalSteps" to settings.petTotalSteps,
+
+                    // 펫 정보 (V2)
+                    "pet_type_v2" to preferenceManager.getPetTypeV2()?.name,
+                    "pet_name_v2" to preferenceManager.getPetNameV2(),
+                    "pet_level_v2" to preferenceManager.getPetLevelV2()?.level,
+                    "pet_level_exp_v2" to preferenceManager.getPetLevelV2()?.currentExp,
+                    "pet_happiness_v2" to preferenceManager.getPetHappinessV2(),
 
                     // 진행 상태
                     "tutorialCompleted" to settings.tutorialCompleted,

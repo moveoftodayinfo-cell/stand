@@ -9,6 +9,7 @@ import android.graphics.ColorMatrixColorFilter
 import android.graphics.Paint
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.size
@@ -16,6 +17,8 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
+import androidx.compose.ui.graphics.BlendMode
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.graphics.nativeCanvas
@@ -276,6 +279,182 @@ fun PetSpriteV2WithGlow(
 }
 
 /**
+ * V2 펫 스프라이트 with 장비 시스템
+ */
+@Composable
+fun PetSpriteV2WithEquipment(
+    petType: PetTypeV2,
+    stage: PetGrowthStage,
+    animationType: PetAnimationTypeV2,
+    equipmentState: EquipmentState,
+    modifier: Modifier = Modifier,
+    size: Dp = 96.dp,
+    monochrome: Boolean = true,
+    showGlow: Boolean = true,
+    applyDisplayScale: Boolean = true
+) {
+    val context = LocalContext.current
+    val scaledSize = if (applyDisplayScale) size * petType.getDisplayScale(stage) else size
+
+    // 장비 아이템 가져오기 (HEAD 장비 제거됨)
+    val bgEquipment = DefaultEquipment.getById(equipmentState.backgroundId)
+
+    // 스킨 시스템: colorId를 skinId로 해석
+    val petSkin = DefaultSkins.getById(equipmentState.colorId)
+
+    Box(modifier = modifier, contentAlignment = Alignment.Center) {
+        // 1. BACKGROUND 레이어 (배경 효과)
+        bgEquipment?.assetPath?.let { path ->
+            val bgBitmap = rememberAssetBitmap(context, path)
+            bgBitmap?.let {
+                Image(
+                    bitmap = it.asImageBitmap(),
+                    contentDescription = "background",
+                    modifier = Modifier
+                        .size(scaledSize * 1.5f)
+                        .blur(4.dp),
+                    alpha = 0.6f
+                )
+            }
+        }
+
+        // 2. PET SPRITE (Glow + ColorFilter)
+        Box(contentAlignment = Alignment.Center) {
+            // Glow layer
+            if (showGlow) {
+                Box(
+                    modifier = Modifier
+                        .offset(y = 4.dp)
+                        .blur(8.dp)
+                ) {
+                    PetSpriteV2Core(
+                        context = context,
+                        petType = petType,
+                        stage = stage,
+                        animationType = animationType,
+                        size = scaledSize,
+                        monochrome = monochrome,
+                        colorMatrix = petSkin?.colorMatrix,
+                        overlayColor = petSkin?.overlayColor,
+                        blendMode = petSkin?.blendMode ?: BlendMode.SrcOver
+                    )
+                }
+            }
+
+            // Main sprite with color filter (스킨 시스템)
+            PetSpriteV2Core(
+                context = context,
+                petType = petType,
+                stage = stage,
+                animationType = animationType,
+                size = scaledSize,
+                monochrome = monochrome,
+                colorMatrix = petSkin?.colorMatrix,
+                overlayColor = petSkin?.overlayColor,
+                blendMode = petSkin?.blendMode ?: BlendMode.SrcOver
+            )
+        }
+    }
+}
+
+/**
+ * Asset 비트맵 로딩 헬퍼 (캐싱)
+ */
+@Composable
+private fun rememberAssetBitmap(context: Context, path: String): Bitmap? {
+    return remember(path) {
+        try {
+            context.assets.open(path).use { stream ->
+                BitmapFactory.decodeStream(stream)
+            }
+        } catch (e: Exception) {
+            null
+        }
+    }
+}
+
+/**
+ * 펫 스프라이트 코어 (ColorMatrix + OverlayColor 지원)
+ */
+@Composable
+private fun PetSpriteV2Core(
+    context: Context,
+    petType: PetTypeV2,
+    stage: PetGrowthStage,
+    animationType: PetAnimationTypeV2,
+    size: Dp,
+    monochrome: Boolean,
+    colorMatrix: FloatArray?,
+    overlayColor: Int?,
+    blendMode: BlendMode
+) {
+    // 애니메이션 설정 가져오기
+    val animConfig = if (stage == PetGrowthStage.EGG) {
+        EggAnimationConfig.animations[animationType] ?: AnimationConfig(4, 200)
+    } else {
+        petType.getAnimationConfig(animationType)
+    }
+
+    // 폴더 경로 생성
+    val folderPath = if (stage == PetGrowthStage.EGG) {
+        EggAnimationConfig.getAnimationFolderPath(animationType)
+    } else {
+        petType.getAnimationFolderPath(stage, animationType)
+    }
+
+    // 폴백 경로 (idle로 폴백)
+    val fallbackPath = if (stage == PetGrowthStage.EGG) {
+        EggAnimationConfig.getAnimationFolderPath(PetAnimationTypeV2.IDLE)
+    } else {
+        petType.getAnimationFolderPath(stage, PetAnimationTypeV2.IDLE)
+    }
+
+    // 프레임 로드
+    val frames = remember(folderPath, fallbackPath, monochrome) {
+        FrameLoader.loadFrames(context, folderPath, monochrome, fallbackPath)
+    }
+
+    if (frames.isEmpty()) {
+        return
+    }
+
+    // 애니메이션 상태
+    var currentFrame by remember { mutableIntStateOf(0) }
+
+    // 프레임 애니메이션
+    LaunchedEffect(animationType, frames.size) {
+        currentFrame = 0
+        while (true) {
+            delay(animConfig.frameDurationMs.toLong())
+            currentFrame = (currentFrame + 1) % frames.size
+        }
+    }
+
+    // 현재 프레임 비트맵
+    val bitmap = frames.getOrNull(currentFrame) ?: frames.first()
+
+    // ColorFilter 결정
+    val colorFilter = when {
+        colorMatrix != null -> {
+            // ColorMatrix 방식 (틴트)
+            ColorFilter.colorMatrix(androidx.compose.ui.graphics.ColorMatrix(colorMatrix))
+        }
+        overlayColor != null -> {
+            // 단색 오버레이 방식
+            ColorFilter.tint(androidx.compose.ui.graphics.Color(overlayColor), blendMode)
+        }
+        else -> null
+    }
+
+    Image(
+        bitmap = bitmap.asImageBitmap(),
+        contentDescription = "pet",
+        modifier = Modifier.size(size),
+        colorFilter = colorFilter
+    )
+}
+
+/**
  * PetState 기반 자동 애니메이션
  */
 @Composable
@@ -296,6 +475,36 @@ fun PetSpriteFromState(
         petType = petState.petType,
         stage = petState.stage,
         animationType = animationType,
+        size = sizeDp,
+        monochrome = monochrome,
+        modifier = modifier,
+        applyDisplayScale = applyDisplayScale
+    )
+}
+
+/**
+ * PetState 기반 자동 애니메이션 with 장비 시스템
+ */
+@Composable
+fun PetSpriteFromStateWithEquipment(
+    petState: PetState,
+    equipmentState: EquipmentState,
+    isWalking: Boolean,
+    progressPercent: Int,
+    modifier: Modifier = Modifier,
+    baseSizeDp: Int = 96,
+    monochrome: Boolean = true,
+    isNightMode: Boolean = false,
+    applyDisplayScale: Boolean = true
+) {
+    val animationType = petState.getCurrentAnimationType(isWalking, progressPercent, isNightMode)
+    val sizeDp = petState.getSizeDp(baseSizeDp).dp
+
+    PetSpriteV2WithEquipment(
+        petType = petState.petType,
+        stage = petState.stage,
+        animationType = animationType,
+        equipmentState = equipmentState,
         size = sizeDp,
         monochrome = monochrome,
         modifier = modifier,

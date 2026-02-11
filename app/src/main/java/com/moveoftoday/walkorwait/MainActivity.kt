@@ -100,6 +100,16 @@ class MainActivity : ComponentActivity() {
             preferenceManager = PreferenceManager(this) // 하위 호환성을 위해 유지
             notificationHelper = NotificationHelper(this)
 
+            // 장비 시스템 초기화
+            Log.d(TAG, "Initializing equipment system")
+            preferenceManager.initializeDefaultEquipment()
+            val newEquipment = preferenceManager.checkAndUnlockNewEquipment()
+            if (newEquipment.isNotEmpty()) {
+                newEquipment.forEach { equipment ->
+                    Log.d(TAG, "New equipment unlocked: ${equipment.displayName}")
+                }
+            }
+
             Log.d(TAG, "Loading today steps")
             stepCount.intValue = repository.getTodaySteps()
             Log.d(TAG, "Today steps: ${stepCount.intValue}")
@@ -125,6 +135,7 @@ class MainActivity : ComponentActivity() {
                         WalkOrWaitScreen(
                             steps = stepCount.intValue,
                             preferenceManager = preferenceManager,
+                            stepSensorManager = stepSensorManager,
                             modifier = Modifier.padding(innerPadding)
                         )
                     }
@@ -369,7 +380,8 @@ class MainActivity : ComponentActivity() {
 fun WalkOrWaitScreen(
     modifier: Modifier = Modifier,
     steps: Int = 0,
-    preferenceManager: PreferenceManager? = null
+    preferenceManager: PreferenceManager? = null,
+    stepSensorManager: StepSensorManager? = null
 ) {
     val context = LocalContext.current
     val hapticManager = remember { HapticManager(context) }
@@ -499,7 +511,14 @@ fun WalkOrWaitScreen(
     // Get pet info from Firebase or local - 동기화된 데이터 우선 사용
     var petTypeName by remember { mutableStateOf(userSettings?.petType ?: preferenceManager?.getPetType() ?: "DOG1") }
     var petType by remember { mutableStateOf(PetType.entries.find { it.name == petTypeName } ?: PetType.DOG1) }
-    var petName by remember { mutableStateOf(userSettings?.petName ?: preferenceManager?.getPetName() ?: "멍이") }
+    var petName by remember {
+        mutableStateOf(
+            userSettings?.petName
+            ?: preferenceManager?.getPetNameV2()?.takeIf { it.isNotBlank() }
+            ?: preferenceManager?.getPetName()
+            ?: "멍이"
+        )
+    }
 
     // V2 펫 상태 (새로운 진화 시스템)
     var petStateV2 by remember { mutableStateOf(preferenceManager?.let { PetSystemV2.getPetState(it) }) }
@@ -533,6 +552,36 @@ fun WalkOrWaitScreen(
             petTypeName = it.petType
             petType = PetType.entries.find { p -> p.name == it.petType } ?: PetType.DOG1
             petName = it.petName
+
+            // Firebase에서 가져온 V1 데이터를 V2로 자동 마이그레이션
+            val existingV2Type = preferenceManager?.getPetTypeV2()
+            val existingV2Name = preferenceManager?.getPetNameV2()
+
+            // V2 데이터가 없으면 V1 → V2 마이그레이션
+            if (existingV2Type == null || existingV2Name.isNullOrBlank()) {
+                val petTypeV2 = try {
+                    when (petTypeName) {
+                        "DOG1", "DOG2", "DOG3" -> com.moveoftoday.walkorwait.pet.PetTypeV2.SHIBA
+                        "CAT1", "CAT2" -> com.moveoftoday.walkorwait.pet.PetTypeV2.CAT
+                        else -> com.moveoftoday.walkorwait.pet.PetTypeV2.SHIBA
+                    }
+                } catch (e: Exception) {
+                    com.moveoftoday.walkorwait.pet.PetTypeV2.SHIBA
+                }
+
+                preferenceManager?.savePetTypeV2(petTypeV2)
+                preferenceManager?.savePetNameV2(petName)
+
+                // V2 초기화 상태가 아니면 초기 레벨/행복도 설정
+                if (preferenceManager?.isPetV2Initialized() != true) {
+                    preferenceManager?.savePetLevelV2(com.moveoftoday.walkorwait.pet.PetLevel(level = 1, currentExp = 0, totalExp = 0))
+                    preferenceManager?.savePetHappinessV2(100)
+                }
+
+                petStateV2 = preferenceManager?.let { pm -> com.moveoftoday.walkorwait.pet.PetSystemV2.getPetState(pm) }
+
+                android.util.Log.d("MainActivity", "✅ Firebase sync V1 → V2 migration: $petTypeName → ${petTypeV2.name}, name: $petName")
+            }
         }
     }
 
@@ -626,6 +675,22 @@ fun WalkOrWaitScreen(
                 petName = selectedPetName
                 // V2 상태 새로고침
                 petStateV2 = preferenceManager?.let { com.moveoftoday.walkorwait.pet.PetSystemV2.getPetState(it) }
+
+                // Firebase에 튜토리얼 완료 저장
+                preferenceManager?.let { prefs ->
+                    repository.saveTutorialCompletionData(
+                        lockedApps = prefs.getLockedApps(),
+                        blockingPeriods = prefs.getBlockingPeriods(),
+                        controlDays = prefs.getControlDays(),
+                        goal = prefs.getGoal(),
+                        deposit = prefs.getDeposit(),
+                        controlStartDate = prefs.getControlStartDate(),
+                        controlEndDate = prefs.getControlEndDate(),
+                        petType = selectedPetTypeV2.name,  // V2 펫 타입 이름
+                        petName = selectedPetName
+                    )
+                }
+
                 showPetOnboarding = false
                 // 튜토리얼 완료 후 실제 목표 설정 화면 표시
                 showRealGoalSetup = true
@@ -642,11 +707,31 @@ fun WalkOrWaitScreen(
                     petName = restoredPetNameV2
                     petStateV2 = preferenceManager?.let { com.moveoftoday.walkorwait.pet.PetSystemV2.getPetState(it) }
                 } else {
-                    // V1 데이터로 폴백
+                    // V1 데이터로 폴백 + V2로 마이그레이션
                     val restoredPetTypeName = preferenceManager?.getPetType()
                     val restoredPetName = preferenceManager?.getPetName() ?: "반려동물"
                     petTypeName = restoredPetTypeName ?: "DOG1"
                     petName = restoredPetName
+
+                    // V1 → V2 자동 마이그레이션
+                    val petTypeV2 = try {
+                        // V1 타입을 V2로 매핑 (DOG1 → SHIBA, CAT1 → CAT 등)
+                        when (petTypeName) {
+                            "DOG1", "DOG2", "DOG3" -> com.moveoftoday.walkorwait.pet.PetTypeV2.SHIBA
+                            "CAT1", "CAT2" -> com.moveoftoday.walkorwait.pet.PetTypeV2.CAT
+                            else -> com.moveoftoday.walkorwait.pet.PetTypeV2.SHIBA
+                        }
+                    } catch (e: Exception) {
+                        com.moveoftoday.walkorwait.pet.PetTypeV2.SHIBA
+                    }
+
+                    preferenceManager?.savePetTypeV2(petTypeV2)
+                    preferenceManager?.savePetNameV2(petName)
+                    preferenceManager?.savePetLevelV2(com.moveoftoday.walkorwait.pet.PetLevel(level = 1, currentExp = 0, totalExp = 0))
+                    preferenceManager?.savePetHappinessV2(100)
+                    petStateV2 = preferenceManager?.let { com.moveoftoday.walkorwait.pet.PetSystemV2.getPetState(it) }
+
+                    android.util.Log.d("MainActivity", "✅ V1 → V2 migration: $petTypeName → ${petTypeV2.name}, name: $petName")
                 }
 
                 showPetOnboarding = false
@@ -749,25 +834,61 @@ fun WalkOrWaitScreen(
     var showChallengeScreen by remember { mutableStateOf(false) }
     var showNotificationPanel by remember { mutableStateOf(false) }
 
-    // 알림 상태
-    val notifications = rememberNotifications(context, preferenceManager)
-
     // 챌린지 관련 상태
     val challengeManager = remember { ChallengeManager.getInstance(context) }
     val currentChallengeProgress by challengeManager.currentProgress.collectAsState()
+    val backgroundChallengeProgress by challengeManager.backgroundProgress.collectAsState()
+
+    // 알림 상태 (챌린지 매니저, 센서 매니저 연결)
+    val notifications = rememberNotifications(
+        context = context,
+        preferenceManager = preferenceManager,
+        stepSensorManager = stepSensorManager,
+        challengeManager = challengeManager
+    )
     var selectedChallenge by remember { mutableStateOf<Challenge?>(null) }
     var showChallengeTimer by remember { mutableStateOf(false) }
     var showChallengeCompleteDialog by remember { mutableStateOf(false) }
     var showChallengeEndedDialog by remember { mutableStateOf(false) }
     var completedChallenge by remember { mutableStateOf<Challenge?>(null) }
+    var showRunningChallengeWarning by remember { mutableStateOf(false) }
+    var pendingChallenge by remember { mutableStateOf<Challenge?>(null) }
 
-    // 챌린지 타이머 업데이트 (1초마다)
-    LaunchedEffect(currentChallengeProgress?.status) {
-        if (currentChallengeProgress?.status == ChallengeStatus.RUNNING) {
+    // 스킨 해금 다이얼로그 상태
+    val justUnlockedSkin by challengeManager.justUnlockedSkin.collectAsState()
+    var showSkinUnlockDialog by remember { mutableStateOf(false) }
+    var skinToShow by remember { mutableStateOf<com.moveoftoday.walkorwait.pet.PetSkin?>(null) }
+
+    // 일반 챌린지 타이머 업데이트 (1초마다) - TIME_BASED (독서, 명상, 공부, 플랭크)
+    LaunchedEffect(currentChallengeProgress?.status, currentChallengeProgress?.challenge?.isRepBased) {
+        val progress = currentChallengeProgress
+        if (progress?.status == ChallengeStatus.RUNNING && progress.challenge.isRepBased == false && !progress.challenge.isBackgroundTimer) {
             while (currentChallengeProgress?.status == ChallengeStatus.RUNNING) {
                 delay(1000)
                 challengeManager.updateTimer()
             }
+        }
+    }
+
+    // 백그라운드 챌린지 타이머 업데이트 (1초마다) - BACKGROUND_TIMER (간헐적 단식)
+    LaunchedEffect(backgroundChallengeProgress?.status) {
+        val progress = backgroundChallengeProgress
+        if (progress?.status == ChallengeStatus.RUNNING) {
+            // 즉시 한 번 업데이트 (startTime 기준 재계산)
+            challengeManager.updateBackgroundTimer()
+
+            while (backgroundChallengeProgress?.status == ChallengeStatus.RUNNING) {
+                delay(1000)
+                challengeManager.updateBackgroundTimer()
+            }
+        }
+    }
+
+    // 스킨 해금 다이얼로그 표시 (챌린지 완료 후 새 스킨 획득 시)
+    LaunchedEffect(justUnlockedSkin) {
+        if (justUnlockedSkin != null) {
+            skinToShow = justUnlockedSkin
+            showSkinUnlockDialog = true
         }
     }
 
@@ -793,8 +914,14 @@ fun WalkOrWaitScreen(
                             val progress = challengeManager.currentProgress.value
                             if (progress != null &&
                                 (progress.status == ChallengeStatus.RUNNING || progress.status == ChallengeStatus.PAUSED)) {
+
+                                // 백그라운드 타이머는 조용히 계속 진행 (토스트 없음)
+                                if (progress.challenge.isBackgroundTimer) {
+                                    return@launch
+                                }
+
                                 challengeManager.onAppExit()
-                                // 토스트 알림 (메인 스레드에서 실행)
+                                // 토스트 알림 (메인 스레드에서 실행) - 일반 챌린지만
                                 kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
                                     val exitCount = challengeManager.currentProgress.value?.exitCount ?: 0
                                     val message = if (exitCount >= 2) {
@@ -826,9 +953,10 @@ fun WalkOrWaitScreen(
     // 설정 화면 닫을 때 펫 정보 및 목표 단위 다시 로드
     LaunchedEffect(showSettingsScreen) {
         if (!showSettingsScreen) {
-            // 펫 정보 다시 로드
+            // 펫 정보 다시 로드 (V2 우선, V1 폴백)
             val savedPetTypeName = preferenceManager?.getPetType()
-            val savedPetName = preferenceManager?.getPetName()
+            val savedPetName = preferenceManager?.getPetNameV2()?.takeIf { it.isNotBlank() }
+                ?: preferenceManager?.getPetName()
             if (savedPetTypeName != null && savedPetTypeName != petTypeName) {
                 petTypeName = savedPetTypeName
                 petType = PetType.entries.find { it.name == savedPetTypeName } ?: PetType.DOG1
@@ -901,6 +1029,16 @@ fun WalkOrWaitScreen(
                 val today = java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.getDefault()).format(java.util.Date())
                 preferenceManager?.saveDailyGoal(today, goal.toInt())
                 preferenceManager?.saveDailySteps(today, currentProgress.toInt())
+
+                // 🎁 스킨 자동 해금 체크 (스트릭, 레벨 등 조건 충족 시)
+                val newSkins = preferenceManager?.checkAndUnlockNewSkins() ?: emptyList()
+                if (newSkins.isNotEmpty()) {
+                    val skinNames = newSkins.joinToString { skin -> skin.displayName }
+                    android.util.Log.d("MainActivity", "🎁 새 스킨 해금: $skinNames")
+                    // 스킨 해금 다이얼로그 표시 (첫 번째 스킨)
+                    skinToShow = newSkins.first()
+                    showSkinUnlockDialog = true
+                }
 
                 // Analytics: 목표 달성 추적
                 AnalyticsManager.trackGoalAchieved(goal.toInt(), currentProgress.toInt())
@@ -976,43 +1114,87 @@ fun WalkOrWaitScreen(
     val currentText = if (goalUnit == "km") String.format("%.2f", currentProgressDisplay) else currentProgressDisplay.toInt().toString()
     val goalText = if (goalUnit == "km") String.format("%.2f", goalDisplay) else goal.toString()
 
-    // 챌린지 타이머 다이얼로그
-    if (showChallengeTimer && currentChallengeProgress != null) {
-        ChallengeTimerDialog(
-            progress = currentChallengeProgress!!,
-            onStart = {
-                challengeManager.beginChallenge()
-            },
-            onResume = {
-                challengeManager.resumeChallenge()
-            },
-            onCancel = {
-                challengeManager.cancelChallenge()
-                showChallengeTimer = false
-                selectedChallenge = null
-            },
-            onComplete = {
-                completedChallenge = currentChallengeProgress?.challenge
-                showChallengeTimer = false
-                showChallengeCompleteDialog = true
-                challengeManager.clearCurrentProgress()
-                // 진동 + 알림음
-                hapticManager?.success()
-                try {
-                    val notificationUri = android.media.RingtoneManager.getDefaultUri(android.media.RingtoneManager.TYPE_NOTIFICATION)
-                    android.media.RingtoneManager.getRingtone(context, notificationUri)?.play()
-                } catch (e: Exception) { /* 무시 */ }
-            },
-            onEnded = {
-                completedChallenge = currentChallengeProgress?.challenge
-                showChallengeTimer = false
-                showChallengeEndedDialog = true
-                challengeManager.clearCurrentProgress()
-            },
-            onDebugComplete = {
-                challengeManager.debugCompleteChallenge()
-            }
-        )
+    // 챌린지 다이얼로그 (타입에 따라 다름)
+    // selectedChallenge 타입에 맞는 progress 선택
+    val displayProgress = if (selectedChallenge?.isBackgroundTimer == true) {
+        backgroundChallengeProgress
+    } else {
+        currentChallengeProgress
+    }
+
+    if (showChallengeTimer && displayProgress != null) {
+        val progress = displayProgress
+
+        if (progress.challenge.isRepBased) {
+            // 횟수 기반 챌린지 (스쿼트)
+            RepBasedChallengeDialog(
+                progress = progress,
+                onStart = {
+                    challengeManager.beginChallenge()
+                },
+                onCancel = {
+                    challengeManager.cancelChallenge()
+                    showChallengeTimer = false
+                    selectedChallenge = null
+                },
+                onComplete = {
+                    completedChallenge = currentChallengeProgress?.challenge
+                    showChallengeTimer = false
+                    showChallengeCompleteDialog = true
+                    challengeManager.clearCurrentProgress()
+                    // 진동 + 알림음
+                    hapticManager?.success()
+                    try {
+                        val notificationUri = android.media.RingtoneManager.getDefaultUri(android.media.RingtoneManager.TYPE_NOTIFICATION)
+                        android.media.RingtoneManager.getRingtone(context, notificationUri)?.play()
+                    } catch (e: Exception) { /* 무시 */ }
+                },
+                onDebugComplete = {
+                    challengeManager.debugCompleteChallenge()
+                }
+            )
+        } else {
+            // 타이머 기반 챌린지 (독서, 명상, 공부, 플랭크, 단식)
+            ChallengeTimerDialog(
+                progress = progress,
+                onStart = { startTimeOffsetHours ->
+                    challengeManager.beginChallenge(startTimeOffsetHours)
+                },
+                onResume = {
+                    challengeManager.resumeChallenge()
+                },
+                onCancel = {
+                    challengeManager.cancelChallenge()
+                    showChallengeTimer = false
+                    selectedChallenge = null
+                },
+                onCheckLater = {
+                    // 나중에 확인하기 - 다이얼로그만 닫기
+                    showChallengeTimer = false
+                },
+                onComplete = {
+                    completedChallenge = currentChallengeProgress?.challenge
+                    showChallengeTimer = false
+                    showChallengeCompleteDialog = true
+                    challengeManager.clearCurrentProgress()
+                    // 진동 + 알림음
+                    hapticManager?.success()
+                    try {
+                        val notificationUri = android.media.RingtoneManager.getDefaultUri(android.media.RingtoneManager.TYPE_NOTIFICATION)
+                        android.media.RingtoneManager.getRingtone(context, notificationUri)?.play()
+                    } catch (e: Exception) { /* 무시 */ }
+                },
+                onEnded = {
+                    completedChallenge = currentChallengeProgress?.challenge
+                    showChallengeTimer = false
+                    showChallengeEndedDialog = true
+                    challengeManager.clearCurrentProgress()
+                },
+                onDebugComplete = {
+                    challengeManager.debugCompleteChallenge()
+                }
+            )
+        }
     }
 
     // 챌린지 완료 다이얼로그
@@ -1037,14 +1219,92 @@ fun WalkOrWaitScreen(
         )
     }
 
+    // 진행 중인 챌린지가 있을 때 다른 챌린지 선택 시 경고
+    if (showRunningChallengeWarning && currentChallengeProgress != null && pendingChallenge != null) {
+        androidx.compose.material3.AlertDialog(
+            onDismissRequest = {
+                showRunningChallengeWarning = false
+                pendingChallenge = null
+            },
+            title = {
+                Text(
+                    text = "진행 중인 챌린지가 있어요",
+                    fontWeight = FontWeight.Bold
+                )
+            },
+            text = {
+                Column {
+                    Text(
+                        text = "현재 \"${currentChallengeProgress!!.challenge.name}\"이(가) 진행 중입니다.",
+                        fontSize = 14.sp
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = "새로운 챌린지를 시작하려면 먼저 진행 중인 챌린지를 취소해주세요.",
+                        fontSize = 14.sp,
+                        color = Color(0xFF666666)
+                    )
+                }
+            },
+            confirmButton = {
+                androidx.compose.material3.TextButton(
+                    onClick = {
+                        // 진행 중인 챌린지 다이얼로그 열기
+                        showRunningChallengeWarning = false
+                        pendingChallenge = null
+                        showChallengeTimer = true
+                    }
+                ) {
+                    Text("진행 중인 챌린지 확인", fontWeight = FontWeight.Bold)
+                }
+            },
+            dismissButton = {
+                androidx.compose.material3.TextButton(
+                    onClick = {
+                        showRunningChallengeWarning = false
+                        pendingChallenge = null
+                    }
+                ) {
+                    Text("취소")
+                }
+            }
+        )
+    }
+
     if (showChallengeScreen) {
         ChallengeScreen(
             onBack = { showChallengeScreen = false },
             onChallengeSelected = { challenge ->
                 selectedChallenge = challenge
-                // 챌린지 시작 준비 (NOT_STARTED 상태로)
-                challengeManager.prepareChallenge(challenge)
-                showChallengeTimer = true
+
+                // 선택한 챌린지 타입에 맞는 progress 찾기
+                val relevantProgress = if (challenge.isBackgroundTimer) {
+                    backgroundChallengeProgress
+                } else {
+                    currentChallengeProgress
+                }
+
+                // 해당 progress가 진행 중인지 확인
+                if (relevantProgress != null &&
+                    relevantProgress.challenge.type == challenge.type &&
+                    (relevantProgress.status == ChallengeStatus.RUNNING || relevantProgress.status == ChallengeStatus.PAUSED)) {
+                    // 같은 챌린지 재선택 - 기존 progress 사용
+                    showChallengeTimer = true
+                } else {
+                    // 다른 챌린지를 선택한 경우
+                    // 일반 챌린지끼리만 충돌 체크
+                    val foregroundProgress = currentChallengeProgress
+                    if (!challenge.isBackgroundTimer && foregroundProgress != null &&
+                        (foregroundProgress.status == ChallengeStatus.RUNNING || foregroundProgress.status == ChallengeStatus.PAUSED)) {
+                        // 일반 챌린지가 진행 중인데 다른 일반 챌린지 선택 - 경고
+                        pendingChallenge = challenge
+                        showRunningChallengeWarning = true
+                    } else {
+                        // 새로운 챌린지 시작 준비
+                        challengeManager.prepareChallenge(challenge)
+                        showChallengeTimer = true
+                    }
+                }
                 showChallengeScreen = false
             }
         )
@@ -1079,7 +1339,7 @@ fun WalkOrWaitScreen(
                 hapticManager.click()
                 showNotificationPanel = true
             },
-            notificationCount = notifications.size,
+            notificationCount = notifications.count { it.type != NotificationType.STATUS },  // 센서/백그라운드 챌린지 제외
             onChallengeClick = {
                 hapticManager.click()
                 showChallengeScreen = true
@@ -1090,8 +1350,35 @@ fun WalkOrWaitScreen(
                 val challenge = challengeManager.allChallenges.find { it.type == challengeType }
                 if (challenge != null) {
                     selectedChallenge = challenge
-                    challengeManager.prepareChallenge(challenge)
-                    showChallengeTimer = true
+
+                    // 선택한 챌린지 타입에 맞는 progress 찾기
+                    val relevantProgress = if (challenge.isBackgroundTimer) {
+                        backgroundChallengeProgress
+                    } else {
+                        currentChallengeProgress
+                    }
+
+                    // 해당 progress가 진행 중인지 확인
+                    if (relevantProgress != null &&
+                        relevantProgress.challenge.type == challenge.type &&
+                        (relevantProgress.status == ChallengeStatus.RUNNING || relevantProgress.status == ChallengeStatus.PAUSED)) {
+                        // 같은 챌린지 재선택 - 기존 progress 사용
+                        showChallengeTimer = true
+                    } else {
+                        // 다른 챌린지를 선택한 경우
+                        // 일반 챌린지끼리만 충돌 체크
+                        val currentProgress = currentChallengeProgress
+                        if (!challenge.isBackgroundTimer && currentProgress != null &&
+                            (currentProgress.status == ChallengeStatus.RUNNING || currentProgress.status == ChallengeStatus.PAUSED)) {
+                            // 일반 챌린지가 진행 중인데 다른 일반 챌린지 선택 - 경고
+                            pendingChallenge = challenge
+                            showRunningChallengeWarning = true
+                        } else {
+                            // 새로운 챌린지 시작 준비
+                            challengeManager.prepareChallenge(challenge)
+                            showChallengeTimer = true
+                        }
+                    }
                 }
             },
             hapticManager = hapticManager,
@@ -1193,7 +1480,8 @@ fun WalkOrWaitScreen(
             successDays = preferenceManager?.getSuccessDays() ?: 0,
             totalKm = totalDistanceKm,
             isFirstWeek = preferenceManager?.isFirstWeekOfStreak() ?: false,
-            streakStartDayOfWeek = preferenceManager?.getStreakStartDayOfWeek() ?: 0
+            streakStartDayOfWeek = preferenceManager?.getStreakStartDayOfWeek() ?: 0,
+            petStateV2 = petStateV2  // V2 펫 적용
         )
     }
 
@@ -1205,6 +1493,30 @@ fun WalkOrWaitScreen(
             newLevel = levelUpNewLevel,
             onDismiss = { showLevelUpDialog = false },
             hapticManager = hapticManager
+        )
+    }
+
+    // 스킨 해금 축하 다이얼로그
+    if (showSkinUnlockDialog && skinToShow != null) {
+        SkinUnlockDialog(
+            skin = skinToShow!!,
+            petTypeV2 = petStateV2?.petType,
+            petStage = petStateV2?.stage ?: com.moveoftoday.walkorwait.pet.PetGrowthStage.BABY,
+            hapticManager = hapticManager,
+            onEquip = {
+                // 스킨 장착
+                preferenceManager?.savePetSkin(skinToShow!!.id)
+                challengeManager.clearJustUnlockedSkin()
+                showSkinUnlockDialog = false
+                skinToShow = null
+                android.widget.Toast.makeText(context, "스킨을 장착했어요!", android.widget.Toast.LENGTH_SHORT).show()
+            },
+            onLater = {
+                // 나중에
+                challengeManager.clearJustUnlockedSkin()
+                showSkinUnlockDialog = false
+                skinToShow = null
+            }
         )
     }
 

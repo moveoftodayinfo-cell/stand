@@ -3,7 +3,7 @@
     android:id="@+id/widget_container"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/widget_background"
+    android:background="@drawable/widget_background_2x2"
     android:padding="10dp"
     android:orientation="vertical">
 
@@ -26,6 +26,7 @@
                 android:layout_height="20dp"
                 android:layout_gravity="bottom|center_horizontal"
                 android:scaleType="fitCenter"
+                android:src="@drawable/ic_pet_placeholder"
                 android:contentDescription="pet" />
 
             <TextView
@@ -89,10 +90,10 @@
             android:layout_height="0dp"
             android:layout_weight="1"
             android:orientation="horizontal">
-            <TextView android:id="@+id/cell_00" style="@style/SudokuCell" />
+            <TextView android:id="@+id/cell_00" style="@style/SudokuCell" android:text="1" />
             <TextView android:id="@+id/cell_01" style="@style/SudokuCell" />
             <FrameLayout android:layout_width="1dp" android:layout_height="match_parent" android:background="#222222" />
-            <TextView android:id="@+id/cell_02" style="@style/SudokuCell" />
+            <TextView android:id="@+id/cell_02" style="@style/SudokuCell" android:text="3" />
             <TextView android:id="@+id/cell_03" style="@style/SudokuCell" />
         </LinearLayout>
 
@@ -103,10 +104,10 @@
             android:layout_weight="1"
             android:orientation="horizontal">
             <TextView android:id="@+id/cell_10" style="@style/SudokuCell" />
-            <TextView android:id="@+id/cell_11" style="@style/SudokuCell" />
+            <TextView android:id="@+id/cell_11" style="@style/SudokuCell" android:text="4" />
             <FrameLayout android:layout_width="1dp" android:layout_height="match_parent" android:background="#222222" />
             <TextView android:id="@+id/cell_12" style="@style/SudokuCell" />
-            <TextView android:id="@+id/cell_13" style="@style/SudokuCell" />
+            <TextView android:id="@+id/cell_13" style="@style/SudokuCell" android:text="2" />
         </LinearLayout>
 
         <!-- Horizontal divider -->
@@ -121,10 +122,10 @@
             android:layout_height="0dp"
             android:layout_weight="1"
             android:orientation="horizontal">
-            <TextView android:id="@+id/cell_20" style="@style/SudokuCell" />
+            <TextView android:id="@+id/cell_20" style="@style/SudokuCell" android:text="2" />
             <TextView android:id="@+id/cell_21" style="@style/SudokuCell" />
             <FrameLayout android:layout_width="1dp" android:layout_height="match_parent" android:background="#222222" />
-            <TextView android:id="@+id/cell_22" style="@style/SudokuCell" />
+            <TextView android:id="@+id/cell_22" style="@style/SudokuCell" android:text="4" />
             <TextView android:id="@+id/cell_23" style="@style/SudokuCell" />
         </LinearLayout>
 
@@ -135,10 +136,10 @@
             android:layout_weight="1"
             android:orientation="horizontal">
             <TextView android:id="@+id/cell_30" style="@style/SudokuCell" />
-            <TextView android:id="@+id/cell_31" style="@style/SudokuCell" />
+            <TextView android:id="@+id/cell_31" style="@style/SudokuCell" android:text="1" />
             <FrameLayout android:layout_width="1dp" android:layout_height="match_parent" android:background="#222222" />
             <TextView android:id="@+id/cell_32" style="@style/SudokuCell" />
-            <TextView android:id="@+id/cell_33" style="@style/SudokuCell" />
+            <TextView android:id="@+id/cell_33" style="@style/SudokuCell" android:text="3" />
         </LinearLayout>
     </LinearLayout>
 

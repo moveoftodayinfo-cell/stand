@@ -80,6 +80,11 @@ fun StreakCelebrationDialog(
     val scope = rememberCoroutineScope()
     val kenneyFont = rememberKenneyFont()
 
+    // 장비 상태 (장비 시스템)
+    val equipmentState = remember {
+        PreferenceManager(context).getEquipmentState()
+    }
+
     // Graphics layers for capture
     val fullCardGraphicsLayer = rememberGraphicsLayer()
     val stickerGraphicsLayer = rememberGraphicsLayer()
@@ -164,7 +169,8 @@ fun StreakCelebrationDialog(
                             isKmMode = isKmMode,
                             currentDistance = currentDistance,
                             safeCurrentSteps = safeCurrentSteps,
-                            petStateV2 = petStateV2
+                            petStateV2 = petStateV2,
+                            equipmentState = equipmentState
                         )
                     }
                     1 -> {
@@ -176,7 +182,8 @@ fun StreakCelebrationDialog(
                             petSpeech = petSpeech,
                             kenneyFont = kenneyFont,
                             graphicsLayer = stickerGraphicsLayer,
-                            petStateV2 = petStateV2
+                            petStateV2 = petStateV2,
+                            equipmentState = equipmentState
                         )
                     }
                 }
@@ -279,7 +286,8 @@ private fun FullCardContent(
     isKmMode: Boolean = false,
     currentDistance: Double = 0.0,
     safeCurrentSteps: Int = 0,
-    petStateV2: PetState? = null
+    petStateV2: PetState? = null,
+    equipmentState: EquipmentState
 ) {
     val stripeWidth = 4.dp
 
@@ -367,8 +375,9 @@ private fun FullCardContent(
                     contentAlignment = Alignment.Center
                 ) {
                     if (petStateV2 != null) {
-                        PetSpriteFromState(
+                        PetSpriteFromStateWithEquipment(
                             petState = petStateV2,
+                            equipmentState = equipmentState,
                             isWalking = false,
                             progressPercent = 0,
                             baseSizeDp = 160,
@@ -641,7 +650,8 @@ private fun StickerContent(
     petSpeech: androidx.compose.ui.text.AnnotatedString,
     kenneyFont: androidx.compose.ui.text.font.FontFamily,
     graphicsLayer: androidx.compose.ui.graphics.layer.GraphicsLayer,
-    petStateV2: PetState? = null
+    petStateV2: PetState? = null,
+    equipmentState: EquipmentState
 ) {
     // Dialog wrapper (내용에 맞게 크기 조절)
     Box(
@@ -744,8 +754,9 @@ private fun StickerContent(
                         contentAlignment = Alignment.Center
                     ) {
                         if (petStateV2 != null) {
-                            PetSpriteFromState(
+                            PetSpriteFromStateWithEquipment(
                                 petState = petStateV2,
+                                equipmentState = equipmentState,
                                 isWalking = false,
                                 progressPercent = 0,
                                 baseSizeDp = 140,

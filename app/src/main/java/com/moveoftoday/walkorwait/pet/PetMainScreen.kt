@@ -156,6 +156,20 @@ fun PetMainScreen(
     val context = androidx.compose.ui.platform.LocalContext.current
     val preferenceManager = remember { com.moveoftoday.walkorwait.PreferenceManager(context) }
 
+    // 장비 상태 (장비 시스템) - 스킨 변경 감지를 위해 State로 관리
+    var currentSkinId by remember { mutableStateOf(preferenceManager.getPetSkin()) }
+
+    // 스킨 변경 감지 (화면 재진입 시)
+    LaunchedEffect(Unit) {
+        currentSkinId = preferenceManager.getPetSkin()
+        android.util.Log.d("PetMainScreen", "🔄 Skin refreshed on screen entry: $currentSkinId")
+    }
+
+    val equipmentState = remember(currentSkinId) {
+        android.util.Log.d("PetMainScreen", "🎨 Loading equipmentState with skinId: $currentSkinId")
+        preferenceManager.getEquipmentState()
+    }
+
     // 목표 단위 (km 또는 steps)
     val goalUnit = preferenceManager.getGoalUnit()
     val isKmMode = goalUnit == "km"
@@ -561,6 +575,7 @@ fun PetMainScreen(
             val view = androidx.compose.ui.platform.LocalView.current
 
             // 펫 스프라이트 (절대 위치 + wanderX 수평 이동)
+            @OptIn(ExperimentalFoundationApi::class)
             Box(
                 modifier = Modifier
                     .align(Alignment.TopCenter)
@@ -604,9 +619,10 @@ fun PetMainScreen(
                         modifier = Modifier.graphicsLayer(scaleX = mirrorScale)
                     ) {
                         if (petStateV2 != null) {
-                            // V2 스프라이트
-                            PetSpriteFromState(
+                            // V2 스프라이트 with 장비
+                            PetSpriteFromStateWithEquipment(
                                 petState = petStateV2,
+                                equipmentState = equipmentState,
                                 isWalking = isPetMoving,
                                 progressPercent = progressPercent,
                                 baseSizeDp = 120,

@@ -31,13 +31,16 @@ import kotlinx.coroutines.delay
 @Composable
 fun ChallengeTimerDialog(
     progress: ChallengeProgress,
-    onStart: () -> Unit,
+    onStart: (startTimeOffsetHours: Int) -> Unit,
     onResume: () -> Unit,
     onCancel: () -> Unit,
+    onCheckLater: () -> Unit = {},
     onComplete: () -> Unit,
     onEnded: () -> Unit,
     onDebugComplete: () -> Unit = {}
 ) {
+    // 시작 시간 offset (간헐적 단식 전용)
+    var startTimeOffsetHours by remember { mutableIntStateOf(0) }
     // 타이머 상태에 따른 처리
     LaunchedEffect(progress.status) {
         when (progress.status) {
@@ -102,7 +105,22 @@ fun ChallengeTimerDialog(
                 // 타이머 원형
                 when (progress.status) {
                     ChallengeStatus.NOT_STARTED -> {
-                        StartTimerCircle(onClick = onStart)
+                        // 간헐적 단식은 시작 시간 선택 UI
+                        val isFasting = progress.challenge.type in listOf(
+                            ChallengeType.FASTING_16_8,
+                            ChallengeType.FASTING_18_6,
+                            ChallengeType.FASTING_20_4
+                        )
+
+                        if (isFasting) {
+                            FastingStartTimeSelector(
+                                selectedOffsetHours = startTimeOffsetHours,
+                                onOffsetChanged = { startTimeOffsetHours = it },
+                                onClick = { onStart(startTimeOffsetHours) }
+                            )
+                        } else {
+                            StartTimerCircle(onClick = { onStart(0) })
+                        }
                     }
                     ChallengeStatus.RUNNING -> {
                         RunningTimerCircle(progress = progress)
@@ -123,26 +141,25 @@ fun ChallengeTimerDialog(
 
                 Spacer(modifier = Modifier.height(24.dp))
 
-                // 디버그용: 즉시 완료 버튼
-                if (BuildConfig.DEBUG && (progress.status == ChallengeStatus.RUNNING || progress.status == ChallengeStatus.NOT_STARTED)) {
-                    Box(
+                // 버튼 영역
+                val isFasting = progress.challenge.type in listOf(
+                    ChallengeType.FASTING_16_8,
+                    ChallengeType.FASTING_18_6,
+                    ChallengeType.FASTING_20_4
+                )
+
+                // 백그라운드 타이머(간헐적 단식) 진행 중이면 "나중에 확인하기" 버튼
+                if (isFasting && progress.status == ChallengeStatus.RUNNING) {
+                    Text(
+                        text = "나중에 확인하기",
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFF333333),
                         modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(bottom = 12.dp)
-                            .clip(RoundedCornerShape(12.dp))
-                            .background(Color(0xFFFFCDD2))
-                            .border(2.dp, Color(0xFFE53935), RoundedCornerShape(12.dp))
-                            .clickable { onDebugComplete() }
-                            .padding(12.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            text = "🧪 즉시 완료 (DEBUG)",
-                            fontSize = 14.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = Color(0xFFE53935)
-                        )
-                    }
+                            .clickable { onCheckLater() }
+                            .padding(12.dp)
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
                 }
 
                 // 다음에 하기 버튼
@@ -363,38 +380,91 @@ private fun PausedTimerCircle(
 @Composable
 private fun StatusMessage(progress: ChallengeProgress) {
     val elapsedMinutes = progress.elapsedSeconds / 60
+    val elapsedHours = elapsedMinutes / 60
+    val remainingHours = progress.remainingSeconds / 3600
+
+    // 간헐적 단식 챌린지 체크
+    val isFasting = progress.challenge.type in listOf(
+        ChallengeType.FASTING_16_8,
+        ChallengeType.FASTING_18_6,
+        ChallengeType.FASTING_20_4
+    )
 
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         when (progress.status) {
             ChallengeStatus.NOT_STARTED -> {
-                Text(
-                    text = "${progress.challenge.durationMinutes}분 동안 집중해보세요",
-                    fontSize = 14.sp,
-                    color = Color(0xFF666666),
-                    textAlign = TextAlign.Center
-                )
-                Text(
-                    text = "준비되면 시작 버튼을 눌러주세요",
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color(0xFF333333),
-                    textAlign = TextAlign.Center
-                )
+                if (isFasting) {
+                    val hours = (progress.challenge.durationMinutes / 60).toInt()
+                    Text(
+                        text = "${hours}시간 단식을 시작해보세요",
+                        fontSize = 14.sp,
+                        color = Color(0xFF666666),
+                        textAlign = TextAlign.Center
+                    )
+                    Text(
+                        text = "준비되면 시작 버튼을 눌러주세요",
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFF333333),
+                        textAlign = TextAlign.Center
+                    )
+                } else {
+                    val timeText = if (progress.challenge.durationMinutes < 1) {
+                        "${(progress.challenge.durationMinutes * 60).toInt()}초"
+                    } else {
+                        "${progress.challenge.durationMinutes.toInt()}분"
+                    }
+                    Text(
+                        text = "${timeText} 동안 집중해보세요",
+                        fontSize = 14.sp,
+                        color = Color(0xFF666666),
+                        textAlign = TextAlign.Center
+                    )
+                    Text(
+                        text = "준비되면 시작 버튼을 눌러주세요",
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFF333333),
+                        textAlign = TextAlign.Center
+                    )
+                }
             }
             ChallengeStatus.RUNNING -> {
-                Text(
-                    text = "집중하고 있어요!",
-                    fontSize = 14.sp,
-                    color = Color(0xFF666666),
-                    textAlign = TextAlign.Center
-                )
-                Text(
-                    text = "${elapsedMinutes}분 동안 잘 하고 있어요",
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color(0xFF333333),
-                    textAlign = TextAlign.Center
-                )
+                if (isFasting) {
+                    Text(
+                        text = "단식 중입니다",
+                        fontSize = 14.sp,
+                        color = Color(0xFF666666),
+                        textAlign = TextAlign.Center
+                    )
+                    val remainingText = if (remainingHours >= 1) {
+                        "${remainingHours}시간 남았어요"
+                    } else {
+                        val remainingMins = progress.remainingSeconds / 60
+                        "${remainingMins}분 남았어요"
+                    }
+                    Text(
+                        text = remainingText,
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFF333333),
+                        textAlign = TextAlign.Center
+                    )
+                } else {
+                    Text(
+                        text = "집중하고 있어요!",
+                        fontSize = 14.sp,
+                        color = Color(0xFF666666),
+                        textAlign = TextAlign.Center
+                    )
+                    Text(
+                        text = "${elapsedMinutes}분 동안 잘 하고 있어요",
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFF333333),
+                        textAlign = TextAlign.Center
+                    )
+                }
             }
             ChallengeStatus.PAUSED -> {
                 Text(
@@ -423,6 +493,19 @@ fun ChallengeCompleteDialog(
     onDismiss: () -> Unit
 ) {
     val kenneyFont = rememberKenneyFont()
+
+    // 간헐적 단식 체크
+    val isFasting = challenge.type in listOf(
+        ChallengeType.FASTING_16_8,
+        ChallengeType.FASTING_18_6,
+        ChallengeType.FASTING_20_4
+    )
+
+    val completeMessage = if (isFasting) {
+        "단식 완료! 이제 식사하세요"
+    } else {
+        "대단해요! 목표를 달성했어요"
+    }
 
     Dialog(
         onDismissRequest = onDismiss,
@@ -459,7 +542,7 @@ fun ChallengeCompleteDialog(
             Spacer(modifier = Modifier.height(8.dp))
 
             Text(
-                text = "대단해요! 목표를 달성했어요",
+                text = completeMessage,
                 fontSize = 14.sp,
                 color = Color(0xFF666666),
                 textAlign = TextAlign.Center
@@ -553,5 +636,134 @@ fun ChallengeEndedDialog(
                 )
             }
         }
+    }
+}
+
+// 간헐적 단식 시작 시간 선택 UI
+@Composable
+private fun FastingStartTimeSelector(
+    selectedOffsetHours: Int,
+    onOffsetChanged: (Int) -> Unit,
+    onClick: () -> Unit
+) {
+    Column(
+        modifier = Modifier.width(280.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        // 설명 텍스트
+        Text(
+            text = "언제 단식을 시작했나요?",
+            fontSize = 16.sp,
+            fontWeight = FontWeight.Bold,
+            color = Color(0xFF333333)
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // 시간 선택 버튼들
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceEvenly
+        ) {
+            listOf(0, 1, 2, 3, 4).forEach { hours ->
+                val isSelected = selectedOffsetHours == hours
+                Box(
+                    modifier = Modifier
+                        .size(48.dp)
+                        .clip(CircleShape)
+                        .background(if (isSelected) Color(0xFF333333) else Color.White)
+                        .border(2.dp, Color(0xFF333333), CircleShape)
+                        .clickable { onOffsetChanged(hours) },
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = if (hours == 0) "지금" else "${hours}h",
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = if (isSelected) Color.White else Color(0xFF333333)
+                    )
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        // 추가 시간 옵션
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceEvenly
+        ) {
+            listOf(5, 6, 7, 8).forEach { hours ->
+                val isSelected = selectedOffsetHours == hours
+                Box(
+                    modifier = Modifier
+                        .size(48.dp)
+                        .clip(CircleShape)
+                        .background(if (isSelected) Color(0xFF333333) else Color.White)
+                        .border(2.dp, Color(0xFF333333), CircleShape)
+                        .clickable { onOffsetChanged(hours) },
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "${hours}h",
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = if (isSelected) Color.White else Color(0xFF333333)
+                    )
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(20.dp))
+
+        // 시작 버튼
+        Box(
+            modifier = Modifier
+                .size(160.dp)
+                .clip(CircleShape)
+                .background(Color.White)
+                .border(3.dp, Color(0xFF333333), CircleShape)
+                .clickable { onClick() },
+            contentAlignment = Alignment.Center
+        ) {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                // 재생 버튼
+                Canvas(modifier = Modifier.size(40.dp)) {
+                    val path = Path().apply {
+                        moveTo(size.width * 0.2f, size.height * 0.1f)
+                        lineTo(size.width * 0.9f, size.height * 0.5f)
+                        lineTo(size.width * 0.2f, size.height * 0.9f)
+                        close()
+                    }
+                    drawPath(path, Color(0xFF333333))
+                }
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Text(
+                    text = "시작하기",
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFF333333)
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        // 선택된 시간 표시
+        Text(
+            text = if (selectedOffsetHours == 0) {
+                "지금부터 단식을 시작합니다"
+            } else {
+                "${selectedOffsetHours}시간 전부터 단식 중입니다"
+            },
+            fontSize = 13.sp,
+            color = Color(0xFF666666),
+            textAlign = TextAlign.Center
+        )
     }
 }

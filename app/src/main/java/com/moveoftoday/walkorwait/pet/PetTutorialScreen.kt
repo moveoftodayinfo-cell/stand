@@ -130,7 +130,9 @@ fun PetOnboardingScreen(
     }
 
     var currentStep by rememberSaveable { mutableIntStateOf(savedStep) }
-    var selectedPetType by remember { mutableStateOf(savedPetType) }
+    // PreferenceManager와 동기화 (recomposition 시 항상 최신 값 사용)
+    val currentSavedPetType = prefManager.getPetTypeV2()
+    var selectedPetType by remember(currentSavedPetType) { mutableStateOf(currentSavedPetType) }
     var petName by remember { mutableStateOf(if (savedStep > 1 && savedPetName.isNotBlank()) savedPetName else "") }
 
     // 단계 변경 시 저장 및 Analytics 추적
@@ -1657,7 +1659,7 @@ private fun GoogleSignInStep(
                 Box(
                     modifier = Modifier
                         .align(Alignment.BottomStart)
-                        .offset(x = 70.dp, y = playerYDp)
+                        .offset(x = 70.dp, y = playerYDp + 12.dp)  // V2 펫 Y축 보정
                 ) {
                     // 미니게임 플레이어 - SHIBA 사용
                     PetSpriteV2WithGlow(
@@ -1673,12 +1675,11 @@ private fun GoogleSignInStep(
                 }
             }
 
-            // IDLE state overlay
+            // IDLE state overlay - 게임 요소는 보이게 하고 텍스트만 오버레이
             if (gameState == DinoGameState.IDLE) {
                 Box(
                     modifier = Modifier
-                        .fillMaxSize()
-                        .background(Color.White),
+                        .fillMaxSize(),
                     contentAlignment = Alignment.Center
                 ) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -2901,36 +2902,53 @@ private fun WalkingTestStep(
     val app = context.applicationContext as com.moveoftoday.walkorwait.WalkorWaitApp
     val repository = app.userDataRepository
 
-    // Health Connect 사용 여부 확인 (remember 없이 매번 읽기 - 이전 단계에서 연결 시 반영)
-    val useHealthConnect = preferenceManager.useHealthConnect()
-    val healthConnectManager = remember(useHealthConnect) {
-        if (useHealthConnect) HealthConnectManager(context) else null
-    }
+    // 튜토리얼 단계에서는 무조건 기본 센서 사용 (Health Connect 비활성화)
+    val useHealthConnect = false  // 강제로 기본 센서 사용
+    val healthConnectManager: HealthConnectManager? = null
 
     var baselineSteps by remember { mutableIntStateOf(repository.getTodaySteps()) }
     var currentSteps by remember { mutableIntStateOf(0) }
+    var previousSteps by remember { mutableIntStateOf(0) }  // 실시간 햅틱용
     var manualOffset by remember { mutableIntStateOf(0) }  // 걷기 어려울 때 버튼용 수동 오프셋
     val targetSteps = repository.getGoal()
     var goalAchieved by remember { mutableStateOf(false) }
+    val notificationHelper = remember { com.moveoftoday.walkorwait.NotificationHelper(context) }
 
-    // Health Connect 초기 베이스라인 설정 및 StepCounterService 시작
-    LaunchedEffect(useHealthConnect) {
-        if (useHealthConnect && healthConnectManager != null) {
-            try {
-                baselineSteps = healthConnectManager.getTodaySteps()
-                android.util.Log.d("WalkingTest", "Health Connect baseline: $baselineSteps")
-            } catch (e: Exception) {
-                android.util.Log.e("WalkingTest", "Failed to get baseline: ${e.message}")
-            }
-        } else {
-            // Health Connect 미사용 시 StepCounterService 시작 (걸음 측정용)
-            android.util.Log.d("WalkingTest", "Starting StepCounterService for step counting")
+    // 튜토리얼 진입 시 Health Connect 강제 비활성화 & 종료 시 복원
+    DisposableEffect(Unit) {
+        // 이전 Health Connect 설정 백업
+        val originalUseHealthConnect = preferenceManager.useHealthConnect()
+        android.util.Log.d("WalkingTest", "💾 Backup original useHealthConnect: $originalUseHealthConnect")
+
+        // 강제로 기본 센서 사용하도록 설정
+        preferenceManager.setUseHealthConnect(false)
+        android.util.Log.d("WalkingTest", "🔧 Forced useHealthConnect = false for tutorial")
+
+        // StepCounterService 재시작 (설정 변경 반영)
+        StepCounterService.stop(context)
+        Thread.sleep(100)
+        StepCounterService.start(context)
+        android.util.Log.d("WalkingTest", "🔄 Restarted StepCounterService with basic sensor")
+
+        onDispose {
+            // 튜토리얼 종료 시 원래 설정 복원
+            preferenceManager.setUseHealthConnect(originalUseHealthConnect)
+            android.util.Log.d("WalkingTest", "🔙 Restored useHealthConnect to: $originalUseHealthConnect")
+
+            // StepCounterService 재시작 (설정 복원 반영)
+            StepCounterService.stop(context)
+            Thread.sleep(100)
             StepCounterService.start(context)
-            // 서비스 시작 후 현재 걸음수로 baseline 업데이트
-            kotlinx.coroutines.delay(500)
-            baselineSteps = repository.getTodaySteps()
-            android.util.Log.d("WalkingTest", "Sensor baseline: $baselineSteps")
+            android.util.Log.d("WalkingTest", "🔄 Restarted StepCounterService after tutorial")
         }
+    }
+
+    // Baseline 초기화
+    LaunchedEffect(Unit) {
+        // 서비스 시작 대기 후 baseline 업데이트
+        kotlinx.coroutines.delay(500)
+        baselineSteps = repository.getTodaySteps()
+        android.util.Log.d("WalkingTest", "📊 Sensor baseline: $baselineSteps")
     }
 
     LaunchedEffect(Unit) {
@@ -2953,10 +2971,21 @@ private fun WalkingTestStep(
             }
 
             val newSteps = maxOf(0, rawSteps - baselineSteps) + manualOffset
+
+            // 실시간 걸음 증가 햅틱 (보고 있을 때)
+            if (newSteps > previousSteps && newSteps > 0) {
+                hapticManager?.lightClick()
+                android.util.Log.d("WalkingTest", "👟 Step detected: $previousSteps → $newSteps (haptic)")
+            }
+            previousSteps = newSteps
             currentSteps = newSteps
+
             if (currentSteps >= targetSteps && !goalAchieved) {
                 goalAchieved = true
                 hapticManager?.goalAchieved()
+                // 목표 달성 알림 발송
+                notificationHelper.showTutorialGoalAchievedNotification(targetSteps)
+                android.util.Log.d("WalkingTest", "🎉 Goal achieved! Notification sent.")
             }
             delay(1000) // 튜토리얼에서는 즉각적 피드백을 위해 1초
         }
@@ -2972,6 +3001,14 @@ private fun WalkingTestStep(
             PetPersonalityV2.PLAYFUL -> "잘했다 아이가~"
             PetPersonalityV2.TIMID -> "정말 잘하셨어요...!"
             PetPersonalityV2.CLUMSY -> "완벽해! 최고야!"
+        }
+        currentSteps == 0 -> when (petType.personality) {
+            PetPersonalityV2.LOYAL -> "가볍게 산책하고 오면 채워질 거야."
+            PetPersonalityV2.TSUNDERE -> "산책이나 하고 와. 그럼 차."
+            PetPersonalityV2.FOODIE -> "가볍게 산책하고 오면 돼~"
+            PetPersonalityV2.PLAYFUL -> "산책하고 오면 완성이야!"
+            PetPersonalityV2.TIMID -> "산책하고 오시면... 채워질 거예요..."
+            PetPersonalityV2.CLUMSY -> "산책하고 오면 끝! 화이팅!"
         }
         else -> when (petType.personality) {
             PetPersonalityV2.LOYAL -> "걸어."
@@ -3038,21 +3075,44 @@ private fun WalkingTestStep(
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            // Health Connect 사용 시 안내 메시지
-            if (useHealthConnect && !goalAchieved) {
-                Text(
-                    text = "Health App과 동기화에 몇 초 소요될 수 있어요",
-                    fontSize = 12.sp,
-                    color = MockupColors.TextMuted,
-                    textAlign = TextAlign.Center
-                )
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(
-                    text = "걸음 수가 안 올라가면 삼성헬스/Health Connect 문제예요",
-                    fontSize = 11.sp,
-                    color = Color(0xFFFF9800),
-                    textAlign = TextAlign.Center
-                )
+            // 안내 메시지
+            if (!goalAchieved) {
+                if (useHealthConnect) {
+                    Text(
+                        text = "Health App과 동기화에 몇 초 소요될 수 있어요",
+                        fontSize = 12.sp,
+                        color = MockupColors.TextMuted,
+                        textAlign = TextAlign.Center
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = "걸음 수가 안 올라가면 삼성헬스/Health Connect 문제예요",
+                        fontSize = 11.sp,
+                        color = Color(0xFFFF9800),
+                        textAlign = TextAlign.Center
+                    )
+                } else {
+                    Text(
+                        text = "걸음수 동기화에 약 30초 정도 걸려요",
+                        fontSize = 12.sp,
+                        color = MockupColors.TextMuted,
+                        textAlign = TextAlign.Center
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = "완료되면 알림으로 알려드릴게요",
+                        fontSize = 11.sp,
+                        color = Color(0xFF4CAF50),
+                        textAlign = TextAlign.Center
+                    )
+                    Spacer(modifier = Modifier.height(2.dp))
+                    Text(
+                        text = "가볍게 산책하고 돌아오세요!",
+                        fontSize = 11.sp,
+                        color = MockupColors.TextMuted,
+                        textAlign = TextAlign.Center
+                    )
+                }
             }
 
             Spacer(modifier = Modifier.height(8.dp))

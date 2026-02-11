@@ -5,4 +5,5 @@
     <string name="widget_pet_description">펫과 함께 걸음 수를 확인합니다</string>
     <string name="widget_quote_description">오늘의 명언을 표시합니다</string>
     <string name="widget_sudoku_description">간단한 스도쿠 퍼즐을 즐깁니다</string>
+    <string name="widget_fasting_description">간헐적 단식 타이머를 표시합니다</string>
 </resources>

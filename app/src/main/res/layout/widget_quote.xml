@@ -3,8 +3,8 @@
     android:id="@+id/widget_container"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/widget_background"
-    android:padding="12dp"
+    android:background="@drawable/widget_background_2x2"
+    android:padding="10dp"
     android:orientation="vertical">
 
     <!-- Header: Title + Refresh -->
@@ -78,6 +78,7 @@
             android:layout_gravity="center"
             android:layout_marginTop="12dp"
             android:scaleType="fitCenter"
+            android:src="@drawable/ic_pet_placeholder"
             android:contentDescription="pet" />
 
         <!-- Emotion Symbol (closer to pet, more left) -->

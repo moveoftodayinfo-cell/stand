@@ -677,4 +677,28 @@ object PetDialoguesV2 {
             }
         }
     }
+
+    // ===== 운동 챌린지 응원 메시지 (10개 단위) =====
+    fun getExerciseEncouragement(petType: PetTypeV2, reps: Int): String {
+        return when (petType.personality) {
+            PetPersonalityV2.LOYAL -> "와! ${reps}개 했어! 힘내!"
+            PetPersonalityV2.TSUNDERE -> "흥, ${reps}개? ...괜찮네."
+            PetPersonalityV2.FOODIE -> "${reps}개! 운동하면 밥이 맛있어!"
+            PetPersonalityV2.PLAYFUL -> "야호! ${reps}개! 최고야!"
+            PetPersonalityV2.TIMID -> "${reps}개... 대단해요..."
+            PetPersonalityV2.CLUMSY -> "오, ${reps}개! 나도 할래! 앗-"
+        }
+    }
+
+    // ===== 운동 챌린지 완료 메시지 =====
+    fun getExerciseCompleteMessage(petType: PetTypeV2, reps: Int): String {
+        return when (petType.personality) {
+            PetPersonalityV2.LOYAL -> "${reps}개 완료! 너 진짜 대단해!"
+            PetPersonalityV2.TSUNDERE -> "${reps}개? ...뭐, 잘했어. 인정해줄게."
+            PetPersonalityV2.FOODIE -> "와! ${reps}개 성공! 이제 간식 먹자~"
+            PetPersonalityV2.PLAYFUL -> "우와아! ${reps}개 다 했어! 너무 멋져!"
+            PetPersonalityV2.TIMID -> "${reps}개... 다 하셨어요... 정말 대단해요..."
+            PetPersonalityV2.CLUMSY -> "${reps}개 완료! 나도 박수! 짝짝- 앗 손이!"
+        }
+    }
 }

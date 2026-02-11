@@ -36,6 +36,12 @@ class StepSensorManager(private val context: Context) : SensorEventListener {
     // TYPE_STEP_DETECTOR, ACCELEROMETER용
     private var currentSteps = 0
 
+    // EXP 계산용 이전 걸음수
+    private var lastReportedStepsForExp = 0
+
+    // REP 챌린지 중 걸음수 고정용
+    private var repChallengeSnapshot: Pair<Int, Int>? = null  // (initialSteps, currentSteps)
+
     // 가속도계용 변수
     private var previousY = 0f
     private var currentY = 0f
@@ -53,6 +59,9 @@ class StepSensorManager(private val context: Context) : SensorEventListener {
         ACCELEROMETER,
         NONE
     }
+
+    // Public getter for current sensor type
+    fun getSensorType(): SensorType = sensorType
 
     init {
         // init에서는 동기적으로 가능한 체크만 수행
@@ -142,7 +151,10 @@ class StepSensorManager(private val context: Context) : SensorEventListener {
         // 데이터 소스 초기화
         initializeDataSource()
 
-        Log.d(TAG, "=== startListening called, Type: $sensorType ===")
+        // EXP 계산용 초기값 설정 (첫 실행 시 큰 보너스 방지)
+        lastReportedStepsForExp = prefs.getTodaySteps()
+
+        Log.d(TAG, "=== startListening called, Type: $sensorType, lastExpSteps: $lastReportedStepsForExp ===")
 
         when (sensorType) {
             SensorType.HEALTH_CONNECT -> {
@@ -179,9 +191,40 @@ class StepSensorManager(private val context: Context) : SensorEventListener {
                             healthConnectJob = scope.launch {
                                 while (isActive) {
                                     delay(5000) // 5초 대기
+
+                                    // REP_BASED 챌린지 진행 중이면 걸음수 업데이트 스킵
+                                    val challengeManager = ChallengeManager.getInstance(context)
+                                    val currentChallenge = challengeManager.currentProgress.value
+                                    if (currentChallenge != null &&
+                                        currentChallenge.challenge.isRepBased &&
+                                        currentChallenge.status == ChallengeStatus.RUNNING) {
+                                        Log.d(TAG, "Skipping Health Connect update - REP_BASED challenge in progress")
+                                        continue
+                                    }
+
                                     try {
                                         val steps = healthConnectManager.getTodaySteps()
                                         val distance = healthConnectManager.getTodayDistance() / 1000.0 // 미터 -> km
+
+                                        // EXP 추가 (걸음 증가 시)
+                                        val stepIncrement = steps - lastReportedStepsForExp
+                                        if (stepIncrement > 0 && prefs.isPetV2Initialized()) {
+                                            val oldLevel = prefs.getPetLevelV2()
+                                            val (newLevel, leveledUp) = com.moveoftoday.walkorwait.pet.PetSystemV2.addStepsAndCheckLevelUp(prefs, stepIncrement)
+                                            if (leveledUp) {
+                                                Log.d(TAG, "🎉 레벨업! ${oldLevel.level} → ${newLevel.level} (걸음: +$stepIncrement)")
+                                            } else {
+                                                Log.d(TAG, "📈 EXP 획득: +${stepIncrement/100} exp (걸음: +$stepIncrement, 레벨: ${newLevel.level}, ${newLevel.currentExp}/${newLevel.expToNextLevel})")
+                                            }
+                                            lastReportedStepsForExp = steps
+                                        } else if (stepIncrement > 0) {
+                                            lastReportedStepsForExp = steps
+                                        }
+
+                                        // 🎯 펫 총 걸음수 누적 (스킨 해금용)
+                                        if (stepIncrement > 0) {
+                                            prefs.addPetSteps(stepIncrement)
+                                        }
 
                                         currentSteps = steps
                                         prefs.saveTodaySteps(steps)
@@ -301,10 +344,41 @@ class StepSensorManager(private val context: Context) : SensorEventListener {
                 Log.d(TAG, "Initial steps saved: $initialSteps")
             }
 
-            currentSteps = totalSteps - initialSteps
+            // REP 챌린지 진행 중이면 snapshot 값 유지
+            if (repChallengeSnapshot != null) {
+                val (snapshotInitial, snapshotCurrent) = repChallengeSnapshot!!
+                // initialSteps 복원 (챌린지 중 증가한 하드웨어 걸음수 무시)
+                val hardwareIncrease = totalSteps - (snapshotInitial + snapshotCurrent)
+                initialSteps = snapshotInitial + hardwareIncrease
+                currentSteps = snapshotCurrent
+                Log.d(TAG, "🔒 Steps locked at $currentSteps (hardware increased by $hardwareIncrease)")
+            } else {
+                currentSteps = totalSteps - initialSteps
+            }
+
             val estimatedDistance = currentSteps / 1250.0 // 1km = 약 1,250걸음
 
             Log.d(TAG, "Steps: $currentSteps (Total: $totalSteps), Distance: ${estimatedDistance}km")
+
+            // EXP 추가 (걸음 증가 시)
+            val stepIncrement = currentSteps - lastReportedStepsForExp
+            if (stepIncrement > 0 && prefs.isPetV2Initialized()) {
+                val oldLevel = prefs.getPetLevelV2()
+                val (newLevel, leveledUp) = com.moveoftoday.walkorwait.pet.PetSystemV2.addStepsAndCheckLevelUp(prefs, stepIncrement)
+                if (leveledUp) {
+                    Log.d(TAG, "🎉 레벨업! ${oldLevel.level} → ${newLevel.level} (걸음: +$stepIncrement)")
+                } else {
+                    Log.d(TAG, "📈 EXP 획득: +${stepIncrement/100} exp (걸음: +$stepIncrement, 레벨: ${newLevel.level}, ${newLevel.currentExp}/${newLevel.expToNextLevel})")
+                }
+            }
+
+            // 🎯 펫 총 걸음수 누적 (스킨 해금용)
+            if (stepIncrement > 0) {
+                prefs.addPetSteps(stepIncrement)
+            }
+            lastReportedStepsForExp = currentSteps
+
+            prefs.saveTodaySteps(currentSteps)  // 걸음수 저장
             prefs.saveTodayDistance(estimatedDistance)
 
             onStepCountChanged?.invoke(currentSteps)
@@ -318,7 +392,11 @@ class StepSensorManager(private val context: Context) : SensorEventListener {
             val estimatedDistance = currentSteps / 1250.0 // 1km = 약 1,250걸음
 
             Log.d(TAG, "Step detected! Total: $currentSteps, Distance: ${estimatedDistance}km")
+            prefs.saveTodaySteps(currentSteps)  // 걸음수 저장
             prefs.saveTodayDistance(estimatedDistance)
+
+            // 🎯 펫 총 걸음수 누적 (스킨 해금용)
+            prefs.addPetSteps(1)
 
             onStepCountChanged?.invoke(currentSteps)
             onDistanceChanged?.invoke(estimatedDistance)
@@ -348,7 +426,11 @@ class StepSensorManager(private val context: Context) : SensorEventListener {
                 val estimatedDistance = currentSteps / 1250.0 // 1km = 약 1,250걸음
 
                 Log.d(TAG, "Step detected via accelerometer! Total: $currentSteps, Distance: ${estimatedDistance}km")
+                prefs.saveTodaySteps(currentSteps)  // 걸음수 저장
                 prefs.saveTodayDistance(estimatedDistance)
+
+                // 🎯 펫 총 걸음수 누적 (스킨 해금용)
+                prefs.addPetSteps(1)
 
                 onStepCountChanged?.invoke(currentSteps)
                 onDistanceChanged?.invoke(estimatedDistance)
@@ -364,6 +446,18 @@ class StepSensorManager(private val context: Context) : SensorEventListener {
         val available = sensorType != SensorType.NONE
         Log.d(TAG, "isSensorAvailable: $available")
         return available
+    }
+
+    // REP 챌린지 시작: 현재 걸음수 고정
+    fun freezeStepsForRepChallenge() {
+        repChallengeSnapshot = Pair(initialSteps, currentSteps)
+        Log.d(TAG, "🔒 Steps frozen for REP challenge - initial: $initialSteps, current: $currentSteps")
+    }
+
+    // REP 챌린지 종료: 고정 해제
+    fun unfreezeSteps() {
+        repChallengeSnapshot = null
+        Log.d(TAG, "🔓 Steps unfrozen")
     }
 
     fun resetDailySteps() {

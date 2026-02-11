@@ -15,7 +15,13 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 
-enum class ChallengeType(val displayName: String, val category: String, val title: String) {
+enum class ChallengeMode {
+    TIME_BASED,         // 기존: 타이머 (독서, 명상, 공부, 플랭크) - 앱에 머물러야 함
+    REP_BASED,          // 신규: 횟수 카운터 (스쿼트)
+    BACKGROUND_TIMER    // 백그라운드 타이머 (간헐적 단식) - 백그라운드 진행 가능
+}
+
+enum class ChallengeType(val displayName: String, val category: String, val title: String, val mode: ChallengeMode = ChallengeMode.TIME_BASED) {
     READING_15("15분 독서", "독서", "책을 좋아하는"),
     READING_30("30분 독서", "독서", "독서하는"),
     READING_60("1시간 독서", "독서", "책벌레"),
@@ -24,7 +30,22 @@ enum class ChallengeType(val displayName: String, val category: String, val titl
     MEDITATION_30("30분 명상", "명상", "명상 마스터"),
     STUDY_30("30분 공부", "공부", "공부하는"),
     STUDY_60("1시간 공부", "공부", "열공하는"),
-    STUDY_120("2시간 공부", "공부", "공부왕")
+    STUDY_120("2시간 공부", "공부", "공부왕"),
+
+    // 운동 - 스쿼트 (횟수 기반)
+    SQUAT_10("스쿼트 10회", "운동", "다리 튼튼한", ChallengeMode.REP_BASED),
+    SQUAT_20("스쿼트 20회", "운동", "스쿼트 마스터", ChallengeMode.REP_BASED),
+    SQUAT_50("스쿼트 50회", "운동", "하체 끝판왕", ChallengeMode.REP_BASED),
+
+    // 운동 - 플랭크 (타이머 기반)
+    PLANK_30("30초 플랭크", "운동", "코어 튼튼한"),
+    PLANK_60("1분 플랭크", "운동", "플랭크 마스터"),
+    PLANK_120("2분 플랭크", "운동", "코어 끝판왕"),
+
+    // 웰니스 - 간헐적 단식 (백그라운드 타이머)
+    FASTING_16_8("간헐적 단식 16:8", "웰니스", "건강한", ChallengeMode.BACKGROUND_TIMER),
+    FASTING_18_6("간헐적 단식 18:6", "웰니스", "단식 마스터", ChallengeMode.BACKGROUND_TIMER),
+    FASTING_20_4("간헐적 단식 20:4", "웰니스", "단식 끝판왕", ChallengeMode.BACKGROUND_TIMER)
 }
 
 enum class ChallengeStatus {
@@ -37,11 +58,17 @@ enum class ChallengeStatus {
 
 data class Challenge(
     val type: ChallengeType,
-    val durationMinutes: Int,
+    val durationMinutes: Double = 0.0,    // TIME_BASED용 (30초 = 0.5분)
+    val targetReps: Int = 0,              // REP_BASED용
     val iconRes: Int
 ) {
     val name: String get() = type.displayName
     val category: String get() = type.category
+    val mode: ChallengeMode get() = type.mode
+
+    val isRepBased: Boolean get() = mode == ChallengeMode.REP_BASED
+    val isTimeBased: Boolean get() = mode == ChallengeMode.TIME_BASED
+    val isBackgroundTimer: Boolean get() = mode == ChallengeMode.BACKGROUND_TIMER
 }
 
 data class ChallengeProgress(
@@ -49,24 +76,57 @@ data class ChallengeProgress(
     val startTime: Long = 0L,
     val elapsedSeconds: Int = 0,
     val exitCount: Int = 0,
-    val status: ChallengeStatus = ChallengeStatus.NOT_STARTED
+    val status: ChallengeStatus = ChallengeStatus.NOT_STARTED,
+
+    // 횟수 기반 필드
+    val currentReps: Int = 0,
+    val lastRepTime: Long = 0L
 ) {
     val remainingSeconds: Int
-        get() = (challenge.durationMinutes * 60) - elapsedSeconds
+        get() = if (challenge.isTimeBased || challenge.isBackgroundTimer) {
+            ((challenge.durationMinutes * 60) - elapsedSeconds).toInt()
+        } else 0
 
     val progressPercent: Float
-        get() = elapsedSeconds.toFloat() / (challenge.durationMinutes * 60)
+        get() = when {
+            challenge.isRepBased -> {
+                if (challenge.targetReps > 0) {
+                    currentReps.toFloat() / challenge.targetReps
+                } else 0f
+            }
+            challenge.isTimeBased || challenge.isBackgroundTimer -> {
+                if (challenge.durationMinutes > 0) {
+                    (elapsedSeconds.toFloat() / (challenge.durationMinutes * 60)).toFloat()
+                } else 0f
+            }
+            else -> 0f
+        }
+
+    val remainingReps: Int
+        get() = if (challenge.isRepBased) {
+            (challenge.targetReps - currentReps).coerceAtLeast(0)
+        } else 0
 }
 
-class ChallengeManager private constructor(context: Context) {
+class ChallengeManager private constructor(private val context: Context) {
     private val TAG = "ChallengeManager"
     private val prefs: SharedPreferences = context.getSharedPreferences("challenge_prefs", Context.MODE_PRIVATE)
+    private val prefManager = PreferenceManager(context)
     private val firestore = FirebaseFirestore.getInstance()
     private val auth = FirebaseAuth.getInstance()
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+    private val hapticManager = HapticManager(context)
 
+    // 운동 센서 매니저
+    private var exerciseSensorManager: ExerciseSensorManager? = null
+
+    // 일반 챌린지 (독서, 명상, 공부, 플랭크, 스쿼트)
     private val _currentProgress = MutableStateFlow<ChallengeProgress?>(null)
     val currentProgress: StateFlow<ChallengeProgress?> = _currentProgress.asStateFlow()
+
+    // 백그라운드 챌린지 (간헐적 단식) - 일반 챌린지와 동시 진행 가능
+    private val _backgroundProgress = MutableStateFlow<ChallengeProgress?>(null)
+    val backgroundProgress: StateFlow<ChallengeProgress?> = _backgroundProgress.asStateFlow()
 
     // 오늘 완료 횟수 (챌린지 타입별)
     private val _todayCompletionCounts = MutableStateFlow<Map<ChallengeType, Int>>(emptyMap())
@@ -104,20 +164,43 @@ class ChallengeManager private constructor(context: Context) {
         _justUnlockedTitle.value = null
     }
 
+    // 방금 해금된 스킨 (다이얼로그 표시용)
+    private val _justUnlockedSkin = MutableStateFlow<com.moveoftoday.walkorwait.pet.PetSkin?>(null)
+    val justUnlockedSkin: StateFlow<com.moveoftoday.walkorwait.pet.PetSkin?> = _justUnlockedSkin.asStateFlow()
+
+    fun clearJustUnlockedSkin() {
+        _justUnlockedSkin.value = null
+    }
+
     // 모든 챌린지 목록
     val allChallenges: List<Challenge> = listOf(
         // 독서
-        Challenge(ChallengeType.READING_15, 15, R.drawable.challenge_reading),
-        Challenge(ChallengeType.READING_30, 30, R.drawable.challenge_reading),
-        Challenge(ChallengeType.READING_60, 60, R.drawable.challenge_reading),
+        Challenge(ChallengeType.READING_15, durationMinutes = 15.0, iconRes = R.drawable.challenge_reading),
+        Challenge(ChallengeType.READING_30, durationMinutes = 30.0, iconRes = R.drawable.challenge_reading),
+        Challenge(ChallengeType.READING_60, durationMinutes = 60.0, iconRes = R.drawable.challenge_reading),
         // 명상
-        Challenge(ChallengeType.MEDITATION_5, 5, R.drawable.challenge_meditation),
-        Challenge(ChallengeType.MEDITATION_15, 15, R.drawable.challenge_meditation),
-        Challenge(ChallengeType.MEDITATION_30, 30, R.drawable.challenge_meditation),
+        Challenge(ChallengeType.MEDITATION_5, durationMinutes = 5.0, iconRes = R.drawable.challenge_meditation),
+        Challenge(ChallengeType.MEDITATION_15, durationMinutes = 15.0, iconRes = R.drawable.challenge_meditation),
+        Challenge(ChallengeType.MEDITATION_30, durationMinutes = 30.0, iconRes = R.drawable.challenge_meditation),
         // 공부
-        Challenge(ChallengeType.STUDY_30, 30, R.drawable.challenge_study),
-        Challenge(ChallengeType.STUDY_60, 60, R.drawable.challenge_study),
-        Challenge(ChallengeType.STUDY_120, 120, R.drawable.challenge_study)
+        Challenge(ChallengeType.STUDY_30, durationMinutes = 30.0, iconRes = R.drawable.challenge_study),
+        Challenge(ChallengeType.STUDY_60, durationMinutes = 60.0, iconRes = R.drawable.challenge_study),
+        Challenge(ChallengeType.STUDY_120, durationMinutes = 120.0, iconRes = R.drawable.challenge_study),
+
+        // 운동 - 스쿼트 (횟수 기반)
+        Challenge(ChallengeType.SQUAT_10, targetReps = 10, iconRes = R.drawable.challenge_squat),
+        Challenge(ChallengeType.SQUAT_20, targetReps = 20, iconRes = R.drawable.challenge_squat),
+        Challenge(ChallengeType.SQUAT_50, targetReps = 50, iconRes = R.drawable.challenge_squat),
+
+        // 운동 - 플랭크 (타이머 기반)
+        Challenge(ChallengeType.PLANK_30, durationMinutes = 0.5, iconRes = R.drawable.challenge_plank),  // 30초
+        Challenge(ChallengeType.PLANK_60, durationMinutes = 1.0, iconRes = R.drawable.challenge_plank),  // 1분
+        Challenge(ChallengeType.PLANK_120, durationMinutes = 2.0, iconRes = R.drawable.challenge_plank), // 2분
+
+        // 웰니스 - 간헐적 단식 (타이머 기반)
+        Challenge(ChallengeType.FASTING_16_8, durationMinutes = 960.0, iconRes = R.drawable.challenge_fasting),  // 16시간 = 960분
+        Challenge(ChallengeType.FASTING_18_6, durationMinutes = 1080.0, iconRes = R.drawable.challenge_fasting), // 18시간 = 1080분
+        Challenge(ChallengeType.FASTING_20_4, durationMinutes = 1200.0, iconRes = R.drawable.challenge_fasting)  // 20시간 = 1200분
     )
 
     init {
@@ -151,13 +234,27 @@ class ChallengeManager private constructor(context: Context) {
 
     // 챌린지 준비 (시작 전 상태)
     fun prepareChallenge(challenge: Challenge) {
-        _currentProgress.value = ChallengeProgress(
+        // 이전 챌린지 상태 초기화
+        _justCompletedChallenge.value = null
+
+        val newProgress = ChallengeProgress(
             challenge = challenge,
             startTime = 0L,
             elapsedSeconds = 0,
             exitCount = 0,
-            status = ChallengeStatus.NOT_STARTED
+            status = ChallengeStatus.NOT_STARTED,
+            currentReps = 0,  // 명시적 초기화
+            lastRepTime = 0L
         )
+
+        // 백그라운드 챌린지는 별도로 관리
+        if (challenge.isBackgroundTimer) {
+            _backgroundProgress.value = newProgress
+            Log.d(TAG, "prepareChallenge (BACKGROUND): ${challenge.name}")
+        } else {
+            _currentProgress.value = newProgress
+            Log.d(TAG, "prepareChallenge (FOREGROUND): ${challenge.name}, isRepBased=${challenge.isRepBased}")
+        }
     }
 
     // 챌린지 시작
@@ -172,26 +269,130 @@ class ChallengeManager private constructor(context: Context) {
     }
 
     // 준비된 챌린지 시작 (NOT_STARTED -> RUNNING)
-    fun beginChallenge() {
-        val progress = _currentProgress.value ?: return
-        if (progress.status != ChallengeStatus.NOT_STARTED) return
+    fun beginChallenge(startTimeOffsetHours: Int = 0) {
+        // 백그라운드와 일반 챌린지 모두 확인
+        val backgroundProgress = _backgroundProgress.value
+        val foregroundProgress = _currentProgress.value
 
-        _currentProgress.value = progress.copy(
-            startTime = System.currentTimeMillis(),
-            status = ChallengeStatus.RUNNING
+        val progress = if (backgroundProgress?.status == ChallengeStatus.NOT_STARTED) {
+            backgroundProgress
+        } else if (foregroundProgress?.status == ChallengeStatus.NOT_STARTED) {
+            foregroundProgress
+        } else {
+            Log.w(TAG, "Cannot begin challenge - no NOT_STARTED challenge found")
+            return
+        }
+
+        Log.d(TAG, "beginChallenge: ${progress.challenge.name}, isRepBased=${progress.challenge.isRepBased}, isBackground=${progress.challenge.isBackgroundTimer}, offsetHours=$startTimeOffsetHours")
+
+        // Rep 기반 챌린지면 센서 시작 + 걸음수 고정
+        if (progress.challenge.isRepBased) {
+            startExerciseSensor(progress.challenge)
+            // 걸음수 측정 고정 (스쿼트 중 걸음수 증가 방지)
+            StepCounterService.getInstance()?.getStepSensorManager()?.freezeStepsForRepChallenge()
+        }
+
+        // 시작 시간 계산 (offset 적용)
+        val startTime = System.currentTimeMillis() - (startTimeOffsetHours * 3600 * 1000L)
+        Log.d(TAG, "Start time: now=${System.currentTimeMillis()}, offset=${startTimeOffsetHours}h, adjusted=$startTime")
+
+        val newProgress = progress.copy(
+            startTime = startTime,
+            status = ChallengeStatus.RUNNING,
+            currentReps = 0  // 확실하게 0으로 초기화
         )
+
+        // 백그라운드/일반 챌린지에 따라 적절한 progress에 저장
+        if (progress.challenge.isBackgroundTimer) {
+            _backgroundProgress.value = newProgress
+            Log.d(TAG, "Background challenge RUNNING")
+            // 간헐적 단식 위젯 업데이트
+            FastingWidgetProvider.updateAllWidgets(context)
+        } else {
+            _currentProgress.value = newProgress
+            Log.d(TAG, "Foreground challenge RUNNING - currentReps=${newProgress.currentReps}")
+        }
     }
 
-    // 타이머 업데이트 (1초마다 호출)
+    // 운동 센서 시작 (스쿼트)
+    private fun startExerciseSensor(challenge: Challenge) {
+        val petType = prefManager.getPetTypeV2()
+
+        exerciseSensorManager = ExerciseSensorManager(context).apply {
+            // 콜백을 먼저 설정
+            onSquatDetected = { reps ->
+                Log.d(TAG, "Squat detected callback: $reps/${challenge.targetReps}")
+                onRepCompleted(reps)
+            }
+            // 그 다음 리스닝 시작
+            startListening(challenge.targetReps, petType)
+        }
+        Log.d(TAG, "Exercise sensor started for ${challenge.name}, target: ${challenge.targetReps}")
+    }
+
+    // Rep 완료 콜백
+    private fun onRepCompleted(reps: Int) {
+        val progress = _currentProgress.value ?: return
+        if (!progress.challenge.isRepBased) return
+
+        Log.d(TAG, "onRepCompleted: reps=$reps, target=${progress.challenge.targetReps}, current=${progress.currentReps}")
+
+        val newProgress = progress.copy(
+            currentReps = reps,
+            lastRepTime = System.currentTimeMillis()
+        )
+
+        _currentProgress.value = newProgress
+
+        // 목표 달성 체크
+        if (reps >= progress.challenge.targetReps) {
+            Log.d(TAG, "✅ Challenge COMPLETED: $reps >= ${progress.challenge.targetReps}")
+            _currentProgress.value = newProgress.copy(
+                status = ChallengeStatus.COMPLETED
+            )
+            _justCompletedChallenge.value = progress.challenge
+            markChallengeCompleted(progress.challenge.type)
+
+            // 센서 중지
+            stopExerciseSensor()
+        } else {
+            Log.d(TAG, "Progress updated: $reps/${progress.challenge.targetReps}")
+        }
+    }
+
+    // 운동 센서 중지
+    private fun stopExerciseSensor() {
+        exerciseSensorManager?.stopListening()
+        exerciseSensorManager?.cleanup()
+        exerciseSensorManager = null
+        // 걸음수 측정 재개
+        StepCounterService.getInstance()?.getStepSensorManager()?.unfreezeSteps()
+        Log.d(TAG, "Exercise sensor stopped")
+    }
+
+    // 타이머 업데이트 (1초마다 호출) - TIME_BASED 전용
     fun updateTimer() {
         val progress = _currentProgress.value ?: return
         if (progress.status != ChallengeStatus.RUNNING) return
 
+        // Rep 기반 챌린지는 타이머 사용 안 함
+        if (progress.challenge.isRepBased) {
+            Log.d(TAG, "updateTimer: Skipping rep-based challenge")
+            return
+        }
+
+        // 백그라운드 타이머는 별도 함수 사용
+        if (progress.challenge.isBackgroundTimer) {
+            updateBackgroundTimer()
+            return
+        }
+
         val newElapsed = progress.elapsedSeconds + 1
-        val totalSeconds = progress.challenge.durationMinutes * 60
+        val totalSeconds = (progress.challenge.durationMinutes * 60).toInt()
 
         if (newElapsed >= totalSeconds) {
             // 챌린지 완료
+            Log.d(TAG, "updateTimer: Challenge completed via timer ($newElapsed >= $totalSeconds)")
             _currentProgress.value = progress.copy(
                 elapsedSeconds = totalSeconds,
                 status = ChallengeStatus.COMPLETED
@@ -203,10 +404,47 @@ class ChallengeManager private constructor(context: Context) {
         }
     }
 
+    // 백그라운드 타이머 업데이트 (간헐적 단식 전용) - startTime 기준 계산
+    fun updateBackgroundTimer() {
+        val progress = _backgroundProgress.value ?: return
+        if (!progress.challenge.isBackgroundTimer || progress.status != ChallengeStatus.RUNNING) return
+
+        // startTime으로부터 실제 경과 시간 계산
+        val elapsedMillis = System.currentTimeMillis() - progress.startTime
+        val elapsedSeconds = (elapsedMillis / 1000).toInt()
+        val totalSeconds = (progress.challenge.durationMinutes * 60).toInt()
+
+        Log.d(TAG, "updateBackgroundTimer: elapsed=${elapsedSeconds}s / total=${totalSeconds}s (${progress.challenge.name})")
+
+        if (elapsedSeconds >= totalSeconds) {
+            // 자동 완료
+            Log.d(TAG, "✅ Background timer completed: ${progress.challenge.name}")
+            _backgroundProgress.value = progress.copy(
+                elapsedSeconds = totalSeconds,
+                status = ChallengeStatus.COMPLETED
+            )
+            _justCompletedChallenge.value = progress.challenge
+            markChallengeCompleted(progress.challenge.type)
+            // 간헐적 단식 위젯 업데이트 (완료)
+            FastingWidgetProvider.updateAllWidgets(context)
+        } else {
+            // 경과 시간 업데이트
+            _backgroundProgress.value = progress.copy(elapsedSeconds = elapsedSeconds)
+            // 간헐적 단식 위젯 업데이트 (진행 중)
+            FastingWidgetProvider.updateAllWidgets(context)
+        }
+    }
+
     // 앱 이탈 시 호출
     fun onAppExit() {
         val progress = _currentProgress.value ?: return
         if (progress.status != ChallengeStatus.RUNNING && progress.status != ChallengeStatus.PAUSED) return
+
+        // 백그라운드 타이머(간헐적 단식)는 백그라운드 진행 허용
+        if (progress.challenge.isBackgroundTimer) {
+            Log.d(TAG, "Background timer challenge - allowing background execution")
+            return
+        }
 
         val newExitCount = progress.exitCount + 1
 
@@ -236,6 +474,20 @@ class ChallengeManager private constructor(context: Context) {
 
     // 챌린지 포기 (다음에 하기)
     fun cancelChallenge() {
+        // 백그라운드 챌린지 취소 확인
+        val backgroundProgress = _backgroundProgress.value
+        if (backgroundProgress != null &&
+            (backgroundProgress.status == ChallengeStatus.RUNNING ||
+             backgroundProgress.status == ChallengeStatus.NOT_STARTED)) {
+            Log.d(TAG, "Cancelling background challenge: ${backgroundProgress.challenge.name}")
+            _backgroundProgress.value = null
+            // 간헐적 단식 위젯 업데이트 (취소)
+            FastingWidgetProvider.updateAllWidgets(context)
+            return
+        }
+
+        // 일반 챌린지 취소
+        stopExerciseSensor()
         _currentProgress.value = null
     }
 
@@ -248,10 +500,25 @@ class ChallengeManager private constructor(context: Context) {
         val newCount = currentCount + 1
         prefs.edit().putInt(key, newCount).apply()
 
+        // 🎉 챌린지 완료 햅틱 피드백
+        hapticManager.goalAchieved()
+        Log.d(TAG, "🎉 Challenge completed: ${type.displayName} - Haptic triggered")
+
         // StateFlow 업데이트
         val currentMap = _todayCompletionCounts.value.toMutableMap()
         currentMap[type] = newCount
         _todayCompletionCounts.value = currentMap
+
+        // 카테고리별 챌린지 완료 횟수 증가 (스킨 해금용)
+        prefManager.incrementChallengeCount(type.category)
+
+        // 🎁 스킨 자동 해금 체크
+        val newSkins = prefManager.checkAndUnlockNewSkins()
+        if (newSkins.isNotEmpty()) {
+            Log.d(TAG, "🎁 New skins unlocked: ${newSkins.map { it.displayName }}")
+            // 첫 번째 해금된 스킨 다이얼로그 표시 (여러 개면 하나씩)
+            _justUnlockedSkin.value = newSkins.first()
+        }
 
         // 칭호 획득 (처음 완료 시)
         val isFirstCompletion = !_unlockedTitles.value.contains(type)
@@ -350,11 +617,22 @@ class ChallengeManager private constructor(context: Context) {
         val progress = _currentProgress.value ?: return
         if (progress.status != ChallengeStatus.RUNNING && progress.status != ChallengeStatus.NOT_STARTED) return
 
-        val totalSeconds = progress.challenge.durationMinutes * 60
-        _currentProgress.value = progress.copy(
-            elapsedSeconds = totalSeconds,
-            status = ChallengeStatus.COMPLETED
-        )
+        if (progress.challenge.isRepBased) {
+            // Rep 기반: targetReps로 설정
+            _currentProgress.value = progress.copy(
+                currentReps = progress.challenge.targetReps,
+                status = ChallengeStatus.COMPLETED
+            )
+            stopExerciseSensor()
+        } else {
+            // Time 기반: totalSeconds로 설정
+            val totalSeconds = (progress.challenge.durationMinutes * 60).toInt()
+            _currentProgress.value = progress.copy(
+                elapsedSeconds = totalSeconds,
+                status = ChallengeStatus.COMPLETED
+            )
+        }
+
         _justCompletedChallenge.value = progress.challenge
         markChallengeCompleted(progress.challenge.type)
         Log.d(TAG, "🧪 Debug: Challenge completed instantly")

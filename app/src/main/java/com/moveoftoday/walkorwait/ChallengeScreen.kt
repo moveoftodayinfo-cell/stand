@@ -7,6 +7,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.ui.unit.IntOffset
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
@@ -42,13 +43,22 @@ fun ChallengeScreen(
     var searchQuery by remember { mutableStateOf("") }
     var selectedCategory by remember { mutableStateOf<String?>("전체") }
 
-    val categories = listOf("전체", "독서", "명상", "공부")
+    val categories = listOf("전체", "독서", "명상", "공부", "운동", "웰니스")
 
     val filteredChallenges = remember(searchQuery, selectedCategory) {
         if (searchQuery.isNotBlank()) {
             challengeManager.searchChallenges(searchQuery)
         } else {
             challengeManager.getChallengesByCategory(selectedCategory)
+        }
+    }
+
+    // 전체 선택 시 카테고리별로 그룹화
+    val challengesByCategory = remember(filteredChallenges, selectedCategory) {
+        if (selectedCategory == "전체") {
+            filteredChallenges.groupBy { it.category }
+        } else {
+            emptyMap()
         }
     }
 
@@ -121,19 +131,67 @@ fun ChallengeScreen(
             )
         }
 
-        // 챌린지 그리드
-        LazyVerticalGrid(
-            columns = GridCells.Fixed(3),
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
-            modifier = Modifier.fillMaxSize()
-        ) {
-            items(filteredChallenges) { challenge ->
-                ChallengeBox(
-                    challenge = challenge,
-                    completionCount = completionCounts[challenge.type] ?: 0,
-                    onClick = { onChallengeSelected(challenge) }
-                )
+        // 챌린지 목록 (전체 선택 시 카테고리별 그룹화)
+        if (selectedCategory == "전체" && challengesByCategory.isNotEmpty()) {
+            // 카테고리별 섹션
+            LazyColumn(
+                contentPadding = PaddingValues(bottom = 80.dp),
+                modifier = Modifier.fillMaxSize()
+            ) {
+                challengesByCategory.forEach { (category, challenges) ->
+                    // 카테고리 헤더
+                    item {
+                        Text(
+                            text = category,
+                            fontSize = 15.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color(0xFF333333),
+                            modifier = Modifier.padding(vertical = 12.dp)
+                        )
+                    }
+
+                    // 챌린지 그리드 (3열)
+                    val rows = challenges.chunked(3)
+                    items(rows.size) { rowIndex ->
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(12.dp),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(bottom = 12.dp)
+                        ) {
+                            rows[rowIndex].forEach { challenge ->
+                                Box(modifier = Modifier.weight(1f)) {
+                                    ChallengeBox(
+                                        challenge = challenge,
+                                        completionCount = completionCounts[challenge.type] ?: 0,
+                                        onClick = { onChallengeSelected(challenge) }
+                                    )
+                                }
+                            }
+                            // 빈 공간 채우기
+                            repeat(3 - rows[rowIndex].size) {
+                                Spacer(modifier = Modifier.weight(1f))
+                            }
+                        }
+                    }
+                }
+            }
+        } else {
+            // 특정 카테고리 선택 시 그리드
+            LazyVerticalGrid(
+                columns = GridCells.Fixed(3),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+                contentPadding = PaddingValues(bottom = 80.dp),
+                modifier = Modifier.fillMaxSize()
+            ) {
+                items(filteredChallenges) { challenge ->
+                    ChallengeBox(
+                        challenge = challenge,
+                        completionCount = completionCounts[challenge.type] ?: 0,
+                        onClick = { onChallengeSelected(challenge) }
+                    )
+                }
             }
         }
     }

@@ -151,16 +151,27 @@ class StepWidgetProvider : AppWidgetProvider() {
         }
 
         /**
-         * 펫 아이콘 로드 (진행률 기반 애니메이션)
+         * 펫 아이콘 로드 (진행률 기반 애니메이션 + 장비)
          */
         private fun loadPetIconWithAnimation(context: Context, prefs: PreferenceManager, animationType: String): Bitmap? {
+            // 스킨 가져오기
+            val skinId = prefs.getPetSkin()
+            val petSkin = com.moveoftoday.walkorwait.pet.DefaultSkins.getById(skinId)
+
             return try {
                 val petTypeV2 = prefs.getPetTypeV2()
                 if (petTypeV2 != null) {
                     val stage = prefs.getEffectiveDisplayStage()  // 오버라이드 반영
                     val assetPath = "pets/${petTypeV2.folderName}/${stage.folderName}/$animationType/frame_000.png"
                     context.assets.open(assetPath).use { inputStream ->
-                        BitmapFactory.decodeStream(inputStream)?.let { toGrayscale(it) }
+                        BitmapFactory.decodeStream(inputStream)?.let { bitmap ->
+                            var result = toGrayscale(bitmap)
+                            // 스킨 적용
+                            petSkin?.colorMatrix?.let { matrix ->
+                                result = applyColorMatrix(result, matrix)
+                            }
+                            result
+                        }
                     }
                 } else {
                     null
@@ -173,7 +184,14 @@ class StepWidgetProvider : AppWidgetProvider() {
                         val stage = prefs.getEffectiveDisplayStage()  // 오버라이드 반영
                         val fallbackPath = "pets/${petTypeV2.folderName}/${stage.folderName}/idle/frame_000.png"
                         context.assets.open(fallbackPath).use { inputStream ->
-                            BitmapFactory.decodeStream(inputStream)?.let { toGrayscale(it) }
+                            BitmapFactory.decodeStream(inputStream)?.let { bitmap ->
+                                var result = toGrayscale(bitmap)
+                                // 스킨 적용
+                                petSkin?.colorMatrix?.let { matrix ->
+                                    result = applyColorMatrix(result, matrix)
+                                }
+                                result
+                            }
                         }
                     } else null
                 } catch (e2: Exception) {
@@ -190,9 +208,14 @@ class StepWidgetProvider : AppWidgetProvider() {
         }
 
         /**
-         * 펫 스프라이트 첫 프레임 추출 (V1, grayscale)
+         * 펫 스프라이트 첫 프레임 추출 (V1, grayscale + 스킨)
          */
         private fun loadPetFirstFrame(context: Context, petType: PetType): Bitmap? {
+            // 스킨 가져오기
+            val prefs = PreferenceManager(context)
+            val skinId = prefs.getPetSkin()
+            val petSkin = com.moveoftoday.walkorwait.pet.DefaultSkins.getById(skinId)
+
             return try {
                 val assetPath = petType.idleAssetPath
                 context.assets.open(assetPath).use { inputStream ->
@@ -202,7 +225,12 @@ class StepWidgetProvider : AppWidgetProvider() {
                         val frameWidth = spriteSheet.width / frameCount
                         val frameHeight = spriteSheet.height
                         val frame = Bitmap.createBitmap(spriteSheet, 0, 0, frameWidth, frameHeight)
-                        toGrayscale(frame)
+                        var result = toGrayscale(frame)
+                        // 스킨 적용
+                        petSkin?.colorMatrix?.let { matrix ->
+                            result = applyColorMatrix(result, matrix)
+                        }
+                        result
                     } else null
                 }
             } catch (e: Exception) {
@@ -222,6 +250,19 @@ class StepWidgetProvider : AppWidgetProvider() {
             paint.colorFilter = ColorMatrixColorFilter(colorMatrix)
             canvas.drawBitmap(original, 0f, 0f, paint)
             return grayscale
+        }
+
+        /**
+         * ColorMatrix 적용 (장비 시스템)
+         */
+        private fun applyColorMatrix(original: Bitmap, matrix: FloatArray): Bitmap {
+            val result = Bitmap.createBitmap(original.width, original.height, Bitmap.Config.ARGB_8888)
+            val canvas = Canvas(result)
+            val paint = Paint()
+            val colorMatrix = ColorMatrix(matrix)
+            paint.colorFilter = ColorMatrixColorFilter(colorMatrix)
+            canvas.drawBitmap(original, 0f, 0f, paint)
+            return result
         }
 
         fun updateAllWidgets(context: Context) {

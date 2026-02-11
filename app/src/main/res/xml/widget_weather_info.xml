@@ -9,4 +9,5 @@
     android:resizeMode="horizontal|vertical"
     android:widgetCategory="home_screen"
     android:previewImage="@drawable/ic_quote"
+    android:previewLayout="@layout/widget_weather"
     android:description="@string/app_name" />

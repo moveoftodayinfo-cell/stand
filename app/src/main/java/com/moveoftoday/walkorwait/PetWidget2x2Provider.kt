@@ -63,7 +63,8 @@ class PetWidget2x2Provider : AppWidgetProvider() {
 
             // V2 펫 정보 우선, 없으면 V1
             val petTypeV2 = prefs.getPetTypeV2()
-            val petName = prefs.getPetName() ?: "펫"
+            val petName = prefs.getPetNameV2()?.takeIf { it.isNotBlank() }
+                ?: prefs.getPetName() ?: "펫"
 
             val views = RemoteViews(context.packageName, R.layout.widget_pet_2x2)
 
@@ -184,10 +185,14 @@ class PetWidget2x2Provider : AppWidgetProvider() {
         }
 
         /**
-         * V2 펫 첫 프레임 로드 (진행률 기반 애니메이션)
+         * V2 펫 첫 프레임 로드 (진행률 기반 애니메이션 + 장비)
          */
         private fun loadPetV2FirstFrame(context: Context, petType: PetTypeV2, prefs: PreferenceManager): Bitmap? {
             val stage = prefs.getEffectiveDisplayStage()  // 오버라이드 반영
+
+            // 스킨 가져오기
+            val skinId = prefs.getPetSkin()
+            val petSkin = com.moveoftoday.walkorwait.pet.DefaultSkins.getById(skinId)
 
             // 진행률에 따른 애니메이션 타입 결정
             val currentProgress = prefs.getCurrentProgress()
@@ -203,14 +208,28 @@ class PetWidget2x2Provider : AppWidgetProvider() {
             return try {
                 val assetPath = "pets/${petType.folderName}/${stage.folderName}/$animationType/frame_000.png"
                 context.assets.open(assetPath).use { inputStream ->
-                    BitmapFactory.decodeStream(inputStream)?.let { toGrayscale(it) }
+                    BitmapFactory.decodeStream(inputStream)?.let { bitmap ->
+                        var result = toGrayscale(bitmap)
+                        // 스킨 적용
+                        petSkin?.colorMatrix?.let { matrix ->
+                            result = applyColorMatrix(result, matrix)
+                        }
+                        result
+                    }
                 }
             } catch (e: Exception) {
                 // 애니메이션 폴더가 없으면 idle로 폴백
                 try {
                     val fallbackPath = "pets/${petType.folderName}/${stage.folderName}/idle/frame_000.png"
                     context.assets.open(fallbackPath).use { inputStream ->
-                        BitmapFactory.decodeStream(inputStream)?.let { toGrayscale(it) }
+                        BitmapFactory.decodeStream(inputStream)?.let { bitmap ->
+                            var result = toGrayscale(bitmap)
+                            // 스킨 적용
+                            petSkin?.colorMatrix?.let { matrix ->
+                                result = applyColorMatrix(result, matrix)
+                            }
+                            result
+                        }
                     }
                 } catch (e2: Exception) {
                     null
@@ -219,9 +238,14 @@ class PetWidget2x2Provider : AppWidgetProvider() {
         }
 
         /**
-         * V1 펫 스프라이트 첫 프레임 (grayscale)
+         * V1 펫 스프라이트 첫 프레임 (grayscale + 스킨)
          */
         private fun loadPetFirstFrame(context: Context, petType: PetType): Bitmap? {
+            // 스킨 가져오기
+            val prefs = PreferenceManager(context)
+            val skinId = prefs.getPetSkin()
+            val petSkin = com.moveoftoday.walkorwait.pet.DefaultSkins.getById(skinId)
+
             return try {
                 val assetPath = petType.idleAssetPath
                 context.assets.open(assetPath).use { inputStream ->
@@ -231,7 +255,12 @@ class PetWidget2x2Provider : AppWidgetProvider() {
                         val frameWidth = spriteSheet.width / frameCount
                         val frameHeight = spriteSheet.height
                         val frame = Bitmap.createBitmap(spriteSheet, 0, 0, frameWidth, frameHeight)
-                        toGrayscale(frame)
+                        var result = toGrayscale(frame)
+                        // 스킨 적용
+                        petSkin?.colorMatrix?.let { matrix ->
+                            result = applyColorMatrix(result, matrix)
+                        }
+                        result
                     } else null
                 }
             } catch (e: Exception) {
@@ -251,6 +280,19 @@ class PetWidget2x2Provider : AppWidgetProvider() {
             paint.colorFilter = ColorMatrixColorFilter(colorMatrix)
             canvas.drawBitmap(original, 0f, 0f, paint)
             return grayscale
+        }
+
+        /**
+         * ColorMatrix 적용 (장비 시스템)
+         */
+        private fun applyColorMatrix(original: Bitmap, matrix: FloatArray): Bitmap {
+            val result = Bitmap.createBitmap(original.width, original.height, Bitmap.Config.ARGB_8888)
+            val canvas = Canvas(result)
+            val paint = Paint()
+            val colorMatrix = ColorMatrix(matrix)
+            paint.colorFilter = ColorMatrixColorFilter(colorMatrix)
+            canvas.drawBitmap(original, 0f, 0f, paint)
+            return result
         }
 
         fun updateAllWidgets(context: Context) {

@@ -215,6 +215,19 @@
                 android:resource="@xml/widget_travel_phrase_cn_info" />
         </receiver>
 
+        <!-- 간헐적 단식 위젯 -->
+        <receiver
+            android:name=".FastingWidgetProvider"
+            android:exported="true"
+            android:label="간헐적 단식">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_fasting_info" />
+        </receiver>
+
         <!-- 자정 자동 리셋 (걸음수 + 위젯) -->
         <receiver
             android:name=".MidnightResetReceiver"

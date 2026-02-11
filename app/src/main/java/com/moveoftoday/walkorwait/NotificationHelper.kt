@@ -160,6 +160,35 @@ class NotificationHelper(private val context: Context) {
     }
 
     /**
+     * 튜토리얼 목표 달성 알림
+     * @param targetSteps 목표 걸음수
+     */
+    fun showTutorialGoalAchievedNotification(targetSteps: Int) {
+        val intent = Intent(context, MainActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+        }
+
+        val pendingIntent = PendingIntent.getActivity(
+            context,
+            0,
+            intent,
+            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
+        )
+
+        val notification = NotificationCompat.Builder(context, GOAL_CHANNEL_ID)
+            .setSmallIcon(android.R.drawable.ic_dialog_info)
+            .setContentTitle("목표 달성!")
+            .setContentText("${targetSteps}보 완료! 앱으로 돌아와서 다음 단계를 진행하세요.")
+            .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setAutoCancel(true)
+            .setContentIntent(pendingIntent)
+            .setDefaults(NotificationCompat.DEFAULT_VIBRATE or NotificationCompat.DEFAULT_SOUND)
+            .build()
+
+        notificationManager.notify(GOAL_NOTIFICATION_ID + 1, notification)
+    }
+
+    /**
      * 걱정 알림 - 평소 운동 시간에 움직임이 없을 때
      * 펫이 걱정하는 말투로 알림
      * @param petName 펫 이름

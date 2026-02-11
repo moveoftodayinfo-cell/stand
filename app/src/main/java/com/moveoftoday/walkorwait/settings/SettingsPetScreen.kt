@@ -6,6 +6,9 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -163,7 +166,7 @@ fun SettingsPetScreen(
                 modifier = Modifier
                     .fillMaxSize()
                     .verticalScroll(rememberScrollState())
-                    .padding(16.dp)
+                    .padding(12.dp)
             ) {
                 // ========== 현재 펫 ==========
                 RetroSectionTitle("현재 펫", kenneyFont)
@@ -173,42 +176,51 @@ fun SettingsPetScreen(
                         .fillMaxWidth()
                         .border(3.dp, MockupColors.Blue, RoundedCornerShape(12.dp))
                         .background(MockupColors.BlueLight, RoundedCornerShape(12.dp))
-                        .padding(20.dp)
+                        .padding(16.dp)  // 20dp → 16dp로 축소
                 ) {
                     Column(
                         horizontalAlignment = Alignment.CenterHorizontally,
                         modifier = Modifier.fillMaxWidth()
                     ) {
-                        // 펫 스프라이트 (오버라이드 반영)
+                        // 펫 스프라이트 (스킨 + 오버라이드 반영)
                         petTypeV2?.let { petType ->
                             val effectiveStage = preferenceManager?.getEffectiveDisplayStage() ?: petLevel.stage
-                            PetSpriteV2WithGlow(
+                            val equipmentState = preferenceManager?.getEquipmentState() ?: EquipmentState()
+
+                            PetSpriteV2WithEquipment(
                                 petType = petType,
                                 stage = effectiveStage,  // 오버라이드 또는 기본값
                                 animationType = PetAnimationTypeV2.IDLE,
-                                size = 120.dp,
+                                equipmentState = equipmentState,  // 스킨 포함
+                                size = 100.dp,  // 120dp → 100dp로 축소
                                 monochrome = true,
                                 showGlow = true
                             )
                         }
 
-                        Spacer(modifier = Modifier.height(12.dp))
+                        Spacer(modifier = Modifier.height(8.dp))  // 12dp → 8dp로 축소
 
-                        // 펫 이름
+                        // 펫 이름 (칭호 포함)
+                        val displayName = remember(petName) {
+                            val challengeManager = ChallengeManager.getInstance(context)
+                            challengeManager.getPetNameWithTitle(petName)
+                        }
                         Text(
-                            text = petName,
-                            fontSize = 24.sp,
+                            text = displayName,
+                            fontSize = 22.sp,  // 24sp → 22sp로 축소
                             fontWeight = FontWeight.Bold,
                             color = MockupColors.TextPrimary,
-                            fontFamily = kenneyFont
+                            fontFamily = kenneyFont,
+                            textAlign = TextAlign.Center
                         )
 
                         Spacer(modifier = Modifier.height(4.dp))
 
-                        // 레벨 & 단계
+                        // 레벨 & 단계 (실제 성장 단계 표시)
+                        val displayStage = preferenceManager?.getEffectiveDisplayStage() ?: petLevel.stage
                         Text(
-                            text = "Lv.${petLevel.level} (${petLevel.stage.displayName})",
-                            fontSize = 16.sp,
+                            text = "Lv.${petLevel.level} (${displayStage.displayName})",
+                            fontSize = 15.sp,  // 16sp → 15sp로 축소
                             color = MockupColors.Blue,
                             fontWeight = FontWeight.Bold,
                             fontFamily = kenneyFont
@@ -253,7 +265,7 @@ fun SettingsPetScreen(
                     }
                 }
 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(12.dp))
 
                 // ========== 성장 단계 미리보기 ==========
                 EvolutionPreviewSection(
@@ -262,7 +274,17 @@ fun SettingsPetScreen(
                     kenneyFont = kenneyFont
                 )
 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(12.dp))
+
+                // ========== 펫 스킨 ==========
+                SkinManagementSection(
+                    petTypeV2 = petTypeV2,
+                    petLevel = petLevel,
+                    kenneyFont = kenneyFont,
+                    hapticManager = hapticManager
+                )
+
+                Spacer(modifier = Modifier.height(12.dp))
 
                 // ========== 펫 통계 ==========
                 RetroSectionTitle("펫 통계", kenneyFont)
@@ -270,9 +292,9 @@ fun SettingsPetScreen(
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .border(3.dp, MockupColors.Border, RoundedCornerShape(12.dp))
-                        .background(MockupColors.CardBackground, RoundedCornerShape(12.dp))
-                        .padding(16.dp)
+                        .border(2.dp, MockupColors.Border, RoundedCornerShape(10.dp))
+                        .background(MockupColors.CardBackground, RoundedCornerShape(10.dp))
+                        .padding(12.dp)
                 ) {
                     Column {
                         StatRow("총 걸음수", "${petTotalSteps.formatWithComma()}보", kenneyFont)
@@ -283,7 +305,7 @@ fun SettingsPetScreen(
                     }
                 }
 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(12.dp))
 
                 // ========== 펫 변경 ==========
                 RetroSectionTitle("펫 변경", kenneyFont)
@@ -291,13 +313,13 @@ fun SettingsPetScreen(
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .border(3.dp, MockupColors.Border, RoundedCornerShape(12.dp))
-                        .background(MockupColors.CardBackground, RoundedCornerShape(12.dp))
+                        .border(2.dp, MockupColors.Border, RoundedCornerShape(10.dp))
+                        .background(MockupColors.CardBackground, RoundedCornerShape(10.dp))
                         .clickable {
                             hapticManager.click()
                             showPetChangeDialog = true
                         }
-                        .padding(16.dp)
+                        .padding(12.dp)
                 ) {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
@@ -334,7 +356,7 @@ fun SettingsPetScreen(
                     }
                 }
 
-                Spacer(modifier = Modifier.height(32.dp))
+                Spacer(modifier = Modifier.height(16.dp))
             }
         }
 
@@ -909,4 +931,432 @@ private fun updateAllWidgetsAfterOverride(context: Context) {
     TravelPhraseWidgetProvider.updateAllWidgets(context)
     TravelPhraseJapaneseWidgetProvider.updateAllWidgets(context)
     TravelPhraseChineseWidgetProvider.updateAllWidgets(context)
+}
+
+// ========== 펫 스킨 시스템 UI ==========
+
+/**
+ * 펫 스킨 관리 섹션
+ */
+@Composable
+private fun SkinManagementSection(
+    petTypeV2: PetTypeV2?,
+    petLevel: PetLevel,
+    kenneyFont: FontFamily,
+    hapticManager: HapticManager
+) {
+    val context = LocalContext.current
+    val prefs = remember { PreferenceManager(context) }
+
+    // 펼침/접힘 상태
+    var isExpanded by remember { mutableStateOf(false) }
+
+    // 현재 스킨
+    var currentSkinId by remember { mutableStateOf(prefs.getPetSkin()) }
+
+    // 보유 스킨 목록
+    var ownedSkins by remember { mutableStateOf(prefs.getOwnedSkins()) }
+
+    // 펫 정보
+    val petStage = prefs.getEffectiveDisplayStage()
+
+    // 확인 다이얼로그 상태 (보유 스킨 변경)
+    var showConfirmDialog by remember { mutableStateOf(false) }
+    var pendingSkin by remember { mutableStateOf<PetSkin?>(null) }
+
+    // 해금 조건 다이얼로그 상태 (잠긴 스킨 클릭)
+    var showUnlockInfoDialog by remember { mutableStateOf(false) }
+    var lockedSkinInfo by remember { mutableStateOf<PetSkin?>(null) }
+
+    // 스킨 자동 해금
+    LaunchedEffect(Unit) {
+        val newlyUnlocked = prefs.checkAndUnlockNewSkins()
+        if (newlyUnlocked.isNotEmpty()) {
+            ownedSkins = prefs.getOwnedSkins()
+        }
+    }
+
+    // 스킨 분류
+    val ownedSkinsList = DefaultSkins.ALL_SKINS.filter { ownedSkins.contains(it.id) }
+    val lockedSkinsList = DefaultSkins.ALL_SKINS.filter { !ownedSkins.contains(it.id) }
+
+    Column {
+        // 타이틀
+        RetroSectionTitle("펫 스킨", kenneyFont)
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        // ========== 보유중 섹션 (항상 표시) ==========
+        Text(
+            text = "보유중 (${ownedSkinsList.size})",
+            fontSize = 13.sp,
+            fontWeight = FontWeight.Bold,
+            color = MockupColors.TextPrimary,
+            modifier = Modifier.padding(vertical = 4.dp)
+        )
+
+        // 보유 스킨 그리드 (3열, 고정 높이 계산)
+        val ownedRows = (ownedSkinsList.size + 2) / 3
+        val ownedGridHeight = (ownedRows * 95).coerceAtLeast(95).dp
+
+        LazyVerticalGrid(
+            columns = GridCells.Fixed(3),
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(ownedGridHeight),
+            userScrollEnabled = false
+        ) {
+            items(ownedSkinsList) { skin ->
+                val isSelected = currentSkinId == skin.id
+
+                SkinItemCompact(
+                    skin = skin,
+                    isOwned = true,
+                    isSelected = isSelected,
+                    petTypeV2 = petTypeV2,
+                    petStage = petStage,
+                    onClick = {
+                        if (currentSkinId != skin.id) {
+                            hapticManager.lightClick()
+                            pendingSkin = skin
+                            showConfirmDialog = true
+                        }
+                    }
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        // ========== 미보유 섹션 (토글) ==========
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable {
+                    hapticManager.lightClick()
+                    isExpanded = !isExpanded
+                }
+                .padding(vertical = 4.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = "미보유 (${lockedSkinsList.size})",
+                fontSize = 13.sp,
+                fontWeight = FontWeight.Bold,
+                color = MockupColors.TextMuted
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            Text(
+                text = if (isExpanded) "▼" else "▶",
+                fontSize = 12.sp,
+                color = MockupColors.TextMuted,
+                fontFamily = kenneyFont
+            )
+        }
+
+        // 미보유 스킨 그리드 (펼쳤을 때만)
+        if (isExpanded) {
+            val lockedRows = (lockedSkinsList.size + 2) / 3
+            val lockedGridHeight = (lockedRows * 100).coerceAtLeast(100).dp
+
+            LazyVerticalGrid(
+                columns = GridCells.Fixed(3),
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(lockedGridHeight),
+                userScrollEnabled = false
+            ) {
+                items(lockedSkinsList) { skin ->
+                    SkinItemCompact(
+                        skin = skin,
+                        isOwned = false,
+                        isSelected = false,
+                        petTypeV2 = petTypeV2,
+                        petStage = petStage,
+                        onClick = {
+                            hapticManager.lightClick()
+                            lockedSkinInfo = skin
+                            showUnlockInfoDialog = true
+                        }
+                    )
+                }
+            }
+        }
+    }
+
+    // 스킨 변경 확인 다이얼로그
+    if (showConfirmDialog && pendingSkin != null) {
+        AlertDialog(
+            onDismissRequest = {
+                showConfirmDialog = false
+                pendingSkin = null
+            },
+            title = {
+                Text(
+                    text = "스킨 변경",
+                    fontWeight = FontWeight.Bold
+                )
+            },
+            text = {
+                Text(
+                    text = "펫의 스킨을 '${pendingSkin?.displayName}'(으)로 변경하시겠습니까?"
+                )
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        pendingSkin?.let { skin ->
+                            android.util.Log.d("SkinManagement", "🎨 Saving skin: ${skin.id} (${skin.displayName})")
+                            prefs.savePetSkin(skin.id)
+                            currentSkinId = skin.id
+                            android.util.Log.d("SkinManagement", "✅ Skin saved, currentSkinId now: $currentSkinId")
+                            updateAllWidgetsAfterOverride(context)
+                            android.util.Log.d("SkinManagement", "🔄 Widgets updated")
+                        }
+                        showConfirmDialog = false
+                        pendingSkin = null
+                    }
+                ) {
+                    Text("변경")
+                }
+            },
+            dismissButton = {
+                Button(
+                    onClick = {
+                        showConfirmDialog = false
+                        pendingSkin = null
+                    },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(0xFFAAAAAA)
+                    )
+                ) {
+                    Text("취소")
+                }
+            }
+        )
+    }
+
+    // 해금 조건 안내 다이얼로그 (잠긴 스킨 클릭 시)
+    if (showUnlockInfoDialog && lockedSkinInfo != null) {
+        AlertDialog(
+            onDismissRequest = {
+                showUnlockInfoDialog = false
+                lockedSkinInfo = null
+            },
+            title = {
+                Text(
+                    text = lockedSkinInfo?.displayName ?: "",
+                    fontWeight = FontWeight.Bold
+                )
+            },
+            text = {
+                Column {
+                    // 스킨 미리보기
+                    if (petTypeV2 != null) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(120.dp)
+                                .background(Color(0xFFF5F5F5), RoundedCornerShape(12.dp)),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            val equipmentState = EquipmentState(
+                                headId = null,
+                                backgroundId = null,
+                                colorId = lockedSkinInfo?.id
+                            )
+
+                            PetSpriteV2WithEquipment(
+                                petType = petTypeV2,
+                                stage = petStage,
+                                animationType = PetAnimationTypeV2.IDLE,
+                                equipmentState = equipmentState,
+                                size = 80.dp,
+                                monochrome = true,
+                                showGlow = true
+                            )
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    // 해금 조건
+                    Text(
+                        text = "해금 조건",
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = MockupColors.TextPrimary
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = getUnlockConditionDetailText(lockedSkinInfo!!.unlockCondition, prefs),
+                        fontSize = 14.sp,
+                        color = MockupColors.TextSecondary
+                    )
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        showUnlockInfoDialog = false
+                        lockedSkinInfo = null
+                    }
+                ) {
+                    Text("확인")
+                }
+            }
+        )
+    }
+}
+
+/**
+ * 컴팩트한 스킨 아이템 (펫 관리 화면용)
+ */
+@Composable
+private fun SkinItemCompact(
+    skin: PetSkin,
+    isOwned: Boolean,
+    isSelected: Boolean,
+    petTypeV2: PetTypeV2?,
+    petStage: PetGrowthStage,
+    onClick: () -> Unit
+) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier.clickable(onClick = onClick)
+    ) {
+        // 썸네일 박스
+        Box(
+            modifier = Modifier
+                .size(68.dp)
+                .background(
+                    if (isSelected) Color(0xFFE3F2FD) else Color(0xFFF5F5F5),
+                    RoundedCornerShape(8.dp)
+                )
+                .border(
+                    width = if (isSelected) 2.dp else 0.dp,
+                    color = if (isSelected) Color(0xFF2196F3) else Color.Transparent,
+                    shape = RoundedCornerShape(8.dp)
+                )
+                .padding(3.dp)
+        ) {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center,
+                modifier = Modifier.fillMaxSize()
+            ) {
+                // 1. 자물쇠 아이콘 (잠긴 경우에만)
+                if (!isOwned) {
+                    DrawableIcon(
+                        iconName = "icon_lock",
+                        size = 10.dp,
+                        tint = MockupColors.TextMuted
+                    )
+                    Spacer(modifier = Modifier.height(1.dp))
+                }
+
+                // 2. 펫 미리보기
+                if (petTypeV2 != null) {
+                    val equipmentState = EquipmentState(
+                        headId = null,
+                        backgroundId = null,
+                        colorId = skin.id
+                    )
+
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(48.dp)
+                            .alpha(if (isOwned) 1f else 0.6f),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        PetSpriteV2WithEquipment(
+                            petType = petTypeV2,
+                            stage = petStage,
+                            animationType = PetAnimationTypeV2.IDLE,
+                            equipmentState = equipmentState,
+                            size = 48.dp,
+                            monochrome = true,
+                            showGlow = false
+                        )
+                    }
+                }
+
+                // 3. 해금 조건 (잠긴 경우에만)
+                if (!isOwned) {
+                    Spacer(modifier = Modifier.height(2.dp))
+                    Text(
+                        text = getUnlockConditionText(skin.unlockCondition),
+                        fontSize = 7.sp,
+                        color = MockupColors.TextMuted,
+                        textAlign = TextAlign.Center,
+                        maxLines = 2,
+                        lineHeight = 8.sp,
+                        modifier = Modifier.padding(horizontal = 2.dp)
+                    )
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(2.dp))
+
+        // 스킨 이름 (항상 표시)
+        Text(
+            text = skin.displayName,
+            fontSize = 9.sp,
+            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+            textAlign = TextAlign.Center,
+            maxLines = 1,
+            color = Color.Black,
+            modifier = Modifier.widthIn(max = 68.dp)
+        )
+    }
+}
+
+/**
+ * 해금 조건을 텍스트로 변환 (간단한 버전)
+ */
+private fun getUnlockConditionText(condition: UnlockCondition): String {
+    return when (condition) {
+        is UnlockCondition.Default -> "기본"
+        is UnlockCondition.Steps -> "${condition.totalSteps}보"
+        is UnlockCondition.Streak -> "${condition.days}일 연속"
+        is UnlockCondition.Level -> "Lv.${condition.level}"
+        is UnlockCondition.Event -> condition.eventId
+        is UnlockCondition.ChallengeCount -> "${condition.category} ${condition.count}회"
+    }
+}
+
+/**
+ * 해금 조건 상세 텍스트 (현재 진행도 포함)
+ */
+private fun getUnlockConditionDetailText(condition: UnlockCondition, prefs: PreferenceManager): String {
+    return when (condition) {
+        is UnlockCondition.Default -> "기본 제공되는 스킨입니다."
+        is UnlockCondition.Steps -> {
+            val current = prefs.getPetTotalSteps()
+            val required = condition.totalSteps
+            "총 ${required}보 걸으면 해금됩니다.\n현재: ${current}보 / ${required}보"
+        }
+        is UnlockCondition.Streak -> {
+            val current = prefs.getStreak()
+            val required = condition.days
+            "${required}일 연속 목표 달성 시 해금됩니다.\n현재: ${current}일 연속"
+        }
+        is UnlockCondition.Level -> {
+            val current = prefs.getPetLevelV2()?.level ?: 1
+            val required = condition.level
+            "펫 레벨 ${required} 달성 시 해금됩니다.\n현재 레벨: Lv.${current}"
+        }
+        is UnlockCondition.Event -> "특별 이벤트 기간에 해금됩니다.\n이벤트: ${condition.eventId}"
+        is UnlockCondition.ChallengeCount -> {
+            val current = prefs.getChallengeCountByCategory(condition.category)
+            val required = condition.count
+            "${condition.category} 챌린지 ${required}회 완료 시 해금됩니다.\n현재: ${current}회 / ${required}회"
+        }
+    }
 }

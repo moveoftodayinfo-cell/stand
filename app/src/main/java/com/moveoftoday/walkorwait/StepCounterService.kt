@@ -21,6 +21,10 @@ class StepCounterService : Service() {
         const val CHANNEL_ID = "step_counter_channel"
         const val NOTIFICATION_ID = 2001
 
+        private var instance: StepCounterService? = null
+
+        fun getInstance(): StepCounterService? = instance
+
         fun start(context: Context) {
             // Android Q 이상에서는 ACTIVITY_RECOGNITION 권한 필요
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
@@ -54,6 +58,7 @@ class StepCounterService : Service() {
 
     override fun onCreate() {
         super.onCreate()
+        instance = this
         preferenceManager = PreferenceManager(this)
 
         createNotificationChannel()
@@ -63,22 +68,8 @@ class StepCounterService : Service() {
         try {
             stepSensorManager = StepSensorManager(this)
             stepSensorManager.onStepCountChanged = { steps ->
-                val previousSteps = preferenceManager.getTodaySteps()
-                preferenceManager.saveTodaySteps(steps)
-
-                // 실시간 경험치 추가 (걸음이 증가했을 때만)
-                val increment = steps - previousSteps
-                if (increment > 0 && preferenceManager.isPetV2Initialized()) {
-                    val oldLevel = preferenceManager.getPetLevelV2()
-                    val (newLevel, leveledUp) = com.moveoftoday.walkorwait.pet.PetSystemV2.addStepsAndCheckLevelUp(preferenceManager, increment)
-
-                    if (leveledUp) {
-                        android.util.Log.d("StepCounterService", "🎉 레벨업! ${oldLevel.level} → ${newLevel.level} (걸음: +$increment)")
-                        // TODO: 레벨업 알림 표시 (선택사항)
-                    } else {
-                        android.util.Log.d("StepCounterService", "📈 EXP 획득: +${increment/100} exp (걸음: +$increment, 레벨: ${newLevel.level}, ${newLevel.currentExp}/${newLevel.expToNextLevel})")
-                    }
-                }
+                // EXP 추가는 StepSensorManager에서 처리됨
+                android.util.Log.d("StepCounterService", "👣 걸음: $steps")
 
                 // 걸음 기록 저장 (평균 속도 계산용)
                 preferenceManager.saveStepRecord(System.currentTimeMillis(), steps)
@@ -142,7 +133,10 @@ class StepCounterService : Service() {
         } catch (e: Exception) {
             android.util.Log.e("StepCounterService", "Stop listening error: ${e.message}")
         }
+        instance = null
     }
+
+    fun getStepSensorManager(): StepSensorManager = stepSensorManager
 
     override fun onBind(intent: Intent?): IBinder? = null
 }

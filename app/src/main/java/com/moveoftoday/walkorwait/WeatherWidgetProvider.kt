@@ -169,15 +169,31 @@ class WeatherWidgetProvider : AppWidgetProvider() {
     }
 
     /**
-     * 펫 첫 프레임 로드 (grayscale)
+     * 펫 첫 프레임 로드 (grayscale + 스킨)
      */
     private fun loadPetFirstFrame(context: Context, petType: PetTypeV2, prefs: PreferenceManager): Bitmap? {
         val stage = prefs.getEffectiveDisplayStage()  // 오버라이드 반영
 
+        // 스킨 가져오기
+        val skinId = prefs.getPetSkin()
+        val petSkin = com.moveoftoday.walkorwait.pet.DefaultSkins.getById(skinId)
+
         return try {
             val assetPath = "pets/${petType.folderName}/${stage.folderName}/idle/frame_000.png"
             context.assets.open(assetPath).use { inputStream ->
-                BitmapFactory.decodeStream(inputStream)?.let { toGrayscale(it) }
+                BitmapFactory.decodeStream(inputStream)?.let { bitmap ->
+                    // 1. Grayscale 변환
+                    var result = toGrayscale(bitmap)
+
+                    // 2. 스킨 적용
+                    if (petSkin?.colorMatrix != null) {
+                        result = applyColorMatrix(result, petSkin.colorMatrix)
+                    } else if (petSkin?.overlayColor != null) {
+                        result = applyOverlayColor(result, petSkin.overlayColor)
+                    }
+
+                    result
+                }
             }
         } catch (e: Exception) {
             null
@@ -196,6 +212,37 @@ class WeatherWidgetProvider : AppWidgetProvider() {
         paint.colorFilter = android.graphics.ColorMatrixColorFilter(colorMatrix)
         canvas.drawBitmap(original, 0f, 0f, paint)
         return grayscale
+    }
+
+    /**
+     * ColorMatrix 적용 (스킨 시스템)
+     */
+    private fun applyColorMatrix(original: Bitmap, matrix: FloatArray): Bitmap {
+        val result = Bitmap.createBitmap(original.width, original.height, Bitmap.Config.ARGB_8888)
+        val canvas = Canvas(result)
+        val paint = android.graphics.Paint()
+        val colorMatrix = android.graphics.ColorMatrix(matrix)
+        paint.colorFilter = android.graphics.ColorMatrixColorFilter(colorMatrix)
+        canvas.drawBitmap(original, 0f, 0f, paint)
+        return result
+    }
+
+    /**
+     * 단색 오버레이 적용 (스킨 시스템)
+     */
+    private fun applyOverlayColor(original: Bitmap, color: Int): Bitmap {
+        val result = Bitmap.createBitmap(original.width, original.height, Bitmap.Config.ARGB_8888)
+        val canvas = Canvas(result)
+        val paint = android.graphics.Paint()
+
+        // 원본 그리기
+        canvas.drawBitmap(original, 0f, 0f, null)
+
+        // 오버레이 색상 적용 (Modulate 모드)
+        paint.colorFilter = android.graphics.PorterDuffColorFilter(color, android.graphics.PorterDuff.Mode.MULTIPLY)
+        canvas.drawBitmap(original, 0f, 0f, paint)
+
+        return result
     }
 
     /**
@@ -218,22 +265,21 @@ class WeatherWidgetProvider : AppWidgetProvider() {
      * U+FE0E (텍스트 변형 선택자)를 추가하여 이모지 대신 텍스트로 렌더링
      */
     private fun getWeatherSymbol(icon: String?): String {
-        val textSelector = "\uFE0E" // 텍스트 스타일 강제
         return when (icon) {
-            "sunny" -> "☀$textSelector"
-            "clear_night" -> "☾$textSelector"
-            "partly_sunny", "partly_cloudy_night" -> "⛅$textSelector"
-            "partly_cloudy" -> "⛅$textSelector"
-            "cloudy" -> "☁$textSelector"
-            "foggy" -> "≡"
-            "drizzle" -> "☂$textSelector"
-            "rainy" -> "☂$textSelector"
-            "heavy_rain" -> "☔$textSelector"
-            "freezing_drizzle", "freezing_rain" -> "☔$textSelector"
-            "snowy" -> "❄$textSelector"
-            "heavy_snow" -> "❄$textSelector"
-            "thunderstorm" -> "⚡$textSelector"
-            else -> "○"
+            "sunny" -> UnicodeSymbols.SUN
+            "clear_night" -> UnicodeSymbols.MOON
+            "partly_sunny", "partly_cloudy_night" -> UnicodeSymbols.PARTLY_CLOUDY
+            "partly_cloudy" -> UnicodeSymbols.PARTLY_CLOUDY
+            "cloudy" -> UnicodeSymbols.CLOUD
+            "foggy" -> UnicodeSymbols.EQUALS
+            "drizzle" -> UnicodeSymbols.UMBRELLA
+            "rainy" -> UnicodeSymbols.UMBRELLA
+            "heavy_rain" -> UnicodeSymbols.HEAVY_RAIN
+            "freezing_drizzle", "freezing_rain" -> UnicodeSymbols.HEAVY_RAIN
+            "snowy" -> UnicodeSymbols.SNOWFLAKE
+            "heavy_snow" -> UnicodeSymbols.SNOWFLAKE
+            "thunderstorm" -> UnicodeSymbols.LIGHTNING
+            else -> UnicodeSymbols.CIRCLE_OUTLINE
         }
     }
 

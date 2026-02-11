@@ -195,27 +195,27 @@ private fun SettingsMainContent(
                 }
             )
 
-            // 스크롤 가능한 메뉴 목록
+            // 메뉴 목록
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .verticalScroll(rememberScrollState())
-                    .padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                // 1. 내 정보
-                SettingsMenuCard(
-                    iconName = "icon_character",  // PNG 아이콘
-                    title = "내 정보",
-                    subtitle = if (isGoogleSignedIn) googleEmail else "로그인하여 데이터 백업",
+                // 상단: 현재 펫 표시
+                SettingsPetPreview(
+                    petTypeV2 = petTypeV2,
+                    petName = petName,
+                    petLevel = petLevel,
+                    preferenceManager = preferenceManager,
                     kenneyFont = kenneyFont,
                     onClick = {
                         hapticManager.click()
-                        onNavigate(SettingsDestination.PROFILE)
+                        onNavigate(SettingsDestination.PET)
                     }
                 )
 
-                // 2. 펫 관리
+                // 1. 펫 관리
                 SettingsMenuCard(
                     iconName = "icon_beetle",  // PNG 아이콘
                     title = "펫 관리",
@@ -227,7 +227,7 @@ private fun SettingsMainContent(
                     }
                 )
 
-                // 3. 목표 설정
+                // 2. 목표 설정
                 val goalText = when (goalUnit) {
                     "km" -> "${goal / 1000.0}km"
                     "minutes" -> "${goal}분"
@@ -248,7 +248,7 @@ private fun SettingsMainContent(
                     }
                 )
 
-                // 4. 앱 제어
+                // 3. 앱 제어
                 SettingsMenuCard(
                     iconName = "icon_shield",  // PNG 아이콘
                     title = "앱 제어",
@@ -260,7 +260,19 @@ private fun SettingsMainContent(
                     }
                 )
 
-                Spacer(modifier = Modifier.height(32.dp))
+                // 4. 내 정보
+                SettingsMenuCard(
+                    iconName = "icon_character",  // PNG 아이콘
+                    title = "내 정보",
+                    subtitle = if (isGoogleSignedIn) googleEmail else "로그인하여 데이터 백업",
+                    kenneyFont = kenneyFont,
+                    onClick = {
+                        hapticManager.click()
+                        onNavigate(SettingsDestination.PROFILE)
+                    }
+                )
+
+                Spacer(modifier = Modifier.weight(1f))
 
                 // 푸터 영역
                 SettingsFooter(
@@ -269,7 +281,7 @@ private fun SettingsMainContent(
                     onNavigateSupport = { onNavigate(SettingsDestination.SUPPORT) }
                 )
 
-                Spacer(modifier = Modifier.height(24.dp))
+                Spacer(modifier = Modifier.height(8.dp))
             }
         }
     }
@@ -344,10 +356,10 @@ private fun SettingsMenuCard(
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .border(2.dp, MockupColors.Border, RoundedCornerShape(12.dp))
-            .background(MockupColors.CardBackground, RoundedCornerShape(12.dp))
+            .border(2.dp, MockupColors.Border, RoundedCornerShape(10.dp))
+            .background(MockupColors.CardBackground, RoundedCornerShape(10.dp))
             .clickable(onClick = onClick)
-            .padding(16.dp)
+            .padding(12.dp)
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -360,22 +372,21 @@ private fun SettingsMenuCard(
                 // 아이콘 (IconGodotNode PNG)
                 DrawableIcon(
                     iconName = iconName,
-                    size = 28.dp,
-                    tint = MockupColors.TextMuted  // 회색으로 통일
+                    size = 24.dp,
+                    tint = MockupColors.TextMuted
                 )
-                Spacer(modifier = Modifier.width(16.dp))
+                Spacer(modifier = Modifier.width(12.dp))
                 Column {
                     Text(
                         text = title,
-                        fontSize = 18.sp,
+                        fontSize = 16.sp,
                         fontWeight = FontWeight.Bold,
                         color = MockupColors.TextPrimary,
                         fontFamily = kenneyFont
                     )
-                    Spacer(modifier = Modifier.height(2.dp))
                     Text(
                         text = subtitle,
-                        fontSize = 13.sp,
+                        fontSize = 12.sp,
                         color = MockupColors.TextSecondary
                     )
                 }
@@ -383,12 +394,85 @@ private fun SettingsMenuCard(
             // 화살표
             Text(
                 text = ">",
-                fontSize = 20.sp,
+                fontSize = 18.sp,
                 fontWeight = FontWeight.Bold,
                 color = MockupColors.Border,
                 fontFamily = kenneyFont
             )
         }
+    }
+}
+
+/**
+ * 설정 상단 펫 프리뷰
+ */
+@Composable
+private fun SettingsPetPreview(
+    petTypeV2: PetTypeV2?,
+    petName: String,
+    petLevel: PetLevel,
+    preferenceManager: PreferenceManager?,
+    kenneyFont: androidx.compose.ui.text.font.FontFamily,
+    onClick: () -> Unit
+) {
+    val stage = petLevel.stage
+
+    // 장비 상태 가져오기
+    val equipmentState = remember(preferenceManager) {
+        preferenceManager?.getEquipmentState() ?: EquipmentState()
+    }
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+            .padding(vertical = 8.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        // 펫 애니메이션 (2배 크기)
+        Box(
+            modifier = Modifier.size(160.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            if (petTypeV2 != null) {
+                PetSpriteV2WithEquipment(
+                    petType = petTypeV2,
+                    stage = stage,
+                    animationType = PetAnimationTypeV2.IDLE,
+                    equipmentState = equipmentState,
+                    size = 160.dp,
+                    monochrome = true,
+                    showGlow = true,
+                    applyDisplayScale = true
+                )
+            } else {
+                // 펫 없을 때 egg 표시
+                PetSpriteV2(
+                    petType = PetTypeV2.CAT,
+                    stage = PetGrowthStage.EGG,
+                    animationType = PetAnimationTypeV2.IDLE,
+                    size = 160.dp,
+                    monochrome = true
+                )
+            }
+        }
+
+        // 펫 이름
+        Text(
+            text = petName,
+            fontSize = 20.sp,
+            fontWeight = FontWeight.Bold,
+            color = MockupColors.TextPrimary,
+            fontFamily = kenneyFont
+        )
+
+        // 레벨 + 성장 단계
+        val stageName = stage.displayName
+        Text(
+            text = "Lv.${petLevel.level} · $stageName",
+            fontSize = 13.sp,
+            color = MockupColors.TextSecondary
+        )
     }
 }
 

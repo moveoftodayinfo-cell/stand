@@ -247,10 +247,14 @@ class TravelPhraseWidgetProvider : AppWidgetProvider() {
         }
 
         /**
-         * 펫 랜덤 프레임 로드 (grayscale)
+         * 펫 랜덤 프레임 로드 (grayscale + 스킨)
          */
         private fun loadPetRandomFrame(context: Context, petType: PetTypeV2, prefs: PreferenceManager): android.graphics.Bitmap? {
             val stage = prefs.getEffectiveDisplayStage()  // 오버라이드 반영
+
+            // 스킨 가져오기
+            val skinId = prefs.getPetSkin()
+            val petSkin = com.moveoftoday.walkorwait.pet.DefaultSkins.getById(skinId)
 
             return try {
                 // idle 폴더에서 프레임 파일 목록 가져오기
@@ -262,7 +266,14 @@ class TravelPhraseWidgetProvider : AppWidgetProvider() {
                 val assetPath = "$idlePath/$randomFrame"
 
                 context.assets.open(assetPath).use { inputStream ->
-                    BitmapFactory.decodeStream(inputStream)?.let { toGrayscale(it) }
+                    BitmapFactory.decodeStream(inputStream)?.let { bitmap ->
+                        var result = toGrayscale(bitmap)
+                        // 스킨 적용 (colorMatrix 방식)
+                        petSkin?.colorMatrix?.let { matrix ->
+                            result = applyColorMatrix(result, matrix)
+                        }
+                        result
+                    }
                 }
             } catch (e: Exception) {
                 null
@@ -281,6 +292,19 @@ class TravelPhraseWidgetProvider : AppWidgetProvider() {
             paint.colorFilter = android.graphics.ColorMatrixColorFilter(colorMatrix)
             canvas.drawBitmap(original, 0f, 0f, paint)
             return grayscale
+        }
+
+        /**
+         * ColorMatrix 적용 (스킨 컬러)
+         */
+        private fun applyColorMatrix(original: android.graphics.Bitmap, matrix: FloatArray): android.graphics.Bitmap {
+            val result = android.graphics.Bitmap.createBitmap(original.width, original.height, android.graphics.Bitmap.Config.ARGB_8888)
+            val canvas = android.graphics.Canvas(result)
+            val paint = android.graphics.Paint()
+            val colorMatrix = android.graphics.ColorMatrix(matrix)
+            paint.colorFilter = android.graphics.ColorMatrixColorFilter(colorMatrix)
+            canvas.drawBitmap(original, 0f, 0f, paint)
+            return result
         }
 
         /**

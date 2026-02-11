@@ -9,6 +9,9 @@ import java.util.Locale
 import com.moveoftoday.walkorwait.pet.PetLevel
 import com.moveoftoday.walkorwait.pet.PetTypeV2
 import com.moveoftoday.walkorwait.pet.PetGrowthStage
+import com.moveoftoday.walkorwait.pet.EquipmentSlot
+import com.moveoftoday.walkorwait.pet.EquipmentState
+import com.moveoftoday.walkorwait.pet.UnlockCondition
 
 class PreferenceManager(context: Context) {
     private val prefs: SharedPreferences =
@@ -988,7 +991,9 @@ class PreferenceManager(context: Context) {
 
     fun addPetSteps(steps: Int) {
         val current = getPetTotalSteps()
-        savePetTotalSteps(current + steps)
+        val newTotal = current + steps
+        savePetTotalSteps(newTotal)
+        android.util.Log.d("PreferenceManager", "👟 addPetSteps: +$steps → 총 $newTotal 보")
     }
 
     // Check if pet onboarding is completed
@@ -1099,8 +1104,21 @@ class PreferenceManager(context: Context) {
     }
 
     // Convert steps to exp and add (100 steps = 1 exp)
+    // 누적 방식: 작은 증가분도 누적되어 100걸음 단위로 EXP 변환
     fun addPetExpFromStepsV2(steps: Int): PetLevel {
-        val exp = PetLevel.stepsToExp(steps)
+        // 이전 누적 걸음수 가져오기
+        val pendingSteps = prefs.getInt("pet_pending_steps_v2", 0)
+        val totalPendingSteps = pendingSteps + steps
+
+        // 100걸음당 1 EXP
+        val exp = totalPendingSteps / 100
+        val remainingSteps = totalPendingSteps % 100
+
+        // 남은 걸음수 저장
+        prefs.edit().putInt("pet_pending_steps_v2", remainingSteps).apply()
+
+        android.util.Log.d("PreferenceManager", "🔢 EXP 계산: 이전누적=$pendingSteps + 증가=$steps = 총$totalPendingSteps → EXP=$exp, 남은걸음=$remainingSteps")
+
         return if (exp > 0) addPetExpV2(exp) else getPetLevelV2()
     }
 
@@ -1851,5 +1869,281 @@ class PreferenceManager(context: Context) {
         val updatedAt = prefs.getLong("weather_updated_at", 0)
         val oneHour = 60 * 60 * 1000L
         return (System.currentTimeMillis() - updatedAt) < oneHour
+    }
+
+    // ========== 펫 장비 시스템 ==========
+
+    private companion object {
+        private const val KEY_EQUIPPED_HEAD = "equipped_head"
+        private const val KEY_EQUIPPED_BACKGROUND = "equipped_background"
+        private const val KEY_EQUIPPED_COLOR = "equipped_color"
+        private const val KEY_OWNED_EQUIPMENT = "owned_equipment_ids"
+
+        // 펫 스킨 시스템
+        private const val KEY_PET_SKIN = "pet_skin_id"
+        private const val KEY_OWNED_SKINS = "owned_skin_ids"
+    }
+
+    /**
+     * 장착 장비 저장
+     */
+    fun saveEquippedEquipment(slot: EquipmentSlot, itemId: String?) {
+        val key = when (slot) {
+            EquipmentSlot.HEAD -> KEY_EQUIPPED_HEAD
+            EquipmentSlot.BACKGROUND -> KEY_EQUIPPED_BACKGROUND
+            EquipmentSlot.COLOR -> KEY_EQUIPPED_COLOR
+        }
+        prefs.edit().putString(key, itemId).apply()
+    }
+
+    /**
+     * 장착 장비 불러오기
+     */
+    fun getEquippedEquipment(slot: EquipmentSlot): String? {
+        val key = when (slot) {
+            EquipmentSlot.HEAD -> KEY_EQUIPPED_HEAD
+            EquipmentSlot.BACKGROUND -> KEY_EQUIPPED_BACKGROUND
+            EquipmentSlot.COLOR -> KEY_EQUIPPED_COLOR
+        }
+        return prefs.getString(key, null)
+    }
+
+    /**
+     * 전체 장비 상태 가져오기
+     */
+    fun getEquipmentState(): EquipmentState {
+        android.util.Log.d("PreferenceManager", "🎨 getEquipmentState - using skin system")
+        val skinId = getPetSkin()
+        android.util.Log.d("PreferenceManager", "🎨 equipmentState.colorId will be: $skinId")
+        return EquipmentState(
+            headId = getEquippedEquipment(EquipmentSlot.HEAD),
+            backgroundId = getEquippedEquipment(EquipmentSlot.BACKGROUND),
+            colorId = skinId  // 스킨 시스템 사용 (COLOR 장비 대신)
+        )
+    }
+
+    /**
+     * 보유 장비 목록 저장
+     */
+    fun saveOwnedEquipment(itemIds: Set<String>) {
+        prefs.edit().putStringSet(KEY_OWNED_EQUIPMENT, itemIds).apply()
+    }
+
+    /**
+     * 보유 장비 목록 가져오기
+     */
+    fun getOwnedEquipment(): Set<String> {
+        return prefs.getStringSet(KEY_OWNED_EQUIPMENT, emptySet()) ?: emptySet()
+    }
+
+    /**
+     * 장비 해금
+     */
+    fun unlockEquipment(itemId: String) {
+        val owned = getOwnedEquipment().toMutableSet()
+        owned.add(itemId)
+        saveOwnedEquipment(owned)
+    }
+
+    /**
+     * 장비 보유 여부 확인
+     */
+    fun ownsEquipment(itemId: String): Boolean {
+        return getOwnedEquipment().contains(itemId)
+    }
+
+    /**
+     * 해금 조건 확인
+     */
+    fun canUnlockEquipment(condition: UnlockCondition): Boolean {
+        return when (condition) {
+            is UnlockCondition.Default -> true
+            is UnlockCondition.Steps -> getPetTotalSteps() >= condition.totalSteps
+            is UnlockCondition.Streak -> getStreak() >= condition.days
+            is UnlockCondition.Level -> getPetLevelV2().level >= condition.level
+            is UnlockCondition.Event -> false  // 이벤트는 별도 처리
+            is UnlockCondition.ChallengeCount -> getChallengeCountByCategory(condition.category) >= condition.count
+        }
+    }
+
+    /**
+     * 기본 장비 초기화 (첫 실행 시)
+     */
+    fun initializeDefaultEquipment() {
+        val owned = getOwnedEquipment().toMutableSet()
+        com.moveoftoday.walkorwait.pet.DefaultEquipment.ALL_EQUIPMENT
+            .filter { it.unlockCondition is UnlockCondition.Default }
+            .forEach { owned.add(it.id) }
+        saveOwnedEquipment(owned)
+    }
+
+    /**
+     * 자동 해금 체크 및 실행
+     * @return 새로 해금된 장비 목록
+     */
+    fun checkAndUnlockNewEquipment(): List<com.moveoftoday.walkorwait.pet.EquipmentItem> {
+        val ownedEquipment = getOwnedEquipment()
+        val newlyUnlocked = mutableListOf<com.moveoftoday.walkorwait.pet.EquipmentItem>()
+
+        com.moveoftoday.walkorwait.pet.DefaultEquipment.ALL_EQUIPMENT.forEach { equipment ->
+            if (!ownedEquipment.contains(equipment.id)) {
+                if (canUnlockEquipment(equipment.unlockCondition)) {
+                    unlockEquipment(equipment.id)
+                    newlyUnlocked.add(equipment)
+                }
+            }
+        }
+
+        return newlyUnlocked
+    }
+
+    // ===== 펫 스킨 시스템 =====
+
+    /**
+     * 현재 스킨 저장
+     */
+    fun savePetSkin(skinId: String) {
+        android.util.Log.d("PreferenceManager", "💾 savePetSkin called with skinId: $skinId")
+        prefs.edit().putString(KEY_PET_SKIN, skinId).apply()
+        val saved = prefs.getString(KEY_PET_SKIN, "default")
+        android.util.Log.d("PreferenceManager", "✅ Skin saved successfully. Verified: $saved")
+    }
+
+    /**
+     * 현재 스킨 가져오기
+     */
+    fun getPetSkin(): String {
+        val skinId = prefs.getString(KEY_PET_SKIN, "default") ?: "default"
+        android.util.Log.d("PreferenceManager", "🔍 getPetSkin returning: $skinId")
+        return skinId
+    }
+
+    /**
+     * 보유 스킨 목록 저장
+     */
+    fun saveOwnedSkins(skinIds: Set<String>) {
+        prefs.edit().putStringSet(KEY_OWNED_SKINS, skinIds).apply()
+    }
+
+    /**
+     * 보유 스킨 목록 가져오기
+     */
+    fun getOwnedSkins(): Set<String> {
+        return prefs.getStringSet(KEY_OWNED_SKINS, emptySet()) ?: emptySet()
+    }
+
+    /**
+     * 스킨 해금
+     */
+    fun unlockSkin(skinId: String) {
+        val owned = getOwnedSkins().toMutableSet()
+        owned.add(skinId)
+        saveOwnedSkins(owned)
+    }
+
+    /**
+     * 스킨 보유 여부 확인
+     */
+    fun ownsSkin(skinId: String): Boolean {
+        return getOwnedSkins().contains(skinId)
+    }
+
+    /**
+     * 해금 조건 확인 (스킨용)
+     */
+    fun canUnlockSkin(condition: UnlockCondition): Boolean {
+        return when (condition) {
+            is UnlockCondition.Default -> true
+            is UnlockCondition.Steps -> getPetTotalSteps() >= condition.totalSteps
+            is UnlockCondition.Streak -> getStreak() >= condition.days
+            is UnlockCondition.Level -> getPetLevelV2().level >= condition.level
+            is UnlockCondition.Event -> false  // 이벤트는 별도 처리
+            is UnlockCondition.ChallengeCount -> getChallengeCountByCategory(condition.category) >= condition.count
+        }
+    }
+
+    // ===== 챌린지 완료 횟수 추적 (스킨 해금용) =====
+
+    /**
+     * 카테고리별 챌린지 완료 횟수 조회
+     */
+    fun getChallengeCountByCategory(category: String): Int {
+        return prefs.getInt("challenge_count_$category", 0)
+    }
+
+    /**
+     * 카테고리별 챌린지 완료 횟수 증가
+     */
+    fun incrementChallengeCount(category: String) {
+        val current = getChallengeCountByCategory(category)
+        prefs.edit().putInt("challenge_count_$category", current + 1).apply()
+        android.util.Log.d("PreferenceManager", "🏆 $category 챌린지 완료: ${current + 1}회")
+    }
+
+    /**
+     * 총 챌린지 완료 횟수 조회 (모든 카테고리 합계)
+     */
+    fun getTotalChallengesCompleted(): Int {
+        return listOf("독서", "명상", "공부", "운동", "웰니스").sumOf { getChallengeCountByCategory(it) }
+    }
+
+    /**
+     * 기본 스킨 초기화 (첫 실행 시)
+     */
+    fun initializeDefaultSkins() {
+        val owned = getOwnedSkins().toMutableSet()
+        com.moveoftoday.walkorwait.pet.DefaultSkins.ALL_SKINS
+            .filter { it.unlockCondition is UnlockCondition.Default }
+            .forEach { owned.add(it.id) }
+        saveOwnedSkins(owned)
+    }
+
+    /**
+     * 자동 해금 체크 및 실행
+     * @return 새로 해금된 스킨 목록
+     */
+    fun checkAndUnlockNewSkins(): List<com.moveoftoday.walkorwait.pet.PetSkin> {
+        val ownedSkins = getOwnedSkins()
+        val newlyUnlocked = mutableListOf<com.moveoftoday.walkorwait.pet.PetSkin>()
+
+        com.moveoftoday.walkorwait.pet.DefaultSkins.ALL_SKINS.forEach { skin ->
+            if (!ownedSkins.contains(skin.id)) {
+                if (canUnlockSkin(skin.unlockCondition)) {
+                    unlockSkin(skin.id)
+                    newlyUnlocked.add(skin)
+                }
+            }
+        }
+
+        return newlyUnlocked
+    }
+
+    // ===== 운동 챌린지 피드백 설정 =====
+    private val PREF_EXERCISE_VOICE = "exercise_voice_enabled"
+    private val PREF_EXERCISE_SOUND = "exercise_sound_enabled"
+    private val PREF_EXERCISE_HAPTIC = "exercise_haptic_enabled"
+
+    fun getExerciseVoiceEnabled(): Boolean {
+        return prefs.getBoolean(PREF_EXERCISE_VOICE, true)  // 기본값: 활성화
+    }
+
+    fun setExerciseVoiceEnabled(enabled: Boolean) {
+        prefs.edit().putBoolean(PREF_EXERCISE_VOICE, enabled).apply()
+    }
+
+    fun getExerciseSoundEnabled(): Boolean {
+        return prefs.getBoolean(PREF_EXERCISE_SOUND, true)  // 기본값: 활성화
+    }
+
+    fun setExerciseSoundEnabled(enabled: Boolean) {
+        prefs.edit().putBoolean(PREF_EXERCISE_SOUND, enabled).apply()
+    }
+
+    fun getExerciseHapticEnabled(): Boolean {
+        return prefs.getBoolean(PREF_EXERCISE_HAPTIC, true)  // 기본값: 활성화
+    }
+
+    fun setExerciseHapticEnabled(enabled: Boolean) {
+        prefs.edit().putBoolean(PREF_EXERCISE_HAPTIC, enabled).apply()
     }
 }

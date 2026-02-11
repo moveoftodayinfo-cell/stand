@@ -9,4 +9,5 @@
     android:resizeMode="horizontal|vertical"
     android:widgetCategory="home_screen"
     android:previewImage="@mipmap/ic_launcher"
+    android:previewLayout="@layout/widget_travel_phrase"
     android:description="@string/app_name" />

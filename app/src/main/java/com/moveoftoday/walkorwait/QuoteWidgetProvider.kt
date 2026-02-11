@@ -117,8 +117,9 @@ class QuoteWidgetProvider : AppWidgetProvider() {
             // 명언 텍스트
             views.setTextViewText(R.id.widget_quote_text, quote.text)
 
-            // 저자 (없으면 펫 이름)
-            val petName = prefs.getPetName() ?: "rebon"
+            // 저자 (없으면 펫 이름) - V2 우선
+            val petName = prefs.getPetNameV2()?.takeIf { it.isNotBlank() }
+                ?: prefs.getPetName() ?: "rebon"
             val authorText = if (quote.author.isNotEmpty()) "- ${quote.author}" else "- $petName"
             views.setTextViewText(R.id.widget_quote_author, authorText)
 
@@ -174,16 +175,29 @@ class QuoteWidgetProvider : AppWidgetProvider() {
         }
 
         /**
-         * 펫 아이콘 로드 (진행률 기반 애니메이션, grayscale)
+         * 펫 아이콘 로드 (진행률 기반 애니메이션, grayscale + 스킨)
          */
         private fun loadPetIconWithAnimation(context: Context, prefs: PreferenceManager, animationType: String): Bitmap? {
+            // 스킨 가져오기
+            val skinId = prefs.getPetSkin()
+            val petSkin = com.moveoftoday.walkorwait.pet.DefaultSkins.getById(skinId)
+
             return try {
                 val petTypeV2 = prefs.getPetTypeV2()
                 if (petTypeV2 != null) {
                     val stage = prefs.getEffectiveDisplayStage()  // 오버라이드 반영
                     val assetPath = "pets/${petTypeV2.folderName}/${stage.folderName}/$animationType/frame_000.png"
                     context.assets.open(assetPath).use { inputStream ->
-                        BitmapFactory.decodeStream(inputStream)?.let { toGrayscale(it) }
+                        BitmapFactory.decodeStream(inputStream)?.let { bitmap ->
+                            var result = toGrayscale(bitmap)
+                            // 스킨 적용
+                            if (petSkin?.colorMatrix != null) {
+                                result = applyColorMatrix(result, petSkin.colorMatrix)
+                            } else if (petSkin?.overlayColor != null) {
+                                result = applyOverlayColor(result, petSkin.overlayColor)
+                            }
+                            result
+                        }
                     }
                 } else {
                     // V1 펫은 idle만 지원
@@ -196,7 +210,15 @@ class QuoteWidgetProvider : AppWidgetProvider() {
                             val spriteSheet = BitmapFactory.decodeStream(inputStream)
                             if (spriteSheet != null) {
                                 val frameWidth = spriteSheet.width / petType.idleFrames
-                                toGrayscale(Bitmap.createBitmap(spriteSheet, 0, 0, frameWidth, spriteSheet.height))
+                                val frame = Bitmap.createBitmap(spriteSheet, 0, 0, frameWidth, spriteSheet.height)
+                                var result = toGrayscale(frame)
+                                // 스킨 적용
+                                if (petSkin?.colorMatrix != null) {
+                                    result = applyColorMatrix(result, petSkin.colorMatrix)
+                                } else if (petSkin?.overlayColor != null) {
+                                    result = applyOverlayColor(result, petSkin.overlayColor)
+                                }
+                                result
                             } else null
                         }
                     } else null
@@ -209,7 +231,16 @@ class QuoteWidgetProvider : AppWidgetProvider() {
                         val stage = prefs.getEffectiveDisplayStage()  // 오버라이드 반영
                         val fallbackPath = "pets/${petTypeV2.folderName}/${stage.folderName}/idle/frame_000.png"
                         context.assets.open(fallbackPath).use { inputStream ->
-                            BitmapFactory.decodeStream(inputStream)?.let { toGrayscale(it) }
+                            BitmapFactory.decodeStream(inputStream)?.let { bitmap ->
+                                var result = toGrayscale(bitmap)
+                                // 스킨 적용
+                                if (petSkin?.colorMatrix != null) {
+                                    result = applyColorMatrix(result, petSkin.colorMatrix)
+                                } else if (petSkin?.overlayColor != null) {
+                                    result = applyOverlayColor(result, petSkin.overlayColor)
+                                }
+                                result
+                            }
                         }
                     } else null
                 } catch (e2: Exception) {
@@ -237,6 +268,37 @@ class QuoteWidgetProvider : AppWidgetProvider() {
             paint.colorFilter = ColorMatrixColorFilter(colorMatrix)
             canvas.drawBitmap(original, 0f, 0f, paint)
             return grayscale
+        }
+
+        /**
+         * ColorMatrix 적용 (장비 시스템)
+         */
+        private fun applyColorMatrix(original: Bitmap, matrix: FloatArray): Bitmap {
+            val result = Bitmap.createBitmap(original.width, original.height, Bitmap.Config.ARGB_8888)
+            val canvas = Canvas(result)
+            val paint = Paint()
+            val colorMatrix = ColorMatrix(matrix)
+            paint.colorFilter = ColorMatrixColorFilter(colorMatrix)
+            canvas.drawBitmap(original, 0f, 0f, paint)
+            return result
+        }
+
+        /**
+         * 단색 오버레이 적용
+         */
+        private fun applyOverlayColor(original: Bitmap, color: Int): Bitmap {
+            val result = Bitmap.createBitmap(original.width, original.height, Bitmap.Config.ARGB_8888)
+            val canvas = Canvas(result)
+            val paint = Paint()
+
+            // 원본 그리기
+            canvas.drawBitmap(original, 0f, 0f, null)
+
+            // 오버레이 색상 적용 (Modulate 모드)
+            paint.colorFilter = android.graphics.PorterDuffColorFilter(color, android.graphics.PorterDuff.Mode.MULTIPLY)
+            canvas.drawBitmap(original, 0f, 0f, paint)
+
+            return result
         }
     }
 
