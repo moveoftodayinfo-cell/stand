@@ -1,5 +1,6 @@
 package com.moveoftoday.walkorwait.pet
 
+import com.moveoftoday.walkorwait.UnicodeSymbols
 import android.Manifest
 import android.content.Intent
 import android.os.Build
@@ -8,7 +9,9 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -21,9 +24,12 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.animation.core.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -40,6 +46,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.ColorMatrix
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.foundation.Image
 import androidx.compose.ui.res.painterResource
 import coil.compose.AsyncImage
@@ -3410,6 +3417,7 @@ private fun WidgetSetupStep(
 // =====================================================
 // STEP 15: Payment (결제) - 재결제 화면으로도 사용 가능
 // =====================================================
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun PaymentScreen(
     petType: PetTypeV2,
@@ -3431,7 +3439,51 @@ fun PaymentScreen(
     var promoMessage by remember { mutableStateOf<String?>(null) }
     var isPromoApplied by remember { mutableStateOf(false) }
     var isPromoFree by remember { mutableStateOf(false) }
+    var isPromoGuest by remember { mutableStateOf(false) }  // FRIEND_INVITE로 들어온 게스트인지
     val promoCodeManager = remember { PromoCodeManager(context) }
+
+    // 구독 플랜 선택 (월간/연간) - 연간이 기본 선택 (더 이득이므로)
+    var selectedPlan by remember { mutableStateOf(BillingManager.SubscriptionType.YEARLY) }
+
+    // 입장 애니메이션 상태
+    var isVisible by remember { mutableStateOf(false) }
+    LaunchedEffect(Unit) {
+        isVisible = true
+    }
+
+    // 펫 슬라이드 인 애니메이션
+    val petOffsetX by animateDpAsState(
+        targetValue = if (isVisible) 0.dp else 100.dp,
+        animationSpec = spring(dampingRatio = 0.6f, stiffness = 300f),
+        label = "petSlide"
+    )
+    val petAlpha by animateFloatAsState(
+        targetValue = if (isVisible) 1f else 0f,
+        animationSpec = tween(500),
+        label = "petAlpha"
+    )
+
+    // CTA 버튼 pulse 애니메이션
+    val infiniteTransition = rememberInfiniteTransition(label = "pulse")
+    val pulseScale by infiniteTransition.animateFloat(
+        initialValue = 1f,
+        targetValue = 1.03f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(800, easing = FastOutSlowInEasing),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "pulseScale"
+    )
+
+    // 연간 선택 시 하트 이펙트
+    var showHeartEffect by remember { mutableStateOf(false) }
+    LaunchedEffect(selectedPlan) {
+        if (selectedPlan == BillingManager.SubscriptionType.YEARLY) {
+            showHeartEffect = true
+            kotlinx.coroutines.delay(1000)
+            showHeartEffect = false
+        }
+    }
 
     val selectedDays = remember { preferenceManager.getControlDays() }
     val selectedPeriods = remember { preferenceManager.getBlockingPeriods() }
@@ -3450,19 +3502,19 @@ fun PaymentScreen(
             PetPersonalityV2.CLUMSY -> "공짜라니! 최고의 시작이야!"
         }
         else -> when (petType.personality) {
-            PetPersonalityV2.LOYAL -> "커피 한 잔 값으로\n인생이 바뀌어."
-            PetPersonalityV2.TSUNDERE -> "커피 한 잔 값밖에 안 해...\n뭐, 해볼래?"
-            PetPersonalityV2.FOODIE -> "커피 한 잔 값이면 돼!\n같이 해보자~"
-            PetPersonalityV2.PLAYFUL -> "커피 한 잔 값이면\n되는기라! 해보자이~"
-            PetPersonalityV2.TIMID -> "커, 커피 한 잔 값이면...\n같이 할 수 있어요...!"
-            PetPersonalityV2.CLUMSY -> "커피 한 잔 값으로 새 시작!\n완전 좋아!"
+            PetPersonalityV2.LOYAL -> "하루 100원으로\n꿈을 이뤄봐."
+            PetPersonalityV2.TSUNDERE -> "하루 100원이면 돼...\n꿈 이뤄볼래?"
+            PetPersonalityV2.FOODIE -> "하루 100원으로\n꿈을 이뤄보자~!"
+            PetPersonalityV2.PLAYFUL -> "하루 100원이면\n꿈 이룰 수 있다이~"
+            PetPersonalityV2.TIMID -> "하, 하루 100원으로...\n꿈을 이뤄봐요...!"
+            PetPersonalityV2.CLUMSY -> "하루 100원으로 꿈 이루기!\n완전 좋아!"
         }
     }
 
     val buttonText = when {
         isProcessing -> "결제 중..."
         isPromoFree -> "무료로 시작하기"
-        else -> "결제하고 시작하기"
+        else -> "7일 무료로 시작하기"
     }
 
     // 결제 처리 함수
@@ -3518,10 +3570,13 @@ fun PaymentScreen(
                                 val result = subscriptionManager.createSubscription(
                                     goal = preferenceManager.getGoal(),
                                     controlDays = selectedDays.toList(),
-                                    purchase = purchase
+                                    purchase = purchase,
+                                    isYearly = selectedPlan == BillingManager.SubscriptionType.YEARLY
                                 )
                                 if (result.isSuccess) {
-                                    preferenceManager.saveDeposit(SubscriptionModel.MONTHLY_PRICE)
+                                    // 연간/월간에 따른 가격 저장
+                                    val price = if (selectedPlan == BillingManager.SubscriptionType.YEARLY) 39000 else SubscriptionModel.MONTHLY_PRICE
+                                    preferenceManager.saveDeposit(price)
                                     preferenceManager.saveControlStartDate(startDate)
                                     preferenceManager.saveControlEndDate(endDate)
                                     preferenceManager.saveSuccessDays(0)
@@ -3552,7 +3607,7 @@ fun PaymentScreen(
                         isProcessing = false
                     }
                 )
-                billingManager?.startSubscription(activity)
+                billingManager?.startSubscription(activity, selectedPlan)
 
             } catch (e: Exception) {
                 errorMessage = "오류: ${e.message}"
@@ -3567,144 +3622,352 @@ fun PaymentScreen(
         modifier = Modifier
             .fillMaxSize()
             .padding(horizontal = 20.dp)
-            .padding(bottom = 72.dp),  // 3버튼 네비게이션 고려
+            .padding(top = 40.dp, bottom = 24.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Spacer(modifier = Modifier.height(60.dp))
 
-        // Title - Kenney Font (PetSelectionStep과 동일)
+        // 로고 (작게) - DEBUG: 길게 누르면 건너뛰기
         Text(
             text = "rebon",
-            fontSize = 32.sp,
+            fontSize = 20.sp,
             fontFamily = kenneyFont,
             fontWeight = FontWeight.Bold,
-            color = MockupColors.TextPrimary
+            color = MockupColors.TextMuted,
+            modifier = if (BuildConfig.DEBUG) {
+                Modifier.combinedClickable(
+                    onClick = { },
+                    onLongClick = {
+                        val sdf = java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.getDefault())
+                        val today = java.util.Calendar.getInstance()
+                        preferenceManager.saveDeposit(10000)
+                        preferenceManager.saveControlStartDate(sdf.format(today.time))
+                        today.add(java.util.Calendar.DAY_OF_MONTH, 30)
+                        preferenceManager.saveControlEndDate(sdf.format(today.time))
+                        preferenceManager.saveSuccessDays(0)
+                        preferenceManager.setPaidDeposit(true)
+                        val pastDate = java.util.Calendar.getInstance()
+                        pastDate.add(java.util.Calendar.DAY_OF_MONTH, -10)
+                        preferenceManager.saveTrialStartDate(sdf.format(pastDate.time))
+                        pastDate.add(java.util.Calendar.DAY_OF_MONTH, 3)
+                        preferenceManager.saveTrialEndDate(sdf.format(pastDate.time))
+                        preferenceManager.saveTodaySteps(0)
+                        hapticManager?.success()
+                        onComplete()
+                    }
+                )
+            } else Modifier
         )
 
-        Spacer(modifier = Modifier.height(24.dp))
+        Spacer(modifier = Modifier.height(4.dp))
 
-        // Display Area (240dp, 수평 줄무늬 - PetSelectionStep과 동일)
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(240.dp)
-                .clip(RoundedCornerShape(20.dp))
-                .background(Color.White)
-                .drawBehind {
-                    val stripeHeightPx = 4.dp.toPx()
-                    val stripeColor = Color(0xFFF0F0F0)
-                    var y = 0f
-                    while (y < size.height) {
-                        drawRect(
-                            color = stripeColor,
-                            topLeft = androidx.compose.ui.geometry.Offset(0f, y),
-                            size = androidx.compose.ui.geometry.Size(size.width, stripeHeightPx)
-                        )
-                        y += stripeHeightPx * 2
-                    }
-                }
-                .border(3.dp, MockupColors.Border, RoundedCornerShape(20.dp)),
-            contentAlignment = Alignment.Center
-        ) {
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
-            ) {
-                // Speech bubble (SpeechBubble 컴포넌트 사용)
-                SpeechBubble(text = speechText, fontSize = 16.sp)
-                Spacer(modifier = Modifier.height(8.dp))
-                // V2 펫 상태가 있으면 V2 스프라이트 사용, 없으면 V2 기본 BABY로 표시
-                if (petStateV2 != null) {
-                    PetSpriteFromState(
-                        petState = petStateV2,
-                        isWalking = false,
-                        progressPercent = 0,
-                        baseSizeDp = 140,
-                        monochrome = true
-                    )
-                } else {
-                    PetSpriteV2WithGlow(
-                        petType = petType,
-                        stage = PetGrowthStage.BABY,
-                        animationType = PetAnimationTypeV2.IDLE,
-                        size = 140.dp,
-                        monochrome = true,
-                        showGlow = true,
-                        applyDisplayScale = false
-                    )
-                }
-            }
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // Instruction Area - 가격 정보 (22sp, Kenney)
+        // 헤드라인 - 변화 강조
         Text(
-            text = if (isPromoFree) "무료로 시작!" else "한 달 동행 ${SubscriptionModel.formatPrice(SubscriptionModel.MONTHLY_PRICE)}",
+            text = "한 달 뒤, 달라진 나",
             fontSize = 22.sp,
-            fontFamily = kenneyFont,
             fontWeight = FontWeight.Bold,
             color = MockupColors.TextPrimary
         )
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        // 추가 안내
-        Text(
-            text = if (isPromoFree) "친구 1명도 무료 초대 가능!" else "달성 시 매달 초대 쿠폰 증정",
-            fontSize = 16.sp,
-            color = MockupColors.TextSecondary,
-            textAlign = TextAlign.Center
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // 혜택 배너
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clip(RoundedCornerShape(12.dp))
-                .background(Color(0xFFF5F5F5))
-                .padding(12.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+        // 펫 영역 (말풍선 + 펫 + 이름) - 슬라이드 인 애니메이션
+        Box(
+            modifier = Modifier.fillMaxWidth(),
+            contentAlignment = Alignment.Center
         ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                PixelIcon(iconName = "icon_heart", size = 16.dp)
-                Spacer(modifier = Modifier.width(8.dp))
+            Column(
+                modifier = Modifier
+                    .offset(x = petOffsetX)
+                    .graphicsLayer { alpha = petAlpha },
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                // Speech bubble
+                SpeechBubble(text = speechText, fontSize = 14.sp)
+                // 펫 애니메이션
+                Box {
+                    if (petStateV2 != null) {
+                        PetSpriteFromState(
+                            petState = petStateV2,
+                            isWalking = true,
+                            progressPercent = 100,
+                            baseSizeDp = 88,
+                            monochrome = true
+                        )
+                    } else {
+                        PetSpriteV2WithGlow(
+                            petType = petType,
+                            stage = PetGrowthStage.BABY,
+                            animationType = PetAnimationTypeV2.RUN,
+                            size = 88.dp,
+                            monochrome = true,
+                            showGlow = false,
+                            applyDisplayScale = false
+                        )
+                    }
+                    // 연간 선택 시 하트 이펙트
+                    if (showHeartEffect) {
+                        Text(
+                            text = UnicodeSymbols.HEART,
+                            fontSize = 20.sp,
+                            color = MockupColors.TextPrimary,
+                            modifier = Modifier
+                                .align(Alignment.TopEnd)
+                                .offset(x = 8.dp, y = (-4).dp)
+                        )
+                    }
+                }
+                // 펫 이름 (펫에 더 가깝게)
                 Text(
-                    text = "매일 응원해주는 내 펫",
+                    text = petName,
                     fontSize = 14.sp,
-                    color = MockupColors.TextPrimary
-                )
-            }
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                PixelIcon(iconName = "icon_lock", size = 16.dp)
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(
-                    text = "딴짓 방지 앱 차단",
-                    fontSize = 14.sp,
-                    color = MockupColors.TextPrimary
-                )
-            }
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                PixelIcon(iconName = "icon_star", size = 16.dp)
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(
-                    text = "95% 달성 시 친구 초대 쿠폰",
-                    fontSize = 14.sp,
-                    color = MockupColors.Blue
-                )
-            }
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                PixelIcon(iconName = "icon_trophy", size = 16.dp)
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(
-                    text = "구독료는 염창역 스타벅스 기준 변동됩니다.",
-                    fontSize = 14.sp,
-                    color = MockupColors.TextMuted
+                    fontWeight = FontWeight.Bold,
+                    color = MockupColors.TextPrimary,
+                    modifier = Modifier.offset(y = (-8).dp)
                 )
             }
         }
+
+        Spacer(modifier = Modifier.height(4.dp))
+
+        if (isPromoFree) {
+            // 프로모션 무료 상태
+            Text(
+                text = "무료로 시작!",
+                fontSize = 22.sp,
+                fontFamily = kenneyFont,
+                fontWeight = FontWeight.Bold,
+                color = MockupColors.TextPrimary
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = if (isPromoGuest) "1달간 모든 기능 무료!" else "친구 1명도 무료 초대 가능!",
+                fontSize = 16.sp,
+                color = MockupColors.TextSecondary,
+                textAlign = TextAlign.Center
+            )
+        } else {
+            // 7일 무료 체험 포함
+            Text(
+                text = "7일 무료 체험 포함",
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Medium,
+                color = MockupColors.TextSecondary
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+
+            // 플랜 캐러셀
+            val pagerState = rememberPagerState(initialPage = 0) { 2 }
+
+            // 선택된 플랜 동기화
+            LaunchedEffect(pagerState.currentPage) {
+                selectedPlan = if (pagerState.currentPage == 0)
+                    BillingManager.SubscriptionType.YEARLY
+                else
+                    BillingManager.SubscriptionType.MONTHLY
+            }
+
+            HorizontalPager(
+                state = pagerState,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(90.dp),
+                contentPadding = PaddingValues(horizontal = 40.dp),
+                pageSpacing = 12.dp
+            ) { page ->
+                val isYearly = page == 0
+                val isSelected = pagerState.currentPage == page
+                // 1일 가격 계산: 연간 39000/365 ≈ 107원, 월간 3900/30 = 130원
+                val dailyPrice = if (isYearly) "107" else "130"
+
+                // 카드 선택 애니메이션
+                val cardScale by animateFloatAsState(
+                    targetValue = if (isSelected) 1.02f else 0.95f,
+                    animationSpec = spring(dampingRatio = 0.6f, stiffness = 400f),
+                    label = "cardScale"
+                )
+                val cardElevation by animateDpAsState(
+                    targetValue = if (isSelected) 8.dp else 0.dp,
+                    animationSpec = spring(dampingRatio = 0.6f),
+                    label = "cardElevation"
+                )
+
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .graphicsLayer {
+                            scaleX = cardScale
+                            scaleY = cardScale
+                        }
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(
+                            if (isSelected) MockupColors.TextPrimary.copy(alpha = 0.1f)
+                            else Color(0xFFF5F5F5)
+                        )
+                        .then(
+                            if (isSelected) Modifier.border(
+                                width = 2.dp,
+                                color = MockupColors.TextPrimary,
+                                shape = RoundedCornerShape(12.dp)
+                            ) else Modifier
+                        )
+                        .clickable {
+                            hapticManager?.click()
+                            scope.launch {
+                                pagerState.animateScrollToPage(page)
+                            }
+                        }
+                        .padding(vertical = 8.dp, horizontal = 12.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    // 연간 추천 뱃지
+                    if (isYearly) {
+                        Text(
+                            text = "Popular",
+                            fontSize = 9.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White,
+                            modifier = Modifier
+                                .align(Alignment.TopEnd)
+                                .offset(x = (-8).dp, y = 0.dp)
+                                .background(
+                                    MockupColors.TextPrimary,
+                                    RoundedCornerShape(4.dp)
+                                )
+                                .padding(horizontal = 5.dp, vertical = 2.dp)
+                        )
+                    }
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text(
+                            text = if (isYearly) "Yearly" else "Monthly",
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = MockupColors.TextPrimary
+                        )
+                        Row(
+                            verticalAlignment = Alignment.Bottom
+                        ) {
+                            Text(
+                                text = if (isYearly) "39,000" else "3,900",
+                                fontSize = 24.sp,
+                                fontFamily = kenneyFont,
+                                fontWeight = FontWeight.Bold,
+                                color = MockupColors.TextPrimary
+                            )
+                            Text(
+                                text = if (isYearly) "원/년" else "원/월",
+                                fontSize = 11.sp,
+                                color = MockupColors.TextMuted,
+                                modifier = Modifier.padding(bottom = 3.dp)
+                            )
+                        }
+                        Text(
+                            text = "하루 ${dailyPrice}원",
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Medium,
+                            color = MockupColors.TextSecondary
+                        )
+                    }
+                }
+            }
+
+            // 인디케이터
+            Spacer(modifier = Modifier.height(8.dp))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.Center
+            ) {
+                repeat(2) { index ->
+                    val dotScale by animateFloatAsState(
+                        targetValue = if (pagerState.currentPage == index) 1.2f else 1f,
+                        animationSpec = spring(dampingRatio = 0.5f),
+                        label = "dotScale"
+                    )
+                    Box(
+                        modifier = Modifier
+                            .padding(horizontal = 4.dp)
+                            .size(8.dp)
+                            .graphicsLayer { scaleX = dotScale; scaleY = dotScale }
+                            .clip(CircleShape)
+                            .background(
+                                if (pagerState.currentPage == index) MockupColors.TextPrimary
+                                else MockupColors.Border
+                            )
+                            .clickable {
+                                scope.launch {
+                                    pagerState.animateScrollToPage(index)
+                                }
+                            }
+                    )
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // 혜택 구분선
+        Text(
+            text = "- 혜택 -",
+            fontSize = 13.sp,
+            color = MockupColors.TextSecondary
+        )
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        // 혜택 리스트 (순차 fade in 애니메이션)
+        val benefits = listOf(
+            Triple("icon_heart", "AI 펫 케어", "매일 대화하며 함께 성장해요"),
+            Triple("icon_lock", "스마트 앱 차단", "목표 달성 전까지 유혹 차단"),
+            Triple("icon_target", "홈 위젯", "홈 화면에서 바로 확인"),
+            Triple("icon_trophy",
+                if (selectedPlan == BillingManager.SubscriptionType.YEARLY) "친구 12명 초대" else "친구 1명 초대",
+                "친구도 무료로 시작 가능")
+        )
+
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 32.dp),
+            verticalArrangement = Arrangement.spacedBy(6.dp)
+        ) {
+            benefits.forEachIndexed { index, (icon, title, description) ->
+                // 각 혜택 순차 fade in
+                val benefitAlpha by animateFloatAsState(
+                    targetValue = if (isVisible) 1f else 0f,
+                    animationSpec = tween(
+                        durationMillis = 400,
+                        delayMillis = 600 + (index * 100),
+                        easing = FastOutSlowInEasing
+                    ),
+                    label = "benefitAlpha$index"
+                )
+                val benefitOffsetY by animateDpAsState(
+                    targetValue = if (isVisible) 0.dp else 20.dp,
+                    animationSpec = tween(
+                        durationMillis = 400,
+                        delayMillis = 600 + (index * 100),
+                        easing = FastOutSlowInEasing
+                    ),
+                    label = "benefitOffset$index"
+                )
+                Box(
+                    modifier = Modifier
+                        .graphicsLayer { this.alpha = benefitAlpha }
+                        .offset(y = benefitOffsetY)
+                ) {
+                    BenefitItemLarge(icon = icon, title = title, description = description)
+                }
+            }
+        }
+
+        // 소셜 프루프
+        Spacer(modifier = Modifier.height(8.dp))
+        Text(
+            text = "1,000+ 사용자와 함께하고 있어요",
+            fontSize = 11.sp,
+            color = MockupColors.TextMuted
+        )
 
         // 오류 메시지
         if (errorMessage != null) {
@@ -3718,7 +3981,7 @@ fun PaymentScreen(
             )
         }
 
-        Spacer(modifier = Modifier.weight(1f))
+        Spacer(modifier = Modifier.height(16.dp))
 
         // 프로모션 코드 토글 (버튼 위) - 이모지 대신 PixelIcon
         Column(
@@ -3741,7 +4004,7 @@ fun PaymentScreen(
                 Text(
                     text = if (isPromoApplied) "적용 완료" else "초대 코드",
                     fontSize = 14.sp,
-                    color = if (isPromoApplied) MockupColors.Blue else MockupColors.TextMuted
+                    color = if (isPromoApplied) MockupColors.TextPrimary else MockupColors.TextMuted
                 )
                 Spacer(modifier = Modifier.width(4.dp))
                 Text(
@@ -3779,6 +4042,7 @@ fun PaymentScreen(
                                             promoMessage = result.message
                                             isPromoApplied = true
                                             isPromoFree = result.freeDays > 0
+                                            isPromoGuest = result.type == PromoCodeManager.PromoType.FRIEND_INVITE
                                             if (result.freeDays > 0) {
                                                 val sdf = java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.getDefault())
                                                 val cal = java.util.Calendar.getInstance()
@@ -3816,7 +4080,7 @@ fun PaymentScreen(
                     Text(
                         text = promoMessage ?: "",
                         fontSize = 12.sp,
-                        color = if (isPromoApplied) MockupColors.Blue else MockupColors.Red
+                        color = if (isPromoApplied) MockupColors.TextPrimary else MockupColors.Red
                     )
                 }
             }
@@ -3824,18 +4088,22 @@ fun PaymentScreen(
 
         Spacer(modifier = Modifier.height(12.dp))
 
-        // Action Button - 실제 결제 버튼
+        // Action Button - pulse 애니메이션 + 결제 버튼
         Button(
             onClick = {
-                hapticManager?.click()
+                hapticManager?.success()
                 processPayment()
             },
             modifier = Modifier
                 .fillMaxWidth()
-                .height(56.dp),
+                .height(56.dp)
+                .graphicsLayer {
+                    this.scaleX = if (!isProcessing) pulseScale else 1f
+                    this.scaleY = if (!isProcessing) pulseScale else 1f
+                },
             enabled = !isProcessing,
             colors = ButtonDefaults.buttonColors(
-                containerColor = if (isPromoFree) MockupColors.Blue else MockupColors.TextPrimary
+                containerColor = MockupColors.TextPrimary
             ),
             shape = RoundedCornerShape(16.dp)
         ) {
@@ -3854,36 +4122,66 @@ fun PaymentScreen(
             }
         }
 
-        // DEBUG 테스트용 건너뛰기 버튼
-        if (BuildConfig.DEBUG) {
-            Spacer(modifier = Modifier.height(8.dp))
-            OutlinedButton(
-                onClick = {
-                    val sdf = java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.getDefault())
-                    val today = java.util.Calendar.getInstance()
-                    preferenceManager.saveDeposit(10000)
-                    preferenceManager.saveControlStartDate(sdf.format(today.time))
-                    today.add(java.util.Calendar.DAY_OF_MONTH, 30)
-                    preferenceManager.saveControlEndDate(sdf.format(today.time))
-                    preferenceManager.saveSuccessDays(0)
-                    preferenceManager.setPaidDeposit(true)
-                    val pastDate = java.util.Calendar.getInstance()
-                    pastDate.add(java.util.Calendar.DAY_OF_MONTH, -10)
-                    preferenceManager.saveTrialStartDate(sdf.format(pastDate.time))
-                    pastDate.add(java.util.Calendar.DAY_OF_MONTH, 3)
-                    preferenceManager.saveTrialEndDate(sdf.format(pastDate.time))
-                    preferenceManager.saveTodaySteps(0)
-                    hapticManager?.success()
-                    onComplete()
-                },
-                modifier = Modifier.fillMaxWidth(),
-                colors = ButtonDefaults.outlinedButtonColors(
-                    contentColor = MockupColors.TextMuted
-                )
-            ) {
-                Text("테스트: 건너뛰기", fontWeight = FontWeight.Bold)
-            }
+    }
+}
+
+// 혜택 아이템 컴포넌트
+@Composable
+private fun BenefitItem(
+    icon: String,
+    text: String
+) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(6.dp)
+    ) {
+        PixelIcon(iconName = icon, size = 16.dp)
+        Text(
+            text = text,
+            fontSize = 13.sp,
+            color = MockupColors.TextSecondary
+        )
+    }
+}
+
+// 큰 혜택 아이템 컴포넌트 (제목 + 설명)
+@Composable
+private fun BenefitItemLarge(
+    icon: String,
+    title: String,
+    description: String
+) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(14.dp)
+    ) {
+        PixelIcon(iconName = icon, size = 28.dp)
+        Column {
+            Text(
+                text = title,
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Bold,
+                color = MockupColors.TextPrimary
+            )
+            Text(
+                text = description,
+                fontSize = 13.sp,
+                color = MockupColors.TextSecondary
+            )
         }
     }
+}
+
+// ===== PREVIEW =====
+@Preview(showBackground = true, widthDp = 360, heightDp = 800)
+@Composable
+private fun PaymentScreenPreview() {
+    PaymentScreen(
+        petType = PetTypeV2.SHIBA,
+        petName = "멍멍이",
+        preferenceManager = PreferenceManager(androidx.compose.ui.platform.LocalContext.current),
+        hapticManager = null,
+        onComplete = {}
+    )
 }
 

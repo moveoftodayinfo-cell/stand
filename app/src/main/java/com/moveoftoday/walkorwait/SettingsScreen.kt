@@ -48,7 +48,7 @@ import kotlinx.coroutines.launch
 import com.google.firebase.auth.FirebaseAuth
 import com.moveoftoday.walkorwait.BuildConfig
 import com.moveoftoday.walkorwait.pet.MockupColors
-import com.moveoftoday.walkorwait.pet.PetDepositSettingScreen
+import com.moveoftoday.walkorwait.pet.PaymentScreen
 import com.moveoftoday.walkorwait.pet.PetSprite
 import com.moveoftoday.walkorwait.pet.PetType
 import com.moveoftoday.walkorwait.pet.PetTypeV2
@@ -136,7 +136,7 @@ fun SettingsScreen(
 
     var showGoalDialog by remember { mutableStateOf(false) }
     var showAppLockScreen by remember { mutableStateOf(false) }
-    var showDepositSettingScreen by remember { mutableStateOf(false) }
+    var showPaymentScreen by remember { mutableStateOf(false) }
     var showDepositInfoDialog by remember { mutableStateOf(false) }
     var showFitnessAppConnectionScreen by remember { mutableStateOf(false) }
     var showBlockingPeriodsDialog by remember { mutableStateOf(false) }
@@ -424,19 +424,16 @@ fun SettingsScreen(
             onBack = { showAppLockScreen = false },
             onLockedAppsChanged = { newApps -> lockedAppsState = newApps }
         )
-    } else if (showDepositSettingScreen) {
-        val savedPetType = preferenceManager?.getPetType()?.let {
-            PetType.entries.find { pet -> pet.name == it }
-        } ?: PetType.DOG1
-        val savedPetName = preferenceManager?.getPetName() ?: "반려동물"
+    } else if (showPaymentScreen) {
+        val savedPetType = preferenceManager?.getPetTypeV2() ?: PetTypeV2.SHIBA
+        val savedPetName = preferenceManager?.getPetName() ?: "친구"
 
-        PetDepositSettingScreen(
+        PaymentScreen(
             petType = savedPetType,
             petName = savedPetName,
-            preferenceManager = preferenceManager,
+            preferenceManager = preferenceManager!!,
             hapticManager = hapticManager,
-            startAtStep = 2,  // 결제 화면으로 바로 이동
-            onComplete = { showDepositSettingScreen = false }
+            onComplete = { showPaymentScreen = false }
         )
     } else if (showFitnessAppConnectionScreen) {
         FitnessAppConnectionScreen(
@@ -731,6 +728,43 @@ fun SettingsScreen(
                                     }
                                 }
                             }
+                        }
+                    }
+
+                    // 구독 갱신 카드
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 12.dp)
+                            .border(3.dp, MockupColors.Border, RoundedCornerShape(12.dp))
+                            .background(MockupColors.CardBackground, RoundedCornerShape(12.dp))
+                            .clickable {
+                                hapticManager.click()
+                                showPaymentScreen = true
+                            }
+                            .padding(16.dp)
+                    ) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Column {
+                                Text(
+                                    text = "구독 갱신",
+                                    fontSize = 18.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MockupColors.TextPrimary,
+                                    fontFamily = kenneyFont
+                                )
+                                Spacer(modifier = Modifier.height(4.dp))
+                                Text(
+                                    text = "구독 플랜 변경 및 갱신",
+                                    fontSize = 13.sp,
+                                    color = MockupColors.TextSecondary
+                                )
+                            }
+                            PixelIcon(iconName = "icon_arrow_right", size = 24.dp)
                         }
                     }
 
