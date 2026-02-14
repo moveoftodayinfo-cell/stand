@@ -3621,8 +3621,10 @@ fun PaymentScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .background(Color.White)
+            .navigationBarsPadding()
             .padding(horizontal = 20.dp)
-            .padding(top = 40.dp, bottom = 24.dp),
+            .padding(top = 24.dp, bottom = 16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
 
@@ -3716,14 +3718,6 @@ fun PaymentScreen(
                         )
                     }
                 }
-                // 펫 이름 (펫에 더 가깝게)
-                Text(
-                    text = petName,
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = MockupColors.TextPrimary,
-                    modifier = Modifier.offset(y = (-8).dp)
-                )
             }
         }
 
