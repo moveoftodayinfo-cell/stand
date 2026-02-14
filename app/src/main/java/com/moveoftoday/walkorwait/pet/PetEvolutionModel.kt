@@ -91,13 +91,13 @@ enum class PetTypeV2(
         ),
         displayScales = mapOf(
             PetGrowthStage.EGG to 1.0f,
-            PetGrowthStage.BABY to 0.94f,
+            PetGrowthStage.BABY to 0.85f,
             PetGrowthStage.TEEN to 0.89f,
             PetGrowthStage.ADULT to 0.92f
         ),
         displayYOffsetsDp = mapOf(
             PetGrowthStage.EGG to 0f,
-            PetGrowthStage.BABY to -12f,
+            PetGrowthStage.BABY to -6f,
             PetGrowthStage.TEEN to -12f,
             PetGrowthStage.ADULT to -12f
         )
