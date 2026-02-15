@@ -4,7 +4,9 @@ import android.content.Context
 import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -33,6 +35,7 @@ import kotlinx.coroutines.launch
 /**
  * 펫 관리 화면
  */
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun SettingsPetScreen(
     preferenceManager: PreferenceManager?,
@@ -167,16 +170,33 @@ fun SettingsPetScreen(
                     .fillMaxSize()
                     .verticalScroll(rememberScrollState())
                     .padding(12.dp)
+                    .navigationBarsPadding()
             ) {
                 // ========== 현재 펫 ==========
                 RetroSectionTitle("현재 펫", kenneyFont)
 
+                // 디버그 모드: 길게 누르면 레벨업
+                val isDebug = BuildConfig.DEBUG
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .border(3.dp, MockupColors.Blue, RoundedCornerShape(12.dp))
-                        .background(MockupColors.BlueLight, RoundedCornerShape(12.dp))
-                        .padding(16.dp)  // 20dp → 16dp로 축소
+                        .border(3.dp, MockupColors.Border, RoundedCornerShape(12.dp))
+                        .background(MockupColors.Border.copy(alpha = 0.1f), RoundedCornerShape(12.dp))
+                        .combinedClickable(
+                            onClick = { },
+                            onLongClick = {
+                                if (isDebug) {
+                                    hapticManager.success()
+                                    // 레벨업 (경험치 +1000)
+                                    val currentLevel = preferenceManager?.getPetLevelV2() ?: PetLevel()
+                                    val newLevel = currentLevel.addExp(1000)
+                                    preferenceManager?.savePetLevelV2(newLevel)
+                                    petLevel = newLevel
+                                    android.widget.Toast.makeText(context, "DEBUG: +1000 EXP → Lv.${newLevel.level}", android.widget.Toast.LENGTH_SHORT).show()
+                                }
+                            }
+                        )
+                        .padding(12.dp)
                 ) {
                     Column(
                         horizontalAlignment = Alignment.CenterHorizontally,
@@ -189,16 +209,16 @@ fun SettingsPetScreen(
 
                             PetSpriteV2WithEquipment(
                                 petType = petType,
-                                stage = effectiveStage,  // 오버라이드 또는 기본값
+                                stage = effectiveStage,
                                 animationType = PetAnimationTypeV2.IDLE,
-                                equipmentState = equipmentState,  // 스킨 포함
-                                size = 100.dp,  // 120dp → 100dp로 축소
+                                equipmentState = equipmentState,
+                                size = 100.dp,
                                 monochrome = true,
                                 showGlow = true
                             )
                         }
 
-                        Spacer(modifier = Modifier.height(8.dp))  // 12dp → 8dp로 축소
+                        Spacer(modifier = Modifier.height(4.dp))
 
                         // 펫 이름 (칭호 포함)
                         val displayName = remember(petName) {
@@ -207,26 +227,26 @@ fun SettingsPetScreen(
                         }
                         Text(
                             text = displayName,
-                            fontSize = 22.sp,  // 24sp → 22sp로 축소
+                            fontSize = 22.sp,
                             fontWeight = FontWeight.Bold,
                             color = MockupColors.TextPrimary,
                             fontFamily = kenneyFont,
                             textAlign = TextAlign.Center
                         )
 
-                        Spacer(modifier = Modifier.height(4.dp))
+                        Spacer(modifier = Modifier.height(2.dp))
 
                         // 레벨 & 단계 (실제 성장 단계 표시)
                         val displayStage = preferenceManager?.getEffectiveDisplayStage() ?: petLevel.stage
                         Text(
                             text = "Lv.${petLevel.level} (${displayStage.displayName})",
-                            fontSize = 15.sp,  // 16sp → 15sp로 축소
-                            color = MockupColors.Blue,
+                            fontSize = 15.sp,
+                            color = MockupColors.TextPrimary,
                             fontWeight = FontWeight.Bold,
                             fontFamily = kenneyFont
                         )
 
-                        Spacer(modifier = Modifier.height(16.dp))
+                        Spacer(modifier = Modifier.height(8.dp))
 
                         // 경험치 바
                         Column(modifier = Modifier.fillMaxWidth()) {
@@ -242,7 +262,7 @@ fun SettingsPetScreen(
                                 Text(
                                     text = "${(petLevel.expProgress * 100).toInt()}%",
                                     fontSize = 12.sp,
-                                    color = MockupColors.Blue,
+                                    color = MockupColors.TextPrimary,
                                     fontWeight = FontWeight.Bold
                                 )
                             }
@@ -258,7 +278,7 @@ fun SettingsPetScreen(
                                     modifier = Modifier
                                         .fillMaxHeight()
                                         .fillMaxWidth(petLevel.expProgress)
-                                        .background(MockupColors.Blue, RoundedCornerShape(2.dp))
+                                        .background(MockupColors.TextPrimary, RoundedCornerShape(2.dp))
                                 )
                             }
                         }
@@ -464,11 +484,11 @@ private fun PetChangeDialog(
                                         .aspectRatio(1f)
                                         .border(
                                             3.dp,
-                                            if (isSelected) MockupColors.Blue else MockupColors.Border,
+                                            if (isSelected) MockupColors.TextPrimary else MockupColors.Border,
                                             RoundedCornerShape(12.dp)
                                         )
                                         .background(
-                                            if (isSelected) MockupColors.BlueLight else MockupColors.CardBackground,
+                                            if (isSelected) MockupColors.Border.copy(alpha = 0.15f) else MockupColors.CardBackground,
                                             RoundedCornerShape(12.dp)
                                         )
                                         .clickable {
@@ -477,24 +497,18 @@ private fun PetChangeDialog(
                                         },
                                     contentAlignment = Alignment.Center
                                 ) {
-                                    Column(
-                                        horizontalAlignment = Alignment.CenterHorizontally,
-                                        verticalArrangement = Arrangement.Center
+                                    // 스프라이트만 2배 크기로 가운데 정렬 (이름 숨김)
+                                    Box(
+                                        modifier = Modifier.fillMaxSize(),
+                                        contentAlignment = Alignment.Center
                                     ) {
                                         PetSpriteV2WithGlow(
                                             petType = pet,
                                             stage = PetGrowthStage.BABY,
                                             animationType = PetAnimationTypeV2.IDLE,
-                                            size = 48.dp,
+                                            size = 72.dp,  // 2배 크기 (48 → 72, 박스 내에서 적절한 크기)
                                             monochrome = true,
                                             showGlow = false
-                                        )
-                                        Spacer(modifier = Modifier.height(4.dp))
-                                        Text(
-                                            text = pet.displayName,
-                                            fontSize = 12.sp,
-                                            fontWeight = FontWeight.Bold,
-                                            color = if (isSelected) MockupColors.Blue else MockupColors.TextPrimary
                                         )
                                     }
                                 }
@@ -543,8 +557,8 @@ private fun PetChangeDialog(
                     Box(
                         modifier = Modifier
                             .weight(1f)
-                            .border(2.dp, MockupColors.Blue, RoundedCornerShape(8.dp))
-                            .background(MockupColors.Blue, RoundedCornerShape(8.dp))
+                            .border(2.dp, MockupColors.TextPrimary, RoundedCornerShape(8.dp))
+                            .background(MockupColors.TextPrimary, RoundedCornerShape(8.dp))
                             .clickable(enabled = selectedPet != null && petName.isNotBlank()) {
                                 hapticManager.success()
                                 selectedPet?.let { onConfirm(it, petName) }
@@ -611,12 +625,12 @@ private fun getStageStyle(
     isSelected: Boolean = false
 ): StageStyle {
     return when {
-        // 선택된 카드는 파란 테두리 + 글로우 (CURRENT 스타일 + 파란색)
+        // 선택된 카드는 검정 테두리 + 글로우 (CURRENT 스타일)
         isSelected -> StageStyle(
-            borderColor = MockupColors.Blue,
+            borderColor = MockupColors.TextPrimary,
             borderWidth = 3.dp,
-            backgroundColor = Color(0xFFE3F2FD),  // 연한 파란색
-            textColor = MockupColors.Blue,
+            backgroundColor = MockupColors.Border.copy(alpha = 0.15f),
+            textColor = MockupColors.TextPrimary,
             spriteAlpha = 1.0f,
             showGlow = true
         )
@@ -706,14 +720,14 @@ private fun EvolutionStageCard(
 
     Box(
         modifier = modifier
-            .aspectRatio(0.75f)  // 3:4 비율 (세로로 긴 카드)
-            .border(style.borderWidth, style.borderColor, RoundedCornerShape(12.dp))
-            .background(style.backgroundColor, RoundedCornerShape(12.dp))
+            .aspectRatio(0.9f)  // 더 납작한 카드
+            .border(style.borderWidth, style.borderColor, RoundedCornerShape(10.dp))
+            .background(style.backgroundColor, RoundedCornerShape(10.dp))
             .clickable(
                 enabled = status == EvolutionStageStatus.PASSED || status == EvolutionStageStatus.CURRENT,
                 onClick = onClick
             )
-            .padding(12.dp)
+            .padding(8.dp)
     ) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
@@ -726,27 +740,27 @@ private fun EvolutionStageCard(
                     petType = it,
                     stage = stage,
                     animationType = PetAnimationTypeV2.IDLE,
-                    size = 80.dp,
+                    size = 60.dp,
                     monochrome = true,
                     showGlow = style.showGlow,
                     modifier = Modifier.alpha(style.spriteAlpha)
                 )
             }
 
-            // 단계 이름
-            Text(
-                text = stage.displayName,
-                fontSize = 14.sp,
-                fontWeight = FontWeight.Bold,
-                color = style.textColor
-            )
-
-            // 레벨 범위
-            Text(
-                text = getLevelRangeText(stage),
-                fontSize = 12.sp,
-                color = style.textColor.copy(alpha = 0.7f)
-            )
+            // 단계 이름 + 레벨 범위
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Text(
+                    text = stage.displayName,
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = style.textColor
+                )
+                Text(
+                    text = getLevelRangeText(stage),
+                    fontSize = 11.sp,
+                    color = style.textColor.copy(alpha = 0.7f)
+                )
+            }
 
             // 상태 아이콘
             StatusIcon(status)
@@ -758,7 +772,7 @@ private fun EvolutionStageCard(
                 modifier = Modifier
                     .align(Alignment.TopEnd)
                     .size(24.dp)
-                    .background(MockupColors.Blue, CircleShape)
+                    .background(MockupColors.TextPrimary, CircleShape)
             ) {
                 Text(
                     text = "✓",
@@ -954,8 +968,12 @@ private fun SkinManagementSection(
     // 현재 스킨
     var currentSkinId by remember { mutableStateOf(prefs.getPetSkin()) }
 
-    // 보유 스킨 목록
-    var ownedSkins by remember { mutableStateOf(prefs.getOwnedSkins()) }
+    // 보유 스킨 목록 (기본 스킨은 항상 포함)
+    var ownedSkins by remember {
+        // 초기화 시 기본 스킨 보장
+        prefs.initializeDefaultSkins()
+        mutableStateOf(prefs.getOwnedSkins())
+    }
 
     // 펫 정보
     val petStage = prefs.getEffectiveDisplayStage()
@@ -968,12 +986,14 @@ private fun SkinManagementSection(
     var showUnlockInfoDialog by remember { mutableStateOf(false) }
     var lockedSkinInfo by remember { mutableStateOf<PetSkin?>(null) }
 
-    // 스킨 자동 해금
+    // 스킨 자동 해금 (기본 스킨 포함 + 조건 달성 스킨)
     LaunchedEffect(Unit) {
-        val newlyUnlocked = prefs.checkAndUnlockNewSkins()
-        if (newlyUnlocked.isNotEmpty()) {
-            ownedSkins = prefs.getOwnedSkins()
-        }
+        // 기본 스킨 초기화 (항상 보유)
+        prefs.initializeDefaultSkins()
+        // 조건 달성 스킨 해금
+        prefs.checkAndUnlockNewSkins()
+        // 상태 갱신 (항상)
+        ownedSkins = prefs.getOwnedSkins()
     }
 
     // 스킨 분류
@@ -1090,6 +1110,7 @@ private fun SkinManagementSection(
 
     // 스킨 변경 확인 다이얼로그
     if (showConfirmDialog && pendingSkin != null) {
+        val skinToChange = pendingSkin!!
         AlertDialog(
             onDismissRequest = {
                 showConfirmDialog = false
@@ -1102,9 +1123,59 @@ private fun SkinManagementSection(
                 )
             },
             text = {
-                Text(
-                    text = "펫의 스킨을 '${pendingSkin?.displayName}'(으)로 변경하시겠습니까?"
-                )
+                Column {
+                    // 스킨 미리보기
+                    if (petTypeV2 != null) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(100.dp)
+                                .background(Color(0xFFF5F5F5), RoundedCornerShape(12.dp)),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            val equipmentState = EquipmentState(
+                                headId = null,
+                                backgroundId = null,
+                                colorId = skinToChange.id
+                            )
+                            PetSpriteV2WithEquipment(
+                                petType = petTypeV2,
+                                stage = petStage,
+                                animationType = PetAnimationTypeV2.IDLE,
+                                equipmentState = equipmentState,
+                                size = 70.dp,
+                                monochrome = true,
+                                showGlow = true
+                            )
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    Text(
+                        text = skinToChange.displayName,
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = MockupColors.TextPrimary
+                    )
+
+                    Spacer(modifier = Modifier.height(4.dp))
+
+                    // 획득 조건 표시 (기본 스킨은 "기본 제공", 나머지는 조건 표시)
+                    Text(
+                        text = getOwnedSkinConditionText(skinToChange.unlockCondition),
+                        fontSize = 13.sp,
+                        color = MockupColors.TextSecondary
+                    )
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    Text(
+                        text = "이 스킨으로 변경하시겠습니까?",
+                        fontSize = 14.sp,
+                        color = MockupColors.TextPrimary
+                    )
+                }
             },
             confirmButton = {
                 Button(
@@ -1235,12 +1306,12 @@ private fun SkinItemCompact(
             modifier = Modifier
                 .size(68.dp)
                 .background(
-                    if (isSelected) Color(0xFFE3F2FD) else Color(0xFFF5F5F5),
+                    if (isSelected) MockupColors.Border.copy(alpha = 0.15f) else Color(0xFFF5F5F5),
                     RoundedCornerShape(8.dp)
                 )
                 .border(
                     width = if (isSelected) 2.dp else 0.dp,
-                    color = if (isSelected) Color(0xFF2196F3) else Color.Transparent,
+                    color = if (isSelected) MockupColors.TextPrimary else Color.Transparent,
                     shape = RoundedCornerShape(8.dp)
                 )
                 .padding(3.dp)
@@ -1329,6 +1400,20 @@ private fun getUnlockConditionText(condition: UnlockCondition): String {
         is UnlockCondition.Level -> "Lv.${condition.level}"
         is UnlockCondition.Event -> condition.eventId
         is UnlockCondition.ChallengeCount -> "${condition.category} ${condition.count}회"
+    }
+}
+
+/**
+ * 보유 스킨의 획득 조건 표시 (스킨 변경 다이얼로그용)
+ */
+private fun getOwnedSkinConditionText(condition: UnlockCondition): String {
+    return when (condition) {
+        is UnlockCondition.Default -> "기본 제공 스킨"
+        is UnlockCondition.Steps -> "총 ${condition.totalSteps}보 달성으로 획득"
+        is UnlockCondition.Streak -> "${condition.days}일 연속 달성으로 획득"
+        is UnlockCondition.Level -> "레벨 ${condition.level} 달성으로 획득"
+        is UnlockCondition.Event -> "이벤트 '${condition.eventId}'로 획득"
+        is UnlockCondition.ChallengeCount -> "${condition.category} ${condition.count}회 완료로 획득"
     }
 }
 

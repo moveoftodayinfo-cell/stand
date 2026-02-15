@@ -213,13 +213,13 @@ enum class PetTypeV2(
             PetGrowthStage.EGG to 0.8f,
             PetGrowthStage.BABY to 0.70f,  // 0.87 * 0.8
             PetGrowthStage.TEEN to 0.71f,  // 0.89 * 0.8
-            PetGrowthStage.ADULT to 0.71f  // 0.89 * 0.8
+            PetGrowthStage.ADULT to 0.64f  // 0.71 * 0.9 (축소)
         ),
         displayYOffsetsDp = mapOf(
             PetGrowthStage.EGG to 0f,
             PetGrowthStage.BABY to -17f,  // 3dp 더 위로 (-14 → -17)
             PetGrowthStage.TEEN to -17f,
-            PetGrowthStage.ADULT to -17f
+            PetGrowthStage.ADULT to -22f  // 5dp 더 위로 (닉네임 가림 방지)
         )
     );
 
