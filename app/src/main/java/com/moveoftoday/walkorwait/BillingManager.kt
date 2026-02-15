@@ -8,6 +8,8 @@ import android.util.Log
 import com.android.billingclient.api.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.lang.ref.WeakReference
@@ -20,6 +22,9 @@ class BillingManager(
 ) {
     private val TAG = "BillingManager"
 
+    // Lifecycle-managed CoroutineScope (메모리 누수 방지)
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+
     private lateinit var billingClient: BillingClient
     private var isConnected = false
     private var isConnecting = false  // 연결 진행 중 상태 추적
@@ -27,6 +32,9 @@ class BillingManager(
     private val maxRetries = 3
     private var pendingActivity: WeakReference<Activity>? = null  // 연결 대기 중인 Activity (WeakRef로 메모리 누수 방지)
     private var pendingPetChangeActivity: WeakReference<Activity>? = null  // 펫 변경 대기 중인 Activity
+
+    // Race condition 방지: 현재 처리 중인 구매 토큰 추적
+    private val processingPurchases = mutableSetOf<String>()
 
     // 상품 ID (Google Play Console에서 생성)
     companion object {
@@ -197,7 +205,7 @@ class BillingManager(
 
     private fun startSubscriptionInternal(activity: Activity, type: SubscriptionType = SubscriptionType.MONTHLY) {
 
-        CoroutineScope(Dispatchers.IO).launch {
+        scope.launch {
             try {
                 // 월간/연간 모두 동일한 상품 ID 사용, base plan으로 구분
                 val productId = SUBSCRIPTION_PRODUCT_ID
@@ -316,9 +324,21 @@ class BillingManager(
     }
 
     /**
-     * 구매 처리
+     * 구매 처리 (race condition 방지)
      */
     private fun handlePurchase(purchase: Purchase) {
+        val purchaseToken = purchase.purchaseToken
+
+        // 이미 처리 중인 구매인지 확인 (synchronized로 thread-safe)
+        synchronized(processingPurchases) {
+            if (processingPurchases.contains(purchaseToken)) {
+                Log.d(TAG, "⏳ Purchase already being processed, skipping: ${purchase.orderId}")
+                return
+            }
+            // 처리 시작 표시
+            processingPurchases.add(purchaseToken)
+        }
+
         Log.d(TAG, "📦 Handling purchase: ${purchase.orderId}")
 
         if (purchase.purchaseState == Purchase.PurchaseState.PURCHASED) {
@@ -329,9 +349,17 @@ class BillingManager(
                 acknowledgePurchase(purchase)
             } else {
                 onPurchaseSuccess(purchase)
+                // 처리 완료 - 토큰 제거
+                synchronized(processingPurchases) {
+                    processingPurchases.remove(purchaseToken)
+                }
             }
         } else {
             Log.d(TAG, "⚠️ Purchase not in PURCHASED state: ${purchase.purchaseState}")
+            // 처리 완료 - 토큰 제거
+            synchronized(processingPurchases) {
+                processingPurchases.remove(purchaseToken)
+            }
         }
     }
 
@@ -339,32 +367,40 @@ class BillingManager(
      * 구매 확인 (Acknowledge)
      */
     private fun acknowledgePurchase(purchase: Purchase) {
+        val purchaseToken = purchase.purchaseToken
         val acknowledgePurchaseParams = AcknowledgePurchaseParams.newBuilder()
-            .setPurchaseToken(purchase.purchaseToken)
+            .setPurchaseToken(purchaseToken)
             .build()
 
-        CoroutineScope(Dispatchers.IO).launch {
-            val result = billingClient.acknowledgePurchase(acknowledgePurchaseParams)
-            if (result.responseCode == BillingClient.BillingResponseCode.OK) {
-                Log.d(TAG, "✅ Purchase acknowledged")
+        scope.launch {
+            try {
+                val result = billingClient.acknowledgePurchase(acknowledgePurchaseParams)
+                if (result.responseCode == BillingClient.BillingResponseCode.OK) {
+                    Log.d(TAG, "✅ Purchase acknowledged")
 
-                // Analytics: 구독 결제 추적
-                val productId = purchase.products.firstOrNull() ?: SUBSCRIPTION_PRODUCT_ID
-                val isYearly = pendingSubscriptionType == SubscriptionType.YEARLY
-                val price = if (isYearly) 39000.0 else 3900.0
-                AnalyticsManager.trackPurchaseCompleted(productId, price)
-                AnalyticsManager.trackSubscriptionStart(if (isYearly) "google_play_yearly" else "google_play_monthly")
+                    // Analytics: 구독 결제 추적
+                    val productId = purchase.products.firstOrNull() ?: SUBSCRIPTION_PRODUCT_ID
+                    val isYearly = pendingSubscriptionType == SubscriptionType.YEARLY
+                    val price = if (isYearly) 39000.0 else 3900.0
+                    AnalyticsManager.trackPurchaseCompleted(productId, price)
+                    AnalyticsManager.trackSubscriptionStart(if (isYearly) "google_play_yearly" else "google_play_monthly")
 
-                // 친구 초대 횟수 초기화 (월간: 1명, 연간: 12명)
-                val preferenceManager = PreferenceManager(context)
-                preferenceManager.initInvitesForSubscription(isYearly)
-                Log.d(TAG, "✅ Invites initialized: ${if (isYearly) 12 else 1} (${pendingSubscriptionType})")
+                    // 친구 초대 횟수 초기화 (월간: 1명, 연간: 12명)
+                    val preferenceManager = PreferenceManager(context)
+                    preferenceManager.initInvitesForSubscription(isYearly)
+                    Log.d(TAG, "✅ Invites initialized: ${if (isYearly) 12 else 1} (${pendingSubscriptionType})")
 
-                withContext(Dispatchers.Main) {
-                    onPurchaseSuccess(purchase)
+                    withContext(Dispatchers.Main) {
+                        onPurchaseSuccess(purchase)
+                    }
+                } else {
+                    Log.e(TAG, "❌ Failed to acknowledge purchase: ${result.debugMessage}")
                 }
-            } else {
-                Log.e(TAG, "❌ Failed to acknowledge purchase: ${result.debugMessage}")
+            } finally {
+                // 처리 완료 - 토큰 제거
+                synchronized(processingPurchases) {
+                    processingPurchases.remove(purchaseToken)
+                }
             }
         }
     }
@@ -373,7 +409,7 @@ class BillingManager(
      * 기존 구매 복원 (구독 + 소비성 상품)
      */
     private fun queryPurchases() {
-        CoroutineScope(Dispatchers.IO).launch {
+        scope.launch {
             // 1. 구독 상품 조회
             val subsParams = QueryPurchasesParams.newBuilder()
                 .setProductType(BillingClient.ProductType.SUBS)
@@ -421,7 +457,7 @@ class BillingManager(
             return
         }
 
-        CoroutineScope(Dispatchers.IO).launch {
+        scope.launch {
             val params = QueryPurchasesParams.newBuilder()
                 .setProductType(BillingClient.ProductType.SUBS)
                 .build()
@@ -466,7 +502,7 @@ class BillingManager(
     }
 
     private fun startPetChangePurchaseInternal(activity: Activity) {
-        CoroutineScope(Dispatchers.IO).launch {
+        scope.launch {
             try {
                 Log.d(TAG, "🐾 Starting pet change purchase")
 
@@ -532,11 +568,12 @@ class BillingManager(
      * 일회성 구매 소비 (재구매 가능하게)
      */
     private fun consumePurchase(purchase: Purchase, retryCount: Int = 0) {
+        val purchaseToken = purchase.purchaseToken
         val consumeParams = ConsumeParams.newBuilder()
-            .setPurchaseToken(purchase.purchaseToken)
+            .setPurchaseToken(purchaseToken)
             .build()
 
-        CoroutineScope(Dispatchers.IO).launch {
+        scope.launch {
             // Analytics 추적 (consume 전에)
             val productId = purchase.products.firstOrNull() ?: "pet_change"
 
@@ -559,6 +596,10 @@ class BillingManager(
                 if (retryCount > 0) {
                     Log.d(TAG, "🔄 Consume succeeded after $retryCount retry(ies)")
                 }
+                // 처리 완료 - 토큰 제거
+                synchronized(processingPurchases) {
+                    processingPurchases.remove(purchaseToken)
+                }
             } else {
                 val errorMsg = result.billingResult.debugMessage
                 Log.e(TAG, "⚠️ Consume failed [attempt ${retryCount + 1}]: $responseCode - $errorMsg")
@@ -580,6 +621,7 @@ class BillingManager(
                             Log.d(TAG, "🔄 Retrying consume in ${delayMs}ms...")
                             kotlinx.coroutines.delay(delayMs)
                             consumePurchase(purchase, retryCount + 1)
+                            return@launch // 재귀 호출에서 토큰 제거 처리
                         } else {
                             Log.e(TAG, "❌ Consume retry limit reached (3 attempts)")
                             Log.d(TAG, "⚠️ Purchase will be retried on next app launch (queryPurchases)")
@@ -594,6 +636,11 @@ class BillingManager(
                         Log.e(TAG, "⚠️ Consume failed with code $responseCode")
                         Log.d(TAG, "⚠️ Will retry on next app launch")
                     }
+                }
+
+                // 재시도 없이 종료되는 경우 - 토큰 제거 (다음 앱 실행 시 재시도 가능)
+                synchronized(processingPurchases) {
+                    processingPurchases.remove(purchaseToken)
                 }
 
                 if (retryCount == 0) {
@@ -619,12 +666,16 @@ class BillingManager(
     }
 
     /**
-     * 리소스 정리
+     * 리소스 정리 (Activity/Fragment onDestroy에서 호출)
      */
     fun destroy() {
+        // CoroutineScope 취소 (메모리 누수 방지)
+        scope.cancel()
+
         if (::billingClient.isInitialized) {
             billingClient.endConnection()
             isConnected = false
         }
+        Log.d(TAG, "🧹 BillingManager destroyed")
     }
 }

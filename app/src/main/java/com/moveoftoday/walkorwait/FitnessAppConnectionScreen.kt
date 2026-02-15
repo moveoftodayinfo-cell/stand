@@ -450,7 +450,8 @@ fun FitnessAppConnectionScreen(
                         Spacer(modifier = Modifier.height(16.dp))
 
                         // 에러 메시지
-                        if (errorMessage != null) {
+                        val currentErrorMessage = errorMessage
+                        if (currentErrorMessage != null) {
                             Box(
                                 modifier = Modifier
                                     .fillMaxWidth()
@@ -459,7 +460,7 @@ fun FitnessAppConnectionScreen(
                                     .padding(12.dp)
                             ) {
                                 Text(
-                                    text = errorMessage!!,
+                                    text = currentErrorMessage,
                                     color = MockupColors.Red,
                                     fontSize = 14.sp,
                                     fontWeight = FontWeight.Bold,

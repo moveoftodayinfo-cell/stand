@@ -359,9 +359,10 @@ fun PetMainScreen(
     }
 
     // 칭호 획득 다이얼로그
-    if (showTitleUnlockedDialog && unlockedTitleType != null) {
+    val currentUnlockedTitleType = unlockedTitleType
+    if (showTitleUnlockedDialog && currentUnlockedTitleType != null) {
         TitleUnlockedDialog(
-            titleType = unlockedTitleType!!,
+            titleType = currentUnlockedTitleType,
             petName = petName,
             onEquip = {
                 challengeManager.equipTitle(unlockedTitleType)
@@ -437,14 +438,46 @@ fun PetMainScreen(
     ) {
         Spacer(modifier = Modifier.height(8.dp))
 
+        // 방어권 티켓 수 (DEBUG 모드에서 수정 가능하도록 State로 관리)
+        var defenseTickets by remember { mutableIntStateOf(preferenceManager.getStreakDefenseTickets()) }
+
         // 1. Title row: Streak | "rebon" | Settings
         Box(modifier = Modifier.fillMaxWidth()) {
-            // 좌측: Streak badge
-            StreakBadge(
-                streakCount = streakCount,
-                inactive = streakCount == 0,
-                modifier = Modifier.align(Alignment.CenterStart)
-            )
+            // 좌측: Streak badge + Defense badge
+            Row(
+                modifier = Modifier.align(Alignment.CenterStart),
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                StreakBadge(
+                    streakCount = streakCount,
+                    inactive = streakCount == 0
+                )
+                DefenseBadge(
+                    ticketCount = defenseTickets,
+                    isDebug = BuildConfig.DEBUG,
+                    onClick = {
+                        hapticManager?.click()
+                        onSettingsClick()  // 설정 화면으로 이동
+                    },
+                    onLongClick = {
+                        // DEBUG: 길게 누르면 방어권 +1 & 마지막 달성일 2일 전으로 설정
+                        if (BuildConfig.DEBUG) {
+                            hapticManager?.success()
+                            // 방어권 +1
+                            preferenceManager.addStreakDefenseTickets(1)
+                            defenseTickets = preferenceManager.getStreakDefenseTickets()
+
+                            // 마지막 달성일을 2일 전으로 설정 (하루 건너뛴 상황)
+                            val twoDaysAgo = java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.getDefault())
+                                .format(java.util.Date(System.currentTimeMillis() - 2 * 24 * 60 * 60 * 1000))
+                            preferenceManager.setLastAchievedDate(twoDaysAgo)
+
+                            android.util.Log.d("PetMainScreen", "🛡️ DEBUG: 방어권 +1 (현재: $defenseTickets), 마지막 달성일: $twoDaysAgo (테스트용)")
+                        }
+                    }
+                )
+            }
 
             // 중앙: Title "rebon" (DEBUG: 길게 누르면 테스트)
             Text(
@@ -674,9 +707,10 @@ fun PetMainScreen(
                     },
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                if (equippedTitle != null) {
+                val currentEquippedTitle = equippedTitle
+                if (currentEquippedTitle != null) {
                     Text(
-                        text = "${equippedTitle!!.title} ",
+                        text = "${currentEquippedTitle.title} ",
                         fontSize = 13.sp,
                         fontWeight = FontWeight.Bold,
                         color = MockupColors.TextSecondary,

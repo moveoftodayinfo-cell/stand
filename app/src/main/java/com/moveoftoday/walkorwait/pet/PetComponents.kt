@@ -7,7 +7,9 @@ import androidx.compose.animation.core.*
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.GenericShape
@@ -461,13 +463,55 @@ fun StreakBadge(
         PixelIcon(
             iconName = "icon_thunder",
             size = 14.dp,
+            tint = Color.White,
             alpha = if (inactive) 0.5f else 1f
         )
         Text(
-            text = "x$streakCount",
+            text = "$streakCount",
             fontSize = 14.sp,
             fontWeight = FontWeight.Bold,
             color = Color.White
+        )
+    }
+}
+
+/**
+ * 방어권 배지 (shield 아이콘 + 개수)
+ * 방어권이 1개 이상일 때만 표시 (DEBUG 모드에서는 0장이어도 표시)
+ * DEBUG: 길게 누르면 +1 추가
+ */
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+fun DefenseBadge(
+    ticketCount: Int,
+    modifier: Modifier = Modifier,
+    isDebug: Boolean = false,
+    onClick: () -> Unit = {},
+    onLongClick: () -> Unit = {}
+) {
+    // 프로덕션: 1개 이상일 때만 표시, DEBUG: 항상 표시
+    if (ticketCount <= 0 && !isDebug) return
+
+    Row(
+        modifier = modifier
+            .combinedClickable(
+                onClick = { onClick() },
+                onLongClick = { onLongClick() }
+            )
+            .padding(horizontal = 4.dp, vertical = 4.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(2.dp)
+    ) {
+        DrawableIcon(
+            iconName = "icon_shield",
+            size = 14.dp,
+            tint = MockupColors.TextMuted
+        )
+        Text(
+            text = "$ticketCount",
+            fontSize = 14.sp,
+            fontWeight = FontWeight.Bold,
+            color = MockupColors.TextMuted
         )
     }
 }

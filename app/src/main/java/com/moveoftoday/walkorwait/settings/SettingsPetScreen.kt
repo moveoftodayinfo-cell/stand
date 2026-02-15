@@ -1141,7 +1141,8 @@ private fun SkinManagementSection(
     }
 
     // 해금 조건 안내 다이얼로그 (잠긴 스킨 클릭 시)
-    if (showUnlockInfoDialog && lockedSkinInfo != null) {
+    val currentLockedSkinInfo = lockedSkinInfo
+    if (showUnlockInfoDialog && currentLockedSkinInfo != null) {
         AlertDialog(
             onDismissRequest = {
                 showUnlockInfoDialog = false
@@ -1149,7 +1150,7 @@ private fun SkinManagementSection(
             },
             title = {
                 Text(
-                    text = lockedSkinInfo?.displayName ?: "",
+                    text = currentLockedSkinInfo.displayName,
                     fontWeight = FontWeight.Bold
                 )
             },
@@ -1167,7 +1168,7 @@ private fun SkinManagementSection(
                             val equipmentState = EquipmentState(
                                 headId = null,
                                 backgroundId = null,
-                                colorId = lockedSkinInfo?.id
+                                colorId = currentLockedSkinInfo.id
                             )
 
                             PetSpriteV2WithEquipment(
@@ -1193,7 +1194,7 @@ private fun SkinManagementSection(
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
-                        text = getUnlockConditionDetailText(lockedSkinInfo!!.unlockCondition, prefs),
+                        text = getUnlockConditionDetailText(currentLockedSkinInfo.unlockCondition, prefs),
                         fontSize = 14.sp,
                         color = MockupColors.TextSecondary
                     )

@@ -305,6 +305,9 @@ class StepSensorManager(private val context: Context) : SensorEventListener {
     fun stopListening() {
         Log.d(TAG, "stopListening called")
 
+        // CoroutineScope 취소 (메모리 누수 방지)
+        scope.cancel()
+
         // Health Connect Job 취소
         healthConnectJob?.cancel()
         healthConnectJob = null
@@ -345,8 +348,9 @@ class StepSensorManager(private val context: Context) : SensorEventListener {
             }
 
             // REP 챌린지 진행 중이면 snapshot 값 유지
-            if (repChallengeSnapshot != null) {
-                val (snapshotInitial, snapshotCurrent) = repChallengeSnapshot!!
+            val currentSnapshot = repChallengeSnapshot
+            if (currentSnapshot != null) {
+                val (snapshotInitial, snapshotCurrent) = currentSnapshot
                 // initialSteps 복원 (챌린지 중 증가한 하드웨어 걸음수 무시)
                 val hardwareIncrease = totalSteps - (snapshotInitial + snapshotCurrent)
                 initialSteps = snapshotInitial + hardwareIncrease

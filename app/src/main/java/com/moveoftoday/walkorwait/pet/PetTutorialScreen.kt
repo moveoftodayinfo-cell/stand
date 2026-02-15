@@ -173,6 +173,9 @@ fun PetOnboardingScreen(
     } else 0
     val totalDots = 10
 
+    // null-safe 로컬 변수 캡처
+    val currentSelectedPetType = selectedPetType
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -212,8 +215,8 @@ fun PetOnboardingScreen(
                 },
                 hapticManager = hapticManager
             )
-            2 -> PetNameInputStep(
-                petType = selectedPetType!!,
+            2 -> if (currentSelectedPetType != null) PetNameInputStep(
+                petType = currentSelectedPetType,
                 currentName = petName,
                 onNameChanged = {
                     petName = it
@@ -228,8 +231,8 @@ fun PetOnboardingScreen(
             )
 
             // === NO DOTS (3) - 튜토리얼 안내 (Google 로그인은 step 0에서 완료) ===
-            3 -> TutorialAllInOneStep(
-                petType = selectedPetType!!,
+            3 -> if (currentSelectedPetType != null) TutorialAllInOneStep(
+                petType = currentSelectedPetType,
                 petName = petName,
                 hapticManager = hapticManager,
                 onNext = {
@@ -238,8 +241,8 @@ fun PetOnboardingScreen(
             )
 
             // === WITH DOTS (4-15) ===
-            4 -> PermissionSettingsStep(
-                petType = selectedPetType!!,
+            4 -> if (currentSelectedPetType != null) PermissionSettingsStep(
+                petType = currentSelectedPetType,
                 petName = petName,
                 dotStep = dotStep,
                 totalDots = totalDots,
@@ -251,8 +254,8 @@ fun PetOnboardingScreen(
             )
             // Step 5 (FitnessConnectionStep) 제거됨 - 기본 센서를 디폴트로 사용
             // 피트니스 앱 연결은 설정 > 앱 제어에서 선택적으로 가능
-            6 -> AccessibilityStep(
-                petType = selectedPetType!!,
+            6 -> if (currentSelectedPetType != null) AccessibilityStep(
+                petType = currentSelectedPetType,
                 petName = petName,
                 dotStep = dotStep,
                 totalDots = totalDots,
@@ -262,8 +265,8 @@ fun PetOnboardingScreen(
                     currentStep = 7
                 }
             )
-            7 -> AppSelectionStep(
-                petType = selectedPetType!!,
+            7 -> if (currentSelectedPetType != null) AppSelectionStep(
+                petType = currentSelectedPetType,
                 petName = petName,
                 dotStep = dotStep,
                 totalDots = totalDots,
@@ -274,8 +277,8 @@ fun PetOnboardingScreen(
                     currentStep = 8
                 }
             )
-            8 -> TestBlockingStep(
-                petType = selectedPetType!!,
+            8 -> if (currentSelectedPetType != null) TestBlockingStep(
+                petType = currentSelectedPetType,
                 petName = petName,
                 dotStep = dotStep,
                 totalDots = totalDots,
@@ -288,8 +291,8 @@ fun PetOnboardingScreen(
                     currentStep = 9
                 }
             )
-            9 -> GoalInputStep(
-                petType = selectedPetType!!,
+            9 -> if (currentSelectedPetType != null) GoalInputStep(
+                petType = currentSelectedPetType,
                 petName = petName,
                 dotStep = dotStep,
                 totalDots = totalDots,
@@ -300,8 +303,8 @@ fun PetOnboardingScreen(
                     currentStep = 10
                 }
             )
-            10 -> WalkingTestStep(
-                petType = selectedPetType!!,
+            10 -> if (currentSelectedPetType != null) WalkingTestStep(
+                petType = currentSelectedPetType,
                 petName = petName,
                 dotStep = dotStep,
                 totalDots = totalDots,
@@ -312,8 +315,8 @@ fun PetOnboardingScreen(
                     currentStep = 11
                 }
             )
-            11 -> HowItWorksStep(
-                petType = selectedPetType!!,
+            11 -> if (currentSelectedPetType != null) HowItWorksStep(
+                petType = currentSelectedPetType,
                 petName = petName,
                 dotStep = dotStep,
                 totalDots = totalDots,
@@ -327,8 +330,8 @@ fun PetOnboardingScreen(
                 }
             )
             // Step 12-14 스킵됨
-            13 -> ControlDaysStep(
-                petType = selectedPetType!!,
+            13 -> if (currentSelectedPetType != null) ControlDaysStep(
+                petType = currentSelectedPetType,
                 petName = petName,
                 dotStep = dotStep,
                 totalDots = totalDots,
@@ -339,8 +342,8 @@ fun PetOnboardingScreen(
                     currentStep = 14
                 }
             )
-            14 -> BlockTimeStep(
-                petType = selectedPetType!!,
+            14 -> if (currentSelectedPetType != null) BlockTimeStep(
+                petType = currentSelectedPetType,
                 petName = petName,
                 dotStep = dotStep,
                 totalDots = totalDots,
@@ -352,8 +355,8 @@ fun PetOnboardingScreen(
                 }
             )
             // === 위젯 먼저, 결제 나중 ===
-            16 -> WidgetSetupStep(
-                petType = selectedPetType!!,
+            16 -> if (currentSelectedPetType != null) WidgetSetupStep(
+                petType = currentSelectedPetType,
                 petName = petName,
                 dotStep = dotStep,
                 totalDots = totalDots,
@@ -364,8 +367,8 @@ fun PetOnboardingScreen(
                 }
             )
 
-            15 -> PaymentScreen(
-                petType = selectedPetType!!,
+            15 -> if (currentSelectedPetType != null) PaymentScreen(
+                petType = currentSelectedPetType,
                 petName = petName,
                 preferenceManager = prefManager,
                 hapticManager = hapticManager,
@@ -394,15 +397,15 @@ fun PetOnboardingScreen(
                         deposit = prefManager.getDeposit(),
                         controlStartDate = prefManager.getControlStartDate(),
                         controlEndDate = prefManager.getControlEndDate(),
-                        petType = selectedPetType!!.name,
+                        petType = currentSelectedPetType.name,
                         petName = petName
                     )
 
                     // Analytics: 튜토리얼 완료 추적
                     AnalyticsManager.trackTutorialComplete()
-                    AnalyticsManager.setUserPetType(selectedPetType!!.name)
+                    AnalyticsManager.setUserPetType(currentSelectedPetType.name)
 
-                    onComplete(selectedPetType!!, petName)
+                    onComplete(currentSelectedPetType, petName)
                 }
             )
         }
@@ -3825,9 +3828,13 @@ fun PaymentScreen(
         }
     }
 
+    // 재결제 유저 판단 (이전에 결제한 적 있으면 재결제)
+    val isReturningUser = preferenceManager.isPaidDeposit()
+
     val buttonText = when {
         isProcessing -> "결제 중..."
         isPromoFree -> "무료로 시작하기"
+        isReturningUser -> "다시 시작하기"
         else -> "무료로 시작하기"
     }
 

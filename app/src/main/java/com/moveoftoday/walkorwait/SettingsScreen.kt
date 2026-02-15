@@ -424,14 +424,15 @@ fun SettingsScreen(
             onBack = { showAppLockScreen = false },
             onLockedAppsChanged = { newApps -> lockedAppsState = newApps }
         )
-    } else if (showPaymentScreen) {
-        val savedPetType = preferenceManager?.getPetTypeV2() ?: PetTypeV2.SHIBA
-        val savedPetName = preferenceManager?.getPetName() ?: "친구"
+    } else if (showPaymentScreen && preferenceManager != null) {
+        val prefs = preferenceManager
+        val savedPetType = prefs.getPetTypeV2() ?: PetTypeV2.SHIBA
+        val savedPetName = prefs.getPetName() ?: "친구"
 
         PaymentScreen(
             petType = savedPetType,
             petName = savedPetName,
-            preferenceManager = preferenceManager!!,
+            preferenceManager = prefs,
             hapticManager = hapticManager,
             onComplete = { showPaymentScreen = false }
         )
@@ -960,10 +961,11 @@ fun SettingsScreen(
                                                     color = MockupColors.Green
                                                 )
                                             }
-                                            if (basicGuestInfo != null) {
+                                            val guestInfo = basicGuestInfo
+                                            if (guestInfo != null) {
                                                 Spacer(modifier = Modifier.height(4.dp))
                                                 Text(
-                                                    text = basicGuestInfo!!,
+                                                    text = guestInfo,
                                                     fontSize = 12.sp,
                                                     color = MockupColors.TextSecondary
                                                 )
@@ -1062,10 +1064,11 @@ fun SettingsScreen(
                                                         color = MockupColors.Purple
                                                     )
                                                 }
-                                                if (bonusGuestInfo != null) {
+                                                val bonusInfo = bonusGuestInfo
+                                                if (bonusInfo != null) {
                                                     Spacer(modifier = Modifier.height(4.dp))
                                                     Text(
-                                                        text = bonusGuestInfo!!,
+                                                        text = bonusInfo,
                                                         fontSize = 12.sp,
                                                         color = MockupColors.TextSecondary
                                                     )
@@ -2182,10 +2185,12 @@ fun SettingsScreen(
             }
 
             // 데이터 충돌 선택 다이얼로그
-            if (showDataConflictDialog && remoteDataInfo != null && localDataInfo != null) {
+            val remoteInfo = remoteDataInfo
+            val localInfo = localDataInfo
+            if (showDataConflictDialog && remoteInfo != null && localInfo != null) {
                 DataConflictDialog(
-                    remoteInfo = remoteDataInfo!!,
-                    localInfo = localDataInfo!!,
+                    remoteInfo = remoteInfo,
+                    localInfo = localInfo,
                     onUseRemote = {
                         hapticManager.click()
                         handleDataChoice(useRemoteData = true)

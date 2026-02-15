@@ -66,11 +66,22 @@ class HealthConnectManager(private val context: Context) {
     fun isAvailable(): Boolean {
         cachedSdkAvailable?.let { return it }
 
-        val status = HealthConnectClient.getSdkStatus(context)
-        val available = status == HealthConnectClient.SDK_AVAILABLE
-        cachedSdkAvailable = available
-        Log.d(TAG, "🔍 isAvailable (first check) - status: $status, available: $available")
-        return available
+        return try {
+            val status = HealthConnectClient.getSdkStatus(context)
+            val available = status == HealthConnectClient.SDK_AVAILABLE
+            cachedSdkAvailable = available
+            Log.d(TAG, "🔍 isAvailable (first check) - status: $status, available: $available")
+            available
+        } catch (e: Exception) {
+            Log.e(TAG, "❌ Failed to check Health Connect availability: ${e.message}")
+            cachedSdkAvailable = false
+            false
+        } catch (e: Error) {
+            // LinkageError, NoClassDefFoundError 등 처리
+            Log.e(TAG, "❌ Health Connect SDK Error: ${e.message}")
+            cachedSdkAvailable = false
+            false
+        }
     }
 
     /**
@@ -82,7 +93,10 @@ class HealthConnectManager(private val context: Context) {
             val granted = client.permissionController.getGrantedPermissions()
             PERMISSIONS.all { it in granted }
         } catch (e: Exception) {
-            Log.e(TAG, "Failed to check permissions: ${e.message}")
+            Log.e(TAG, "❌ Failed to check permissions: ${e.message}")
+            false
+        } catch (e: Error) {
+            Log.e(TAG, "❌ Permission check Error: ${e.message}")
             false
         }
     }
@@ -140,6 +154,9 @@ class HealthConnectManager(private val context: Context) {
         } catch (e: Exception) {
             Log.e(TAG, "❌ Failed to get steps: ${e.message}")
             0
+        } catch (e: Error) {
+            Log.e(TAG, "❌ Steps retrieval Error: ${e.message}")
+            0
         }
     }
 
@@ -167,6 +184,9 @@ class HealthConnectManager(private val context: Context) {
         } catch (e: Exception) {
             Log.e(TAG, "❌ Failed to get distance: ${e.message}")
             0.0
+        } catch (e: Error) {
+            Log.e(TAG, "❌ Distance retrieval Error: ${e.message}")
+            0.0
         }
     }
 
@@ -189,6 +209,9 @@ class HealthConnectManager(private val context: Context) {
 
         } catch (e: Exception) {
             Log.e(TAG, "❌ Failed to get steps for date $date: ${e.message}")
+            0
+        } catch (e: Error) {
+            Log.e(TAG, "❌ Steps for date Error: ${e.message}")
             0
         }
     }
@@ -220,6 +243,9 @@ class HealthConnectManager(private val context: Context) {
 
         } catch (e: Exception) {
             Log.e(TAG, "❌ Failed to get steps for period: ${e.message}")
+            emptyMap()
+        } catch (e: Error) {
+            Log.e(TAG, "❌ Steps for period Error: ${e.message}")
             emptyMap()
         }
     }

@@ -24,7 +24,8 @@ rules_version = '2';
       match /promoCodes/{code} {
         allow read: if true;
         allow create, delete: if isAdmin();
-        allow update: if request.auth != null;
+        // 보안: 관리자만 프로모 코드 수정 가능
+        allow update: if isAdmin();
       }
 
       // 채팅 로그
@@ -70,6 +71,7 @@ rules_version = '2';
             && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
               'guestId', 'guestUsedAt', 'guestEmail',
               'inviteGuestId', 'inviteGuestEmail', 'inviteGuestUsedAt',
+              'inviteGuests',
               'bonusGuestId', 'bonusGuestEmail', 'bonusGuestUsedAt'
             ]);
         }

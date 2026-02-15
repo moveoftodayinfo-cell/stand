@@ -113,7 +113,8 @@ fun PetSprite(
     // 현재 애니메이션 데이터
     val animationType = forcedAnimationType ?: (if (isWalking) PetAnimationType.WALK else currentAnimationType)
     val animationData = petType.animations[animationType]
-        ?: petType.animations[PetAnimationType.IDLE]!!
+        ?: petType.animations[PetAnimationType.IDLE]
+        ?: return  // 애니메이션 없으면 렌더링 안함
 
     val frameCount = animationData.frames
     val assetPath = animationData.assetPath

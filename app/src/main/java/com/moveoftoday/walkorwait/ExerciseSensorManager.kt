@@ -18,6 +18,9 @@ class ExerciseSensorManager(private val context: Context) : SensorEventListener 
     private val sensorManager = context.getSystemService(Context.SENSOR_SERVICE) as SensorManager
     private val accelerometer: Sensor? = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
 
+    // Lifecycle-managed CoroutineScope
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
+
     // 햅틱 및 사운드 매니저
     private val hapticManager = HapticFeedbackManager(context)
     private var soundEffectManager: SoundEffectManager? = null
@@ -175,7 +178,7 @@ class ExerciseSensorManager(private val context: Context) : SensorEventListener 
     }
 
     private fun provideHapticFeedback(reps: Int, targetReps: Int) {
-        CoroutineScope(Dispatchers.Main).launch {
+        scope.launch {
             when {
                 reps == targetReps -> {
                     // 완료! 3번 진동 (축하)
@@ -228,6 +231,7 @@ class ExerciseSensorManager(private val context: Context) : SensorEventListener 
     }
 
     fun cleanup() {
+        scope.cancel()  // CoroutineScope 취소
         stopListening()
         tts?.stop()
         tts?.shutdown()

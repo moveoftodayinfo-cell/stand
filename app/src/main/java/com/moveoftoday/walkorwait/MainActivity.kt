@@ -64,6 +64,7 @@ import javax.inject.Inject
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.lifecycleScope
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -258,7 +259,7 @@ class MainActivity : ComponentActivity() {
             }
 
             // Firebase에 일일 기록 저장 (구독 관련은 제외, 일반 걸음 수만 저장)
-            CoroutineScope(Dispatchers.IO).launch {
+            lifecycleScope.launch(Dispatchers.IO) {
                 try {
                     // Repository를 통해 자동으로 Firebase에 저장됨
                     Log.d(TAG, "✅ Daily record auto-synced to Firebase: $yesterday")
@@ -299,7 +300,7 @@ class MainActivity : ComponentActivity() {
         val sdf = SimpleDateFormat("yyyy-MM", Locale.getDefault())
         val currentMonthId = sdf.format(Date())
 
-        CoroutineScope(Dispatchers.IO).launch {
+        lifecycleScope.launch(Dispatchers.IO) {
             try {
                 val subscriptionManager = SubscriptionManager(this@MainActivity)
                 val result = subscriptionManager.processMonthlyResult(
@@ -639,16 +640,17 @@ fun WalkOrWaitScreen(
             }
 
             // 업데이트 다이얼로그
-            if (showUpdateDialog && updateInfo != null) {
+            val currentUpdateInfo = updateInfo
+            if (showUpdateDialog && currentUpdateInfo != null) {
                 AppUpdateDialog(
-                    updateInfo = updateInfo!!,
+                    updateInfo = currentUpdateInfo,
                     onDismiss = {
-                        if (!updateInfo!!.isForceUpdate) {
+                        if (!currentUpdateInfo.isForceUpdate) {
                             showUpdateDialog = false
                         }
                     },
                     onUpdate = {
-                        AppUpdateManager.openPlayStore(context, updateInfo!!.playStoreUrl)
+                        AppUpdateManager.openPlayStore(context, currentUpdateInfo.playStoreUrl)
                     }
                 )
             }
@@ -770,16 +772,17 @@ fun WalkOrWaitScreen(
     }
 
     // 3. 구독 만료 시 결제 화면 (PaymentScreen - 재결제용)
-    if (showExpiredPaymentScreen) {
+    val prefs = preferenceManager
+    if (showExpiredPaymentScreen && prefs != null) {
         // V2 펫 타입 우선, 없으면 기본 SHIBA 사용
         val paymentPetType = petStateV2?.petType
-            ?: preferenceManager?.getPetTypeV2()
+            ?: prefs.getPetTypeV2()
             ?: com.moveoftoday.walkorwait.pet.PetTypeV2.SHIBA
 
         com.moveoftoday.walkorwait.pet.PaymentScreen(
             petType = paymentPetType,
             petName = petStateV2?.name ?: petName,  // V2 이름 우선
-            preferenceManager = preferenceManager!!,
+            preferenceManager = prefs,
             hapticManager = hapticManager,
             onComplete = {
                 // 결제 완료 시
@@ -807,17 +810,18 @@ fun WalkOrWaitScreen(
         announcement = announcementManager.getActiveAnnouncement()
     }
 
-    if (announcement != null) {
+    val currentAnnouncement = announcement
+    if (currentAnnouncement != null) {
         AnnouncementDialog(
-            announcement = announcement!!,
+            announcement = currentAnnouncement,
             onDismiss = {
                 // 오늘 그만보기
-                announcementManager.dismissForToday(announcement!!.id)
+                announcementManager.dismissForToday(currentAnnouncement.id)
                 announcement = null
             },
             onPrimaryAction = {
                 // 메인 버튼 클릭 시에도 오늘 그만보기
-                announcementManager.dismissForToday(announcement!!.id)
+                announcementManager.dismissForToday(currentAnnouncement.id)
                 announcement = null
             },
             hapticManager = hapticManager
@@ -1206,9 +1210,10 @@ fun WalkOrWaitScreen(
     }
 
     // 챌린지 완료 다이얼로그
-    if (showChallengeCompleteDialog && completedChallenge != null) {
+    val completedChallengeForDialog = completedChallenge
+    if (showChallengeCompleteDialog && completedChallengeForDialog != null) {
         ChallengeCompleteDialog(
-            challenge = completedChallenge!!,
+            challenge = completedChallengeForDialog,
             onDismiss = {
                 showChallengeCompleteDialog = false
                 completedChallenge = null
@@ -1217,9 +1222,9 @@ fun WalkOrWaitScreen(
     }
 
     // 챌린지 종료 다이얼로그
-    if (showChallengeEndedDialog && completedChallenge != null) {
+    if (showChallengeEndedDialog && completedChallengeForDialog != null) {
         ChallengeEndedDialog(
-            challenge = completedChallenge!!,
+            challenge = completedChallengeForDialog,
             onDismiss = {
                 showChallengeEndedDialog = false
                 completedChallenge = null
@@ -1228,7 +1233,9 @@ fun WalkOrWaitScreen(
     }
 
     // 진행 중인 챌린지가 있을 때 다른 챌린지 선택 시 경고
-    if (showRunningChallengeWarning && currentChallengeProgress != null && pendingChallenge != null) {
+    val runningProgress = currentChallengeProgress
+    val pending = pendingChallenge
+    if (showRunningChallengeWarning && runningProgress != null && pending != null) {
         androidx.compose.material3.AlertDialog(
             onDismissRequest = {
                 showRunningChallengeWarning = false
@@ -1243,7 +1250,7 @@ fun WalkOrWaitScreen(
             text = {
                 Column {
                     Text(
-                        text = "현재 \"${currentChallengeProgress!!.challenge.name}\"이(가) 진행 중입니다.",
+                        text = "현재 \"${runningProgress.challenge.name}\"이(가) 진행 중입니다.",
                         fontSize = 14.sp
                     )
                     Spacer(modifier = Modifier.height(8.dp))
@@ -1503,9 +1510,10 @@ fun WalkOrWaitScreen(
     }
 
     // V2 레벨업/진화 축하 다이얼로그
-    if (showLevelUpDialog && petStateV2 != null) {
+    val currentPetState = petStateV2
+    if (showLevelUpDialog && currentPetState != null) {
         com.moveoftoday.walkorwait.pet.LevelUpCelebrationDialog(
-            petState = petStateV2!!,
+            petState = currentPetState,
             oldLevel = levelUpOldLevel,
             newLevel = levelUpNewLevel,
             onDismiss = { showLevelUpDialog = false },
@@ -1514,15 +1522,16 @@ fun WalkOrWaitScreen(
     }
 
     // 스킨 해금 축하 다이얼로그
-    if (showSkinUnlockDialog && skinToShow != null) {
+    val currentSkin = skinToShow
+    if (showSkinUnlockDialog && currentSkin != null) {
         SkinUnlockDialog(
-            skin = skinToShow!!,
+            skin = currentSkin,
             petTypeV2 = petStateV2?.petType,
             petStage = petStateV2?.stage ?: com.moveoftoday.walkorwait.pet.PetGrowthStage.BABY,
             hapticManager = hapticManager,
             onEquip = {
                 // 스킨 장착
-                preferenceManager?.savePetSkin(skinToShow!!.id)
+                preferenceManager?.savePetSkin(currentSkin.id)
                 challengeManager.clearJustUnlockedSkin()
                 showSkinUnlockDialog = false
                 skinToShow = null

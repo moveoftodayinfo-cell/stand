@@ -86,8 +86,9 @@ object WeatherService {
         val now = System.currentTimeMillis()
 
         // 캐시가 유효하면 반환
-        if (cachedHourlyForecast != null && (now - lastFetchTime) < CACHE_DURATION) {
-            return cachedHourlyForecast!!
+        val cached = cachedHourlyForecast
+        if (cached != null && (now - lastFetchTime) < CACHE_DURATION) {
+            return cached
         }
 
         return try {
@@ -162,7 +163,8 @@ object WeatherService {
      * 위치 이름 가져오기 (영어)
      */
     fun getLocationName(context: Context): String {
-        if (cachedLocationName != null) return cachedLocationName!!
+        val cachedName = cachedLocationName
+        if (cachedName != null) return cachedName
 
         val location = getLocation(context) ?: return "Seoul"
 
