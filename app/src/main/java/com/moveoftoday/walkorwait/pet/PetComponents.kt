@@ -70,11 +70,11 @@ object MockupColors {
     // Base colors (Black/White)
     val Background = Color.White
     val CardBackground = Color(0xFFF5F5F5)
-    val Border = Color(0xFF333333)
-    val TextPrimary = Color(0xFF333333)
+    val Border = Color.Black
+    val TextPrimary = Color.Black
     val TextSecondary = Color(0xFF555555)
     val TextMuted = Color(0xFF888888)
-    val ProgressFill = Color(0xFF333333)
+    val ProgressFill = Color.Black
 
     // Accent colors
     val Blue = Color(0xFF1976D2)          // Selection, check, confirm, progress

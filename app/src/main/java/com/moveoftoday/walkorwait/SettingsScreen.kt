@@ -530,7 +530,7 @@ fun SettingsScreen(
                                 text = "←",
                                 fontSize = 24.sp,
                                 fontWeight = FontWeight.Bold,
-                                color = Color(0xFF333333)
+                                color = Color.Black
                             )
                         }
 
@@ -922,7 +922,7 @@ fun SettingsScreen(
                                 Row(verticalAlignment = Alignment.CenterVertically) {
                                     Icon(
                                         imageVector = Icons.Filled.Info,
-                                        contentDescription = null,
+                                        contentDescription = "정보",
                                         tint = MockupColors.Blue,
                                         modifier = Modifier.size(18.dp)
                                     )
@@ -949,7 +949,7 @@ fun SettingsScreen(
                                             Row(verticalAlignment = Alignment.CenterVertically) {
                                                 Icon(
                                                     imageVector = Icons.Filled.CheckCircle,
-                                                    contentDescription = null,
+                                                    contentDescription = "사용 중",
                                                     tint = MockupColors.Green,
                                                     modifier = Modifier.size(18.dp)
                                                 )
@@ -1016,7 +1016,7 @@ fun SettingsScreen(
                                 Row(verticalAlignment = Alignment.CenterVertically) {
                                     Icon(
                                         imageVector = Icons.Filled.Info,
-                                        contentDescription = null,
+                                        contentDescription = "아이콘",
                                         tint = if (earnedCoupon) MockupColors.Purple else MockupColors.TextMuted,
                                         modifier = Modifier.size(18.dp)
                                     )
@@ -1052,7 +1052,7 @@ fun SettingsScreen(
                                                 Row(verticalAlignment = Alignment.CenterVertically) {
                                                     Icon(
                                                         imageVector = Icons.Filled.CheckCircle,
-                                                        contentDescription = null,
+                                                        contentDescription = "아이콘",
                                                         tint = MockupColors.Purple,
                                                         modifier = Modifier.size(18.dp)
                                                     )
@@ -1906,7 +1906,7 @@ fun SettingsScreen(
                     icon = {
                         Icon(
                             Icons.Filled.Info,
-                            contentDescription = null,
+                            contentDescription = "아이콘",
                             tint = StandColors.Primary,
                             modifier = Modifier.size(48.dp)
                         )

@@ -81,7 +81,7 @@ fun SkinUnlockDialog(
                 text = "✧ 새 스킨 획득 ✧",
                 fontSize = 22.sp,
                 fontWeight = FontWeight.Bold,
-                color = Color(0xFF333333),
+                color = Color.Black,
                 textAlign = TextAlign.Center
             )
 

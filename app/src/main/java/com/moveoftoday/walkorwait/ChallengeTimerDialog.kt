@@ -77,7 +77,7 @@ fun ChallengeTimerDialog(
                 Text(
                     text = "rebon challenge",
                     fontSize = 16.sp,
-                    color = Color(0xFF333333),
+                    color = Color.Black,
                     fontFamily = kenneyFont
                 )
 
@@ -88,7 +88,7 @@ fun ChallengeTimerDialog(
                     text = progress.challenge.name,
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold,
-                    color = Color(0xFF333333)
+                    color = Color.Black
                 )
 
                 Spacer(modifier = Modifier.height(4.dp))
@@ -154,7 +154,7 @@ fun ChallengeTimerDialog(
                         text = "나중에 확인하기",
                         fontSize = 14.sp,
                         fontWeight = FontWeight.Bold,
-                        color = Color(0xFF333333),
+                        color = Color.Black,
                         modifier = Modifier
                             .clickable { onCheckLater() }
                             .padding(12.dp)
@@ -199,7 +199,7 @@ private fun StartTimerCircle(onClick: () -> Unit) {
                     lineTo(size.width * 0.2f, size.height * 0.9f)
                     close()
                 }
-                drawPath(path, Color(0xFF333333))
+                drawPath(path, Color.Black)
             }
 
             Spacer(modifier = Modifier.height(8.dp))
@@ -252,7 +252,7 @@ private fun RunningTimerCircle(progress: ChallengeProgress) {
         // 진행률 호
         Canvas(modifier = Modifier.fillMaxSize()) {
             drawArc(
-                color = Color(0xFF333333),
+                color = Color.Black,
                 startAngle = -90f,
                 sweepAngle = progressAngle,
                 useCenter = false,
@@ -278,7 +278,7 @@ private fun RunningTimerCircle(progress: ChallengeProgress) {
                     text = timeText,
                     fontSize = 44.sp,
                     fontWeight = FontWeight.Bold,
-                    color = Color(0xFF333333),
+                    color = Color.Black,
                     fontFamily = kenneyFont
                 )
                 Text(
@@ -324,7 +324,7 @@ private fun PausedTimerCircle(
         // 진행률 호
         Canvas(modifier = Modifier.fillMaxSize()) {
             drawArc(
-                color = Color(0xFF333333),
+                color = Color.Black,
                 startAngle = -90f,
                 sweepAngle = progressAngle,
                 useCenter = false,
@@ -354,7 +354,7 @@ private fun PausedTimerCircle(
                         lineTo(size.width * 0.2f, size.height * 0.9f)
                         close()
                     }
-                    drawPath(path, Color(0xFF333333))
+                    drawPath(path, Color.Black)
                 }
 
                 Spacer(modifier = Modifier.height(8.dp))
@@ -405,7 +405,7 @@ private fun StatusMessage(progress: ChallengeProgress) {
                         text = "준비되면 시작 버튼을 눌러주세요",
                         fontSize = 14.sp,
                         fontWeight = FontWeight.Bold,
-                        color = Color(0xFF333333),
+                        color = Color.Black,
                         textAlign = TextAlign.Center
                     )
                 } else {
@@ -424,7 +424,7 @@ private fun StatusMessage(progress: ChallengeProgress) {
                         text = "준비되면 시작 버튼을 눌러주세요",
                         fontSize = 14.sp,
                         fontWeight = FontWeight.Bold,
-                        color = Color(0xFF333333),
+                        color = Color.Black,
                         textAlign = TextAlign.Center
                     )
                 }
@@ -447,7 +447,7 @@ private fun StatusMessage(progress: ChallengeProgress) {
                         text = remainingText,
                         fontSize = 14.sp,
                         fontWeight = FontWeight.Bold,
-                        color = Color(0xFF333333),
+                        color = Color.Black,
                         textAlign = TextAlign.Center
                     )
                 } else {
@@ -461,7 +461,7 @@ private fun StatusMessage(progress: ChallengeProgress) {
                         text = "${elapsedMinutes}분 동안 잘 하고 있어요",
                         fontSize = 14.sp,
                         fontWeight = FontWeight.Bold,
-                        color = Color(0xFF333333),
+                        color = Color.Black,
                         textAlign = TextAlign.Center
                     )
                 }
@@ -470,14 +470,14 @@ private fun StatusMessage(progress: ChallengeProgress) {
                 Text(
                     text = "앱을 나갔다 돌아왔어요",
                     fontSize = 14.sp,
-                    color = Color(0xFF333333),
+                    color = Color.Black,
                     textAlign = TextAlign.Center
                 )
                 Text(
                     text = "한번 더 나가면 종료돼요",
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Bold,
-                    color = Color(0xFF333333),
+                    color = Color.Black,
                     textAlign = TextAlign.Center
                 )
             }
@@ -526,7 +526,7 @@ fun ChallengeCompleteDialog(
                 text = "챌린지 완료!",
                 fontSize = 24.sp,
                 fontWeight = FontWeight.Bold,
-                color = Color(0xFF333333),
+                color = Color.Black,
                 fontFamily = kenneyFont
             )
 
@@ -536,7 +536,7 @@ fun ChallengeCompleteDialog(
                 text = challenge.name,
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Bold,
-                color = Color(0xFF333333)
+                color = Color.Black
             )
 
             Spacer(modifier = Modifier.height(8.dp))
@@ -553,7 +553,7 @@ fun ChallengeCompleteDialog(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(Color(0xFF333333), RoundedCornerShape(12.dp))
+                    .background(Color.Black, RoundedCornerShape(12.dp))
                     .clickable { onDismiss() }
                     .padding(16.dp),
                 contentAlignment = Alignment.Center
@@ -596,7 +596,7 @@ fun ChallengeEndedDialog(
                 text = "챌린지 종료",
                 fontSize = 24.sp,
                 fontWeight = FontWeight.Bold,
-                color = Color(0xFF333333),
+                color = Color.Black,
                 fontFamily = kenneyFont
             )
 
@@ -606,7 +606,7 @@ fun ChallengeEndedDialog(
                 text = challenge.name,
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Bold,
-                color = Color(0xFF333333)
+                color = Color.Black
             )
 
             Spacer(modifier = Modifier.height(8.dp))
@@ -623,7 +623,7 @@ fun ChallengeEndedDialog(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(Color(0xFF333333), RoundedCornerShape(12.dp))
+                    .background(Color.Black, RoundedCornerShape(12.dp))
                     .clickable { onDismiss() }
                     .padding(16.dp),
                 contentAlignment = Alignment.Center
@@ -655,7 +655,7 @@ private fun FastingStartTimeSelector(
             text = "언제 단식을 시작했나요?",
             fontSize = 16.sp,
             fontWeight = FontWeight.Bold,
-            color = Color(0xFF333333)
+            color = Color.Black
         )
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -671,8 +671,8 @@ private fun FastingStartTimeSelector(
                     modifier = Modifier
                         .size(48.dp)
                         .clip(CircleShape)
-                        .background(if (isSelected) Color(0xFF333333) else Color.White)
-                        .border(2.dp, Color(0xFF333333), CircleShape)
+                        .background(if (isSelected) Color.Black else Color.White)
+                        .border(2.dp, Color.Black, CircleShape)
                         .clickable { onOffsetChanged(hours) },
                     contentAlignment = Alignment.Center
                 ) {
@@ -680,7 +680,7 @@ private fun FastingStartTimeSelector(
                         text = if (hours == 0) "지금" else "${hours}h",
                         fontSize = 13.sp,
                         fontWeight = FontWeight.Bold,
-                        color = if (isSelected) Color.White else Color(0xFF333333)
+                        color = if (isSelected) Color.White else Color.Black
                     )
                 }
             }
@@ -699,8 +699,8 @@ private fun FastingStartTimeSelector(
                     modifier = Modifier
                         .size(48.dp)
                         .clip(CircleShape)
-                        .background(if (isSelected) Color(0xFF333333) else Color.White)
-                        .border(2.dp, Color(0xFF333333), CircleShape)
+                        .background(if (isSelected) Color.Black else Color.White)
+                        .border(2.dp, Color.Black, CircleShape)
                         .clickable { onOffsetChanged(hours) },
                     contentAlignment = Alignment.Center
                 ) {
@@ -708,7 +708,7 @@ private fun FastingStartTimeSelector(
                         text = "${hours}h",
                         fontSize = 13.sp,
                         fontWeight = FontWeight.Bold,
-                        color = if (isSelected) Color.White else Color(0xFF333333)
+                        color = if (isSelected) Color.White else Color.Black
                     )
                 }
             }
@@ -722,7 +722,7 @@ private fun FastingStartTimeSelector(
                 .size(160.dp)
                 .clip(CircleShape)
                 .background(Color.White)
-                .border(3.dp, Color(0xFF333333), CircleShape)
+                .border(3.dp, Color.Black, CircleShape)
                 .clickable { onClick() },
             contentAlignment = Alignment.Center
         ) {
@@ -738,7 +738,7 @@ private fun FastingStartTimeSelector(
                         lineTo(size.width * 0.2f, size.height * 0.9f)
                         close()
                     }
-                    drawPath(path, Color(0xFF333333))
+                    drawPath(path, Color.Black)
                 }
 
                 Spacer(modifier = Modifier.height(8.dp))
@@ -747,7 +747,7 @@ private fun FastingStartTimeSelector(
                     text = "시작하기",
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Bold,
-                    color = Color(0xFF333333)
+                    color = Color.Black
                 )
             }
         }

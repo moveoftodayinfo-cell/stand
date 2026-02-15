@@ -69,7 +69,7 @@ fun RepBasedChallengeDialog(
                 Text(
                     text = "rebon challenge",
                     fontSize = 16.sp,
-                    color = Color(0xFF333333),
+                    color = Color.Black,
                     fontFamily = kenneyFont
                 )
 
@@ -80,7 +80,7 @@ fun RepBasedChallengeDialog(
                     text = progress.challenge.name,
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold,
-                    color = Color(0xFF333333)
+                    color = Color.Black
                 )
 
                 Spacer(modifier = Modifier.height(4.dp))
@@ -158,7 +158,7 @@ private fun ExerciseInstructions(type: ChallengeType) {
             text = "운동 자세 안내",
             fontSize = 16.sp,
             fontWeight = FontWeight.Bold,
-            color = Color(0xFF333333)
+            color = Color.Black
         )
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -188,7 +188,7 @@ private fun InstructionItem(icon: String, text: String, isHighlight: Boolean = f
         Text(
             text = text,
             fontSize = 14.sp,
-            color = if (isHighlight) Color(0xFF666666) else Color(0xFF333333)
+            color = if (isHighlight) Color(0xFF666666) else Color.Black
         )
     }
 }
@@ -234,7 +234,7 @@ private fun RepCounterCircle(
             // 진행률 호 (검정)
             val sweepAngle = 360f * progress.coerceIn(0f, 1f)
             drawArc(
-                color = Color(0xFF333333),
+                color = Color.Black,
                 startAngle = -90f,
                 sweepAngle = sweepAngle,
                 useCenter = false,
@@ -252,7 +252,7 @@ private fun RepCounterCircle(
                 text = "$current",
                 fontSize = 56.sp,
                 fontWeight = FontWeight.Bold,
-                color = Color(0xFF333333)
+                color = Color.Black
             )
             Text(
                 text = "/ $target",
@@ -275,7 +275,7 @@ private fun MockupButton(
         modifier = modifier
             .height(48.dp)
             .clip(RoundedCornerShape(12.dp))
-            .background(if (enabled) Color(0xFF333333) else Color(0xFFCCCCCC))
+            .background(if (enabled) Color.Black else Color(0xFFCCCCCC))
             .clickable(enabled = enabled) { onClick() }
             .padding(horizontal = 24.dp),
         contentAlignment = Alignment.Center

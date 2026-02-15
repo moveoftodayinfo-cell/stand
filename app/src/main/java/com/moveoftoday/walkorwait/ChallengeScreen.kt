@@ -127,7 +127,7 @@ fun ChallengeScreen(
                 text = "챌린지 목록",
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Bold,
-                color = Color(0xFF333333)
+                color = Color.Black
             )
         }
 
@@ -145,7 +145,7 @@ fun ChallengeScreen(
                             text = category,
                             fontSize = 15.sp,
                             fontWeight = FontWeight.Bold,
-                            color = Color(0xFF333333),
+                            color = Color.Black,
                             modifier = Modifier.padding(vertical = 12.dp)
                         )
                     }
@@ -214,7 +214,7 @@ private fun ChallengeHeader(onBack: () -> Unit) {
                 text = "←",
                 fontSize = 24.sp,
                 fontWeight = FontWeight.Bold,
-                color = Color(0xFF333333)
+                color = Color.Black
             )
         }
 
@@ -223,7 +223,7 @@ private fun ChallengeHeader(onBack: () -> Unit) {
             text = "rebon challenge",
             fontSize = 24.sp,
             fontWeight = FontWeight.Bold,
-            color = Color(0xFF333333),
+            color = Color.Black,
             fontFamily = kenneyFont,
             modifier = Modifier.align(Alignment.Center)
         )
@@ -238,7 +238,7 @@ private fun SearchBox(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .border(2.dp, Color(0xFF333333), RoundedCornerShape(12.dp))
+            .border(2.dp, Color.Black, RoundedCornerShape(12.dp))
             .background(Color.White, RoundedCornerShape(12.dp))
             .padding(horizontal = 16.dp, vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically
@@ -256,7 +256,7 @@ private fun SearchBox(
             onValueChange = onQueryChange,
             textStyle = TextStyle(
                 fontSize = 14.sp,
-                color = Color(0xFF333333)
+                color = Color.Black
             ),
             modifier = Modifier.weight(1f),
             decorationBox = { innerTextField ->
@@ -291,11 +291,11 @@ private fun CategoryTabs(
                 modifier = Modifier
                     .border(
                         width = 2.dp,
-                        color = Color(0xFF333333),
+                        color = Color.Black,
                         shape = RoundedCornerShape(20.dp)
                     )
                     .background(
-                        color = if (isSelected) Color(0xFF333333) else Color.White,
+                        color = if (isSelected) Color.Black else Color.White,
                         shape = RoundedCornerShape(20.dp)
                     )
                     .clickable { onCategorySelected(category) }
@@ -305,7 +305,7 @@ private fun CategoryTabs(
                     text = category,
                     fontSize = 13.sp,
                     fontWeight = FontWeight.Medium,
-                    color = if (isSelected) Color.White else Color(0xFF333333)
+                    color = if (isSelected) Color.White else Color.Black
                 )
             }
         }
@@ -321,7 +321,7 @@ private fun ChallengeBox(
     Box(
         modifier = Modifier
             .aspectRatio(1f)
-            .border(2.dp, Color(0xFF333333), RoundedCornerShape(16.dp))
+            .border(2.dp, Color.Black, RoundedCornerShape(16.dp))
             .background(Color.White, RoundedCornerShape(16.dp))
             .clickable { onClick() }
             .padding(8.dp)
@@ -350,7 +350,7 @@ private fun ChallengeBox(
                 text = challenge.name,
                 fontSize = 11.sp,
                 fontWeight = FontWeight.SemiBold,
-                color = Color(0xFF333333),
+                color = Color.Black,
                 textAlign = TextAlign.Center
             )
         }

@@ -1339,7 +1339,7 @@ fun TitleUnlockedDialog(
                 fontSize = 20.sp,
                 fontFamily = kenneyFont,
                 fontWeight = FontWeight.Bold,
-                color = Color(0xFF333333)
+                color = Color.Black
             )
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -1356,7 +1356,7 @@ fun TitleUnlockedDialog(
                     text = "${titleType.title} $petName",
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
-                    color = Color(0xFF333333),
+                    color = Color.Black,
                     textAlign = androidx.compose.ui.text.style.TextAlign.Center
                 )
             }
@@ -1381,7 +1381,7 @@ fun TitleUnlockedDialog(
                 Box(
                     modifier = Modifier
                         .weight(1f)
-                        .border(2.dp, Color(0xFF333333), RoundedCornerShape(12.dp))
+                        .border(2.dp, Color.Black, RoundedCornerShape(12.dp))
                         .background(Color.White, RoundedCornerShape(12.dp))
                         .clickable {
                             hapticManager?.click()
@@ -1394,7 +1394,7 @@ fun TitleUnlockedDialog(
                         text = "나중에",
                         fontSize = 14.sp,
                         fontWeight = FontWeight.Bold,
-                        color = Color(0xFF333333)
+                        color = Color.Black
                     )
                 }
 
@@ -1402,7 +1402,7 @@ fun TitleUnlockedDialog(
                 Box(
                     modifier = Modifier
                         .weight(1f)
-                        .background(Color(0xFF333333), RoundedCornerShape(12.dp))
+                        .background(Color.Black, RoundedCornerShape(12.dp))
                         .clickable {
                             hapticManager?.success()
                             onEquip()
@@ -1451,7 +1451,7 @@ fun TitleSelectionDialog(
                 fontSize = 20.sp,
                 fontFamily = kenneyFont,
                 fontWeight = FontWeight.Bold,
-                color = Color(0xFF333333)
+                color = Color.Black
             )
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -1497,7 +1497,7 @@ fun TitleSelectionDialog(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(Color(0xFF333333), RoundedCornerShape(12.dp))
+                    .background(Color.Black, RoundedCornerShape(12.dp))
                     .clickable {
                         hapticManager?.click()
                         onDismiss()
@@ -1527,7 +1527,7 @@ private fun TitleOptionItem(
             .fillMaxWidth()
             .border(
                 width = 2.dp,
-                color = if (isSelected) Color(0xFF333333) else Color(0xFFE0E0E0),
+                color = if (isSelected) Color.Black else Color(0xFFE0E0E0),
                 shape = RoundedCornerShape(12.dp)
             )
             .background(
@@ -1545,7 +1545,7 @@ private fun TitleOptionItem(
                 text = title,
                 fontSize = 15.sp,
                 fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
-                color = Color(0xFF333333)
+                color = Color.Black
             )
             if (isSelected) {
                 Spacer(modifier = Modifier.width(8.dp))

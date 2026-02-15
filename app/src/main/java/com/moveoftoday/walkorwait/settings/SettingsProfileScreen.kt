@@ -323,7 +323,7 @@ fun SettingsProfileScreen(
                                     ) {
                                         Icon(
                                             imageVector = Icons.Filled.CheckCircle,
-                                            contentDescription = null,
+                                            contentDescription = "아이콘",
                                             tint = MockupColors.Green,
                                             modifier = Modifier.size(16.dp)
                                         )
@@ -375,7 +375,7 @@ fun SettingsProfileScreen(
                                 }
                                 Icon(
                                     imageVector = Icons.Filled.CheckCircle,
-                                    contentDescription = null,
+                                    contentDescription = "아이콘",
                                     tint = MockupColors.Green,
                                     modifier = Modifier.size(24.dp)
                                 )

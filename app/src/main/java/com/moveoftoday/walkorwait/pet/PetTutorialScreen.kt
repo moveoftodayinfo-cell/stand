@@ -1516,7 +1516,7 @@ private fun GoogleSignInStep(
                 var x = 0f
                 while (x < size.width) {
                     drawRect(
-                        color = Color(0xFF333333),
+                        color = Color.Black,
                         topLeft = Offset(x, 0f),
                         size = Size(dotSize, size.height)
                     )
@@ -1544,15 +1544,15 @@ private fun GoogleSignInStep(
                                     .align(Alignment.BottomStart)
                                     .offset(x = xDp, y = (-4).dp)
                                     .size(obstacleWidth, obstacleHeight)
-                                    .border(2.dp, Color(0xFF333333), RoundedCornerShape(4.dp))
+                                    .border(2.dp, Color.Black, RoundedCornerShape(4.dp))
                                     .background(Color.White, RoundedCornerShape(4.dp)),
                                 contentAlignment = Alignment.Center
                             ) {
                                 Image(
                                     painter = painterResource(id = iconList[obstacle.iconIndex]),
-                                    contentDescription = null,
+                                    contentDescription = "아이콘",
                                     modifier = Modifier.size(20.dp),
-                                    colorFilter = ColorFilter.tint(Color(0xFF333333))
+                                    colorFilter = ColorFilter.tint(Color.Black)
                                 )
                             }
                         }
@@ -1566,18 +1566,18 @@ private fun GoogleSignInStep(
                             ) {
                                 // Tree trunk
                                 drawRect(
-                                    color = Color(0xFF333333),
+                                    color = Color.Black,
                                     topLeft = Offset(size.width * 0.35f, size.height * 0.5f),
                                     size = Size(size.width * 0.3f, size.height * 0.5f)
                                 )
                                 // Tree top
                                 drawRect(
-                                    color = Color(0xFF333333),
+                                    color = Color.Black,
                                     topLeft = Offset(0f, size.height * 0.1f),
                                     size = Size(size.width, size.height * 0.5f)
                                 )
                                 drawRect(
-                                    color = Color(0xFF333333),
+                                    color = Color.Black,
                                     topLeft = Offset(size.width * 0.15f, 0f),
                                     size = Size(size.width * 0.7f, size.height * 0.3f)
                                 )
@@ -1590,15 +1590,15 @@ private fun GoogleSignInStep(
                                     .align(Alignment.BottomStart)
                                     .offset(x = xDp, y = (-54).dp)  // 위쪽에 배치
                                     .size(obstacleWidth, obstacleHeight)
-                                    .border(2.dp, Color(0xFF333333), RoundedCornerShape(4.dp))
+                                    .border(2.dp, Color.Black, RoundedCornerShape(4.dp))
                                     .background(Color.White, RoundedCornerShape(4.dp)),
                                 contentAlignment = Alignment.Center
                             ) {
                                 Image(
                                     painter = painterResource(id = iconList[obstacle.iconIndex]),
-                                    contentDescription = null,
+                                    contentDescription = "아이콘",
                                     modifier = Modifier.size(20.dp),
-                                    colorFilter = ColorFilter.tint(Color(0xFF333333))
+                                    colorFilter = ColorFilter.tint(Color.Black)
                                 )
                             }
                         }
@@ -1612,29 +1612,29 @@ private fun GoogleSignInStep(
                             ) {
                                 // 선인장 몸통
                                 drawRect(
-                                    color = Color(0xFF333333),
+                                    color = Color.Black,
                                     topLeft = Offset(size.width * 0.3f, size.height * 0.2f),
                                     size = Size(size.width * 0.4f, size.height * 0.8f)
                                 )
                                 // 왼쪽 팔
                                 drawRect(
-                                    color = Color(0xFF333333),
+                                    color = Color.Black,
                                     topLeft = Offset(0f, size.height * 0.4f),
                                     size = Size(size.width * 0.3f, size.height * 0.15f)
                                 )
                                 drawRect(
-                                    color = Color(0xFF333333),
+                                    color = Color.Black,
                                     topLeft = Offset(0f, size.height * 0.25f),
                                     size = Size(size.width * 0.15f, size.height * 0.3f)
                                 )
                                 // 오른쪽 팔
                                 drawRect(
-                                    color = Color(0xFF333333),
+                                    color = Color.Black,
                                     topLeft = Offset(size.width * 0.7f, size.height * 0.5f),
                                     size = Size(size.width * 0.3f, size.height * 0.15f)
                                 )
                                 drawRect(
-                                    color = Color(0xFF333333),
+                                    color = Color.Black,
                                     topLeft = Offset(size.width * 0.85f, size.height * 0.35f),
                                     size = Size(size.width * 0.15f, size.height * 0.3f)
                                 )
@@ -1650,12 +1650,12 @@ private fun GoogleSignInStep(
                             ) {
                                 // 바위 모양
                                 drawRect(
-                                    color = Color(0xFF333333),
+                                    color = Color.Black,
                                     topLeft = Offset(0f, size.height * 0.3f),
                                     size = Size(size.width, size.height * 0.7f)
                                 )
                                 drawRect(
-                                    color = Color(0xFF333333),
+                                    color = Color.Black,
                                     topLeft = Offset(size.width * 0.2f, 0f),
                                     size = Size(size.width * 0.6f, size.height * 0.5f)
                                 )

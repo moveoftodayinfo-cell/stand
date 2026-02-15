@@ -319,7 +319,7 @@ fun SettingsHeader(
                     text = "←",
                     fontSize = 24.sp,
                     fontWeight = FontWeight.Bold,
-                    color = Color(0xFF333333)
+                    color = Color.Black
                 )
             }
 

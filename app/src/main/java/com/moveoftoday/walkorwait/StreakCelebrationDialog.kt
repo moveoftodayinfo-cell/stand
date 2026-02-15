@@ -571,7 +571,7 @@ private fun FullCardContent(
                                     iconName = "icon_star",
                                     size = 24.dp,
                                     // 달성한 날: 진한 회색, 안 한 날: 연한 회색
-                                    tint = if (achieved) Color(0xFF333333) else Color(0xFFCCCCCC)
+                                    tint = if (achieved) Color.Black else Color(0xFFCCCCCC)
                                 )
                             }
                         }
