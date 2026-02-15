@@ -3932,17 +3932,23 @@ fun PaymentScreen(
 
     val kenneyFont = rememberKenneyFont()
 
-    Column(
+    Box(
         modifier = Modifier
             .fillMaxSize()
             .background(Color.White)
             .navigationBarsPadding()
             .padding(horizontal = 20.dp)
-            .padding(bottom = 24.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
+            .padding(bottom = 24.dp)
     ) {
-        // 상단 여백 (다른 튜토리얼과 동일하게 60dp)
-        Spacer(modifier = Modifier.height(60.dp))
+        // 상단 고정 컨텐츠
+        Column(
+            modifier = Modifier
+                .align(Alignment.TopCenter)
+                .statusBarsPadding(),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            // 상단 여백
+            Spacer(modifier = Modifier.height(16.dp))
 
         // 로고 - DEBUG: 길게 누르면 건너뛰기
         Text(
@@ -4056,15 +4062,6 @@ fun PaymentScreen(
                 textAlign = TextAlign.Center
             )
         } else {
-            // 7일 무료 체험 포함
-            Text(
-                text = "무료 체험 포함",
-                fontSize = 14.sp,
-                fontWeight = FontWeight.Medium,
-                color = MockupColors.TextSecondary
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-
             // 플랜 캐러셀
             val pagerState = rememberPagerState(initialPage = 0) { 2 }
 
@@ -4214,15 +4211,6 @@ fun PaymentScreen(
             }
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // 혜택 구분선
-        Text(
-            text = "- 혜택 -",
-            fontSize = 13.sp,
-            color = MockupColors.TextSecondary
-        )
-
         Spacer(modifier = Modifier.height(12.dp))
 
         // 혜택 리스트 (순차 fade in 애니메이션)
@@ -4278,13 +4266,19 @@ fun PaymentScreen(
             fontSize = 11.sp,
             color = MockupColors.TextMuted
         )
+    }
 
-        // 하단으로 밀기
-        Spacer(modifier = Modifier.weight(1f))
-
+    // 하단 고정 컨텐츠
+    Column(
+        modifier = Modifier
+            .align(Alignment.BottomCenter)
+            .fillMaxWidth()
+            .background(Color.White)
+            .padding(top = 8.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
         // 오류 메시지
         if (errorMessage != null) {
-            Spacer(modifier = Modifier.height(8.dp))
             Text(
                 text = errorMessage ?: "",
                 fontSize = 12.sp,
@@ -4292,9 +4286,8 @@ fun PaymentScreen(
                 modifier = Modifier.fillMaxWidth(),
                 textAlign = TextAlign.Center
             )
+            Spacer(modifier = Modifier.height(4.dp))
         }
-
-        Spacer(modifier = Modifier.height(16.dp))
 
         // 프로모션 코드 토글 (버튼 위) - 이모지 대신 PixelIcon
         Column(
@@ -4434,7 +4427,7 @@ fun PaymentScreen(
                 )
             }
         }
-
+    }
     }
 }
 
