@@ -216,73 +216,79 @@ private fun SkinItem(
     petStage: PetGrowthStage,
     onClick: () -> Unit
 ) {
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier.clickable(onClick = onClick)
+    // 챌린지 박스와 동일한 레이아웃 구조
+    Box(
+        modifier = Modifier
+            .aspectRatio(1f)
+            .border(
+                width = 2.dp,
+                color = if (isSelected) Color.Black else Color(0xFFDDDDDD),
+                shape = RoundedCornerShape(16.dp)
+            )
+            .background(
+                if (isSelected) Color(0xFFF5F5F5) else Color.White,
+                RoundedCornerShape(16.dp)
+            )
+            .clickable(onClick = onClick)
+            .alpha(if (isOwned) 1f else 0.5f)
+            .padding(8.dp)
     ) {
-        Box(
-            modifier = Modifier
-                .size(100.dp)
-                .background(
-                    if (isSelected) Color(0xFFE3F2FD) else Color(0xFFF5F5F5),
-                    RoundedCornerShape(12.dp)
-                )
-                .border(
-                    width = if (isSelected) 2.dp else 0.dp,
-                    color = if (isSelected) Color(0xFF2196F3) else Color.Transparent,
-                    shape = RoundedCornerShape(12.dp)
-                )
-                .alpha(if (isOwned) 1f else 0.4f),
-            contentAlignment = Alignment.Center
-        ) {
-            if (petTypeV2 != null && isOwned) {
-                // 스킨 미리보기
-                val equipmentState = EquipmentState(
-                    headId = null,
-                    backgroundId = null,
-                    colorId = skin.id
-                )
+        // 스킨 미리보기 (중앙 상단)
+        if (petTypeV2 != null && isOwned) {
+            val equipmentState = EquipmentState(
+                headId = null,
+                backgroundId = null,
+                colorId = skin.id
+            )
 
-                PetSpriteV2WithEquipment(
-                    petType = petTypeV2,
-                    stage = petStage,
-                    animationType = PetAnimationTypeV2.IDLE,
-                    equipmentState = equipmentState,
-                    size = 72.dp,
-                    monochrome = true,
-                    showGlow = false
-                )
-            } else if (!isOwned) {
-                // 잠금 아이콘
-                Text(
-                    text = "▣",
-                    fontSize = 32.sp,
-                    color = Color.Gray
-                )
-            }
+            PetSpriteV2WithEquipment(
+                petType = petTypeV2,
+                stage = petStage,
+                animationType = PetAnimationTypeV2.IDLE,
+                equipmentState = equipmentState,
+                size = 72.dp,
+                monochrome = true,
+                showGlow = false,
+                modifier = Modifier
+                    .align(Alignment.Center)
+                    .offset(y = (-12).dp)
+            )
+        } else if (!isOwned) {
+            // 잠금 아이콘
+            Text(
+                text = "▣",
+                fontSize = 40.sp,
+                color = Color.Gray,
+                modifier = Modifier
+                    .align(Alignment.Center)
+                    .offset(y = (-12).dp)
+            )
         }
 
-        Spacer(modifier = Modifier.height(4.dp))
-
-        // 스킨 이름
+        // 스킨 이름 (하단 고정)
         Text(
             text = skin.displayName,
-            fontSize = 12.sp,
-            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+            fontSize = 11.sp,
+            fontWeight = FontWeight.SemiBold,
+            color = Color.Black,
             textAlign = TextAlign.Center,
             maxLines = 1,
-            modifier = Modifier.widthIn(max = 90.dp)
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .offset(y = if (!isOwned) (-14).dp else 0.dp)
         )
 
-        // 해금 조건
+        // 해금 조건 (최하단)
         if (!isOwned) {
             Text(
                 text = getUnlockConditionText(skin.unlockCondition),
-                fontSize = 10.sp,
-                color = Color.Gray,
+                fontSize = 9.sp,
+                color = Color(0xFF666666),
                 textAlign = TextAlign.Center,
-                maxLines = 2,
-                modifier = Modifier.widthIn(max = 90.dp)
+                maxLines = 1,
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .offset(y = 4.dp)
             )
         }
     }

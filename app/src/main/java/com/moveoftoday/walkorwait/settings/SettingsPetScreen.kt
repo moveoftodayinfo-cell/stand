@@ -1017,12 +1017,12 @@ private fun SkinManagementSection(
 
         // 보유 스킨 그리드 (3열, 고정 높이 계산)
         val ownedRows = (ownedSkinsList.size + 2) / 3
-        val ownedGridHeight = (ownedRows * 95).coerceAtLeast(95).dp
+        val ownedGridHeight = (ownedRows * 120).coerceAtLeast(120).dp
 
         LazyVerticalGrid(
             columns = GridCells.Fixed(3),
-            horizontalArrangement = Arrangement.spacedBy(6.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
             modifier = Modifier
                 .fillMaxWidth()
                 .height(ownedGridHeight),
@@ -1079,12 +1079,12 @@ private fun SkinManagementSection(
         // 미보유 스킨 그리드 (펼쳤을 때만)
         if (isExpanded) {
             val lockedRows = (lockedSkinsList.size + 2) / 3
-            val lockedGridHeight = (lockedRows * 100).coerceAtLeast(100).dp
+            val lockedGridHeight = (lockedRows * 120).coerceAtLeast(120).dp
 
             LazyVerticalGrid(
                 columns = GridCells.Fixed(3),
-                horizontalArrangement = Arrangement.spacedBy(6.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(lockedGridHeight),
@@ -1286,7 +1286,7 @@ private fun SkinManagementSection(
 }
 
 /**
- * 컴팩트한 스킨 아이템 (펫 관리 화면용)
+ * 컴팩트한 스킨 아이템 (펫 관리 화면용) - ChallengeBox 스타일
  */
 @Composable
 private fun SkinItemCompact(
@@ -1297,95 +1297,80 @@ private fun SkinItemCompact(
     petStage: PetGrowthStage,
     onClick: () -> Unit
 ) {
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier.clickable(onClick = onClick)
+    Box(
+        modifier = Modifier
+            .aspectRatio(1f)
+            .border(
+                width = 2.dp,
+                color = if (isSelected) Color.Black else Color(0xFFDDDDDD),
+                shape = RoundedCornerShape(16.dp)
+            )
+            .background(
+                if (isSelected) Color(0xFFF5F5F5) else Color.White,
+                RoundedCornerShape(16.dp)
+            )
+            .clickable(onClick = onClick)
+            .alpha(if (isOwned) 1f else 0.5f)
+            .padding(8.dp)
     ) {
-        // 썸네일 박스
-        Box(
-            modifier = Modifier
-                .size(68.dp)
-                .background(
-                    if (isSelected) MockupColors.Border.copy(alpha = 0.15f) else Color(0xFFF5F5F5),
-                    RoundedCornerShape(8.dp)
-                )
-                .border(
-                    width = if (isSelected) 2.dp else 0.dp,
-                    color = if (isSelected) MockupColors.TextPrimary else Color.Transparent,
-                    shape = RoundedCornerShape(8.dp)
-                )
-                .padding(3.dp)
-        ) {
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center,
-                modifier = Modifier.fillMaxSize()
-            ) {
-                // 1. 자물쇠 아이콘 (잠긴 경우에만)
-                if (!isOwned) {
-                    DrawableIcon(
-                        iconName = "icon_lock",
-                        size = 10.dp,
-                        tint = MockupColors.TextMuted
-                    )
-                    Spacer(modifier = Modifier.height(1.dp))
-                }
+        // 펫 미리보기 (중앙 상단)
+        if (petTypeV2 != null && isOwned) {
+            val equipmentState = EquipmentState(
+                headId = null,
+                backgroundId = null,
+                colorId = skin.id
+            )
 
-                // 2. 펫 미리보기
-                if (petTypeV2 != null) {
-                    val equipmentState = EquipmentState(
-                        headId = null,
-                        backgroundId = null,
-                        colorId = skin.id
-                    )
-
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(48.dp)
-                            .alpha(if (isOwned) 1f else 0.6f),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        PetSpriteV2WithEquipment(
-                            petType = petTypeV2,
-                            stage = petStage,
-                            animationType = PetAnimationTypeV2.IDLE,
-                            equipmentState = equipmentState,
-                            size = 48.dp,
-                            monochrome = true,
-                            showGlow = false
-                        )
-                    }
-                }
-
-                // 3. 해금 조건 (잠긴 경우에만)
-                if (!isOwned) {
-                    Spacer(modifier = Modifier.height(2.dp))
-                    Text(
-                        text = getUnlockConditionText(skin.unlockCondition),
-                        fontSize = 7.sp,
-                        color = MockupColors.TextMuted,
-                        textAlign = TextAlign.Center,
-                        maxLines = 2,
-                        lineHeight = 8.sp,
-                        modifier = Modifier.padding(horizontal = 2.dp)
-                    )
-                }
-            }
+            PetSpriteV2WithEquipment(
+                petType = petTypeV2,
+                stage = petStage,
+                animationType = PetAnimationTypeV2.IDLE,
+                equipmentState = equipmentState,
+                size = 72.dp,
+                monochrome = true,
+                showGlow = false,
+                modifier = Modifier
+                    .align(Alignment.Center)
+                    .offset(y = (-12).dp)
+            )
+        } else if (!isOwned) {
+            // 잠금 아이콘
+            Text(
+                text = "▣",
+                fontSize = 40.sp,
+                color = Color.Gray,
+                modifier = Modifier
+                    .align(Alignment.Center)
+                    .offset(y = (-12).dp)
+            )
         }
 
-        Spacer(modifier = Modifier.height(2.dp))
-
-        // 스킨 이름 (항상 표시)
+        // 스킨 이름 (하단 고정)
         Text(
             text = skin.displayName,
-            fontSize = 9.sp,
-            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+            fontSize = 11.sp,
+            fontWeight = FontWeight.SemiBold,
+            color = Color.Black,
             textAlign = TextAlign.Center,
             maxLines = 1,
-            color = Color.Black,
-            modifier = Modifier.widthIn(max = 68.dp)
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .offset(y = if (!isOwned) (-14).dp else 0.dp)
         )
+
+        // 해금 조건 (최하단)
+        if (!isOwned) {
+            Text(
+                text = getUnlockConditionText(skin.unlockCondition),
+                fontSize = 9.sp,
+                color = Color(0xFF666666),
+                textAlign = TextAlign.Center,
+                maxLines = 1,
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .offset(y = 4.dp)
+            )
+        }
     }
 }
 
