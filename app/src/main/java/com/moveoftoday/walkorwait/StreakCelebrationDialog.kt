@@ -362,7 +362,7 @@ private fun FullCardContent(
                 } ?: 0f
 
                 val displayHeight = 240.dp
-                val petSize = 160.dp
+                val petSize = 128.dp  // 0.8x 축소 (160 → 128)
                 val nameY = PetDisplayConstants.calculateNameY(displayHeight)
                 val petY = PetDisplayConstants.calculatePetY(displayHeight, petSize, fullCardYOffset)
 
@@ -380,14 +380,14 @@ private fun FullCardContent(
                             equipmentState = equipmentState,
                             isWalking = false,
                             progressPercent = 0,
-                            baseSizeDp = 160,
+                            baseSizeDp = 128,  // 0.8x
                             monochrome = true
                         )
                     } else {
                         PetSpriteWithSyncedGlow(
                             petType = petType,
                             isWalking = false,
-                            size = 160.dp,
+                            size = 128.dp,  // 0.8x
                             monochrome = true,
                             frameDurationMs = 200
                         )
@@ -741,7 +741,7 @@ private fun StickerContent(
                     } ?: 0f
 
                     val displayHeight = 240.dp - 24.dp  // padding 제외
-                    val petSize = 140.dp
+                    val petSize = 112.dp  // 0.8x 축소 (140 → 112)
                     val nameY = PetDisplayConstants.calculateNameY(displayHeight)
                     val petY = PetDisplayConstants.calculatePetY(displayHeight, petSize, stickerYOffset)
 
@@ -759,14 +759,14 @@ private fun StickerContent(
                                 equipmentState = equipmentState,
                                 isWalking = false,
                                 progressPercent = 0,
-                                baseSizeDp = 140,
+                                baseSizeDp = 112,  // 0.8x
                                 monochrome = true
                             )
                         } else {
                             PetSpriteWithSyncedGlow(
                                 petType = petType,
                                 isWalking = false,
-                                size = 140.dp,
+                                size = 112.dp,  // 0.8x
                                 monochrome = true,
                                 frameDurationMs = 200
                             )
