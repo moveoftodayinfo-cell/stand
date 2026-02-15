@@ -171,6 +171,98 @@ object AnalyticsManager {
         Log.d(TAG, "💰 Purchase: $productId - ₩$price")
     }
 
+    // ========== 챌린지 ==========
+
+    fun trackChallengeStart(challengeType: String, challengeCategory: String) {
+        val params = Bundle().apply {
+            putString("challenge_type", challengeType)
+            putString("challenge_category", challengeCategory)
+        }
+        analytics?.logEvent("challenge_start", params)
+        Log.d(TAG, "🏃 Challenge start: $challengeType ($challengeCategory)")
+    }
+
+    fun trackChallengeComplete(challengeType: String, durationSeconds: Long, category: String) {
+        val params = Bundle().apply {
+            putString("challenge_type", challengeType)
+            putLong("duration_seconds", durationSeconds)
+            putString("challenge_category", category)
+        }
+        analytics?.logEvent("challenge_complete", params)
+        Log.d(TAG, "✅ Challenge complete: $challengeType (${durationSeconds}s)")
+    }
+
+    fun trackChallengeAbandon(challengeType: String, reason: String, progressPercent: Int) {
+        val params = Bundle().apply {
+            putString("challenge_type", challengeType)
+            putString("abandon_reason", reason)
+            putInt("progress_percent", progressPercent)
+        }
+        analytics?.logEvent("challenge_abandon", params)
+        Log.d(TAG, "❌ Challenge abandon: $challengeType - $reason ($progressPercent%)")
+    }
+
+    // ========== 펫 상호작용 ==========
+
+    fun trackPetInteraction(interactionType: String, petType: String) {
+        val params = Bundle().apply {
+            putString("interaction_type", interactionType)  // touch, talk, feed, play
+            putString("pet_type", petType)
+        }
+        analytics?.logEvent("pet_interaction", params)
+        Log.d(TAG, "🐾 Pet interaction: $interactionType ($petType)")
+    }
+
+    fun trackPetEvolved(petType: String, fromStage: String, toStage: String, daysToEvolve: Int) {
+        val params = Bundle().apply {
+            putString("pet_type", petType)
+            putString("from_stage", fromStage)
+            putString("to_stage", toStage)
+            putInt("days_to_evolve", daysToEvolve)
+        }
+        analytics?.logEvent("pet_evolved", params)
+        Log.d(TAG, "🎉 Pet evolved: $petType $fromStage → $toStage ($daysToEvolve days)")
+    }
+
+    fun trackPetDialogue(dialogueType: String, petMood: String) {
+        val params = Bundle().apply {
+            putString("dialogue_type", dialogueType)  // greeting, encouragement, celebration
+            putString("pet_mood", petMood)
+        }
+        analytics?.logEvent("pet_dialogue", params)
+        Log.d(TAG, "💬 Pet dialogue: $dialogueType (mood: $petMood)")
+    }
+
+    fun trackPetSkinEquipped(skinId: String, skinCategory: String) {
+        val params = Bundle().apply {
+            putString("skin_id", skinId)
+            putString("skin_category", skinCategory)
+        }
+        analytics?.logEvent("pet_skin_equipped", params)
+        Log.d(TAG, "👕 Pet skin equipped: $skinId ($skinCategory)")
+    }
+
+    // ========== 리텐션 분석 ==========
+
+    fun trackDailyActive(streakDays: Int, totalActiveDays: Int, daysSinceInstall: Int) {
+        val params = Bundle().apply {
+            putInt("streak_days", streakDays)
+            putInt("total_active_days", totalActiveDays)
+            putInt("days_since_install", daysSinceInstall)
+        }
+        analytics?.logEvent("daily_active", params)
+        Log.d(TAG, "📊 Daily active: streak=$streakDays, total=$totalActiveDays, since_install=$daysSinceInstall")
+    }
+
+    fun trackWeeklyRetention(weekNumber: Int, activeDaysThisWeek: Int) {
+        val params = Bundle().apply {
+            putInt("week_number", weekNumber)
+            putInt("active_days_this_week", activeDaysThisWeek)
+        }
+        analytics?.logEvent("weekly_retention", params)
+        Log.d(TAG, "📈 Weekly retention: week=$weekNumber, active=$activeDaysThisWeek days")
+    }
+
     // ========== 스트릭 ==========
 
     fun trackStreakMilestone(streakDays: Int) {

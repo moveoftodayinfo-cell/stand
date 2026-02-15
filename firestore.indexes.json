@@ -1,0 +1,13 @@
+{
+  "indexes": [
+    {
+      "collectionGroup": "challengeHistory",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "challengeType", "order": "ASCENDING" },
+        { "fieldPath": "completedAt", "order": "DESCENDING" }
+      ]
+    }
+  ],
+  "fieldOverrides": []
+}

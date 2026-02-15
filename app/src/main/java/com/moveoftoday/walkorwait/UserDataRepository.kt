@@ -189,6 +189,21 @@ class UserDataRepository(
                 val petLevelExpV2 = userDoc.getLong("pet_level_exp_v2")?.toInt() ?: oldSettingsDoc.getLong("pet_level_exp_v2")?.toInt()
                 val petHappinessV2 = userDoc.getLong("pet_happiness_v2")?.toInt() ?: oldSettingsDoc.getLong("pet_happiness_v2")?.toInt()
 
+                // 방어 티켓 데이터 읽기
+                val defenseTickets = userDoc.getLong("streakDefenseTickets")?.toInt()
+                    ?: oldSettingsDoc.getLong("streakDefenseTickets")?.toInt()
+                val defenseHistory = (userDoc.get("defenseTicketUsageHistory") as? List<*>)?.mapNotNull { it as? String }?.toSet()
+                    ?: (oldSettingsDoc.get("defenseTicketUsageHistory") as? List<*>)?.mapNotNull { it as? String }?.toSet()
+                    ?: emptySet()
+
+                // 스킨/장비 데이터 읽기
+                val equipHeadId = userDoc.getString("equipmentHeadId") ?: oldSettingsDoc.getString("equipmentHeadId")
+                val equipBgId = userDoc.getString("equipmentBackgroundId") ?: oldSettingsDoc.getString("equipmentBackgroundId")
+                val equipColorId = userDoc.getString("equipmentColorId") ?: oldSettingsDoc.getString("equipmentColorId")
+                val unlockedSkinsRemote = (userDoc.get("unlockedSkins") as? List<*>)?.mapNotNull { it as? String }?.toSet()
+                    ?: (oldSettingsDoc.get("unlockedSkins") as? List<*>)?.mapNotNull { it as? String }?.toSet()
+                    ?: emptySet()
+
                 Log.d(TAG, "🐾 Pet: $petType, $petName")
                 Log.d(TAG, "🐾 Pet V2: $petTypeV2Name, $petNameV2")
                 Log.d(TAG, "🔍 tutorialCompleted: $tutorialCompleted, paidDeposit: $paidDeposit, lockedApps: ${lockedApps.size}")
@@ -284,6 +299,12 @@ class UserDataRepository(
                     if (unlockedTitles.isNotEmpty() || equippedTitle != null || totalChallenges != null) {
                         restoreTitleData(unlockedTitles, equippedTitle, totalChallenges)
                     }
+
+                    // 방어 티켓 복원
+                    restoreDefenseTicketData(defenseTickets, defenseHistory)
+
+                    // 스킨/장비 복원
+                    restoreEquipmentData(equipHeadId, equipBgId, equipColorId, unlockedSkinsRemote)
                 }
                 // Firebase 데이터가 더 최신이면 로컬 업데이트
                 else if (remoteTimestamp > localTimestamp) {
@@ -297,6 +318,12 @@ class UserDataRepository(
                     if (unlockedTitles.isNotEmpty() || equippedTitle != null || totalChallenges != null) {
                         restoreTitleData(unlockedTitles, equippedTitle, totalChallenges)
                     }
+
+                    // 방어 티켓 복원
+                    restoreDefenseTicketData(defenseTickets, defenseHistory)
+
+                    // 스킨/장비 복원
+                    restoreEquipmentData(equipHeadId, equipBgId, equipColorId, unlockedSkinsRemote)
                 } else {
                     Log.d(TAG, "⬆️ Local data is newer, uploading to Firebase")
 
@@ -504,6 +531,48 @@ class UserDataRepository(
     }
 
     /**
+     * 방어 티켓 데이터 복원
+     */
+    private fun restoreDefenseTicketData(tickets: Int?, usageHistory: Set<String>) {
+        if (tickets != null && tickets > 0) {
+            preferenceManager.setStreakDefenseTickets(tickets)
+            Log.d(TAG, "🛡️ Restored defense tickets: $tickets")
+        }
+        if (usageHistory.isNotEmpty()) {
+            // usageHistory를 PreferenceManager에 저장
+            val prefs = context.getSharedPreferences("streak_defense_prefs", android.content.Context.MODE_PRIVATE)
+            prefs.edit().putStringSet("defense_ticket_usage_history", usageHistory).apply()
+            Log.d(TAG, "🛡️ Restored defense ticket usage history: ${usageHistory.size} entries")
+        }
+    }
+
+    /**
+     * 스킨/장비 데이터 복원
+     */
+    private fun restoreEquipmentData(headId: String?, bgId: String?, colorId: String?, unlockedSkins: Set<String>) {
+        // 장비 상태 복원
+        if (headId != null || bgId != null || colorId != null) {
+            val equipmentState = com.moveoftoday.walkorwait.pet.EquipmentState(
+                headId = headId,
+                backgroundId = bgId,
+                colorId = colorId
+            )
+            preferenceManager.saveEquipmentState(equipmentState)
+            Log.d(TAG, "🎨 Restored equipment: head=$headId, bg=$bgId, color=$colorId")
+        }
+
+        // 해금된 스킨 복원
+        if (unlockedSkins.isNotEmpty()) {
+            val currentUnlocked = preferenceManager.getUnlockedSkins()
+            val merged = currentUnlocked + unlockedSkins
+            // 병합된 스킨 저장
+            val prefs = context.getSharedPreferences("pet_skins_prefs", android.content.Context.MODE_PRIVATE)
+            prefs.edit().putStringSet("unlocked_skins", merged).apply()
+            Log.d(TAG, "🎨 Restored unlocked skins: ${unlockedSkins.size} (merged total: ${merged.size})")
+        }
+    }
+
+    /**
      * unlockedTitles 서브컬렉션에서 칭호 목록 조회
      * 부모 문서에 칭호 목록이 없을 때 폴백으로 사용
      */
@@ -598,7 +667,17 @@ class UserDataRepository(
                     // 챌린지/칭호 (배열로 통합)
                     "unlockedTitles" to localUnlockedTitles.toList(),
                     "equippedTitle" to localEquippedTitle,
-                    "totalChallengesCompleted" to localTotalChallenges
+                    "totalChallengesCompleted" to localTotalChallenges,
+
+                    // 방어 티켓 시스템 (복구용)
+                    "streakDefenseTickets" to preferenceManager.getStreakDefenseTickets(),
+                    "defenseTicketUsageHistory" to preferenceManager.getDefenseTicketUsageHistory().toList(),
+
+                    // 스킨/장비 정보 (복구용)
+                    "equipmentHeadId" to preferenceManager.getEquipmentState().headId,
+                    "equipmentBackgroundId" to preferenceManager.getEquipmentState().backgroundId,
+                    "equipmentColorId" to preferenceManager.getEquipmentState().colorId,
+                    "unlockedSkins" to preferenceManager.getUnlockedSkins().toList()
                 )
 
                 firestore.collection("users")

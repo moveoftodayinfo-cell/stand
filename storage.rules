@@ -1,0 +1,63 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    // 관리자 확인
+    function isAdmin() {
+      return request.auth != null &&
+             request.auth.token.email == 'moveoftoday.info@gmail.com';
+    }
+
+    // 인증된 사용자 확인
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    // 본인 확인
+    function isOwner(userId) {
+      return request.auth != null && request.auth.uid == userId;
+    }
+
+    // 파일 크기 제한 (5MB)
+    function isValidSize() {
+      return request.resource.size < 5 * 1024 * 1024;
+    }
+
+    // 이미지 파일 타입 확인
+    function isImageType() {
+      return request.resource.contentType.matches('image/.*');
+    }
+
+    // ========== 공개 에셋 (앱 아이콘, 펫 이미지 등) ==========
+    match /public/{allPaths=**} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // ========== 사용자별 프로필/공유 이미지 ==========
+    match /users/{userId}/{allPaths=**} {
+      // 본인만 읽기/쓰기, 관리자 읽기 가능
+      allow read: if isOwner(userId) || isAdmin();
+      allow write: if isOwner(userId) && isValidSize() && isImageType();
+    }
+
+    // ========== 공유 이미지 (스트릭 카드 등) ==========
+    match /shares/{shareId} {
+      // 인증된 사용자만 생성 가능
+      allow read: if true;
+      allow create: if isAuthenticated() && isValidSize() && isImageType();
+      allow update, delete: if isAdmin();
+    }
+
+    // ========== 피드백 첨부 파일 ==========
+    match /feedback/{feedbackId}/{fileName} {
+      allow read: if isAdmin();
+      allow create: if isAuthenticated() && isValidSize();
+      allow update, delete: if isAdmin();
+    }
+
+    // ========== 기본 거부 ==========
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

@@ -8,9 +8,9 @@ rules_version = '2';
                request.auth.token.email == 'moveoftoday.info@gmail.com';
       }
 
-      // API 설정 - 읽기만 허용 (앱에서 API 키 로드용)
+      // API 설정 - 인증된 사용자만 읽기 허용 (보안 강화)
       match /apiConfig/{document=**} {
-        allow read: if true;
+        allow read: if request.auth != null;
         allow write: if isAdmin();
       }
 
