@@ -16,12 +16,13 @@ import java.util.*
  * Stand 결제 데이터
  *
  * 사용자 타입:
- * - PAID: 4,900원 결제한 사용자
+ * - PAID: 구독 결제한 사용자 (월간 3,900원 또는 연간 39,000원)
  * - GUEST: 친구 초대로 1달 무료 이용 중
  *
  * 심플 시스템:
- * - 모든 사용자: 매달 4,900원 결제
- * - 95% 이상 달성 → 친구 초대 쿠폰 1장 획득
+ * - 월간 구독: 3,900원/월 (7일 무료 체험)
+ * - 연간 구독: 39,000원/년 (7일 무료 체험, 2개월 무료)
+ * - 달성률에 따라 streak 방어 티켓 지급 (90%=1장, 95%=2장, 100%=3장)
  */
 data class SubscriptionData(
     val monthId: String = "",
@@ -43,7 +44,9 @@ data class SubscriptionData(
     val endDate: Date? = null,
     // 기본 초대 코드 (정기결제 시 발급)
     val inviteCode: String? = null,
-    val inviteGuestId: String? = null,
+    val maxInvites: Int = 1, // 월간: 1명, 연간: 12명
+    val inviteGuests: List<Map<String, Any>> = emptyList(), // 초대된 게스트 목록
+    val inviteGuestId: String? = null, // 하위 호환용 (첫 번째 게스트)
     val inviteGuestEmail: String? = null,
     val inviteGuestUsedAt: Date? = null,
     // 보너스 초대 코드 (95% 달성 시 발급)
@@ -100,11 +103,13 @@ class SubscriptionManager(private val context: Context) {
      * @param goal 일일 목표 걸음수
      * @param controlDays 제어할 요일 (1=월요일 ~ 7=일요일)
      * @param purchase Google Play 구매 정보
+     * @param isYearly 연간 구독 여부 (월간: false, 연간: true)
      */
     suspend fun createSubscription(
         goal: Int,
         controlDays: List<Int>,
-        purchase: Purchase
+        purchase: Purchase,
+        isYearly: Boolean = false
     ): Result<SubscriptionData> {
         val userId = getCurrentUserId() ?: return Result.failure(Exception("User not logged in"))
         val monthId = getMonthId()
@@ -113,20 +118,23 @@ class SubscriptionManager(private val context: Context) {
             val calendar = Calendar.getInstance()
             val startDate = calendar.time
 
-            // 월말 계산
-            calendar.set(Calendar.DAY_OF_MONTH, calendar.getActualMaximum(Calendar.DAY_OF_MONTH))
+            // 초대 코드 만료일 계산 (결제일 기준 1달 후)
+            calendar.add(Calendar.MONTH, 1)
             val endDate = calendar.time
 
             // 친구 초대 코드 생성 (매달 새로운 코드)
             val inviteCode = generateInviteCode(userId, monthId)
             val bonusInviteCode = generateBonusInviteCode(userId, monthId)
 
+            // 구독 타입에 따른 초대 횟수 설정 (월간: 1명, 연간: 12명)
+            val maxInvites = if (isYearly) 12 else 1
+
             val subscription = SubscriptionData(
                 monthId = monthId,
                 isPaid = true,
                 isActive = true,
                 userType = "PAID",
-                price = SubscriptionModel.MONTHLY_PRICE,
+                price = if (isYearly) 39000 else SubscriptionModel.MONTHLY_PRICE,
                 purchaseToken = purchase.purchaseToken,
                 orderId = purchase.orderId,
                 totalDays = 0,
@@ -140,6 +148,8 @@ class SubscriptionManager(private val context: Context) {
                 startDate = startDate,
                 endDate = endDate,
                 inviteCode = inviteCode,
+                maxInvites = maxInvites,
+                inviteGuests = emptyList(),
                 inviteGuestId = null,
                 inviteGuestEmail = null,
                 inviteGuestUsedAt = null,
@@ -158,7 +168,7 @@ class SubscriptionManager(private val context: Context) {
                 .document(userId)
                 .collection("subscriptions")
                 .document(monthId)
-                .set(subscription)
+                .set(subscription.toFirestoreMap())
                 .await()
 
             // 대시보드 추적용 사용자 문서 생성
@@ -319,7 +329,7 @@ class SubscriptionManager(private val context: Context) {
                 .document(guestUserId)
                 .collection("subscriptions")
                 .document(monthId)
-                .set(guestSubscription)
+                .set(guestSubscription.toFirestoreMap())
                 .await()
 
             // Host의 guestId 업데이트
@@ -475,10 +485,10 @@ class SubscriptionManager(private val context: Context) {
     /**
      * 월말 정산 (심플 시스템)
      *
-     * 🏆 95% 이상 → 친구 초대 쿠폰 1장 획득
-     * ❌ 95% 미만 → 쿠폰 없음
-     *
-     * 모든 사용자는 다음 달에도 4,900원 결제 필요
+     * 🛡️ 90% 이상 → streak 방어 티켓 1장
+     * 🛡️ 95% 이상 → streak 방어 티켓 2장
+     * 🛡️ 100% 달성 → streak 방어 티켓 3장
+     * ❌ 90% 미만 → 티켓 없음
      */
     suspend fun processMonthlyResult(
         currentMonthId: String,
@@ -489,7 +499,15 @@ class SubscriptionManager(private val context: Context) {
 
         try {
             val achievementRate = if (totalDays > 0) (successDays.toFloat() / totalDays * 100) else 0f
+            val achievementRateDecimal = if (totalDays > 0) (successDays.toFloat() / totalDays) else 0f
             val earnedCoupon = SubscriptionModel.earnsFriendCoupon(achievementRate)
+
+            // Streak 방어 티켓 지급 (로컬 저장)
+            val preferenceManager = PreferenceManager(context)
+            val ticketsAwarded = preferenceManager.awardStreakDefenseTickets(achievementRateDecimal)
+            if (ticketsAwarded > 0) {
+                Log.d(TAG, "🛡️ Awarded $ticketsAwarded streak defense ticket(s)")
+            }
 
             // 현재 월 구독 정보 가져오기
             val currentSubscription = db.collection("users")
@@ -528,12 +546,13 @@ class SubscriptionManager(private val context: Context) {
                         "earnedFriendCoupon" to earnedCoupon,
                         "availableFriendCoupons" to newCouponCount,
                         "consecutiveSuccessCount" to consecutiveCount,
+                        "ticketsAwarded" to ticketsAwarded,
                         "updatedAt" to Date()
                     )
                 )
                 .await()
 
-            Log.d(TAG, "✅ Monthly result: rate=${achievementRate.toInt()}%, earnedCoupon=$earnedCoupon, totalCoupons=$newCouponCount, consecutive=$consecutiveCount")
+            Log.d(TAG, "✅ Monthly result: rate=${achievementRate.toInt()}%, earnedCoupon=$earnedCoupon, totalCoupons=$newCouponCount, consecutive=$consecutiveCount, tickets=$ticketsAwarded")
 
             return Result.success(Unit)
 
@@ -577,6 +596,50 @@ class SubscriptionManager(private val context: Context) {
         } catch (e: Exception) {
             Log.e(TAG, "❌ Failed to save daily record: ${e.message}")
         }
+    }
+
+    /**
+     * SubscriptionData를 Firestore Map으로 변환
+     *
+     * CRITICAL: Firestore SDK는 Kotlin data class의 Boolean 필드를 제대로 직렬화하지 못함
+     * 특히 isActive, isPaid 같은 필드가 누락될 수 있음
+     * 반드시 명시적 Map으로 변환하여 저장해야 함
+     */
+    private fun SubscriptionData.toFirestoreMap(): Map<String, Any?> {
+        return mapOf(
+            "monthId" to monthId,
+            "isPaid" to isPaid,
+            "isActive" to isActive,
+            "userType" to userType,
+            "price" to price,
+            "purchaseToken" to purchaseToken,
+            "orderId" to orderId,
+            "totalDays" to totalDays,
+            "successDays" to successDays,
+            "achievementRate" to achievementRate,
+            "earnedFriendCoupon" to earnedFriendCoupon,
+            "availableFriendCoupons" to availableFriendCoupons,
+            "consecutiveSuccessCount" to consecutiveSuccessCount,
+            "goal" to goal,
+            "controlDays" to controlDays,
+            "startDate" to startDate,
+            "endDate" to endDate,
+            "inviteCode" to inviteCode,
+            "maxInvites" to maxInvites,
+            "inviteGuests" to inviteGuests,
+            "inviteGuestId" to inviteGuestId,
+            "inviteGuestEmail" to inviteGuestEmail,
+            "inviteGuestUsedAt" to inviteGuestUsedAt,
+            "bonusInviteCode" to bonusInviteCode,
+            "bonusGuestId" to bonusGuestId,
+            "bonusGuestEmail" to bonusGuestEmail,
+            "bonusGuestUsedAt" to bonusGuestUsedAt,
+            "hostId" to hostId,
+            "guestId" to guestId,
+            "guestExpiresAt" to guestExpiresAt,
+            "createdAt" to createdAt,
+            "updatedAt" to updatedAt
+        ).filterValues { it != null }
     }
 
     /**

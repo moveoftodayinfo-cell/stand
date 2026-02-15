@@ -887,6 +887,42 @@ class PreferenceManager(context: Context) {
         }
     }
 
+    // ===== 친구 초대 시스템 =====
+
+    /**
+     * 남은 초대 횟수 저장
+     * - 월간 구독: 1회
+     * - 연간 구독: 12회
+     */
+    fun setRemainingInvites(count: Int) {
+        prefs.edit().putInt("remaining_invites", count).apply()
+    }
+
+    fun getRemainingInvites(): Int {
+        return prefs.getInt("remaining_invites", 0)
+    }
+
+    /**
+     * 초대 사용 (1회 차감)
+     * @return 남은 초대 횟수, 0이면 초대 불가
+     */
+    fun useInvite(): Int {
+        val remaining = getRemainingInvites()
+        if (remaining > 0) {
+            setRemainingInvites(remaining - 1)
+            return remaining - 1
+        }
+        return 0
+    }
+
+    /**
+     * 구독 타입에 따른 초대 횟수 초기화
+     */
+    fun initInvitesForSubscription(isYearly: Boolean) {
+        val count = if (isYearly) 12 else 1
+        setRemainingInvites(count)
+    }
+
     // ===== Health Connect 설정 =====
 
     // Health Connect 사용 여부 (연결 완료 시 true로 설정)
@@ -1247,8 +1283,55 @@ class PreferenceManager(context: Context) {
         return sdf.format(calendar.time)
     }
 
-    // 현재 연속 달성 일수
+    // 현재 연속 달성 일수 (실시간 체크 + 자동 티켓 사용)
+    // 마지막 달성일이 오늘/어제가 아니면:
+    // - 티켓 있으면 → 자동 사용하고 streak 유지
+    // - 티켓 없으면 → 0 반환
     fun getStreak(): Int {
+        val savedStreak = prefs.getInt("streak_count", 0)
+        if (savedStreak == 0) return 0
+
+        val lastAchievedDate = getLastAchievedDate()
+        if (lastAchievedDate.isEmpty()) return 0
+
+        val today = getEffectiveDate()
+        if (lastAchievedDate == today) return savedStreak  // 오늘 달성함
+
+        // 어제인지 확인
+        try {
+            val sdf = java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.getDefault())
+            val lastDate = sdf.parse(lastAchievedDate)
+            val todayDate = sdf.parse(today)
+            val diffInDays = ((todayDate?.time ?: 0) - (lastDate?.time ?: 0)) / (1000 * 60 * 60 * 24)
+
+            return if (diffInDays <= 1) {
+                savedStreak  // 어제 달성함 - 아직 연속 유지
+            } else {
+                // 연속 끊김 - 티켓 자동 사용 체크
+                val lastAutoDefenseDate = prefs.getString("last_auto_defense_date", "") ?: ""
+                if (lastAutoDefenseDate == today) {
+                    // 오늘 이미 자동 방어함
+                    savedStreak
+                } else {
+                    val tickets = getStreakDefenseTickets()
+                    if (tickets > 0 && savedStreak > 0) {
+                        // 티켓 자동 사용
+                        useStreakDefenseTicket()
+                        prefs.edit().putString("last_auto_defense_date", today).apply()
+                        android.util.Log.d("PreferenceManager", "🛡️ 자동 방어 티켓 사용! streak $savedStreak 유지")
+                        savedStreak  // streak 유지
+                    } else {
+                        0  // 티켓 없음 - 연속 끊김
+                    }
+                }
+            }
+        } catch (e: Exception) {
+            return 0
+        }
+    }
+
+    // 저장된 streak 값 (내부용)
+    fun getRawStreak(): Int {
         return prefs.getInt("streak_count", 0)
     }
 
@@ -1378,17 +1461,28 @@ class PreferenceManager(context: Context) {
         prefs.edit().putString("last_streak_celebration_date", today).apply()
     }
 
+    /**
+     * 스트릭 업데이트 결과
+     */
+    data class StreakUpdateResult(
+        val streak: Int,
+        val usedDefenseTicket: Boolean = false,
+        val missedDays: Int = 0  // 방어 티켓으로 복구한 날 수
+    )
+
     // 목표 달성 시 호출 - 연속 달성 업데이트 (듀오링고 스타일: 새벽 4시 기준)
-    fun updateStreakOnGoalAchieved(): Int {
+    fun updateStreakOnGoalAchieved(): StreakUpdateResult {
         val today = getEffectiveDate()
         val lastAchievedDate = getLastAchievedDate()
 
         if (lastAchievedDate == today) {
             // 오늘 이미 달성함 - 변경 없음
-            return getStreak()
+            return StreakUpdateResult(streak = getRawStreak())
         }
 
-        val currentStreak = getStreak()
+        val currentStreak = getRawStreak()  // 저장된 값 사용 (방어 티켓 로직용)
+        var usedDefenseTicket = false
+        var missedDays = 0
         val newStreak: Int
 
         newStreak = if (lastAchievedDate.isEmpty()) {
@@ -1407,9 +1501,22 @@ class PreferenceManager(context: Context) {
                     // 연속 달성
                     currentStreak + 1
                 } else {
-                    // 연속 끊김 - 다시 1부터, streak 시작 날짜 갱신
-                    setStreakStartDate(today)
-                    1
+                    // 연속 끊김 - 방어 티켓 확인
+                    missedDays = (diffInDays - 1).toInt()
+                    val tickets = getStreakDefenseTickets()
+
+                    if (tickets > 0 && currentStreak > 0) {
+                        // 방어 티켓 사용하여 스트릭 유지
+                        useStreakDefenseTicket()
+                        recordStreakDefenseUsed(today)
+                        usedDefenseTicket = true
+                        android.util.Log.d("PreferenceManager", "🛡️ 방어 티켓 사용! streak $currentStreak 유지, 남은 티켓: ${tickets - 1}")
+                        currentStreak + 1  // 스트릭 이어서 증가
+                    } else {
+                        // 티켓 없음 - 다시 1부터
+                        setStreakStartDate(today)
+                        1
+                    }
                 }
             } catch (e: Exception) {
                 setStreakStartDate(today)
@@ -1423,7 +1530,11 @@ class PreferenceManager(context: Context) {
         // 목표 달성 시간 기록 (평소 운동 시간 추적용)
         recordGoalAchievedTime()
 
-        return newStreak
+        return StreakUpdateResult(
+            streak = newStreak,
+            usedDefenseTicket = usedDefenseTicket,
+            missedDays = missedDays
+        )
     }
 
     /**
@@ -2145,5 +2256,86 @@ class PreferenceManager(context: Context) {
 
     fun setExerciseHapticEnabled(enabled: Boolean) {
         prefs.edit().putBoolean(PREF_EXERCISE_HAPTIC, enabled).apply()
+    }
+
+    // ===== Streak 방어 티켓 시스템 =====
+
+    /**
+     * streak 방어 티켓 개수 조회
+     */
+    fun getStreakDefenseTickets(): Int {
+        return prefs.getInt("streak_defense_tickets", 0)
+    }
+
+    /**
+     * streak 방어 티켓 설정
+     */
+    fun setStreakDefenseTickets(count: Int) {
+        prefs.edit().putInt("streak_defense_tickets", count.coerceAtLeast(0)).apply()
+    }
+
+    /**
+     * streak 방어 티켓 추가
+     */
+    fun addStreakDefenseTickets(count: Int) {
+        val current = getStreakDefenseTickets()
+        setStreakDefenseTickets(current + count)
+    }
+
+    /**
+     * streak 방어 티켓 사용 (1장 차감)
+     * @return 사용 성공 여부
+     */
+    fun useStreakDefenseTicket(): Boolean {
+        val current = getStreakDefenseTickets()
+        if (current <= 0) return false
+        setStreakDefenseTickets(current - 1)
+        return true
+    }
+
+    /**
+     * 달성률에 따른 streak 방어 티켓 지급
+     * - 90% 이상: 1장
+     * - 95% 이상: 2장
+     * - 100% 달성: 3장
+     *
+     * @param achievementRate 달성률 (0.0 ~ 1.0)
+     * @return 지급된 티켓 수
+     */
+    fun awardStreakDefenseTickets(achievementRate: Float): Int {
+        val tickets = when {
+            achievementRate >= 1.0f -> 3
+            achievementRate >= 0.95f -> 2
+            achievementRate >= 0.90f -> 1
+            else -> 0
+        }
+        if (tickets > 0) {
+            addStreakDefenseTickets(tickets)
+        }
+        return tickets
+    }
+
+    /**
+     * streak 방어 티켓 사용 기록 저장
+     * @param date 사용 날짜 (yyyy-MM-dd)
+     */
+    fun recordStreakDefenseUsed(date: String) {
+        val history = getStreakDefenseHistory().toMutableSet()
+        history.add(date)
+        prefs.edit().putStringSet("streak_defense_history", history).apply()
+    }
+
+    /**
+     * streak 방어 티켓 사용 기록 조회
+     */
+    fun getStreakDefenseHistory(): Set<String> {
+        return prefs.getStringSet("streak_defense_history", emptySet()) ?: emptySet()
+    }
+
+    /**
+     * 특정 날짜에 streak 방어 사용했는지 확인
+     */
+    fun wasStreakDefenseUsedOn(date: String): Boolean {
+        return getStreakDefenseHistory().contains(date)
     }
 }

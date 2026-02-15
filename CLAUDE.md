@@ -118,6 +118,22 @@ Class not allowed to be inflated android.view.View
 
 **아이콘이 필요할 때 Unicode 심볼 우선 사용!**
 
+### 규칙 (CRITICAL)
+
+1. **오래된 Unicode 문자** (☀, ☁, ★, ❤, ⚡, ⚠ 등)
+   - ✅ **무조건 `UnicodeSymbols` 사용**
+   - `\uFE0E` 붙여서 모노크롬 텍스트로 렌더링
+   - 예: `UnicodeSymbols.SUN`, `UnicodeSymbols.STAR`
+
+2. **새로운 이모지** (😀, 🐶, 🍕, 🎉 등)
+   - ❌ **절대 사용하지 말 것** (컬러 이모지 렌더링됨)
+   - ✅ **대신 픽셀 아트 아이콘 요청**
+   - `\uFE0E` 붙여도 작동 안함 (텍스트 버전이 존재하지 않음)
+
+### 판단 방법
+- **작동 O**: 1990년대 이전부터 있던 기호 (날씨, 도형, 화살표, 하트, 별)
+- **작동 X**: 2010년대 이후 스마트폰용으로 만들어진 이모지 (얼굴, 동물, 음식, 물건)
+
 ### 장점
 - 추가 파일 없음 (앱 용량 절약)
 - 모든 해상도에서 선명
@@ -135,23 +151,56 @@ Class not allowed to be inflated android.view.View
 
 ### 텍스트 스타일 강제 (이모지 방지)
 ```kotlin
+// \uFE0E (Unicode Variation Selector-15) 사용
 // 컬러 이모지 대신 모노크롬 텍스트로 렌더링
-val textSelector = "\uFE0E"
-val sunIcon = "☀$textSelector"  // 흑백 태양
-val cloudIcon = "☁$textSelector" // 흑백 구름
+
+// ❌ 나쁜 예: 직접 사용
+val sunIcon = "☀\uFE0E"
+
+// ✅ 좋은 예: UnicodeSymbols 객체 사용
+val sunIcon = UnicodeSymbols.SUN
+val cloudIcon = UnicodeSymbols.CLOUD
+```
+
+### UnicodeSymbols 객체 (권장)
+`UnicodeSymbols.kt` 파일에 모든 심볼 상수가 정의되어 있습니다:
+
+```kotlin
+// 날씨
+UnicodeSymbols.SUN          // ☀
+UnicodeSymbols.MOON         // ☾
+UnicodeSymbols.CLOUD        // ☁
+UnicodeSymbols.UMBRELLA     // ☂
+UnicodeSymbols.SNOWFLAKE    // ❄
+UnicodeSymbols.LIGHTNING    // ⚡
+
+// 감정/상태
+UnicodeSymbols.SPARKLES     // ✨
+UnicodeSymbols.STAR         // ⭐
+UnicodeSymbols.HEART        // ❤
+UnicodeSymbols.FIRE         // 🔥
+UnicodeSymbols.MUSCLE       // 💪
+
+// 동작/상태
+UnicodeSymbols.CHECK        // ✓
+UnicodeSymbols.CHECKMARK    // ✅
+UnicodeSymbols.WARNING      // ⚠
+
+// 방향
+UnicodeSymbols.UP_ARROW     // ↑
+UnicodeSymbols.TRIANGLE_UP  // △
 ```
 
 ### 사용 예시
 ```kotlin
 // WeatherWidgetProvider.kt
 private fun getWeatherSymbol(icon: String?): String {
-    val textSelector = "\uFE0E"
     return when (icon) {
-        "sunny" -> "☀$textSelector"
-        "cloudy" -> "☁$textSelector"
-        "rainy" -> "☂$textSelector"
-        "snowy" -> "❄$textSelector"
-        else -> "○"
+        "sunny" -> UnicodeSymbols.SUN
+        "cloudy" -> UnicodeSymbols.CLOUD
+        "rainy" -> UnicodeSymbols.UMBRELLA
+        "snowy" -> UnicodeSymbols.SNOWFLAKE
+        else -> UnicodeSymbols.CIRCLE_OUTLINE
     }
 }
 ```

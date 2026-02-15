@@ -94,7 +94,7 @@ import android.util.Log
  * 2. Pet Name Input
  * 3. Tutorial All-in-One (함께 할 것 설명)
  *
- * WITH DOTS (4-15, 12 dots total):
+ * WITH DOTS (4-15, 10 dots total):
  * 4. Permission Settings (권한 설정) - dot 0
  * 5. Fitness App Connection (피트니스 연결) - dot 1
  * 6. Accessibility (접근성 권한) - dot 2
@@ -102,11 +102,10 @@ import android.util.Log
  * 8. Test Blocking (차단 테스트) - dot 4
  * 9. Goal Input (목표 입력) - dot 5
  * 10. Walking Test (걷기 테스트) - dot 6
- * 11. Unlocked (잠금 해제) - dot 7
- * 12. Emergency Button (긴급 버튼) - dot 8
- * 13. Control Days (제어 요일) - dot 9
- * 14. Block Time (차단 시간대) - dot 10
- * 15. Payment (결제) - dot 11
+ * 11. How It Works (사용법 설명 - 11+12 통합) - dot 7
+ * [12-14 SKIPPED: 기본값 사용 (월~금, 전체 시간대)]
+ * 16. Widget Setup (위젯 설정) - dot 8
+ * 15. Payment (결제) - dot 9 (마지막)
  *
  * NO DOTS (16):
  * 16. Widget Setup (위젯 설정)
@@ -163,10 +162,16 @@ fun PetOnboardingScreen(
         }
     }
 
-    // 네비게이션 닷 계산 (Step 4-15는 닷 표시, 12개) - Step 3은 튜토리얼 + 구글 로그인
-    val showDots = currentStep in 4..15
-    val dotStep = if (showDots) currentStep - 4 else 0
-    val totalDots = 12
+    // 네비게이션 닷 계산 (Step 4-16는 닷 표시, 10개) - Step 12-14 스킵, 위젯(16)→결제(15) 순서
+    val showDots = currentStep in 4..16
+    val dotStep = if (showDots) {
+        when {
+            currentStep == 16 -> 8  // 위젯 (dot 8)
+            currentStep == 15 -> 9  // 결제 (dot 9, 마지막)
+            else -> currentStep - 4
+        }
+    } else 0
+    val totalDots = 10
 
     Box(
         modifier = Modifier
@@ -307,7 +312,7 @@ fun PetOnboardingScreen(
                     currentStep = 11
                 }
             )
-            11 -> UnlockedStep(
+            11 -> HowItWorksStep(
                 petType = selectedPetType!!,
                 petName = petName,
                 dotStep = dotStep,
@@ -315,20 +320,13 @@ fun PetOnboardingScreen(
                 hapticManager = hapticManager,
                 onNext = {
                     hapticManager?.click()
-                    currentStep = 12
+                    // 기본값으로 저장하고 12-14 스킵, 위젯(16)으로 이동
+                    prefManager.saveControlDays(setOf(1, 2, 3, 4, 5))  // 월~금
+                    prefManager.saveBlockingPeriods(setOf("morning", "afternoon", "evening", "night"))  // 전체 시간
+                    currentStep = 16
                 }
             )
-            12 -> EmergencyButtonStep(
-                petType = selectedPetType!!,
-                petName = petName,
-                dotStep = dotStep,
-                totalDots = totalDots,
-                hapticManager = hapticManager,
-                onNext = {
-                    hapticManager?.click()
-                    currentStep = 13
-                }
-            )
+            // Step 12-14 스킵됨
             13 -> ControlDaysStep(
                 petType = selectedPetType!!,
                 petName = petName,
@@ -353,21 +351,23 @@ fun PetOnboardingScreen(
                     currentStep = 15
                 }
             )
+            // === 위젯 먼저, 결제 나중 ===
+            16 -> WidgetSetupStep(
+                petType = selectedPetType!!,
+                petName = petName,
+                dotStep = dotStep,
+                totalDots = totalDots,
+                hapticManager = hapticManager,
+                onComplete = {
+                    hapticManager?.click()
+                    currentStep = 15  // 결제로 이동
+                }
+            )
+
             15 -> PaymentScreen(
                 petType = selectedPetType!!,
                 petName = petName,
                 preferenceManager = prefManager,
-                hapticManager = hapticManager,
-                onComplete = {
-                    hapticManager?.click()
-                    currentStep = 16
-                }
-            )
-
-            // === NO DOTS (16) ===
-            16 -> WidgetSetupStep(
-                petType = selectedPetType!!,
-                petName = petName,
                 hapticManager = hapticManager,
                 onComplete = {
                     hapticManager?.success()
@@ -3145,7 +3145,7 @@ private fun WalkingTestStep(
 // STEP 13: Unlocked (잠금 해제)
 // =====================================================
 @Composable
-private fun UnlockedStep(
+private fun HowItWorksStep(
     petType: PetTypeV2,
     petName: String,
     dotStep: Int,
@@ -3154,18 +3154,18 @@ private fun UnlockedStep(
     onNext: () -> Unit
 ) {
     val speechText = when (petType.personality) {
-        PetPersonalityV2.LOYAL -> "해제됐어."
-        PetPersonalityV2.TSUNDERE -> "뭐, 해제됐네."
-        PetPersonalityV2.FOODIE -> "해제됐어! 야타~"
-        PetPersonalityV2.PLAYFUL -> "해제됐다 아이가~"
-        PetPersonalityV2.TIMID -> "해제되었어요...!"
-        PetPersonalityV2.CLUMSY -> "앱이 해제됐어!"
+        PetPersonalityV2.LOYAL -> "이렇게 쓰면 돼."
+        PetPersonalityV2.TSUNDERE -> "설명... 해줄게."
+        PetPersonalityV2.FOODIE -> "이렇게 하면 돼! 심플~"
+        PetPersonalityV2.PLAYFUL -> "간단해 봐봐"
+        PetPersonalityV2.TIMID -> "이렇게 사용해요..."
+        PetPersonalityV2.CLUMSY -> "사용법 알려줄게!"
     }
 
     TutorialStepLayout(
         petType = petType,
         speechText = speechText,
-        instructionText = "앱이 해제되었어요!",
+        instructionText = "rebon 사용법",
         buttonText = "다음",
         onButtonClick = {
             hapticManager?.success()
@@ -3177,31 +3177,66 @@ private fun UnlockedStep(
         totalDotSteps = totalDots
     ) {
         Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(Color.White, RoundedCornerShape(12.dp))
-                .border(2.dp, MockupColors.Border, RoundedCornerShape(12.dp))
-                .padding(16.dp),
+            modifier = Modifier.fillMaxWidth(),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            // 핵심 규칙
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(Color.White, RoundedCornerShape(12.dp))
+                    .border(2.dp, MockupColors.Border, RoundedCornerShape(12.dp))
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                PixelIcon(iconName = "icon_star", size = 24.dp)
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    PixelIcon(iconName = "icon_star", size = 20.dp)
+                    Text(
+                        text = "핵심 규칙",
+                        fontSize = 15.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = MockupColors.TextPrimary
+                    )
+                }
                 Text(
-                    text = "rebon의 핵심",
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = MockupColors.TextPrimary
+                    text = "목표 달성 → 앱 자유롭게\n미달성 → 앱 차단",
+                    fontSize = 14.sp,
+                    color = MockupColors.TextSecondary,
+                    lineHeight = 20.sp
                 )
             }
-            Text(
-                text = "매일 목표를 달성하면 앱을 자유롭게!\n실패하면 차단됩니다.",
-                fontSize = 14.sp,
-                color = MockupColors.TextSecondary,
-                lineHeight = 22.sp
-            )
+
+            // 15분 휴식
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(Color.White, RoundedCornerShape(12.dp))
+                    .border(2.dp, MockupColors.Border, RoundedCornerShape(12.dp))
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    PixelIcon(iconName = "icon_timer", size = 20.dp)
+                    Text(
+                        text = "15분 휴식 모드",
+                        fontSize = 15.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = MockupColors.TextPrimary
+                    )
+                }
+                Text(
+                    text = "급할 땐 15분간 앱 사용 가능 (하루 1회)",
+                    fontSize = 14.sp,
+                    color = MockupColors.TextSecondary,
+                    lineHeight = 20.sp
+                )
+            }
         }
     }
 }
@@ -3270,18 +3305,40 @@ private fun EmergencyButtonStep(
 }
 
 // =====================================================
-// STEP 16: Widget Setup (위젯 설정) - 마지막 단계
+// STEP 16: Widget Setup (위젯 설정) - 결제 전 단계
 // =====================================================
+
+// 위젯 정보 데이터 클래스
+private data class WidgetInfo(
+    val name: String,
+    val size: String,
+    val description: String,
+    val icon: String  // Unicode symbol
+)
+
+// 위젯 목록
+private val widgetList = listOf(
+    WidgetInfo("걸음 수", "2×1", "오늘 걸음 수와 펫을 한눈에", UnicodeSymbols.FOOTPRINTS),
+    WidgetInfo("펫", "2×2", "내 펫과 대화하기", UnicodeSymbols.SPARKLES),
+    WidgetInfo("날씨 예보", "4×1", "시간대별 날씨와 펫", UnicodeSymbols.SUN),
+    WidgetInfo("명언", "2×2", "매일 새로운 명언", UnicodeSymbols.STAR),
+    WidgetInfo("단식 타이머", "2×1", "간헐적 단식 시간 관리", UnicodeSymbols.CLOCK),
+    WidgetInfo("오늘의 단어", "2×1", "영어/일본어/중국어 학습", UnicodeSymbols.GLOBE),
+    WidgetInfo("스도쿠", "2×2", "두뇌 트레이닝 미니게임", UnicodeSymbols.GRID)
+)
+
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun WidgetSetupStep(
     petType: PetTypeV2,
     petName: String,
+    dotStep: Int,
+    totalDots: Int,
     hapticManager: HapticManager?,
     onComplete: () -> Unit
 ) {
-    val kenneyFont = rememberKenneyFont()
-    val displayPetSize = 140.dp
-    val stripeWidth = 4.dp
+    val pagerState = rememberPagerState(pageCount = { widgetList.size })
+    val currentWidget = widgetList[pagerState.currentPage]
 
     val speechText = when (petType.personality) {
         PetPersonalityV2.LOYAL -> "위젯 추가해."
@@ -3292,124 +3349,381 @@ private fun WidgetSetupStep(
         PetPersonalityV2.CLUMSY -> "위젯으로 한눈에 확인!"
     }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(horizontal = 20.dp)
-            .padding(bottom = 72.dp),  // 3버튼 네비게이션 고려
-        horizontalAlignment = Alignment.CenterHorizontally
+    TutorialStepLayout(
+        petType = petType,
+        speechText = speechText,
+        instructionText = "7종 위젯 제공",
+        buttonText = "다음",
+        onButtonClick = {
+            hapticManager?.click()
+            onComplete()
+        },
+        buttonEnabled = true,
+        showNavigationDots = true,
+        currentDotStep = dotStep,
+        totalDotSteps = totalDots
     ) {
-        Spacer(modifier = Modifier.height(60.dp))
-
-        // Title
+        // 현재 위젯 설명
         Text(
-            text = "rebon",
-            fontSize = 32.sp,
-            fontFamily = kenneyFont,
-            fontWeight = FontWeight.Bold,
-            color = MockupColors.TextPrimary
+            text = currentWidget.description,
+            fontSize = 14.sp,
+            color = MockupColors.TextSecondary,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.fillMaxWidth()
         )
 
-        Spacer(modifier = Modifier.height(24.dp))
+        Spacer(modifier = Modifier.height(16.dp))
 
-        // Display area
+        // 위젯 캐러셀
+        HorizontalPager(
+            state = pagerState,
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(160.dp),
+            contentPadding = PaddingValues(horizontal = 50.dp),
+            pageSpacing = 12.dp
+        ) { page ->
+            val widget = widgetList[page]
+            WidgetPreviewCard(
+                widget = widget,
+                petType = petType,
+                isCurrentPage = pagerState.currentPage == page
+            )
+        }
+    }
+}
+
+// 위젯 미리보기 카드
+@Composable
+private fun WidgetPreviewCard(
+    widget: WidgetInfo,
+    petType: PetTypeV2,
+    isCurrentPage: Boolean
+) {
+    val scale by animateFloatAsState(
+        targetValue = if (isCurrentPage) 1f else 0.9f,
+        animationSpec = spring(dampingRatio = 0.8f),
+        label = "scale"
+    )
+
+    Column(
+        modifier = Modifier
+            .graphicsLayer {
+                scaleX = scale
+                scaleY = scale
+            }
+            .fillMaxWidth()
+            .background(Color.White, RoundedCornerShape(12.dp))
+            .border(2.dp, MockupColors.Border, RoundedCornerShape(12.dp))
+            .padding(12.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        // 위젯 미리보기 영역
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(240.dp)
-                .clip(RoundedCornerShape(20.dp))
-                .background(Color.White)
-                .drawBehind {
-                    val stripeHeightPx = stripeWidth.toPx()
-                    val stripeColor = Color(0xFFF0F0F0)
-                    var y = 0f
-                    while (y < size.height) {
-                        drawRect(
-                            color = stripeColor,
-                            topLeft = androidx.compose.ui.geometry.Offset(0f, y),
-                            size = androidx.compose.ui.geometry.Size(size.width, stripeHeightPx)
-                        )
-                        y += stripeHeightPx * 2
-                    }
-                }
-                .border(3.dp, MockupColors.Border, RoundedCornerShape(20.dp)),
+                .height(100.dp)
+                .background(Color(0xFFF5F5F5), RoundedCornerShape(8.dp))
+                .border(1.dp, Color(0xFFE0E0E0), RoundedCornerShape(8.dp)),
             contentAlignment = Alignment.Center
         ) {
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
-            ) {
-                SpeechBubble(text = speechText, fontSize = 18.sp)
-                Spacer(modifier = Modifier.height(8.dp))
-                PetSpriteV2WithGlow(
-                    petType = petType,
-                    stage = PetGrowthStage.BABY,
-                    animationType = PetAnimationTypeV2.IDLE,
-                    size = displayPetSize,
-                    monochrome = true,
-                    showGlow = true,
-                    applyDisplayScale = false
-                )
-            }
+            WidgetMockup(widget = widget, petType = petType)
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(8.dp))
 
-        Text(
-            text = "위젯 설정",
-            fontSize = 20.sp,
-            fontWeight = FontWeight.Bold,
-            color = MockupColors.TextPrimary
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // 위젯 안내
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(Color.White, RoundedCornerShape(12.dp))
-                .border(2.dp, MockupColors.Border, RoundedCornerShape(12.dp))
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+        // 위젯 이름 + 크기
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center
         ) {
             Text(
-                text = "위젯 추가 방법",
+                text = widget.name,
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Bold,
+                color = MockupColors.TextPrimary
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            Text(
+                text = widget.size,
+                fontSize = 10.sp,
+                color = MockupColors.TextMuted,
+                modifier = Modifier
+                    .background(Color(0xFFEEEEEE), RoundedCornerShape(4.dp))
+                    .padding(horizontal = 4.dp, vertical = 1.dp)
+            )
+        }
+    }
+}
+
+// 위젯 목업 (각 위젯별 미리보기)
+@Composable
+private fun WidgetMockup(
+    widget: WidgetInfo,
+    petType: PetTypeV2
+) {
+    when (widget.name) {
+        "걸음 수" -> StepWidgetMockup(petType)
+        "펫" -> PetWidgetMockup(petType)
+        "날씨 예보" -> WeatherWidgetMockup(petType)
+        "명언" -> QuoteWidgetMockup()
+        "단식 타이머" -> FastingWidgetMockup()
+        "오늘의 단어" -> TravelPhraseWidgetMockup()
+        "스도쿠" -> SudokuWidgetMockup()
+    }
+}
+
+// 걸음 수 위젯 목업
+@Composable
+private fun StepWidgetMockup(petType: PetTypeV2) {
+    Row(
+        modifier = Modifier
+            .width(160.dp)
+            .height(60.dp)
+            .background(Color.White, RoundedCornerShape(12.dp))
+            .border(1.dp, Color(0xFFE0E0E0), RoundedCornerShape(12.dp))
+            .padding(horizontal = 12.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        Column {
+            Text(
+                text = "5,234",
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Bold,
+                color = MockupColors.TextPrimary
+            )
+            Text(
+                text = "걸음",
+                fontSize = 11.sp,
+                color = MockupColors.TextMuted
+            )
+        }
+        PetSpriteV2WithGlow(
+            petType = petType,
+            stage = PetGrowthStage.BABY,
+            animationType = PetAnimationTypeV2.IDLE,
+            size = 40.dp,
+            monochrome = true,
+            showGlow = false,
+            applyDisplayScale = false
+        )
+    }
+}
+
+// 펫 위젯 목업 (2x2)
+@Composable
+private fun PetWidgetMockup(petType: PetTypeV2) {
+    Column(
+        modifier = Modifier
+            .size(100.dp)
+            .background(Color.White, RoundedCornerShape(12.dp))
+            .border(1.dp, Color(0xFFE0E0E0), RoundedCornerShape(12.dp))
+            .padding(8.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Text(
+            text = "안녕!",
+            fontSize = 10.sp,
+            color = MockupColors.TextSecondary,
+            modifier = Modifier
+                .background(Color(0xFFF5F5F5), RoundedCornerShape(4.dp))
+                .padding(horizontal = 6.dp, vertical = 2.dp)
+        )
+        Spacer(modifier = Modifier.height(4.dp))
+        PetSpriteV2WithGlow(
+            petType = petType,
+            stage = PetGrowthStage.BABY,
+            animationType = PetAnimationTypeV2.IDLE,
+            size = 50.dp,
+            monochrome = true,
+            showGlow = false,
+            applyDisplayScale = false
+        )
+    }
+}
+
+// 날씨 위젯 목업 (4x1)
+@Composable
+private fun WeatherWidgetMockup(petType: PetTypeV2) {
+    Row(
+        modifier = Modifier
+            .width(200.dp)
+            .height(50.dp)
+            .background(Color.White, RoundedCornerShape(8.dp))
+            .border(1.dp, Color(0xFFE0E0E0), RoundedCornerShape(8.dp))
+            .padding(horizontal = 8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceEvenly
+    ) {
+        // 시간별 날씨 아이콘들
+        listOf("${UnicodeSymbols.SUN}\n18°", "${UnicodeSymbols.CLOUD}\n16°", "${UnicodeSymbols.SUN}\n20°", "${UnicodeSymbols.CLOUD}\n17°").forEach { item ->
+            Text(
+                text = item,
+                fontSize = 9.sp,
+                color = MockupColors.TextSecondary,
+                textAlign = TextAlign.Center,
+                lineHeight = 12.sp
+            )
+        }
+        // 작은 펫
+        PetSpriteV2WithGlow(
+            petType = petType,
+            stage = PetGrowthStage.BABY,
+            animationType = PetAnimationTypeV2.IDLE,
+            size = 30.dp,
+            monochrome = true,
+            showGlow = false,
+            applyDisplayScale = false
+        )
+    }
+}
+
+// 명언 위젯 목업 (2x2)
+@Composable
+private fun QuoteWidgetMockup() {
+    Column(
+        modifier = Modifier
+            .size(100.dp)
+            .background(Color.White, RoundedCornerShape(12.dp))
+            .border(1.dp, Color(0xFFE0E0E0), RoundedCornerShape(12.dp))
+            .padding(8.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Text(
+            text = "\"",
+            fontSize = 20.sp,
+            color = Color(0xFFCCCCCC)
+        )
+        Text(
+            text = "오늘 하루도\n힘내세요",
+            fontSize = 10.sp,
+            color = MockupColors.TextPrimary,
+            textAlign = TextAlign.Center,
+            lineHeight = 14.sp
+        )
+    }
+}
+
+// 단식 타이머 위젯 목업 (2x1)
+@Composable
+private fun FastingWidgetMockup() {
+    Row(
+        modifier = Modifier
+            .width(160.dp)
+            .height(60.dp)
+            .background(Color.White, RoundedCornerShape(12.dp))
+            .border(1.dp, Color(0xFFE0E0E0), RoundedCornerShape(12.dp))
+            .padding(horizontal = 12.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        Column {
+            Text(
+                text = "단식 중",
+                fontSize = 11.sp,
+                color = MockupColors.TextMuted
+            )
+            Text(
+                text = "12:34:56",
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Bold,
                 color = MockupColors.TextPrimary
             )
-
-            Text(
-                text = "1. 홈 화면 길게 누르기\n2. 위젯 선택\n3. rebon 위젯 찾기\n4. 홈 화면에 추가",
-                fontSize = 14.sp,
-                color = MockupColors.TextSecondary,
-                lineHeight = 22.sp
-            )
         }
+        Text(
+            text = UnicodeSymbols.CLOCK,
+            fontSize = 24.sp,
+            color = MockupColors.TextPrimary
+        )
+    }
+}
 
-        Spacer(modifier = Modifier.height(12.dp))
-
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.Center,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            PixelIcon(iconName = "icon_light_bulb", size = 14.dp)
-            Spacer(modifier = Modifier.width(6.dp))
+// 오늘의 단어 위젯 목업 (2x1) - 일본어 예시
+@Composable
+private fun TravelPhraseWidgetMockup() {
+    Row(
+        modifier = Modifier
+            .width(160.dp)
+            .height(60.dp)
+            .background(Color.White, RoundedCornerShape(12.dp))
+            .border(1.dp, Color(0xFFE0E0E0), RoundedCornerShape(12.dp))
+            .padding(horizontal = 12.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        Column {
             Text(
-                text = "위젯으로 걸음 수를 빠르게 확인하세요!",
-                fontSize = 13.sp,
+                text = "감사합니다",
+                fontSize = 11.sp,
                 color = MockupColors.TextMuted
             )
+            Text(
+                text = "ありがとう",
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Bold,
+                color = MockupColors.TextPrimary
+            )
         }
+        Text(
+            text = "日",
+            fontSize = 18.sp,
+            fontWeight = FontWeight.Bold,
+            color = MockupColors.TextPrimary,
+            modifier = Modifier
+                .background(Color(0xFFF0F0F0), RoundedCornerShape(4.dp))
+                .padding(horizontal = 6.dp, vertical = 2.dp)
+        )
+    }
+}
 
-        Spacer(modifier = Modifier.weight(1f))
-
-        // 완료 버튼
-        MockupButton(
-            text = "시작하기!",
-            onClick = onComplete
+// 스도쿠 위젯 목업 (2x2)
+@Composable
+private fun SudokuWidgetMockup() {
+    Column(
+        modifier = Modifier
+            .size(100.dp)
+            .background(Color.White, RoundedCornerShape(12.dp))
+            .border(1.dp, Color(0xFFE0E0E0), RoundedCornerShape(12.dp))
+            .padding(8.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        // 3x3 미니 그리드
+        Column {
+            repeat(3) { row ->
+                Row {
+                    repeat(3) { col ->
+                        val num = ((row * 3 + col + 1) % 9) + 1
+                        val isEmpty = (row == 1 && col == 1) || (row == 0 && col == 2)
+                        Box(
+                            modifier = Modifier
+                                .size(20.dp)
+                                .background(
+                                    if (isEmpty) Color(0xFFF0F0F0) else Color.White
+                                )
+                                .border(0.5.dp, Color(0xFFDDDDDD)),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            if (!isEmpty) {
+                                Text(
+                                    text = "$num",
+                                    fontSize = 10.sp,
+                                    color = MockupColors.TextPrimary
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        Spacer(modifier = Modifier.height(4.dp))
+        Text(
+            text = "탭해서 풀기",
+            fontSize = 8.sp,
+            color = MockupColors.TextMuted
         )
     }
 }
@@ -3514,7 +3828,7 @@ fun PaymentScreen(
     val buttonText = when {
         isProcessing -> "결제 중..."
         isPromoFree -> "무료로 시작하기"
-        else -> "7일 무료로 시작하기"
+        else -> "무료로 시작하기"
     }
 
     // 결제 처리 함수
@@ -3624,17 +3938,19 @@ fun PaymentScreen(
             .background(Color.White)
             .navigationBarsPadding()
             .padding(horizontal = 20.dp)
-            .padding(top = 24.dp, bottom = 16.dp),
+            .padding(bottom = 24.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
+        // 상단 여백 (다른 튜토리얼과 동일하게 60dp)
+        Spacer(modifier = Modifier.height(60.dp))
 
-        // 로고 (작게) - DEBUG: 길게 누르면 건너뛰기
+        // 로고 - DEBUG: 길게 누르면 건너뛰기
         Text(
             text = "rebon",
-            fontSize = 20.sp,
+            fontSize = 32.sp,
             fontFamily = kenneyFont,
             fontWeight = FontWeight.Bold,
-            color = MockupColors.TextMuted,
+            color = MockupColors.TextPrimary,
             modifier = if (BuildConfig.DEBUG) {
                 Modifier.combinedClickable(
                     onClick = { },
@@ -3742,7 +4058,7 @@ fun PaymentScreen(
         } else {
             // 7일 무료 체험 포함
             Text(
-                text = "7일 무료 체험 포함",
+                text = "무료 체험 포함",
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Medium,
                 color = MockupColors.TextSecondary
@@ -3962,6 +4278,9 @@ fun PaymentScreen(
             fontSize = 11.sp,
             color = MockupColors.TextMuted
         )
+
+        // 하단으로 밀기
+        Spacer(modifier = Modifier.weight(1f))
 
         // 오류 메시지
         if (errorMessage != null) {

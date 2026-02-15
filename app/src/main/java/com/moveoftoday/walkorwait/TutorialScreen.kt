@@ -2564,7 +2564,7 @@ fun SubscriptionStep(
                 Spacer(modifier = Modifier.height(16.dp))
 
                 Text(
-                    text = "크레딧 시스템",
+                    text = "구독 플랜",
                     fontSize = StandTypography.headlineMedium,
                     fontWeight = FontWeight.Bold,
                     color = StandColors.WarmLightBright
@@ -2573,14 +2573,14 @@ fun SubscriptionStep(
                 Spacer(modifier = Modifier.height(8.dp))
 
                 Text(
-                    text = "Google Play 결제: 월 4,900원",
+                    text = "무료 체험 후 자동 결제",
                     fontSize = StandTypography.titleMedium,
                     color = Color.White.copy(alpha = 0.6f)
                 )
 
                 Spacer(modifier = Modifier.height(24.dp))
 
-                // 크레딧 시스템 카드
+                // 구독 플랜 카드
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     colors = CardDefaults.cardColors(
@@ -2590,15 +2590,7 @@ fun SubscriptionStep(
                     Column(
                         modifier = Modifier.padding(20.dp)
                     ) {
-                        Text(
-                            text = "달성률에 따른 크레딧 지급",
-                            fontSize = StandTypography.bodyLarge,
-                            fontWeight = FontWeight.Bold,
-                            color = StandColors.WarmLightBright,
-                            modifier = Modifier.padding(bottom = 16.dp)
-                        )
-
-                        // 95% 이상 - 가장 밝은 조명
+                        // 월간 플랜
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -2607,31 +2599,24 @@ fun SubscriptionStep(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Row(verticalAlignment = Alignment.CenterVertically) {
-                                Text("💡", fontSize = StandTypography.titleMedium)
+                                Text("${UnicodeSymbols.CIRCLE_FILLED}", fontSize = StandTypography.titleMedium, color = StandColors.WarmLightBright)
                                 Spacer(modifier = Modifier.width(8.dp))
-                                Text("95% 이상", fontSize = StandTypography.bodyLarge, color = Color.White)
+                                Text("월간 구독", fontSize = StandTypography.bodyLarge, color = Color.White)
                             }
-                            Column(horizontalAlignment = Alignment.End) {
-                                Text(
-                                    text = "+4,900",
-                                    fontSize = StandTypography.titleMedium,
-                                    fontWeight = FontWeight.Bold,
-                                    color = StandColors.WarmLightBright
-                                )
-                                Text(
-                                    text = "실질 무료",
-                                    fontSize = StandTypography.bodySmall,
-                                    color = StandColors.WarmLight
-                                )
-                            }
+                            Text(
+                                text = "월 3,900원",
+                                fontSize = StandTypography.titleMedium,
+                                fontWeight = FontWeight.Bold,
+                                color = StandColors.WarmLightBright
+                            )
                         }
 
                         HorizontalDivider(
-                            modifier = Modifier.padding(vertical = 4.dp),
+                            modifier = Modifier.padding(vertical = 8.dp),
                             color = StandColors.WarmLightDim.copy(alpha = 0.3f)
                         )
 
-                        // 80-94% - 중간 밝기
+                        // 연간 플랜
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -2640,87 +2625,68 @@ fun SubscriptionStep(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Row(verticalAlignment = Alignment.CenterVertically) {
-                                Text("✨", fontSize = StandTypography.titleMedium)
+                                Text("${UnicodeSymbols.STAR}", fontSize = StandTypography.titleMedium, color = StandColors.WarmLightBright)
                                 Spacer(modifier = Modifier.width(8.dp))
-                                Text("80~95% 미만", fontSize = StandTypography.bodyLarge, color = Color.White)
+                                Column {
+                                    Text("연간 구독", fontSize = StandTypography.bodyLarge, color = Color.White)
+                                    Text("2개월 무료", fontSize = StandTypography.bodySmall, color = StandColors.WarmLight)
+                                }
                             }
-                            Column(horizontalAlignment = Alignment.End) {
-                                Text(
-                                    text = "+2,400",
-                                    fontSize = StandTypography.titleMedium,
-                                    fontWeight = FontWeight.Bold,
-                                    color = StandColors.WarmLight
-                                )
-                                Text(
-                                    text = "실질 2,500원",
-                                    fontSize = StandTypography.bodySmall,
-                                    color = StandColors.WarmLightDim
-                                )
-                            }
-                        }
-
-                        HorizontalDivider(
-                            modifier = Modifier.padding(vertical = 4.dp),
-                            color = StandColors.WarmLightDim.copy(alpha = 0.3f)
-                        )
-
-                        // 80% 미만 - 어두운 조명
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(vertical = 8.dp),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Text("🔒", fontSize = StandTypography.titleMedium)
-                                Spacer(modifier = Modifier.width(8.dp))
-                                Text("80% 미만", fontSize = StandTypography.bodyLarge, color = Color.White.copy(alpha = 0.5f))
-                            }
-                            Column(horizontalAlignment = Alignment.End) {
-                                Text(
-                                    text = "0",
-                                    fontSize = StandTypography.titleMedium,
-                                    fontWeight = FontWeight.Bold,
-                                    color = Color.White.copy(alpha = 0.5f)
-                                )
-                                Text(
-                                    text = "정가 4,900원",
-                                    fontSize = StandTypography.bodySmall,
-                                    color = Color.White.copy(alpha = 0.5f)
-                                )
-                            }
+                            Text(
+                                text = "연 39,000원",
+                                fontSize = StandTypography.titleMedium,
+                                fontWeight = FontWeight.Bold,
+                                color = StandColors.WarmLightBright
+                            )
                         }
                     }
                 }
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // 친구 초대 안내
+                // streak 방어 티켓 안내
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     colors = CardDefaults.cardColors(
                         containerColor = StandColors.WarmLightBright.copy(alpha = 0.1f)
                     )
                 ) {
-                    Row(
-                        modifier = Modifier.padding(16.dp),
-                        verticalAlignment = Alignment.CenterVertically
+                    Column(
+                        modifier = Modifier.padding(16.dp)
                     ) {
-                        Text("🎁", fontSize = StandTypography.headlineSmall)
-                        Spacer(modifier = Modifier.width(12.dp))
-                        Column {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text("${UnicodeSymbols.SHIELD}", fontSize = StandTypography.headlineSmall)
+                            Spacer(modifier = Modifier.width(12.dp))
                             Text(
-                                text = "친구 초대 혜택",
+                                text = "streak 방어 티켓",
                                 fontSize = StandTypography.bodyLarge,
                                 fontWeight = FontWeight.Bold,
                                 color = StandColors.WarmLightBright
                             )
-                            Text(
-                                text = "구독자는 친구 1명 무료 초대 가능!",
-                                fontSize = StandTypography.bodyMedium,
-                                color = StandColors.WarmLight
-                            )
+                        }
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            text = "매달 목표 달성률에 따라 지급",
+                            fontSize = StandTypography.bodyMedium,
+                            color = StandColors.WarmLight
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceEvenly
+                        ) {
+                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                Text("90%", fontSize = StandTypography.bodySmall, color = Color.White.copy(alpha = 0.7f))
+                                Text("1개", fontSize = StandTypography.bodyMedium, fontWeight = FontWeight.Bold, color = StandColors.WarmLight)
+                            }
+                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                Text("95%", fontSize = StandTypography.bodySmall, color = Color.White.copy(alpha = 0.7f))
+                                Text("2개", fontSize = StandTypography.bodyMedium, fontWeight = FontWeight.Bold, color = StandColors.WarmLight)
+                            }
+                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                Text("100%", fontSize = StandTypography.bodySmall, color = Color.White.copy(alpha = 0.7f))
+                                Text("3개", fontSize = StandTypography.bodyMedium, fontWeight = FontWeight.Bold, color = StandColors.WarmLightBright)
+                            }
                         }
                     }
                 }
@@ -2728,7 +2694,7 @@ fun SubscriptionStep(
                 Spacer(modifier = Modifier.height(12.dp))
 
                 Text(
-                    text = "* Google Play에서 매월 4,900원 자동 결제\n* 크레딧으로 실질 부담 금액이 달라집니다",
+                    text = "* 무료 체험 후 자동 결제\n* 언제든 구독 취소 가능",
                     fontSize = StandTypography.bodySmall,
                     color = Color.White.copy(alpha = 0.5f),
                     textAlign = TextAlign.Center,

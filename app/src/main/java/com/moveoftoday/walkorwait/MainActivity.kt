@@ -986,6 +986,7 @@ fun WalkOrWaitScreen(
 
     // 연속 달성 (Streak) 관련
     var showStreakCelebration by remember { mutableStateOf(false) }
+    var showStreakDefenseDialog by remember { mutableStateOf(false) }
     var currentStreak by remember { mutableIntStateOf(preferenceManager?.getStreak() ?: 0) }
     var weeklyAchievements by remember { mutableStateOf(preferenceManager?.getWeeklyAchievements() ?: List(7) { false }) }
 
@@ -1046,9 +1047,16 @@ fun WalkOrWaitScreen(
                 // 연속 달성 업데이트 및 축하 다이얼로그 표시
                 // (디버그 다이얼로그가 이미 열려있으면 중복 방지)
                 if (preferenceManager?.hasSeenStreakCelebrationToday() == false && !showGoalAchievedDialog) {
-                    currentStreak = preferenceManager.updateStreakOnGoalAchieved()
+                    val streakResult = preferenceManager.updateStreakOnGoalAchieved()
+                    currentStreak = streakResult.streak
                     weeklyAchievements = preferenceManager.getWeeklyAchievements()
-                    showStreakCelebration = true
+
+                    // 방어 티켓 사용했으면 방어 다이얼로그 먼저 표시
+                    if (streakResult.usedDefenseTicket) {
+                        showStreakDefenseDialog = true
+                    } else {
+                        showStreakCelebration = true
+                    }
 
                     // Analytics: 스트릭 마일스톤 추적
                     if (currentStreak > 0) {
@@ -1436,16 +1444,12 @@ fun WalkOrWaitScreen(
 
                 // 목표 100% 달성 시 처리 (자유시간 포함)
                 val nowAchieved = testSteps >= goal
-                if (nowAchieved) {
-                    // 테스트용: 중복 체크 우회
+                if (nowAchieved && !wasAchieved) {
+                    // 처음 100% 달성 시에만 달성일수 증가
                     preferenceManager?.clearLastSuccessDate()
                     preferenceManager?.recordTodaySuccess()
                     successDays = preferenceManager?.getSuccessDays() ?: 0
-
-                    // 처음 100% 달성 시 다이얼로그 표시
-                    if (!wasAchieved) {
-                        showGoalAchievedDialog = true
-                    }
+                    showGoalAchievedDialog = true
                 }
 
                 Log.d("MainActivity", "🧪 Test +10%: steps=$testSteps (+$increment), goal=$goal, totalSteps=${preferenceManager?.getPetTotalSteps()}")
@@ -1461,6 +1465,19 @@ fun WalkOrWaitScreen(
         trigger = triggerCelebration,
         onAnimationEnd = { triggerCelebration = false }
     )
+
+    // 스트릭 방어 티켓 사용 다이얼로그
+    if (showStreakDefenseDialog) {
+        StreakDefenseDialog(
+            currentStreak = currentStreak,
+            remainingTickets = preferenceManager?.getStreakDefenseTickets() ?: 0,
+            onDismiss = { showStreakDefenseDialog = false },
+            onContinue = {
+                // 방어 다이얼로그 닫고 축하 다이얼로그로 이어가기
+                showStreakCelebration = true
+            }
+        )
+    }
 
     // 연속 달성 축하 다이얼로그
     if (showStreakCelebration) {

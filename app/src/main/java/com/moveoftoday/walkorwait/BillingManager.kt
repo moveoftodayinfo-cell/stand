@@ -30,8 +30,11 @@ class BillingManager(
 
     // 상품 ID (Google Play Console에서 생성)
     companion object {
-        // 단일 구독 상품: 월 4,900원 (한국/일본/미국 출시)
+        // 구독 상품 ID (월간/연간 모두 동일, base plan으로 구분)
         const val SUBSCRIPTION_PRODUCT_ID = "standnew"
+        // Base Plan IDs (Play Console에서 설정한 값)
+        const val BASE_PLAN_MONTHLY = "plan-monthly"
+        const val BASE_PLAN_YEARLY = "plan-yearly"
         // 펫 변경 일회성 상품: 1,000원
         const val PET_CHANGE_PRODUCT_ID = "pet_change"
     }
@@ -114,9 +117,9 @@ class BillingManager(
 
                     // 대기 중인 구독 요청이 있으면 실행
                     pendingActivity?.get()?.let { activity ->
-                        Log.d(TAG, "📱 Processing pending subscription request")
+                        Log.d(TAG, "📱 Processing pending subscription request (${pendingSubscriptionType})")
                         pendingActivity = null
-                        startSubscriptionInternal(activity)
+                        startSubscriptionInternal(activity, pendingSubscriptionType)
                     }
 
                     // 대기 중인 펫 변경 요청이 있으면 실행
@@ -155,16 +158,26 @@ class BillingManager(
         })
     }
 
+    // 대기 중인 구독 타입 저장
+    private var pendingSubscriptionType: SubscriptionType = SubscriptionType.MONTHLY
+
+    enum class SubscriptionType {
+        MONTHLY,  // 월간: 3,900원/월
+        YEARLY    // 연간: 39,000원/년 (2개월 무료)
+    }
+
     /**
      * 구독 시작 (결제 플로우)
-     * - 단일 구독 상품: stand_subscription_monthly (4,900원/월)
-     * - 달성률에 따른 할인은 프로모션 코드로 적용
+     * - 월간 구독: 3,900원/월 (7일 무료 체험)
+     * - 연간 구독: 39,000원/년 (7일 무료 체험, 2개월 무료)
      */
-    fun startSubscription(activity: Activity) {
+    fun startSubscription(activity: Activity, type: SubscriptionType = SubscriptionType.MONTHLY) {
+        pendingSubscriptionType = type
+
         // 이미 연결됨 - 바로 구독 시작
         if (isConnected) {
             Log.d(TAG, "✅ Already connected, starting subscription...")
-            startSubscriptionInternal(activity)
+            startSubscriptionInternal(activity, type)
             return
         }
 
@@ -182,12 +195,17 @@ class BillingManager(
         connectBillingClient()
     }
 
-    private fun startSubscriptionInternal(activity: Activity) {
+    private fun startSubscriptionInternal(activity: Activity, type: SubscriptionType = SubscriptionType.MONTHLY) {
 
         CoroutineScope(Dispatchers.IO).launch {
             try {
+                // 월간/연간 모두 동일한 상품 ID 사용, base plan으로 구분
                 val productId = SUBSCRIPTION_PRODUCT_ID
-                Log.d(TAG, "💰 Starting subscription: $productId")
+                val targetBasePlan = when (type) {
+                    SubscriptionType.MONTHLY -> BASE_PLAN_MONTHLY
+                    SubscriptionType.YEARLY -> BASE_PLAN_YEARLY
+                }
+                Log.d(TAG, "💰 Starting subscription: $productId (basePlan: $targetBasePlan)")
 
                 // 상품 정보 조회
                 val productList = listOf(
@@ -249,18 +267,20 @@ class BillingManager(
                     offerInfo.append("Offer[$index]: basePlan=${offer.basePlanId}, offerId=${offer.offerId ?: "없음"}\n")
                 }
 
-                // 구독 플로우 시작
-                val offerToken = offerDetailsList?.firstOrNull()?.offerToken
+                // 구독 플로우 시작 - 대상 base plan에 해당하는 offer 찾기
+                val targetOffer = offerDetailsList?.find { it.basePlanId == targetBasePlan }
+                val offerToken = targetOffer?.offerToken
 
                 if (offerToken == null) {
-                    Log.e(TAG, "❌ Offer token not found - subscriptionOfferDetails is empty or null")
+                    Log.e(TAG, "❌ Offer token not found for basePlan: $targetBasePlan")
+                    Log.e(TAG, "❌ Available base plans: ${offerDetailsList?.map { it.basePlanId }}")
                     withContext(Dispatchers.Main) {
-                        onPurchaseFailure("[3단계:요금제없음] 기본 요금제를 찾을 수 없습니다\n\n상품ID: $productId\n상품명: ${productDetails.name}\n요금제 수: $offerCount\n\n※ Play Console에서 '$productId' 상품에 기본 요금제(Base Plan)가 활성화되어 있는지 확인하세요")
+                        onPurchaseFailure("[3단계:요금제없음] '$targetBasePlan' 요금제를 찾을 수 없습니다\n\n상품ID: $productId\n상품명: ${productDetails.name}\n요금제 수: $offerCount\n가능한 요금제: ${offerDetailsList?.map { it.basePlanId }}\n\n※ Play Console에서 '$targetBasePlan' 기본 요금제(Base Plan)가 활성화되어 있는지 확인하세요")
                     }
                     return@launch
                 }
 
-                Log.d(TAG, "🎫 Using offerToken: $offerToken")
+                Log.d(TAG, "🎫 Using basePlan: $targetBasePlan, offerToken: $offerToken")
 
                 val productDetailsParamsList = listOf(
                     BillingFlowParams.ProductDetailsParams.newBuilder()
@@ -329,9 +349,16 @@ class BillingManager(
                 Log.d(TAG, "✅ Purchase acknowledged")
 
                 // Analytics: 구독 결제 추적
-                val productId = purchase.products.firstOrNull() ?: "stand_monthly"
-                AnalyticsManager.trackPurchaseCompleted(productId, 4700.0)
-                AnalyticsManager.trackSubscriptionStart("google_play")
+                val productId = purchase.products.firstOrNull() ?: SUBSCRIPTION_PRODUCT_ID
+                val isYearly = pendingSubscriptionType == SubscriptionType.YEARLY
+                val price = if (isYearly) 39000.0 else 3900.0
+                AnalyticsManager.trackPurchaseCompleted(productId, price)
+                AnalyticsManager.trackSubscriptionStart(if (isYearly) "google_play_yearly" else "google_play_monthly")
+
+                // 친구 초대 횟수 초기화 (월간: 1명, 연간: 12명)
+                val preferenceManager = PreferenceManager(context)
+                preferenceManager.initInvitesForSubscription(isYearly)
+                Log.d(TAG, "✅ Invites initialized: ${if (isYearly) 12 else 1} (${pendingSubscriptionType})")
 
                 withContext(Dispatchers.Main) {
                     onPurchaseSuccess(purchase)

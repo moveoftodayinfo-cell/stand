@@ -1057,3 +1057,108 @@ private fun saveAndShareImage(context: Context, bitmap: Bitmap, streakCount: Int
         Toast.makeText(context, "Save failed: ${e.message}", Toast.LENGTH_SHORT).show()
     }
 }
+
+/**
+ * 스트릭 방어 티켓 사용 다이얼로그
+ * 스트릭이 끊길 뻔했지만 방어 티켓으로 유지했을 때 표시
+ */
+@Composable
+fun StreakDefenseDialog(
+    currentStreak: Int,
+    remainingTickets: Int,
+    onDismiss: () -> Unit,
+    onContinue: () -> Unit  // 축하 다이얼로그로 이어가기
+) {
+    val kenneyFont = rememberKenneyFont()
+
+    Dialog(
+        onDismissRequest = onDismiss,
+        properties = DialogProperties(
+            dismissOnBackPress = true,
+            dismissOnClickOutside = true,
+            usePlatformDefaultWidth = false
+        )
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth(0.9f)
+                .background(MockupColors.Background, RoundedCornerShape(24.dp))
+                .border(3.dp, MockupColors.Border, RoundedCornerShape(24.dp))
+                .padding(24.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                // 방패 아이콘
+                Text(
+                    text = UnicodeSymbols.SHIELD,
+                    fontSize = 64.sp,
+                    color = MockupColors.Blue
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // 메인 메시지
+                Text(
+                    text = "스트릭 방어 성공!",
+                    fontSize = 24.sp,
+                    fontFamily = kenneyFont,
+                    fontWeight = FontWeight.Bold,
+                    color = MockupColors.TextPrimary
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                // 설명
+                Text(
+                    text = "방어 티켓을 사용해서\n${currentStreak}일 스트릭을 이어갑니다!",
+                    fontSize = 16.sp,
+                    color = MockupColors.TextSecondary,
+                    textAlign = TextAlign.Center,
+                    lineHeight = 24.sp
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // 남은 티켓 수
+                Box(
+                    modifier = Modifier
+                        .background(MockupColors.BlueLight, RoundedCornerShape(8.dp))
+                        .padding(horizontal = 16.dp, vertical = 8.dp)
+                ) {
+                    Text(
+                        text = "남은 방어 티켓: ${remainingTickets}장",
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = MockupColors.Blue
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                // 확인 버튼
+                Button(
+                    onClick = {
+                        onDismiss()
+                        onContinue()  // 축하 다이얼로그로 이어가기
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(52.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MockupColors.Blue
+                    ),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Text(
+                        text = "계속하기",
+                        fontSize = 16.sp,
+                        fontFamily = kenneyFont,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            }
+        }
+    }
+}

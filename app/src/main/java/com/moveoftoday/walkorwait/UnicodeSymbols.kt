@@ -75,4 +75,15 @@ object UnicodeSymbols {
     const val CONFETTI = "🎊$TEXT_SELECTOR"
     const val CLAP = "👏$TEXT_SELECTOR"
     const val RAINBOW = "🌈$TEXT_SELECTOR"
+
+    // 보호/방어
+    const val SHIELD = "🛡$TEXT_SELECTOR"
+    const val LOCK = "🔒$TEXT_SELECTOR"
+    const val UNLOCK = "🔓$TEXT_SELECTOR"
+    const val KEY = "🔑$TEXT_SELECTOR"
+
+    // 위젯 아이콘
+    const val FOOTPRINTS = "👣$TEXT_SELECTOR"
+    const val GLOBE = "🌐$TEXT_SELECTOR"
+    const val GRID = "▦"
 }

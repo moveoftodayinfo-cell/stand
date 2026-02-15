@@ -59,7 +59,7 @@ class PromoCodeManager(private val context: Context) {
 
         return when {
             trimmedCode.startsWith("REBON-") -> validateBasicInviteCode(trimmedCode)
-            trimmedCode.startsWith("BONUS-") -> validateBonusInviteCode(trimmedCode)
+            // BONUS- 코드 시스템은 streak 방어 티켓으로 대체됨
             trimmedCode.startsWith("EVENT-") -> validateEventCode(trimmedCode)
             trimmedCode == "TEST-FREE" -> applyTestCode()
             trimmedCode == "REBONFREE" -> applyRebonFreeCode()
@@ -70,6 +70,8 @@ class PromoCodeManager(private val context: Context) {
     /**
      * 기본 친구 초대 코드 검증 (REBON-XXXXXX)
      * 정기결제 시 발급되는 코드
+     * - 월간 구독: 1명 초대 가능
+     * - 연간 구독: 12명 초대 가능
      */
     private suspend fun validateBasicInviteCode(code: String): PromoResult {
         val currentUserId = auth.currentUser?.uid
@@ -97,19 +99,47 @@ class PromoCodeManager(private val context: Context) {
                 return PromoResult.Error("자신의 코드는 사용할 수 없습니다")
             }
 
-            // 이미 게스트가 있는지 확인
-            val guestId = hostDoc.getString("inviteGuestId")
-            if (guestId != null) {
-                return PromoResult.Error("이미 사용된 초대 코드입니다")
+            // 코드 만료 확인 (결제일 + 1달)
+            val codeExpiryDate = hostDoc.getDate("endDate")
+            if (codeExpiryDate != null && Date().after(codeExpiryDate)) {
+                return PromoResult.Error("만료된 초대 코드입니다")
             }
 
-            // Firebase에 guestId 및 사용 정보 업데이트 (중복 사용 방지)
+            // 최대 초대 횟수 확인 (연간: 12명, 월간: 1명)
+            val maxInvites = hostDoc.getLong("maxInvites")?.toInt() ?: 1
+
+            // 이미 초대된 게스트 목록 확인
+            @Suppress("UNCHECKED_CAST")
+            val inviteGuests = hostDoc.get("inviteGuests") as? List<Map<String, Any>> ?: emptyList()
+
+            // 이미 이 사용자가 초대받았는지 확인
+            val alreadyInvited = inviteGuests.any { it["id"] == currentUserId }
+            if (alreadyInvited) {
+                return PromoResult.Error("이미 이 코드를 사용했습니다")
+            }
+
+            // 초대 한도 확인
+            if (inviteGuests.size >= maxInvites) {
+                return PromoResult.Error("초대 코드 사용 한도를 초과했습니다")
+            }
+
+            // 새 게스트 정보 추가
             val guestEmail = FirebaseAuth.getInstance().currentUser?.email ?: ""
+            val newGuest = mapOf(
+                "id" to currentUserId,
+                "email" to guestEmail,
+                "usedAt" to com.google.firebase.Timestamp.now()
+            )
+            val updatedGuests = inviteGuests.toMutableList().apply { add(newGuest) }
+
+            // Firebase 업데이트
             hostDoc.reference.update(
                 mapOf(
-                    "inviteGuestId" to currentUserId,
-                    "inviteGuestUsedAt" to com.google.firebase.Timestamp.now(),
-                    "inviteGuestEmail" to guestEmail
+                    "inviteGuests" to updatedGuests,
+                    // 하위 호환성을 위해 첫 번째 게스트 정보도 유지
+                    "inviteGuestId" to if (inviteGuests.isEmpty()) currentUserId else hostDoc.getString("inviteGuestId"),
+                    "inviteGuestUsedAt" to if (inviteGuests.isEmpty()) com.google.firebase.Timestamp.now() else hostDoc.getTimestamp("inviteGuestUsedAt"),
+                    "inviteGuestEmail" to if (inviteGuests.isEmpty()) guestEmail else hostDoc.getString("inviteGuestEmail")
                 )
             ).await()
 
@@ -128,9 +158,13 @@ class PromoCodeManager(private val context: Context) {
             // 대시보드 추적용 사용자 문서 생성
             createUserDocument("FRIEND_INVITE", endDate)
 
+            // 남은 초대 횟수 계산
+            val remainingInvites = maxInvites - updatedGuests.size
+            val remainingMsg = if (remainingInvites > 0) "\n(친구에게 ${remainingInvites}번 더 공유 가능)" else ""
+
             return PromoResult.Success(
                 type = PromoType.FRIEND_INVITE,
-                message = "친구 초대 코드가 적용되었습니다!\n1달간 무료로 사용하세요",
+                message = "친구 초대 코드가 적용되었습니다!\n1달간 무료로 사용하세요$remainingMsg",
                 freeDays = 30
             )
 
@@ -140,84 +174,11 @@ class PromoCodeManager(private val context: Context) {
         }
     }
 
-    /**
-     * 보너스 초대 코드 검증 (BONUS-XXXXXX)
-     * 95% 달성 시 활성화되는 코드
-     */
-    private suspend fun validateBonusInviteCode(code: String): PromoResult {
-        val currentUserId = auth.currentUser?.uid
-            ?: return PromoResult.Error("로그인이 필요합니다")
-
-        try {
-            // Firebase에서 보너스 초대 코드 검색
-            val snapshot = db.collectionGroup("subscriptions")
-                .whereEqualTo("bonusInviteCode", code)
-                .whereEqualTo("isActive", true)
-                .limit(1)
-                .get()
-                .await()
-
-            if (snapshot.isEmpty) {
-                return PromoResult.Error("유효하지 않은 보너스 코드입니다")
-            }
-
-            val hostDoc = snapshot.documents.first()
-            val hostPath = hostDoc.reference.path
-            val hostId = hostPath.split("/")[1]
-
-            // 자기 자신 초대 방지
-            if (hostId == currentUserId) {
-                return PromoResult.Error("자신의 코드는 사용할 수 없습니다")
-            }
-
-            // Host가 95% 달성했는지 확인
-            val earnedFriendCoupon = hostDoc.getBoolean("earnedFriendCoupon") ?: false
-            if (!earnedFriendCoupon) {
-                return PromoResult.Error("호스트가 아직 95% 달성을 완료하지 않았습니다")
-            }
-
-            // 이미 게스트가 있는지 확인
-            val guestId = hostDoc.getString("bonusGuestId")
-            if (guestId != null) {
-                return PromoResult.Error("이미 사용된 보너스 코드입니다")
-            }
-
-            // Firebase에 guestId 및 사용 정보 업데이트 (중복 사용 방지)
-            val guestEmail = FirebaseAuth.getInstance().currentUser?.email ?: ""
-            hostDoc.reference.update(
-                mapOf(
-                    "bonusGuestId" to currentUserId,
-                    "bonusGuestUsedAt" to com.google.firebase.Timestamp.now(),
-                    "bonusGuestEmail" to guestEmail
-                )
-            ).await()
-
-            // 코드 사용 기록 저장
-            preferenceManager.saveUsedPromoCode(code)
-            preferenceManager.savePromoCodeType("FRIEND_INVITE_BONUS")
-            preferenceManager.savePromoHostId(hostId)
-
-            // 프로모션 종료일 저장 (30일 후)
-            val endDate = savePromoEndDate(30)
-
-            // Analytics: 보너스 초대 코드 사용 추적
-            AnalyticsManager.trackPromoCodeUsed("FRIEND_INVITE_BONUS")
-            AnalyticsManager.trackSubscriptionStart("friend_invite_bonus")
-
-            // 대시보드 추적용 사용자 문서 생성
-            createUserDocument("FRIEND_INVITE_BONUS", endDate)
-
-            return PromoResult.Success(
-                type = PromoType.FRIEND_INVITE,
-                message = "보너스 초대 코드가 적용되었습니다!\n1달간 무료로 사용하세요",
-                freeDays = 30
-            )
-
-        } catch (e: Exception) {
-            Log.e(TAG, "❌ Failed to validate bonus invite code: ${e.message}")
-            return PromoResult.Error("코드 확인 중 오류가 발생했습니다")
-        }
-    }
+    // BONUS- 코드 시스템은 streak 방어 티켓으로 대체됨 (2024년 2월)
+    // 95% 달성 시 친구 초대 쿠폰 대신 streak 방어 티켓 지급
+    // - 90% 달성: 1장
+    // - 95% 달성: 2장
+    // - 100% 달성: 3장
 
     /**
      * 이벤트 코드 검증 (EVENT-XXXXXX)
