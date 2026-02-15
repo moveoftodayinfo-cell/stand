@@ -256,7 +256,9 @@ class PreferenceManager(context: Context) {
     }
 
     fun getControlDays(): Set<Int> {
-        val days = prefs.getStringSet("control_days", setOf("1", "2", "3", "4", "5")) ?: setOf("1", "2", "3", "4", "5")
+        // 기본값: 월~일 전체 (0=일, 1=월, 2=화, 3=수, 4=목, 5=금, 6=토)
+        val defaultDays = setOf("0", "1", "2", "3", "4", "5", "6")
+        val days = prefs.getStringSet("control_days", defaultDays) ?: defaultDays
         return days.map { it.toInt() }.toSet()
     }
 
@@ -594,6 +596,60 @@ class PreferenceManager(context: Context) {
             return if (daysRemaining > 0) daysRemaining else 0
         } catch (e: Exception) {
             return 0
+        }
+    }
+
+    // ===== 첫 결제일 (친구 초대 코드 활성화용) =====
+
+    /**
+     * 첫 실제 결제일 저장 (Trial 종료 또는 바로 결제 시)
+     */
+    fun saveFirstPaidDate(date: String) {
+        // 이미 저장된 경우 덮어쓰지 않음 (첫 결제일 유지)
+        if (getFirstPaidDate().isEmpty()) {
+            prefs.edit().putString("first_paid_date", date).apply()
+        }
+    }
+
+    fun getFirstPaidDate(): String {
+        return prefs.getString("first_paid_date", "") ?: ""
+    }
+
+    /**
+     * 친구 초대 코드 공유 가능 여부 확인
+     * 조건: 첫 실제 결제일로부터 3일 경과
+     */
+    fun canShareInviteCodeByDate(): Boolean {
+        // Trial 중에는 불가
+        if (isInTrialPeriod()) return false
+
+        val firstPaidDate = getFirstPaidDate()
+
+        // 결제 기록 없음 → Trial 종료 시점 사용
+        val referenceDate = if (firstPaidDate.isNotEmpty()) {
+            firstPaidDate
+        } else {
+            val trialEndDate = getTrialEndDate()
+            if (trialEndDate.isEmpty()) {
+                // Trial도 없고 결제 기록도 없음 → 아직 결제 안 함
+                return false
+            }
+            trialEndDate
+        }
+
+        try {
+            val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+            val refDate = sdf.parse(referenceDate) ?: return false
+
+            // 결제일 + 3일 후부터 공유 가능
+            val calendar = Calendar.getInstance()
+            calendar.time = refDate
+            calendar.add(Calendar.DAY_OF_MONTH, 3)
+            val activationDate = calendar.time
+
+            return Date().after(activationDate)
+        } catch (e: Exception) {
+            return false
         }
     }
 
@@ -1993,6 +2049,9 @@ class PreferenceManager(context: Context) {
         // 펫 스킨 시스템
         private const val KEY_PET_SKIN = "pet_skin_id"
         private const val KEY_OWNED_SKINS = "owned_skin_ids"
+
+        // 딥링크 초대 코드
+        private const val KEY_PENDING_PROMO_CODE = "pending_promo_code"
     }
 
     /**
@@ -2337,5 +2396,74 @@ class PreferenceManager(context: Context) {
      */
     fun wasStreakDefenseUsedOn(date: String): Boolean {
         return getStreakDefenseHistory().contains(date)
+    }
+
+    /**
+     * 신규 유저 방어권 지급 다이얼로그 표시 여부
+     */
+    fun hasShownWelcomeDefenseDialog(): Boolean {
+        return prefs.getBoolean("shown_welcome_defense_dialog", false)
+    }
+
+    fun setShownWelcomeDefenseDialog() {
+        prefs.edit().putBoolean("shown_welcome_defense_dialog", true).apply()
+    }
+
+    // ========== 딥링크 초대 코드 ==========
+
+    /**
+     * 딥링크로 받은 프로모 코드 저장 (PaymentScreen에서 자동 적용)
+     */
+    fun savePendingPromoCode(code: String) {
+        prefs.edit().putString(KEY_PENDING_PROMO_CODE, code).apply()
+    }
+
+    /**
+     * 저장된 프로모 코드 가져오기
+     */
+    fun getPendingPromoCode(): String? {
+        return prefs.getString(KEY_PENDING_PROMO_CODE, null)
+    }
+
+    /**
+     * 프로모 코드 사용 후 삭제
+     */
+    fun clearPendingPromoCode() {
+        prefs.edit().remove(KEY_PENDING_PROMO_CODE).apply()
+    }
+
+    // ========== 알림 설정 ==========
+
+    /**
+     * 목표 달성 알림 활성화 여부
+     */
+    fun isGoalNotificationEnabled(): Boolean {
+        return prefs.getBoolean("notification_goal_enabled", true)
+    }
+
+    fun setGoalNotificationEnabled(enabled: Boolean) {
+        prefs.edit().putBoolean("notification_goal_enabled", enabled).apply()
+    }
+
+    /**
+     * 펫 걱정 알림 활성화 여부
+     */
+    fun isWorryNotificationEnabled(): Boolean {
+        return prefs.getBoolean("notification_worry_enabled", true)
+    }
+
+    fun setWorryNotificationEnabled(enabled: Boolean) {
+        prefs.edit().putBoolean("notification_worry_enabled", enabled).apply()
+    }
+
+    /**
+     * 앱 차단 알림 활성화 여부
+     */
+    fun isBlockNotificationEnabled(): Boolean {
+        return prefs.getBoolean("notification_block_enabled", true)
+    }
+
+    fun setBlockNotificationEnabled(enabled: Boolean) {
+        prefs.edit().putBoolean("notification_block_enabled", enabled).apply()
     }
 }

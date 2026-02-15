@@ -500,7 +500,8 @@ class SubscriptionManager(private val context: Context) {
         try {
             val achievementRate = if (totalDays > 0) (successDays.toFloat() / totalDays * 100) else 0f
             val achievementRateDecimal = if (totalDays > 0) (successDays.toFloat() / totalDays) else 0f
-            val earnedCoupon = SubscriptionModel.earnsFriendCoupon(achievementRate)
+            // 친구 쿠폰 시스템 비활성화 (현재는 방어 티켓 시스템으로 대체됨)
+            val earnedCoupon = false
 
             // Streak 방어 티켓 지급 (로컬 저장)
             val preferenceManager = PreferenceManager(context)

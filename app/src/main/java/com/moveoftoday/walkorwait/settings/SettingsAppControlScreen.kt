@@ -38,6 +38,11 @@ fun SettingsAppControlScreen(
     var lockedApps by remember { mutableStateOf(preferenceManager?.getLockedApps() ?: emptySet<String>()) }
     var isAccessibilityEnabled by remember { mutableStateOf(false) }
 
+    // 알림 설정 상태
+    var goalNotificationEnabled by remember { mutableStateOf(preferenceManager?.isGoalNotificationEnabled() ?: true) }
+    var worryNotificationEnabled by remember { mutableStateOf(preferenceManager?.isWorryNotificationEnabled() ?: true) }
+    var blockNotificationEnabled by remember { mutableStateOf(preferenceManager?.isBlockNotificationEnabled() ?: true) }
+
     // 다이얼로그/화면 상태
     var showAppLockScreen by remember { mutableStateOf(false) }
     var showFitnessAppConnectionScreen by remember { mutableStateOf(false) }
@@ -94,6 +99,7 @@ fun SettingsAppControlScreen(
                     .fillMaxSize()
                     .verticalScroll(rememberScrollState())
                     .padding(16.dp)
+                    .navigationBarsPadding()
             ) {
                 // ========== 접근성 서비스 상태 ==========
                 if (!isAccessibilityEnabled) {
@@ -133,17 +139,17 @@ fun SettingsAppControlScreen(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(bottom = 16.dp)
-                            .border(3.dp, MockupColors.Green, RoundedCornerShape(12.dp))
-                            .background(MockupColors.GreenLight, RoundedCornerShape(12.dp))
+                            .border(3.dp, MockupColors.Border, RoundedCornerShape(12.dp))
+                            .background(MockupColors.CardBackground, RoundedCornerShape(12.dp))
                             .padding(16.dp)
                     ) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            Text("✓", fontSize = 24.sp, fontWeight = FontWeight.Bold, color = MockupColors.Green)
+                            Text("✓", fontSize = 24.sp, fontWeight = FontWeight.Bold, color = MockupColors.TextPrimary)
                             Spacer(modifier = Modifier.width(12.dp))
                             Column {
                                 Text(
                                     "rebon 활성화됨",
-                                    color = MockupColors.Green,
+                                    color = MockupColors.TextPrimary,
                                     fontWeight = FontWeight.Bold,
                                     fontSize = 16.sp,
                                     fontFamily = kenneyFont
@@ -244,8 +250,139 @@ fun SettingsAppControlScreen(
                     }
                 }
 
+                // ========== 알림 설정 ==========
+                RetroSectionTitle("알림 설정", kenneyFont)
+
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .border(3.dp, MockupColors.Border, RoundedCornerShape(12.dp))
+                        .background(MockupColors.CardBackground, RoundedCornerShape(12.dp))
+                        .padding(16.dp)
+                ) {
+                    Column {
+                        // 목표 달성 알림
+                        NotificationToggleRow(
+                            title = "목표 달성 알림",
+                            description = "일일 목표 100% 달성 시",
+                            enabled = goalNotificationEnabled,
+                            kenneyFont = kenneyFont,
+                            onToggle = {
+                                goalNotificationEnabled = !goalNotificationEnabled
+                                preferenceManager?.setGoalNotificationEnabled(goalNotificationEnabled)
+                                hapticManager.click()
+                            }
+                        )
+
+                        Spacer(modifier = Modifier.height(12.dp))
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(1.dp)
+                                .background(MockupColors.Border)
+                        )
+                        Spacer(modifier = Modifier.height(12.dp))
+
+                        // 펫 걱정 알림
+                        NotificationToggleRow(
+                            title = "펫 걱정 알림",
+                            description = "평소 운동 시간에 움직임 없을 때",
+                            enabled = worryNotificationEnabled,
+                            kenneyFont = kenneyFont,
+                            onToggle = {
+                                worryNotificationEnabled = !worryNotificationEnabled
+                                preferenceManager?.setWorryNotificationEnabled(worryNotificationEnabled)
+                                hapticManager.click()
+                            }
+                        )
+
+                        Spacer(modifier = Modifier.height(12.dp))
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(1.dp)
+                                .background(MockupColors.Border)
+                        )
+                        Spacer(modifier = Modifier.height(12.dp))
+
+                        // 앱 차단 알림
+                        NotificationToggleRow(
+                            title = "앱 차단 알림",
+                            description = "잠긴 앱 실행 시도 시",
+                            enabled = blockNotificationEnabled,
+                            kenneyFont = kenneyFont,
+                            onToggle = {
+                                blockNotificationEnabled = !blockNotificationEnabled
+                                preferenceManager?.setBlockNotificationEnabled(blockNotificationEnabled)
+                                hapticManager.click()
+                            }
+                        )
+                    }
+                }
+
                 Spacer(modifier = Modifier.height(32.dp))
             }
+        }
+    }
+}
+
+/**
+ * 알림 토글 행
+ */
+@Composable
+private fun NotificationToggleRow(
+    title: String,
+    description: String,
+    enabled: Boolean,
+    kenneyFont: androidx.compose.ui.text.font.FontFamily,
+    onToggle: () -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onToggle() },
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = title,
+                fontSize = 15.sp,
+                fontWeight = FontWeight.Bold,
+                color = MockupColors.TextPrimary
+            )
+            Text(
+                text = description,
+                fontSize = 12.sp,
+                color = MockupColors.TextSecondary
+            )
+        }
+        // 토글 스위치 (레트로 스타일 - 흑백)
+        Box(
+            modifier = Modifier
+                .width(50.dp)
+                .height(28.dp)
+                .border(
+                    2.dp,
+                    if (enabled) MockupColors.TextPrimary else MockupColors.Border,
+                    RoundedCornerShape(14.dp)
+                )
+                .background(
+                    if (enabled) MockupColors.Border.copy(alpha = 0.2f) else MockupColors.CardBackground,
+                    RoundedCornerShape(14.dp)
+                )
+                .clickable { onToggle() },
+            contentAlignment = if (enabled) Alignment.CenterEnd else Alignment.CenterStart
+        ) {
+            Box(
+                modifier = Modifier
+                    .padding(3.dp)
+                    .size(22.dp)
+                    .background(
+                        if (enabled) MockupColors.TextPrimary else MockupColors.Border,
+                        RoundedCornerShape(11.dp)
+                    )
+            )
         }
     }
 }

@@ -64,6 +64,7 @@ fun SettingsGoalScreen(
                     .fillMaxSize()
                     .verticalScroll(rememberScrollState())
                     .padding(16.dp)
+                    .navigationBarsPadding()
             ) {
                 // ========== 일일 목표 ==========
                 RetroSectionTitle("일일 목표", kenneyFont)
@@ -121,11 +122,11 @@ fun SettingsGoalScreen(
                                 .aspectRatio(1f)
                                 .border(
                                     2.dp,
-                                    if (isSelected) MockupColors.Blue else MockupColors.Border,
+                                    if (isSelected) MockupColors.TextPrimary else MockupColors.Border,
                                     RoundedCornerShape(8.dp)
                                 )
                                 .background(
-                                    if (isSelected) MockupColors.BlueLight else MockupColors.CardBackground,
+                                    if (isSelected) MockupColors.Border.copy(alpha = 0.2f) else MockupColors.CardBackground,
                                     RoundedCornerShape(8.dp)
                                 ),
                             contentAlignment = Alignment.Center
@@ -134,7 +135,7 @@ fun SettingsGoalScreen(
                                 text = name,
                                 fontSize = 14.sp,
                                 fontWeight = FontWeight.Bold,
-                                color = if (isSelected) MockupColors.Blue else MockupColors.TextMuted
+                                color = if (isSelected) MockupColors.TextPrimary else MockupColors.TextMuted
                             )
                         }
                     }
@@ -163,26 +164,53 @@ fun SettingsGoalScreen(
 
                 Spacer(modifier = Modifier.height(8.dp))
 
-                // 시간대 표시
-                if (blockingPeriods.isNotEmpty()) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .border(2.dp, MockupColors.Border, RoundedCornerShape(8.dp))
-                            .background(MockupColors.CardBackground, RoundedCornerShape(8.dp))
-                            .padding(12.dp)
-                    ) {
+                // 시간대 표시 (비어있으면 예시 표시)
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .border(2.dp, MockupColors.Border, RoundedCornerShape(8.dp))
+                        .background(MockupColors.CardBackground, RoundedCornerShape(8.dp))
+                        .padding(12.dp)
+                ) {
+                    if (blockingPeriods.isNotEmpty()) {
                         Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                            blockingPeriods.sorted().forEach { period ->
-                                val parts = period.split("-")
-                                if (parts.size == 2) {
+                            // 정렬 순서: morning → afternoon → evening → night
+                            val sortOrder = listOf("morning", "afternoon", "evening", "night")
+                            blockingPeriods
+                                .sortedBy { sortOrder.indexOf(it).takeIf { i -> i >= 0 } ?: 99 }
+                                .forEach { period ->
+                                    val displayText = when (period) {
+                                        "morning" -> "오전 (06:00 ~ 12:00)"
+                                        "afternoon" -> "오후 (12:00 ~ 18:00)"
+                                        "evening" -> "저녁 (18:00 ~ 22:00)"
+                                        "night" -> "심야 (22:00 ~ 06:00)"
+                                        else -> period
+                                    }
                                     Text(
-                                        text = "${parts[0]} ~ ${parts[1]}",
+                                        text = displayText,
                                         fontSize = 14.sp,
                                         color = MockupColors.TextPrimary
                                     )
                                 }
-                            }
+                        }
+                    } else {
+                        // 예시 표시
+                        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                            Text(
+                                text = "예시:",
+                                fontSize = 12.sp,
+                                color = MockupColors.TextMuted
+                            )
+                            Text(
+                                text = "09:00 ~ 12:00 (오전)",
+                                fontSize = 14.sp,
+                                color = MockupColors.TextMuted
+                            )
+                            Text(
+                                text = "14:00 ~ 18:00 (오후)",
+                                fontSize = 14.sp,
+                                color = MockupColors.TextMuted
+                            )
                         }
                     }
                 }
@@ -278,7 +306,7 @@ private fun SettingsItemCard(
                 Text(
                     text = value,
                     fontSize = 16.sp,
-                    color = MockupColors.Blue,
+                    color = MockupColors.TextPrimary,
                     fontWeight = FontWeight.Bold,
                     fontFamily = kenneyFont
                 )

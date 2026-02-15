@@ -164,13 +164,13 @@ private fun ExerciseInstructions(type: ChallengeType) {
         Spacer(modifier = Modifier.height(16.dp))
 
         // 스쿼트 자세 안내
-        InstructionItem("📱", "폰을 손에 들고 하세요")
+        InstructionItem("1.", "폰을 손에 들고 하세요")
         Spacer(modifier = Modifier.height(8.dp))
-        InstructionItem("🦵", "발을 어깨 너비로 벌리세요")
+        InstructionItem("2.", "발을 어깨 너비로 벌리세요")
         Spacer(modifier = Modifier.height(8.dp))
-        InstructionItem("⬇️", "무릎을 90도로 굽혔다 펴세요")
+        InstructionItem("3.", "무릎을 90도로 굽혔다 펴세요")
         Spacer(modifier = Modifier.height(8.dp))
-        InstructionItem("✅", "화면에서 횟수를 확인하세요", isHighlight = true)
+        InstructionItem("4.", "화면에서 횟수를 확인하세요", isHighlight = true)
     }
 }
 

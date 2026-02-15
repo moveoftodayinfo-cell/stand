@@ -550,20 +550,23 @@ class UserDataRepository(
      * 스킨/장비 데이터 복원
      */
     private fun restoreEquipmentData(headId: String?, bgId: String?, colorId: String?, unlockedSkins: Set<String>) {
-        // 장비 상태 복원
+        // 장비 상태 복원 (각 슬롯별로 저장)
+        if (headId != null) {
+            preferenceManager.saveEquippedEquipment(com.moveoftoday.walkorwait.pet.EquipmentSlot.HEAD, headId)
+        }
+        if (bgId != null) {
+            preferenceManager.saveEquippedEquipment(com.moveoftoday.walkorwait.pet.EquipmentSlot.BACKGROUND, bgId)
+        }
+        if (colorId != null) {
+            preferenceManager.saveEquippedEquipment(com.moveoftoday.walkorwait.pet.EquipmentSlot.COLOR, colorId)
+        }
         if (headId != null || bgId != null || colorId != null) {
-            val equipmentState = com.moveoftoday.walkorwait.pet.EquipmentState(
-                headId = headId,
-                backgroundId = bgId,
-                colorId = colorId
-            )
-            preferenceManager.saveEquipmentState(equipmentState)
             Log.d(TAG, "🎨 Restored equipment: head=$headId, bg=$bgId, color=$colorId")
         }
 
         // 해금된 스킨 복원
         if (unlockedSkins.isNotEmpty()) {
-            val currentUnlocked = preferenceManager.getUnlockedSkins()
+            val currentUnlocked = preferenceManager.getOwnedSkins()
             val merged = currentUnlocked + unlockedSkins
             // 병합된 스킨 저장
             val prefs = context.getSharedPreferences("pet_skins_prefs", android.content.Context.MODE_PRIVATE)
@@ -671,13 +674,12 @@ class UserDataRepository(
 
                     // 방어 티켓 시스템 (복구용)
                     "streakDefenseTickets" to preferenceManager.getStreakDefenseTickets(),
-                    "defenseTicketUsageHistory" to preferenceManager.getDefenseTicketUsageHistory().toList(),
 
                     // 스킨/장비 정보 (복구용)
                     "equipmentHeadId" to preferenceManager.getEquipmentState().headId,
                     "equipmentBackgroundId" to preferenceManager.getEquipmentState().backgroundId,
                     "equipmentColorId" to preferenceManager.getEquipmentState().colorId,
-                    "unlockedSkins" to preferenceManager.getUnlockedSkins().toList()
+                    "unlockedSkins" to preferenceManager.getOwnedSkins().toList()
                 )
 
                 firestore.collection("users")

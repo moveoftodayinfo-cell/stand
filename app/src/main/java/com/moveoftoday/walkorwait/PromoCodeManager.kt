@@ -68,6 +68,24 @@ class PromoCodeManager(private val context: Context) {
     }
 
     /**
+     * 친구 초대 프로모션 사용 여부 확인
+     * Firebase users/{userId} 문서의 usedInvitePromo 필드 확인
+     */
+    private suspend fun checkUsedInvitePromo(userId: String): Boolean {
+        return try {
+            val userDoc = db.collection("users")
+                .document(userId)
+                .get()
+                .await()
+
+            userDoc.getBoolean("usedInvitePromo") ?: false
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to check usedInvitePromo: ${e.message}")
+            false  // 오류 시 허용 (UX 우선)
+        }
+    }
+
+    /**
      * 기본 친구 초대 코드 검증 (REBON-XXXXXX)
      * 정기결제 시 발급되는 코드
      * - 월간 구독: 1명 초대 가능
@@ -78,6 +96,11 @@ class PromoCodeManager(private val context: Context) {
             ?: return PromoResult.Error("로그인이 필요합니다")
 
         try {
+            // 이미 친구 초대 프로모션을 사용한 적이 있는지 확인
+            val hasUsedInvitePromo = checkUsedInvitePromo(currentUserId)
+            if (hasUsedInvitePromo) {
+                return PromoResult.Error("이미 친구 초대 혜택을 받으셨어요!\n초대 코드는 1회만 사용 가능합니다")
+            }
             // Firebase에서 초대 코드 검색
             val snapshot = db.collectionGroup("subscriptions")
                 .whereEqualTo("inviteCode", code)
@@ -317,13 +340,19 @@ class PromoCodeManager(private val context: Context) {
         val now = System.currentTimeMillis()
 
         // 부모 문서 생성/업데이트
-        val userDoc = hashMapOf(
+        val userDoc = hashMapOf<String, Any>(
             "email" to userEmail,
             "lastActiveAt" to now,
             "lastUpdated" to now,
             "createdAt" to now,
             "promoCodeApplied" to true
         )
+
+        // 친구 초대 코드 사용 시만 플래그 설정 (1회만 사용 가능)
+        // 다른 프로모션 코드 사용 시에는 이 필드를 건드리지 않음 (기존 값 유지)
+        if (promoCodeType == "FRIEND_INVITE") {
+            userDoc["usedInvitePromo"] = true
+        }
         db.collection("users")
             .document(userId)
             .set(userDoc, SetOptions.merge())

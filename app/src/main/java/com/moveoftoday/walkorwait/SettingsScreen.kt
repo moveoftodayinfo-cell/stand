@@ -598,9 +598,8 @@ fun SettingsScreen(
                         }
                     }
 
-                    // 💳 구독 관리 (친구 쿠폰 시스템)
-                    val earnedCoupon = SubscriptionModel.earnsFriendCoupon(achievementRate)
-                    val statusColor = if (earnedCoupon) MockupColors.Blue else MockupColors.TextMuted
+                    // 💳 구독 관리
+                    val statusColor = MockupColors.TextPrimary
 
                     // 프로모션(친구초대)으로 들어온 사용자인지 확인
                     val isPromoFreeUser = preferenceManager?.getPromoCodeType() != null
@@ -613,7 +612,7 @@ fun SettingsScreen(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(bottom = 12.dp)
-                            .border(3.dp, if (earnedCoupon) MockupColors.Blue else MockupColors.Border, RoundedCornerShape(12.dp))
+                            .border(3.dp, MockupColors.Border, RoundedCornerShape(12.dp))
                             .background(MockupColors.CardBackground, RoundedCornerShape(12.dp))
                             .padding(16.dp)
                     ) {
@@ -697,9 +696,7 @@ fun SettingsScreen(
                                     modifier = Modifier
                                         .fillMaxWidth()
                                         .clip(RoundedCornerShape(10.dp))
-                                        .background(
-                                            if (earnedCoupon) MockupColors.BlueLight else MockupColors.CardBackground
-                                        )
+                                        .background(MockupColors.CardBackground)
                                         .padding(12.dp)
                                 ) {
                                     Row(
@@ -709,21 +706,19 @@ fun SettingsScreen(
                                     ) {
                                         Column {
                                             Text(
-                                                text = if (earnedCoupon) "친구 초대 쿠폰 획득!" else "95% 달성 시 친구 초대 쿠폰!",
+                                                text = "친구 초대 기능",
                                                 fontSize = 15.sp,
                                                 fontWeight = FontWeight.Bold,
-                                                color = if (earnedCoupon) MockupColors.Blue else MockupColors.TextPrimary
+                                                color = MockupColors.TextPrimary
                                             )
-                                            if (earnedCoupon) {
-                                                Text(
-                                                    text = "친구에게 1달 무료 선물하세요",
-                                                    fontSize = 13.sp,
-                                                    color = MockupColors.Blue
-                                                )
-                                            }
+                                            Text(
+                                                text = "구독 타입에 따라 초대 가능",
+                                                fontSize = 13.sp,
+                                                color = MockupColors.TextSecondary
+                                            )
                                         }
                                         PixelIcon(
-                                            iconName = if (earnedCoupon) "icon_trophy" else "icon_chest",
+                                            iconName = "icon_chest",
                                             size = 32.dp
                                         )
                                     }
@@ -1012,20 +1007,20 @@ fun SettingsScreen(
 
                                 Spacer(modifier = Modifier.height(16.dp))
 
-                                // ===== 보너스 초대 코드 (95% 달성 시) =====
+                                // ===== 보너스 초대 코드 (미사용 - 옛날 기능) =====
                                 Row(verticalAlignment = Alignment.CenterVertically) {
                                     Icon(
                                         imageVector = Icons.Filled.Info,
                                         contentDescription = "아이콘",
-                                        tint = if (earnedCoupon) MockupColors.Purple else MockupColors.TextMuted,
+                                        tint = MockupColors.TextMuted,
                                         modifier = Modifier.size(18.dp)
                                     )
                                     Spacer(modifier = Modifier.width(4.dp))
                                     Text(
-                                        text = "보너스 초대 코드 ${if (earnedCoupon) "" else "(95% 달성 시 활성화)"}",
+                                        text = "보너스 초대 코드",
                                         fontSize = 14.sp,
                                         fontWeight = FontWeight.Bold,
-                                        color = if (earnedCoupon) MockupColors.TextPrimary else MockupColors.TextMuted
+                                        color = MockupColors.TextMuted
                                     )
                                 }
                                 Spacer(modifier = Modifier.height(8.dp))
@@ -1034,13 +1029,11 @@ fun SettingsScreen(
                                     modifier = Modifier
                                         .fillMaxWidth()
                                         .border(2.dp, when {
-                                            bonusGuestEmail != null -> MockupColors.Purple
-                                            earnedCoupon -> MockupColors.Purple
+                                            bonusGuestEmail != null -> MockupColors.TextPrimary
                                             else -> MockupColors.Border
                                         }, RoundedCornerShape(8.dp))
                                         .background(when {
-                                            bonusGuestEmail != null -> MockupColors.PurpleLight
-                                            earnedCoupon -> MockupColors.PurpleLight
+                                            bonusGuestEmail != null -> MockupColors.CardBackground
                                             else -> MockupColors.Background.copy(alpha = 0.5f)
                                         }, RoundedCornerShape(8.dp))
                                         .padding(12.dp)
@@ -1053,7 +1046,7 @@ fun SettingsScreen(
                                                     Icon(
                                                         imageVector = Icons.Filled.CheckCircle,
                                                         contentDescription = "아이콘",
-                                                        tint = MockupColors.Purple,
+                                                        tint = MockupColors.TextPrimary,
                                                         modifier = Modifier.size(18.dp)
                                                     )
                                                     Spacer(modifier = Modifier.width(4.dp))
@@ -1061,7 +1054,7 @@ fun SettingsScreen(
                                                         text = "${bonusGuestEmail?.substringBefore("@")}님이 사용 중",
                                                         fontSize = 14.sp,
                                                         fontWeight = FontWeight.Bold,
-                                                        color = MockupColors.Purple
+                                                        color = MockupColors.TextPrimary
                                                     )
                                                 }
                                                 val bonusInfo = bonusGuestInfo
@@ -1075,44 +1068,7 @@ fun SettingsScreen(
                                                 }
                                             }
                                         }
-                                        // 95% 달성 & 미사용 - 코드 표시
-                                        earnedCoupon -> {
-                                            Row(
-                                                modifier = Modifier.fillMaxWidth(),
-                                                horizontalArrangement = Arrangement.SpaceBetween,
-                                                verticalAlignment = Alignment.CenterVertically
-                                            ) {
-                                                Text(
-                                                    text = bonusInviteCode,
-                                                    fontSize = 17.sp,
-                                                    fontWeight = FontWeight.Bold,
-                                                    color = MockupColors.Purple,
-                                                    fontFamily = kenneyFont
-                                                )
-                                                Box(
-                                                    modifier = Modifier
-                                                        .border(2.dp, MockupColors.Purple, RoundedCornerShape(6.dp))
-                                                        .background(MockupColors.CardBackground, RoundedCornerShape(6.dp))
-                                                        .clickable {
-                                                            hapticManager.success()
-                                                            val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-                                                            val clip = ClipData.newPlainText("bonus_code", bonusInviteCode)
-                                                            clipboard.setPrimaryClip(clip)
-                                                            Toast.makeText(context, "보너스 코드 복사 완료!", Toast.LENGTH_SHORT).show()
-                                                        }
-                                                        .padding(horizontal = 12.dp, vertical = 6.dp)
-                                                ) {
-                                                    Text(
-                                                        text = "복사",
-                                                        fontSize = 13.sp,
-                                                        fontWeight = FontWeight.Bold,
-                                                        color = MockupColors.Purple,
-                                                        fontFamily = kenneyFont
-                                                    )
-                                                }
-                                            }
-                                        }
-                                        // 95% 미달성 - 잠금
+                                        // 기본 상태 - 보너스 코드 표시
                                         else -> {
                                             Column {
                                                 Text(

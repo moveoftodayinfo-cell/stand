@@ -380,6 +380,10 @@ fun PetOnboardingScreen(
                     prefManager.setAccessibilitySetupCompleted(true)
                     prefManager.setAppSelectionCompleted(true)
                     prefManager.setTutorialCompleted(true)
+                    // 센서 초기 걸음수 리셋 (메인화면에서 깨끗하게 시작)
+                    prefManager.saveInitialSteps(-1)
+                    // 신규 유저 방어권 1개 지급
+                    prefManager.addStreakDefenseTickets(1)
                     // paidDeposit은 saveTutorialCompletionData에서 프로모션 여부 확인 후 설정
                     // 튜토리얼 진행 단계 초기화
                     prefManager.clearTutorialCurrentStep()
@@ -2924,39 +2928,51 @@ private fun WalkingTestStep(
     var goalAchieved by remember { mutableStateOf(false) }
     val notificationHelper = remember { com.moveoftoday.walkorwait.NotificationHelper(context) }
 
-    // 튜토리얼 진입 시 Health Connect 강제 비활성화 & 종료 시 복원
-    DisposableEffect(Unit) {
+    // 튜토리얼 진입 시 Health Connect 강제 비활성화
+    var originalUseHealthConnect by remember { mutableStateOf(false) }
+
+    // 서비스 재시작을 LaunchedEffect에서 처리 (비동기)
+    LaunchedEffect(Unit) {
         // 이전 Health Connect 설정 백업
-        val originalUseHealthConnect = preferenceManager.useHealthConnect()
+        originalUseHealthConnect = preferenceManager.useHealthConnect()
         android.util.Log.d("WalkingTest", "💾 Backup original useHealthConnect: $originalUseHealthConnect")
 
         // 강제로 기본 센서 사용하도록 설정
         preferenceManager.setUseHealthConnect(false)
         android.util.Log.d("WalkingTest", "🔧 Forced useHealthConnect = false for tutorial")
 
+        // 센서 초기 걸음수 리셋 (새로운 측정 시작)
+        preferenceManager.saveInitialSteps(-1)
+        android.util.Log.d("WalkingTest", "🔄 Reset initialSteps to -1")
+
         // StepCounterService 재시작 (설정 변경 반영)
         StepCounterService.stop(context)
-        Thread.sleep(100)
+        kotlinx.coroutines.delay(500)  // 서비스 완전 종료 대기 (비동기)
         StepCounterService.start(context)
         android.util.Log.d("WalkingTest", "🔄 Restarted StepCounterService with basic sensor")
+    }
 
+    // 튜토리얼 종료 시 원래 설정 복원
+    DisposableEffect(Unit) {
         onDispose {
-            // 튜토리얼 종료 시 원래 설정 복원
+            // 원래 설정 복원
             preferenceManager.setUseHealthConnect(originalUseHealthConnect)
             android.util.Log.d("WalkingTest", "🔙 Restored useHealthConnect to: $originalUseHealthConnect")
 
-            // StepCounterService 재시작 (설정 복원 반영)
-            StepCounterService.stop(context)
-            Thread.sleep(100)
-            StepCounterService.start(context)
-            android.util.Log.d("WalkingTest", "🔄 Restarted StepCounterService after tutorial")
+            // StepCounterService 재시작 (코루틴 스코프에서 비동기로)
+            kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.Dispatchers.Main).launch {
+                StepCounterService.stop(context)
+                kotlinx.coroutines.delay(500)
+                StepCounterService.start(context)
+                android.util.Log.d("WalkingTest", "🔄 Restarted StepCounterService after tutorial")
+            }
         }
     }
 
-    // Baseline 초기화
+    // Baseline 초기화 (서비스 재시작 완료 후)
     LaunchedEffect(Unit) {
-        // 서비스 시작 대기 후 baseline 업데이트
-        kotlinx.coroutines.delay(500)
+        // 서비스 시작 대기 후 baseline 업데이트 (stop 500ms + start 초기화 대기)
+        kotlinx.coroutines.delay(1500)
         baselineSteps = repository.getTodaySteps()
         android.util.Log.d("WalkingTest", "📊 Sensor baseline: $baselineSteps")
     }
@@ -3766,6 +3782,25 @@ fun PaymentScreen(
     var isVisible by remember { mutableStateOf(false) }
     LaunchedEffect(Unit) {
         isVisible = true
+
+        // 딥링크로 받은 프로모 코드 자동 적용
+        val pendingCode = preferenceManager.getPendingPromoCode()
+        if (!pendingCode.isNullOrBlank()) {
+            promoCode = pendingCode
+            showPromoInput = true
+            when (val result = promoCodeManager.validateAndApply(pendingCode)) {
+                is PromoCodeManager.PromoResult.Success -> {
+                    promoMessage = result.message
+                    isPromoApplied = true
+                    isPromoFree = result.freeDays > 0
+                    isPromoGuest = result.type == PromoCodeManager.PromoType.FRIEND_INVITE
+                }
+                is PromoCodeManager.PromoResult.Error -> {
+                    promoMessage = result.message
+                }
+            }
+            preferenceManager.clearPendingPromoCode()
+        }
     }
 
     // 펫 슬라이드 인 애니메이션

@@ -3,6 +3,7 @@ package com.moveoftoday.walkorwait.settings
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
+import android.content.Intent
 import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -11,9 +12,6 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -54,7 +52,6 @@ fun SettingsProfileScreen(
     val successDays = repository.getSuccessDays()
     val totalDays = preferenceManager?.getTotalControlDays() ?: 0
     val achievementRate = if (totalDays > 0) (successDays.toFloat() / totalDays * 100) else 0f
-    val earnedCoupon = SubscriptionModel.earnsFriendCoupon(achievementRate)
 
     // 결제 상태
     val isPaidDeposit = repository.isPaidDeposit()
@@ -71,7 +68,12 @@ fun SettingsProfileScreen(
     val userPart = userId.take(3).uppercase()
     val basicHash = (userId + monthId).hashCode().toString(16).takeLast(4).uppercase()
     val basicInviteCode = if (userId.isNotEmpty()) "REBON-$userPart$basicHash" else ""
-    val canShareInviteCode = isPaidDeposit && !isPromoFreeUser && basicInviteCode.isNotEmpty()
+    // 친구 초대 코드 공유 조건:
+    // 1. 결제자 (isPaidDeposit)
+    // 2. 프로모 무료 사용자 아님
+    // 3. 첫 결제일로부터 3일 경과 (canShareInviteCodeByDate)
+    val canShareByDate = preferenceManager?.canShareInviteCodeByDate() ?: false
+    val canShareInviteCode = isPaidDeposit && !isPromoFreeUser && canShareByDate && basicInviteCode.isNotEmpty()
 
     // 초대 정보
     var maxInvites by remember { mutableStateOf(1) }
@@ -124,6 +126,7 @@ fun SettingsProfileScreen(
                     .fillMaxSize()
                     .verticalScroll(rememberScrollState())
                     .padding(16.dp)
+                    .navigationBarsPadding()
             ) {
                 // ========== 이번 달 달성률 ==========
                 RetroSectionTitle("이번 달 달성률", kenneyFont)
@@ -131,7 +134,7 @@ fun SettingsProfileScreen(
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .border(3.dp, if (earnedCoupon) MockupColors.Blue else MockupColors.Border, RoundedCornerShape(12.dp))
+                        .border(3.dp, MockupColors.Border, RoundedCornerShape(12.dp))
                         .background(MockupColors.CardBackground, RoundedCornerShape(12.dp))
                         .padding(16.dp)
                 ) {
@@ -151,7 +154,7 @@ fun SettingsProfileScreen(
                                 text = "${achievementRate.toInt()}%",
                                 fontSize = 28.sp,
                                 fontWeight = FontWeight.Bold,
-                                color = if (earnedCoupon) MockupColors.Blue else MockupColors.TextPrimary,
+                                color = MockupColors.TextPrimary,
                                 fontFamily = kenneyFont
                             )
                         }
@@ -170,10 +173,7 @@ fun SettingsProfileScreen(
                                 modifier = Modifier
                                     .fillMaxHeight()
                                     .fillMaxWidth(achievementRate / 100f)
-                                    .background(
-                                        if (earnedCoupon) MockupColors.Blue else MockupColors.Red,
-                                        RoundedCornerShape(2.dp)
-                                    )
+                                    .background(MockupColors.TextPrimary, RoundedCornerShape(2.dp))
                             )
                         }
 
@@ -192,7 +192,7 @@ fun SettingsProfileScreen(
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .clip(RoundedCornerShape(10.dp))
-                                    .background(if (defenseTickets > 0) MockupColors.BlueLight else MockupColors.CardBackground)
+                                    .background(if (defenseTickets > 0) MockupColors.Border.copy(alpha = 0.15f) else MockupColors.CardBackground)
                                     .padding(12.dp)
                             ) {
                                 Row(
@@ -208,14 +208,14 @@ fun SettingsProfileScreen(
                                                 text = "streak 방어 티켓",
                                                 fontSize = 15.sp,
                                                 fontWeight = FontWeight.Bold,
-                                                color = if (defenseTickets > 0) MockupColors.Blue else MockupColors.TextPrimary
+                                                color = MockupColors.TextPrimary
                                             )
                                             Spacer(modifier = Modifier.width(8.dp))
                                             // 티켓 수 배지
                                             Box(
                                                 modifier = Modifier
                                                     .background(
-                                                        if (defenseTickets > 0) MockupColors.Blue else MockupColors.TextMuted,
+                                                        if (defenseTickets > 0) MockupColors.TextPrimary else MockupColors.TextMuted,
                                                         RoundedCornerShape(4.dp)
                                                     )
                                                     .padding(horizontal = 8.dp, vertical = 2.dp)
@@ -232,13 +232,13 @@ fun SettingsProfileScreen(
                                         Text(
                                             text = if (defenseTickets > 0) "하루 실패해도 streak 유지!" else "90% 달성 시 획득",
                                             fontSize = 13.sp,
-                                            color = if (defenseTickets > 0) MockupColors.Blue else MockupColors.TextMuted
+                                            color = if (defenseTickets > 0) MockupColors.TextPrimary else MockupColors.TextMuted
                                         )
                                     }
                                     PixelIcon(
                                         iconName = "icon_shield",
                                         size = 32.dp,
-                                        tint = if (defenseTickets > 0) MockupColors.Blue else MockupColors.TextMuted
+                                        tint = if (defenseTickets > 0) MockupColors.TextPrimary else MockupColors.TextMuted
                                     )
                                 }
                             }
@@ -257,8 +257,8 @@ fun SettingsProfileScreen(
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .border(3.dp, MockupColors.Blue, RoundedCornerShape(12.dp))
-                            .background(MockupColors.BlueLight, RoundedCornerShape(12.dp))
+                            .border(3.dp, MockupColors.Border, RoundedCornerShape(12.dp))
+                            .background(MockupColors.Border.copy(alpha = 0.1f), RoundedCornerShape(12.dp))
                             .padding(16.dp)
                     ) {
                         Column {
@@ -286,7 +286,7 @@ fun SettingsProfileScreen(
                                     text = "남은 초대: $remainingInvites/${maxInvites}명",
                                     fontSize = 13.sp,
                                     fontWeight = FontWeight.Bold,
-                                    color = if (remainingInvites > 0) MockupColors.Blue else MockupColors.TextMuted
+                                    color = if (remainingInvites > 0) MockupColors.TextPrimary else MockupColors.TextMuted
                                 )
                             }
 
@@ -296,7 +296,7 @@ fun SettingsProfileScreen(
                             InviteCodeBox(
                                 code = basicInviteCode,
                                 remainingInvites = remainingInvites,
-                                color = MockupColors.Blue,
+                                color = MockupColors.TextPrimary,
                                 kenneyFont = kenneyFont,
                                 context = context,
                                 hapticManager = hapticManager
@@ -321,17 +321,16 @@ fun SettingsProfileScreen(
                                         verticalAlignment = Alignment.CenterVertically,
                                         modifier = Modifier.padding(vertical = 2.dp)
                                     ) {
-                                        Icon(
-                                            imageVector = Icons.Filled.CheckCircle,
-                                            contentDescription = "아이콘",
-                                            tint = MockupColors.Green,
-                                            modifier = Modifier.size(16.dp)
+                                        Text(
+                                            text = UnicodeSymbols.CHECK,
+                                            fontSize = 14.sp,
+                                            color = MockupColors.TextPrimary
                                         )
                                         Spacer(modifier = Modifier.width(6.dp))
                                         Text(
                                             text = "${email.substringBefore("@")}님",
                                             fontSize = 13.sp,
-                                            color = MockupColors.Green
+                                            color = MockupColors.TextSecondary
                                         )
                                     }
                                 }
@@ -365,7 +364,7 @@ fun SettingsProfileScreen(
                                         text = "Google 연결됨",
                                         fontSize = 16.sp,
                                         fontWeight = FontWeight.Bold,
-                                        color = MockupColors.Green
+                                        color = MockupColors.TextPrimary
                                     )
                                     Text(
                                         text = googleEmail,
@@ -373,11 +372,11 @@ fun SettingsProfileScreen(
                                         color = MockupColors.TextSecondary
                                     )
                                 }
-                                Icon(
-                                    imageVector = Icons.Filled.CheckCircle,
-                                    contentDescription = "아이콘",
-                                    tint = MockupColors.Green,
-                                    modifier = Modifier.size(24.dp)
+                                Text(
+                                    text = UnicodeSymbols.CHECK,
+                                    fontSize = 22.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MockupColors.TextPrimary
                                 )
                             }
 
@@ -423,8 +422,8 @@ fun SettingsProfileScreen(
                             Box(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .border(2.dp, MockupColors.Blue, RoundedCornerShape(8.dp))
-                                    .background(MockupColors.BlueLight, RoundedCornerShape(8.dp))
+                                    .border(2.dp, MockupColors.Border, RoundedCornerShape(8.dp))
+                                    .background(MockupColors.Border.copy(alpha = 0.1f), RoundedCornerShape(8.dp))
                                     .clickable(enabled = !isGoogleLoading) {
                                         hapticManager.click()
                                         isGoogleLoading = true
@@ -457,14 +456,14 @@ fun SettingsProfileScreen(
                                     CircularProgressIndicator(
                                         modifier = Modifier.size(20.dp),
                                         strokeWidth = 2.dp,
-                                        color = MockupColors.Blue
+                                        color = MockupColors.TextPrimary
                                     )
                                 } else {
                                     Text(
                                         text = "Google로 로그인",
                                         fontSize = 16.sp,
                                         fontWeight = FontWeight.Bold,
-                                        color = MockupColors.Blue
+                                        color = MockupColors.TextPrimary
                                     )
                                 }
                             }
@@ -519,26 +518,61 @@ private fun InviteCodeBox(
                 fontFamily = kenneyFont
             )
             if (isActive) {
-                Box(
-                    modifier = Modifier
-                        .border(2.dp, color, RoundedCornerShape(6.dp))
-                        .background(MockupColors.CardBackground, RoundedCornerShape(6.dp))
-                        .clickable {
-                            hapticManager.success()
-                            val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-                            val clip = ClipData.newPlainText("invite_code", code)
-                            clipboard.setPrimaryClip(clip)
-                            Toast.makeText(context, "복사 완료!", Toast.LENGTH_SHORT).show()
-                        }
-                        .padding(horizontal = 12.dp, vertical = 6.dp)
-                ) {
-                    Text(
-                        text = "복사",
-                        fontSize = 13.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = color,
-                        fontFamily = kenneyFont
-                    )
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    // 복사 버튼
+                    Box(
+                        modifier = Modifier
+                            .border(2.dp, color, RoundedCornerShape(6.dp))
+                            .background(MockupColors.CardBackground, RoundedCornerShape(6.dp))
+                            .clickable {
+                                hapticManager.success()
+                                val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                                val clip = ClipData.newPlainText("invite_code", code)
+                                clipboard.setPrimaryClip(clip)
+                                Toast.makeText(context, "복사 완료!", Toast.LENGTH_SHORT).show()
+                            }
+                            .padding(horizontal = 12.dp, vertical = 6.dp)
+                    ) {
+                        Text(
+                            text = "복사",
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = color,
+                            fontFamily = kenneyFont
+                        )
+                    }
+                    // 공유 버튼
+                    Box(
+                        modifier = Modifier
+                            .border(2.dp, color, RoundedCornerShape(6.dp))
+                            .background(color.copy(alpha = 0.2f), RoundedCornerShape(6.dp))
+                            .clickable {
+                                hapticManager.success()
+                                val shareUrl = "https://stand-64c11.web.app/invite?code=$code"
+                                val shareText = """
+                                    |${UnicodeSymbols.FOOTPRINTS} rebon - 걸어서 앱을 해제하세요!
+                                    |
+                                    |친구가 rebon을 추천했어요.
+                                    |아래 링크로 가입하면 30일 무료!
+                                    |
+                                    |$shareUrl
+                                """.trimMargin()
+                                val intent = Intent(Intent.ACTION_SEND).apply {
+                                    type = "text/plain"
+                                    putExtra(Intent.EXTRA_TEXT, shareText)
+                                }
+                                context.startActivity(Intent.createChooser(intent, "초대 코드 공유"))
+                            }
+                            .padding(horizontal = 12.dp, vertical = 6.dp)
+                    ) {
+                        Text(
+                            text = "공유",
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = color,
+                            fontFamily = kenneyFont
+                        )
+                    }
                 }
             } else {
                 Text(

@@ -327,6 +327,15 @@ fun PetMainScreen(
     var showShareDialog by remember { mutableStateOf(false) }
     var isQuickShareMode by remember { mutableStateOf(false) }
 
+    // 신규 유저 방어권 지급 다이얼로그
+    var showWelcomeDefenseDialog by remember { mutableStateOf(false) }
+    LaunchedEffect(Unit) {
+        if (!preferenceManager.hasShownWelcomeDefenseDialog() &&
+            preferenceManager.getStreakDefenseTickets() > 0) {
+            showWelcomeDefenseDialog = true
+        }
+    }
+
     // 100% 달성 다이얼로그 표시 (외부에서 제어)
     LaunchedEffect(showGoalAchievedDialog) {
         if (showGoalAchievedDialog) {
@@ -354,6 +363,17 @@ fun PetMainScreen(
     if (showComingSoonDialog) {
         ComingSoonDialog(
             onDismiss = { showComingSoonDialog = false },
+            hapticManager = hapticManager
+        )
+    }
+
+    // 신규 유저 방어권 지급 다이얼로그
+    if (showWelcomeDefenseDialog) {
+        WelcomeDefenseDialog(
+            onDismiss = {
+                preferenceManager.setShownWelcomeDefenseDialog()
+                showWelcomeDefenseDialog = false
+            },
             hapticManager = hapticManager
         )
     }
@@ -1869,6 +1889,73 @@ private fun WeeklyMiniGraph(
                         color = if (isToday) MockupColors.TextPrimary else MockupColors.TextMuted
                     )
                 }
+            }
+        }
+    }
+}
+
+/**
+ * 신규 유저 방어권 지급 다이얼로그
+ */
+@Composable
+fun WelcomeDefenseDialog(
+    onDismiss: () -> Unit,
+    hapticManager: HapticManager? = null
+) {
+    androidx.compose.ui.window.Dialog(onDismissRequest = onDismiss) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(Color.White, RoundedCornerShape(16.dp))
+                .padding(24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            // 방패 아이콘
+            DrawableIcon(
+                iconName = "icon_shield",
+                size = 48.dp,
+                tint = MockupColors.TextPrimary
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Text(
+                text = "방어권 1개 지급!",
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Bold,
+                color = MockupColors.TextPrimary
+            )
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            Text(
+                text = "하루 목표를 놓쳐도\n방어권으로 연속 기록을 지킬 수 있어요",
+                fontSize = 14.sp,
+                color = MockupColors.TextSecondary,
+                textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                lineHeight = 20.sp
+            )
+
+            Spacer(modifier = Modifier.height(20.dp))
+
+            // 확인 버튼
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(Color.Black, RoundedCornerShape(12.dp))
+                    .clickable {
+                        hapticManager?.click()
+                        onDismiss()
+                    }
+                    .padding(14.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = "확인",
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White
+                )
             }
         }
     }

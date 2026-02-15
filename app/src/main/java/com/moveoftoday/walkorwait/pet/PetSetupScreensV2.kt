@@ -107,7 +107,7 @@ fun PetSelectionScreenV2(
             )
         ) {
             Text(
-                text = if (selectedPet != null) "${selectedPet!!.displayName} 선택하기" else "친구를 선택해주세요",
+                text = selectedPet?.let { "${it.displayName} 선택하기" } ?: "친구를 선택해주세요",
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Bold,
                 color = Color.White
@@ -454,22 +454,27 @@ fun PetSetupFlowV2(
         )
 
         // Step 1: Name input
-        1 -> PetNamingScreenV2(
-            petType = selectedPetType!!,
-            onComplete = { name ->
-                petName = name
+        1 -> {
+            val petType = selectedPetType
+            if (petType != null) {
+                PetNamingScreenV2(
+                    petType = petType,
+                    onComplete = { name ->
+                        petName = name
 
-                // Save V2 pet data
-                preferenceManager.savePetTypeV2(selectedPetType!!)
-                preferenceManager.savePetNameV2(name)
-                preferenceManager.savePetLevelV2(PetLevel(level = 0, currentExp = 0, totalExp = 0))  // Start at Egg stage
-                preferenceManager.savePetHappinessV2(100)
+                        // Save V2 pet data
+                        preferenceManager.savePetTypeV2(petType)
+                        preferenceManager.savePetNameV2(name)
+                        preferenceManager.savePetLevelV2(PetLevel(level = 0, currentExp = 0, totalExp = 0))  // Start at Egg stage
+                        preferenceManager.savePetHappinessV2(100)
 
-                currentStep = 2
-            },
-            hapticManager = hapticManager,
-            modifier = modifier
-        )
+                        currentStep = 2
+                    },
+                    hapticManager = hapticManager,
+                    modifier = modifier
+                )
+            }
+        }
 
         // Step 2: Hatching animation (optional - can skip to show egg first)
         2 -> {

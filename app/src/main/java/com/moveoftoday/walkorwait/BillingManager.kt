@@ -390,6 +390,11 @@ class BillingManager(
                     preferenceManager.initInvitesForSubscription(isYearly)
                     Log.d(TAG, "✅ Invites initialized: ${if (isYearly) 12 else 1} (${pendingSubscriptionType})")
 
+                    // 첫 실제 결제일 저장 (친구 초대 코드 3일 후 활성화용)
+                    val today = java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.getDefault()).format(java.util.Date())
+                    preferenceManager.saveFirstPaidDate(today)
+                    Log.d(TAG, "✅ First paid date saved: $today")
+
                     withContext(Dispatchers.Main) {
                         onPurchaseSuccess(purchase)
                     }

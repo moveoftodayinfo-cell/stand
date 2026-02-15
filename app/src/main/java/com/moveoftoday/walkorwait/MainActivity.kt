@@ -101,6 +101,9 @@ class MainActivity : ComponentActivity() {
             preferenceManager = PreferenceManager(this) // 하위 호환성을 위해 유지
             notificationHelper = NotificationHelper(this)
 
+            // 딥링크 처리 (친구 초대 코드)
+            handleDeepLink(intent)
+
             // 장비 시스템 초기화
             Log.d(TAG, "Initializing equipment system")
             preferenceManager.initializeDefaultEquipment()
@@ -180,6 +183,27 @@ class MainActivity : ComponentActivity() {
         checkWorryNotification()
     }
 
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        handleDeepLink(intent)
+    }
+
+    /**
+     * 딥링크 처리 - 친구 초대 코드 적용
+     * walkorwait://invite?code=REBON-XXXXX
+     */
+    private fun handleDeepLink(intent: Intent?) {
+        val uri = intent?.data
+        if (uri != null && uri.scheme == "walkorwait" && uri.host == "invite") {
+            val promoCode = uri.getQueryParameter("code")
+            if (!promoCode.isNullOrBlank()) {
+                Log.d(TAG, "Deep link received with promo code: $promoCode")
+                preferenceManager.savePendingPromoCode(promoCode)
+            }
+        }
+    }
+
     /**
      * 걱정 알림 체크 - 평소 운동 시간에 움직임이 없으면 알림
      */
@@ -188,7 +212,12 @@ class MainActivity : ComponentActivity() {
         if (!::preferenceManager.isInitialized || !::notificationHelper.isInitialized) {
             return
         }
-        
+
+        // 알림 설정이 꺼져있으면 스킵
+        if (!preferenceManager.isWorryNotificationEnabled()) {
+            return
+        }
+
         if (preferenceManager.shouldShowWorryNotification() &&
             !preferenceManager.hasShownWorryNotificationToday()) {
             val petName = preferenceManager.getPetName() ?: "펫"
@@ -984,7 +1013,12 @@ fun WalkOrWaitScreen(
         }
     }
 
-    var previousGoalAchieved by remember { mutableStateOf(false) }
+    // 앱 재시작 시 이미 목표 달성 상태면 true로 초기화 (중복 알림 방지)
+    var previousGoalAchieved by remember {
+        mutableStateOf(
+            (preferenceManager?.getCurrentProgress() ?: 0.0) >= (preferenceManager?.getGoal()?.toDouble() ?: 8000.0)
+        )
+    }
     var triggerCelebration by remember { mutableStateOf(false) }
     var showGoalAchievedDialog by remember { mutableStateOf(false) }  // 100% 달성 다이얼로그
 
@@ -1025,7 +1059,12 @@ fun WalkOrWaitScreen(
             if (isNowAchieved && !previousGoalAchieved) {
                 // 목표 달성 순간 - 햅틱 + 애니메이션 + 알림
                 hapticManager.goalAchieved()
-                notificationHelper.showGoalAchievedNotification(goalDisplay, goalUnit)
+                // 알림 중복 방지: 오늘 이미 보냈으면 스킵
+                if (preferenceManager?.isGoalNotificationEnabled() == true &&
+                    preferenceManager?.hasShownGoalNotificationToday() == false) {
+                    notificationHelper.showGoalAchievedNotification(goalDisplay, goalUnit)
+                    preferenceManager?.setGoalNotificationShown()
+                }
                 triggerCelebration = true
                 preferenceManager?.recordTodaySuccess()  // 자유시간 포함 달성일수 기록
                 successDays = preferenceManager?.getSuccessDays() ?: 0

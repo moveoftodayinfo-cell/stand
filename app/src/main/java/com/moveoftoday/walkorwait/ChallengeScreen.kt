@@ -326,34 +326,28 @@ private fun ChallengeBox(
             .clickable { onClick() }
             .padding(8.dp)
     ) {
-        // 아이콘 + 이름 (중앙 고정)
-        Column(
-            modifier = Modifier.align(Alignment.Center),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Box(
-                modifier = Modifier
-                    .background(Color.White, RoundedCornerShape(8.dp))
-                    .padding(4.dp)
-            ) {
-                Image(
-                    painter = painterResource(id = challenge.iconRes),
-                    contentDescription = challenge.name,
-                    modifier = Modifier.height(36.dp),
-                    contentScale = ContentScale.FillHeight
-                )
-            }
+        // 아이콘 (중앙 상단)
+        Image(
+            painter = painterResource(id = challenge.iconRes),
+            contentDescription = challenge.name,
+            modifier = Modifier
+                .align(Alignment.Center)
+                .offset(y = (-16).dp)
+                .height(72.dp),
+            contentScale = ContentScale.FillHeight
+        )
 
-            Spacer(modifier = Modifier.height(4.dp))
-
-            Text(
-                text = challenge.name,
-                fontSize = 11.sp,
-                fontWeight = FontWeight.SemiBold,
-                color = Color.Black,
-                textAlign = TextAlign.Center
-            )
-        }
+        // 이름 (하단 고정 - 완료 횟수 유무와 관계없이 동일 위치)
+        Text(
+            text = challenge.name,
+            fontSize = 11.sp,
+            fontWeight = FontWeight.SemiBold,
+            color = Color.Black,
+            textAlign = TextAlign.Center,
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .offset(y = (-14).dp)
+        )
 
         // 완료 횟수 (하단 고정)
         if (completionCount > 0) {

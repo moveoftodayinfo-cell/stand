@@ -244,15 +244,17 @@ class AppBlockService : AccessibilityService() {
         val goalText = if (goalUnit == "km") String.format("%.2f", goal) else goal.toInt().toString()
         val remainingText = if (goalUnit == "km") String.format("%.2f", remaining) else remaining.toInt().toString()
 
-        // Notification 표시 (상세 정보 포함)
-        notificationHelper.showBlockedNotification(
-            packageName,
-            currentProgress,
-            goal,
-            remaining,
-            estimatedTime,
-            goalUnit
-        )
+        // Notification 표시 (상세 정보 포함) - 설정에서 켜져있을 때만
+        if (prefs.isBlockNotificationEnabled()) {
+            notificationHelper.showBlockedNotification(
+                packageName,
+                currentProgress,
+                goal,
+                remaining,
+                estimatedTime,
+                goalUnit
+            )
+        }
 
         // 홈 화면으로 이동
         val homeIntent = Intent(Intent.ACTION_MAIN).apply {

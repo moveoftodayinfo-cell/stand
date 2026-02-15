@@ -62,6 +62,7 @@ fun SettingsSupportScreen(
                     .fillMaxSize()
                     .verticalScroll(rememberScrollState())
                     .padding(16.dp)
+                    .navigationBarsPadding()
             ) {
                 // ========== 불편사항 접수 ==========
                 RetroSectionTitle("불편사항 접수", kenneyFont)
@@ -69,8 +70,8 @@ fun SettingsSupportScreen(
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .border(3.dp, MockupColors.Blue, RoundedCornerShape(12.dp))
-                        .background(MockupColors.BlueLight, RoundedCornerShape(12.dp))
+                        .border(3.dp, MockupColors.Border, RoundedCornerShape(12.dp))
+                        .background(MockupColors.Border.copy(alpha = 0.1f), RoundedCornerShape(12.dp))
                         .clickable {
                             hapticManager.click()
                             showFeedbackDialog = true
@@ -87,7 +88,7 @@ fun SettingsSupportScreen(
                                 text = "피드백 보내기",
                                 fontSize = 16.sp,
                                 fontWeight = FontWeight.Bold,
-                                color = MockupColors.Blue
+                                color = MockupColors.TextPrimary
                             )
                             Text(
                                 text = "불편사항이나 개선 의견을 알려주세요",
@@ -95,9 +96,10 @@ fun SettingsSupportScreen(
                                 color = MockupColors.TextSecondary
                             )
                         }
-                        Text(
-                            text = "💬",
-                            fontSize = 28.sp
+                        PixelIcon(
+                            iconName = "icon_comment",
+                            size = 28.dp,
+                            tint = MockupColors.TextPrimary
                         )
                     }
                 }
@@ -347,8 +349,8 @@ private fun FeedbackDialog(
                     Box(
                         modifier = Modifier
                             .weight(1f)
-                            .border(2.dp, MockupColors.Blue, RoundedCornerShape(8.dp))
-                            .background(MockupColors.Blue, RoundedCornerShape(8.dp))
+                            .border(2.dp, MockupColors.TextPrimary, RoundedCornerShape(8.dp))
+                            .background(MockupColors.TextPrimary, RoundedCornerShape(8.dp))
                             .clickable(enabled = feedbackText.isNotBlank()) {
                                 hapticManager.success()
                                 onSubmit(feedbackText)
