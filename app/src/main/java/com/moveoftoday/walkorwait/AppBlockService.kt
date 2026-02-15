@@ -256,12 +256,34 @@ class AppBlockService : AccessibilityService() {
             )
         }
 
-        // 홈 화면으로 이동
-        val homeIntent = Intent(Intent.ACTION_MAIN).apply {
-            addCategory(Intent.CATEGORY_HOME)
-            flags = Intent.FLAG_ACTIVITY_NEW_TASK
+        // 튜토리얼 중이면 앱으로 복귀, 아니면 홈으로
+        val isTutorialCompleted = prefs.isTutorialCompleted()
+        if (!isTutorialCompleted) {
+            // 튜토리얼 모드: 잠시 후 앱으로 복귀 (차단 확인할 시간 주기)
+            Log.d(TAG, "🎓 Tutorial mode - returning to app after delay")
+
+            // 먼저 홈으로 이동 (차단된 걸 보여주기 위해)
+            val homeIntent = Intent(Intent.ACTION_MAIN).apply {
+                addCategory(Intent.CATEGORY_HOME)
+                flags = Intent.FLAG_ACTIVITY_NEW_TASK
+            }
+            startActivity(homeIntent)
+
+            // 3초 후 앱으로 복귀
+            handler.postDelayed({
+                val appIntent = Intent(this, MainActivity::class.java).apply {
+                    flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+                }
+                startActivity(appIntent)
+            }, 3000)
+        } else {
+            // 일반 모드: 홈 화면으로 이동
+            val homeIntent = Intent(Intent.ACTION_MAIN).apply {
+                addCategory(Intent.CATEGORY_HOME)
+                flags = Intent.FLAG_ACTIVITY_NEW_TASK
+            }
+            startActivity(homeIntent)
         }
-        startActivity(homeIntent)
 
         // Toast 알림 (친근한 메시지)
         handler.post {
@@ -280,6 +302,20 @@ class AppBlockService : AccessibilityService() {
         prefs = PreferenceManager(this)
         notificationHelper = NotificationHelper(this)
         hapticManager = HapticManager(this)
+
+        // 접근성 설정 후 앱으로 자동 복귀
+        if (prefs.isAwaitingAccessibilityReturn()) {
+            Log.d(TAG, "🔄 Returning to app after accessibility setup")
+            prefs.clearAwaitingAccessibilityReturn()
+
+            // 약간의 딜레이 후 앱 실행 (설정 화면 닫히는 시간 고려)
+            handler.postDelayed({
+                val intent = Intent(this, MainActivity::class.java).apply {
+                    flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+                }
+                startActivity(intent)
+            }, 300)
+        }
     }
 
     override fun onDestroy() {

@@ -236,15 +236,21 @@ fun PetMainScreen(
         }
     }
 
-    // 현재 상태에 맞는 대사를 가져오는 함수 (진행률 대사 + 30% AI 명언)
+    // 현재 상태에 맞는 대사를 가져오는 함수 (진행률 대사 + 30% AI 명언 + 15% 기능 팁)
     fun getCurrentSpeech(): String {
-        // 30% 확률로 AI 명언 표시
-        val showAIQuote = (0..9).random() < 3
-        if (showAIQuote) {
+        val randomValue = (0..99).random()
+
+        // 15% 확률로 기능 팁 표시 (V2 펫일 때만)
+        if (randomValue < 15 && petStateV2 != null) {
+            return PetDialoguesV2.getFeatureTipMessage(petStateV2.personality)
+        }
+
+        // 30% 확률로 AI 명언 표시 (15-44)
+        if (randomValue < 45) {
             return PetAIQuoteManager.getQuote(petType.personality)
         }
 
-        // 진행률 기반 대사
+        // 진행률 기반 대사 (55%)
         return when {
             isFreeTime -> PetDialogues.getFreeTimeMessage(petType.personality)
             progressPercent > 100 -> PetDialogues.getOverAchievedMessage(petType.personality, progressPercent)

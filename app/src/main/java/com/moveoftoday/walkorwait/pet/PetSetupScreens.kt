@@ -687,6 +687,8 @@ fun PetAccessibilityScreen(
                 text = "설정 화면으로",
                 onClick = {
                     hapticManager?.click()
+                    // 접근성 설정 후 앱으로 자동 복귀하기 위한 플래그 설정
+                    com.moveoftoday.walkorwait.PreferenceManager(context).setAwaitingAccessibilityReturn(true)
                     val intent = Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)
                     context.startActivity(intent)
                 }

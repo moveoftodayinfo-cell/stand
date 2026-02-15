@@ -35,56 +35,30 @@ object PetAIQuoteManager {
     private var apiKey: String = ""
     private var apiKeyLoaded = false
 
-    // 기본 명언 (AI 실패 시 폴백) - 실제 유명인 명언, 성격별 말투
+    // 기본 명언 (AI 실패 시 폴백) - 원본 명언 그대로
+    private val originalQuotes = listOf(
+        "시작이 반이다. -아리스토텔레스",
+        "천 리 길도 한 걸음부터. -노자",
+        "느려도 멈추지만 않으면 된다. -공자",
+        "걷는 것이 최고의 약이다. -히포크라테스",
+        "할 수 있다고 믿으면 이미 반은 온 것이다. -헨리 포드",
+        "오늘 할 일을 내일로 미루지 마라. -벤자민 프랭클린",
+        "위대한 일은 작은 일들이 모여 이루어진다. -빈센트 반 고흐",
+        "행동이 모든 성공의 열쇠다. -파블로 피카소",
+        "꾸준함이 천재를 이긴다. -속담",
+        "오늘 심은 나무가 내일의 그늘이 된다. -속담",
+        "매일 조금씩 나아가면 된다. -존 우든",
+        "몸이 움직이면 마음도 따라온다. -윌리엄 제임스"
+    )
+
+    // 성격별 매핑 제거 - 모든 성격에 동일한 원본 명언 사용
     private val defaultQuotes = mapOf(
-        // 상남자: 짧고 단호하게
-        PetPersonality.TOUGH to listOf(
-            "시작이 반이다 -아리스토텔레스",
-            "천 리 길도 한 걸음부터다 -노자",
-            "멈추지 마. 느려도 된다 -공자",
-            "할 수 있다고 믿어라 -헨리 포드",
-            "걷는 게 최고의 약이다 -히포크라테스"
-        ),
-        // MZ: ㅋㅋ 붙이고 가볍게
-        PetPersonality.CUTE to listOf(
-            "시작이 반이래ㅋ -아리스토텔레스",
-            "천 리 길도 한 걸음부터래ㅋ -노자",
-            "느려도 멈추지만 않으면 된대ㅋ -공자",
-            "걷기가 최고의 운동이래ㅋ -히포크라테스",
-            "생각하는 대로 살라래ㅋ -폴 발레리"
-        ),
-        // 츤데레: ...으로 뜸 들이기
-        PetPersonality.TSUNDERE to listOf(
-            "뭐... 시작이 반이래 -아리스토텔레스",
-            "흥, 천 리 길도 한 걸음부터래 -노자",
-            "...느려도 멈추지만 않으면 된대 -공자",
-            "뭐, 걷는 게 최고 운동이래 -히포크라테스",
-            "...위대한 일은 작게 시작한대 -피터 드러커"
-        ),
-        // 사투리: 20대 부산 여자, 쿨하게
-        PetPersonality.DIALECT to listOf(
-            "시작이 반이래 -아리스토텔레스",
-            "천 리 길도 한 걸음부터라네 -노자",
-            "느려도 멈추지만 않으면 된다 -공자",
-            "걷기가 최고 운동이래 -히포크라테스",
-            "오늘 할 일 미루지 말래 -벤자민 프랭클린"
-        ),
-        // 소심: 존댓말 + ...
-        PetPersonality.TIMID to listOf(
-            "저... 시작이 반이래요 -아리스토텔레스",
-            "저, 천 리 길도 한 걸음부터래요... -노자",
-            "느려도 멈추지만 않으면 된대요... -공자",
-            "저... 걷기가 최고 운동이래요 -히포크라테스",
-            "작은 기회가 큰 일의 시작이래요... -데모스테네스"
-        ),
-        // 긍정: ! 붙여서 밝게
-        PetPersonality.POSITIVE to listOf(
-            "시작이 반이래! -아리스토텔레스",
-            "천 리 길도 한 걸음부터래! -노자",
-            "느려도 멈추지만 않으면 돼! -공자",
-            "걷기가 최고의 운동이래! -히포크라테스",
-            "오늘 심은 나무가 내일 그늘이 돼! -속담"
-        )
+        PetPersonality.TOUGH to originalQuotes,
+        PetPersonality.CUTE to originalQuotes,
+        PetPersonality.TSUNDERE to originalQuotes,
+        PetPersonality.DIALECT to originalQuotes,
+        PetPersonality.TIMID to originalQuotes,
+        PetPersonality.POSITIVE to originalQuotes
     )
 
     /**
@@ -216,38 +190,27 @@ object PetAIQuoteManager {
     }
 
     /**
-     * 성격별 프롬프트
+     * 명언 생성 프롬프트 (원본 그대로)
      */
     private fun getQuotePrompt(personality: PetPersonality, petName: String): Pair<String, String> {
         val systemPrompt = """
-            너는 걷기 앱의 펫 캐릭터 "$petName"이야.
-            실제 유명인의 명언을 캐릭터 말투로 전달해줘.
+            실제 유명인의 명언을 원본 그대로 전달해줘.
 
             규칙:
             - 실제 존재하는 유명인(철학자, 작가, 운동선수, 기업인 등)의 명언만 사용
-            - 형식: 명언내용이래ㅋ -인물이름 (따옴표 없이, ~이래/~래 형태로)
-            - 명언은 15자 이내로 짧게
-            - 걷기, 운동, 도전, 성공, 인생, 노력 관련 명언
+            - 형식: 명언 원문. -인물이름
+            - 명언은 20자 이내로 짧게
+            - 걷기, 운동, 도전, 성공, 인생, 노력, 꾸준함 관련 명언
             - 이모지 사용 금지
+            - 말투 변형 없이 원본 그대로
             - 줄바꿈으로 구분해서 5개 출력
             - 번호 없이 명언만 출력
         """.trimIndent()
 
-        val personalityInstruction = when (personality) {
-            PetPersonality.TOUGH -> "상남자 말투. 짧고 단호하게. ~다, ~해라 체. 예: '시작이 반이다 -아리스토텔레스', '멈추지 마 -공자'"
-            PetPersonality.CUTE -> "MZ 말투. ㅋ 붙이고 가볍게. 예: '시작이 반이래ㅋ -아리스토텔레스', '멈추지 말래ㅋ -공자'"
-            PetPersonality.TSUNDERE -> "츤데레 말투. '뭐...', '흥,' 시작. 예: '뭐... 시작이 반이래 -아리스토텔레스', '흥, 멈추지 말래 -공자'"
-            PetPersonality.DIALECT -> "20대 부산 여자 말투. 쿨하게 ~네, ~다, ~래 체. 예: '시작이 반이래 -아리스토텔레스', '걷기가 최고래 -히포크라테스'"
-            PetPersonality.TIMID -> "소심한 말투. '저...' 시작, 존댓말. 예: '저... 시작이 반이래요 -아리스토텔레스'"
-            PetPersonality.POSITIVE -> "긍정 말투. ! 붙여서 밝게. 예: '시작이 반이래! -아리스토텔레스', '할 수 있어! -헨리 포드'"
-        }
-
         val userMessage = """
-            $personalityInstruction
-
-            걷기/운동/도전/성공 관련 실제 유명인 명언 5개.
-            형식: 성격에 맞는 말투로 명언 전달 -인물이름
-            줄바꿈으로 구분, 따옴표 없이.
+            걷기/운동/도전/성공/꾸준함 관련 실제 유명인 명언 5개.
+            형식: 명언 원문. -인물이름
+            줄바꿈으로 구분, 따옴표 없이, 말투 변형 없이 원본 그대로.
         """.trimIndent()
 
         return Pair(systemPrompt, userMessage)

@@ -2466,4 +2466,28 @@ class PreferenceManager(context: Context) {
     fun setBlockNotificationEnabled(enabled: Boolean) {
         prefs.edit().putBoolean("notification_block_enabled", enabled).apply()
     }
+
+    // ========== 접근성 설정 후 자동 복귀 ==========
+
+    /**
+     * 접근성 설정 화면으로 이동 전 플래그 설정
+     * 서비스가 연결되면 이 플래그를 확인하고 앱으로 복귀
+     */
+    fun setAwaitingAccessibilityReturn(awaiting: Boolean) {
+        prefs.edit().putBoolean("awaiting_accessibility_return", awaiting).apply()
+    }
+
+    /**
+     * 접근성 설정 후 앱 복귀 대기 중인지 확인
+     */
+    fun isAwaitingAccessibilityReturn(): Boolean {
+        return prefs.getBoolean("awaiting_accessibility_return", false)
+    }
+
+    /**
+     * 접근성 복귀 플래그 클리어
+     */
+    fun clearAwaitingAccessibilityReturn() {
+        prefs.edit().remove("awaiting_accessibility_return").apply()
+    }
 }
