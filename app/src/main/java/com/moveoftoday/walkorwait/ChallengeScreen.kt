@@ -24,6 +24,7 @@ import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -40,22 +41,32 @@ fun ChallengeScreen(
     val context = LocalContext.current
     val challengeManager = remember { ChallengeManager.getInstance(context) }
 
+    // Localized category strings
+    val allCategory = stringResource(R.string.all)
+    val categoryReading = stringResource(R.string.category_reading)
+    val categoryMeditation = stringResource(R.string.category_meditation)
+    val categoryStudy = stringResource(R.string.category_study)
+    val categoryExercise = stringResource(R.string.category_exercise)
+    val categoryWellness = stringResource(R.string.category_wellness)
+
     var searchQuery by remember { mutableStateOf("") }
-    var selectedCategory by remember { mutableStateOf<String?>("전체") }
+    var selectedCategory by remember(allCategory) { mutableStateOf<String?>(allCategory) }
 
-    val categories = listOf("전체", "독서", "명상", "공부", "운동", "웰니스")
+    val categories = listOf(allCategory, categoryReading, categoryMeditation, categoryStudy, categoryExercise, categoryWellness)
 
-    val filteredChallenges = remember(searchQuery, selectedCategory) {
+    val filteredChallenges = remember(searchQuery, selectedCategory, allCategory) {
         if (searchQuery.isNotBlank()) {
             challengeManager.searchChallenges(searchQuery)
+        } else if (selectedCategory == allCategory) {
+            challengeManager.getChallengesByCategory(null)
         } else {
             challengeManager.getChallengesByCategory(selectedCategory)
         }
     }
 
     // 전체 선택 시 카테고리별로 그룹화
-    val challengesByCategory = remember(filteredChallenges, selectedCategory) {
-        if (selectedCategory == "전체") {
+    val challengesByCategory = remember(filteredChallenges, selectedCategory, allCategory) {
+        if (selectedCategory == allCategory) {
             filteredChallenges.groupBy { it.category }
         } else {
             emptyMap()
@@ -102,7 +113,7 @@ fun ChallengeScreen(
                 .padding(horizontal = 12.dp, vertical = 10.dp)
         ) {
             Text(
-                text = "챌린지를 완료하고 펫 칭호를 획득하세요!",
+                text = stringResource(R.string.complete_challenge_earn_title),
                 fontSize = 13.sp,
                 color = Color(0xFF666666),
                 textAlign = TextAlign.Center,
@@ -124,7 +135,7 @@ fun ChallengeScreen(
             )
             Spacer(modifier = Modifier.width(8.dp))
             Text(
-                text = "챌린지 목록",
+                text = stringResource(R.string.challenge_list),
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Bold,
                 color = Color.Black
@@ -132,7 +143,7 @@ fun ChallengeScreen(
         }
 
         // 챌린지 목록 (전체 선택 시 카테고리별 그룹화)
-        if (selectedCategory == "전체" && challengesByCategory.isNotEmpty()) {
+        if (selectedCategory == allCategory && challengesByCategory.isNotEmpty()) {
             // 카테고리별 섹션
             LazyColumn(
                 contentPadding = PaddingValues(bottom = 80.dp),
@@ -262,7 +273,7 @@ private fun SearchBox(
             decorationBox = { innerTextField ->
                 if (query.isEmpty()) {
                     Text(
-                        text = "챌린지 검색...",
+                        text = stringResource(R.string.search_challenge),
                         fontSize = 14.sp,
                         color = Color(0xFF999999)
                     )
@@ -352,7 +363,7 @@ private fun ChallengeBox(
         // 완료 횟수 (하단 고정)
         if (completionCount > 0) {
             Text(
-                text = "${completionCount}회 완료",
+                text = stringResource(R.string.completed_times, completionCount),
                 fontSize = 9.sp,
                 color = Color(0xFF666666),
                 fontWeight = FontWeight.Medium,

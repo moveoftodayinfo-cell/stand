@@ -32,6 +32,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.compose.foundation.Image
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.graphics.ColorFilter
 import com.moveoftoday.walkorwait.BuildConfig
 import com.moveoftoday.walkorwait.ChallengeManager
@@ -860,7 +861,7 @@ fun PetMainScreen(
                     PixelIcon(iconName = "icon_check", size = 16.dp, tint = MockupColors.TextMuted)
                     Spacer(modifier = Modifier.width(6.dp))
                     Text(
-                        text = "자유 시간",
+                        text = stringResource(R.string.free_time),
                         fontSize = 14.sp,
                         fontWeight = FontWeight.Medium,
                         color = MockupColors.TextMuted
@@ -869,7 +870,7 @@ fun PetMainScreen(
                     PixelIcon(iconName = "icon_star", size = 16.dp, tint = MockupColors.TextSecondary)
                     Spacer(modifier = Modifier.width(6.dp))
                     Text(
-                        text = "목표 진행중",
+                        text = stringResource(R.string.goal_in_progress),
                         fontSize = 14.sp,
                         fontWeight = FontWeight.Medium,
                         color = MockupColors.TextSecondary
@@ -917,14 +918,14 @@ fun PetMainScreen(
             Text(
                 text = if (isFreeTime) {
                     // 자유시간: "오늘 X보" 형식
-                    if (isKmMode) "오늘 %.2f km".format(displayCurrent) else "오늘 %,d 보".format(stepCount)
+                    if (isKmMode) stringResource(R.string.today_km, displayCurrent) else stringResource(R.string.today_steps, stepCount)
                 } else if (isGoalAchieved) {
                     // 목표 달성 후에도 걸은 만큼 표시
-                    if (isKmMode) "%.2f km 달성!".format(displayCurrent) else "%,d 보 달성!".format(stepCount)
+                    if (isKmMode) stringResource(R.string.km_achieved, displayCurrent) else stringResource(R.string.steps_achieved, stepCount)
                 } else if (isKmMode) {
-                    "%.2f km 남음".format(remainingKm)
+                    stringResource(R.string.km_remaining, remainingKm)
                 } else {
-                    "%,d 보 남음".format(remainingSteps)
+                    stringResource(R.string.steps_remaining, remainingSteps)
                 },
                 fontSize = 15.sp,
                 fontWeight = FontWeight.Medium,
@@ -941,14 +942,14 @@ fun PetMainScreen(
                 if (isFreeTime) {
                     PixelIcon(iconName = "icon_check", size = 16.dp, tint = MockupColors.TextMuted)
                     Text(
-                        text = "앱 자유롭게 사용",
+                        text = stringResource(R.string.use_apps_freely),
                         fontSize = 14.sp,
                         color = MockupColors.TextMuted
                     )
                 } else {
                     PixelIcon(iconName = "icon_time", size = 16.dp, tint = MockupColors.TextSecondary)
                     Text(
-                        text = if (isGoalAchieved) "목표 달성! 앱 사용 가능" else "앱 차단 ${getBlockedTimeText()}",
+                        text = if (isGoalAchieved) stringResource(R.string.goal_achieved_apps_available) else stringResource(R.string.apps_blocked, getBlockedTimeText()),
                         fontSize = 14.sp,
                         color = MockupColors.TextSecondary
                     )
@@ -970,7 +971,7 @@ fun PetMainScreen(
 
         // 5. Action Button - 챌린지 하러가기 (큰 CTA 버튼)
         MockupButton(
-            text = "챌린지 하러가기",
+            text = stringResource(R.string.go_to_challenge),
             onClick = {
                 hapticManager?.click()
                 onChallengeClick()
@@ -1012,7 +1013,7 @@ fun ComingSoonDialog(
 
                 // 타이틀
                 Text(
-                    text = "준비중",
+                    text = stringResource(R.string.preparing_challenge_title),
                     fontSize = 24.sp,
                     fontFamily = kenneyFont,
                     fontWeight = FontWeight.Bold,
@@ -1023,7 +1024,7 @@ fun ComingSoonDialog(
 
                 // 설명
                 Text(
-                    text = "챌린지 기능을 준비하고 있어요!\n조금만 기다려주세요.",
+                    text = stringResource(R.string.preparing_challenge_message),
                     fontSize = 14.sp,
                     color = MockupColors.TextSecondary,
                     textAlign = androidx.compose.ui.text.style.TextAlign.Center
@@ -1033,7 +1034,7 @@ fun ComingSoonDialog(
 
                 // 확인 버튼
                 MockupButton(
-                    text = "확인",
+                    text = stringResource(R.string.confirm),
                     onClick = {
                         hapticManager?.click()
                         onDismiss()
@@ -1267,7 +1268,7 @@ fun PetMainContent(
                     ) {
                         PixelIcon(iconName = "icon_boots", size = 16.dp)
                         Text(
-                            text = if (isGoalAchieved) "목표 달성!" else if (isKmMode) "목표까지 %.2f km".format(displayRemaining) else "목표까지 %,d보".format(goalSteps - stepCount),
+                            text = if (isGoalAchieved) stringResource(R.string.goal_achieved) else if (isKmMode) stringResource(R.string.km_to_goal, displayRemaining) else stringResource(R.string.steps_to_goal, goalSteps - stepCount),
                             fontSize = 14.sp,
                             color = if (isGoalAchieved) Color(0xFF4CAF50) else MockupColors.TextSecondary
                         )
@@ -1361,7 +1362,7 @@ fun TitleUnlockedDialog(
         ) {
             // 타이틀
             Text(
-                text = "새 칭호 획득!",
+                text = stringResource(R.string.new_title_earned),
                 fontSize = 20.sp,
                 fontFamily = kenneyFont,
                 fontWeight = FontWeight.Bold,
@@ -1417,7 +1418,7 @@ fun TitleUnlockedDialog(
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text = "나중에",
+                        text = stringResource(R.string.later),
                         fontSize = 14.sp,
                         fontWeight = FontWeight.Bold,
                         color = Color.Black
@@ -1437,7 +1438,7 @@ fun TitleUnlockedDialog(
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text = "장착하기",
+                        text = stringResource(R.string.equip),
                         fontSize = 14.sp,
                         fontWeight = FontWeight.Bold,
                         color = Color.White
@@ -1473,7 +1474,7 @@ fun TitleSelectionDialog(
         ) {
             // 타이틀
             Text(
-                text = "칭호 선택",
+                text = stringResource(R.string.select_title),
                 fontSize = 20.sp,
                 fontFamily = kenneyFont,
                 fontWeight = FontWeight.Bold,
@@ -1484,7 +1485,7 @@ fun TitleSelectionDialog(
 
             // 칭호 없음 옵션
             TitleOptionItem(
-                title = "없음",
+                title = stringResource(R.string.none),
                 isSelected = equippedTitle == null,
                 onClick = {
                     hapticManager?.click()
@@ -1497,7 +1498,7 @@ fun TitleSelectionDialog(
             // 획득한 칭호들
             if (unlockedTitles.isEmpty()) {
                 Text(
-                    text = "아직 획득한 칭호가 없어요\n챌린지를 완료하면 칭호를 얻을 수 있어요!",
+                    text = stringResource(R.string.no_titles_yet),
                     fontSize = 13.sp,
                     color = Color(0xFF999999),
                     textAlign = androidx.compose.ui.text.style.TextAlign.Center,
@@ -1532,7 +1533,7 @@ fun TitleSelectionDialog(
                 contentAlignment = Alignment.Center
             ) {
                 Text(
-                    text = "닫기",
+                    text = stringResource(R.string.close),
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Bold,
                     color = Color.White
@@ -1576,7 +1577,7 @@ private fun TitleOptionItem(
             if (isSelected) {
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
-                    text = "장착중",
+                    text = stringResource(R.string.equipped),
                     fontSize = 11.sp,
                     color = Color(0xFF666666)
                 )
@@ -1626,7 +1627,7 @@ private fun RecentChallengesRow(
         } else {
             // 추천 챌린지 표시
             Text(
-                text = "추천",
+                text = stringResource(R.string.recommended),
                 fontSize = 12.sp,
                 color = MockupColors.TextMuted
             )
@@ -1712,7 +1713,15 @@ private fun WeeklyMiniGraph(
     isFreeTime: Boolean = false  // 오늘이 자유시간이면 별 표시
 ) {
     // 요일 라벨
-    val dayLabels = listOf("월", "화", "수", "목", "금", "토", "일")
+    val dayLabels = listOf(
+        stringResource(R.string.day_mon),
+        stringResource(R.string.day_tue),
+        stringResource(R.string.day_wed),
+        stringResource(R.string.day_thu),
+        stringResource(R.string.day_fri),
+        stringResource(R.string.day_sat),
+        stringResource(R.string.day_sun)
+    )
 
     // 오늘이 무슨 요일인지 (0=일, 1=월, ..., 6=토)
     val calendar = java.util.Calendar.getInstance()
@@ -1926,7 +1935,7 @@ fun WelcomeDefenseDialog(
             Spacer(modifier = Modifier.height(16.dp))
 
             Text(
-                text = "방어권 1개 지급!",
+                text = stringResource(R.string.defense_ticket_given),
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Bold,
                 color = MockupColors.TextPrimary
@@ -1935,7 +1944,7 @@ fun WelcomeDefenseDialog(
             Spacer(modifier = Modifier.height(12.dp))
 
             Text(
-                text = "하루 목표를 놓쳐도\n방어권으로 연속 기록을 지킬 수 있어요",
+                text = stringResource(R.string.defense_ticket_message),
                 fontSize = 14.sp,
                 color = MockupColors.TextSecondary,
                 textAlign = androidx.compose.ui.text.style.TextAlign.Center,
@@ -1957,7 +1966,7 @@ fun WelcomeDefenseDialog(
                 contentAlignment = Alignment.Center
             ) {
                 Text(
-                    text = "확인",
+                    text = stringResource(R.string.confirm),
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Bold,
                     color = Color.White

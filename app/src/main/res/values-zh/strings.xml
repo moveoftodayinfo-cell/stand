@@ -23,6 +23,10 @@
     <string name="unit_km">公里</string>
     <string name="today_steps">今天 %,d 步</string>
     <string name="today_km">今天 %.2f 公里</string>
+    <string name="steps_achieved">%,d 步达成！</string>
+    <string name="km_achieved">%.2f 公里达成！</string>
+    <string name="steps_remaining">还差 %,d 步</string>
+    <string name="km_remaining">还差 %.2f 公里</string>
 
     <!-- Goal Status -->
     <string name="free_time">自由时间</string>
@@ -277,6 +281,7 @@
     <string name="complete_challenge_earn_title">完成挑战，获得宠物称号！</string>
     <string name="challenge_list">挑战列表</string>
     <string name="search_challenge">搜索挑战...</string>
+    <string name="completed_times">完成%d次</string>
 
     <!-- Notifications -->
     <string name="notification_goal_achieved_title">目标达成！</string>

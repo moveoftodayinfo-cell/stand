@@ -23,6 +23,10 @@
     <string name="unit_km">km</string>
     <string name="today_steps">今日 %,d 歩</string>
     <string name="today_km">今日 %.2f km</string>
+    <string name="steps_achieved">%,d 歩達成！</string>
+    <string name="km_achieved">%.2f km達成！</string>
+    <string name="steps_remaining">あと %,d 歩</string>
+    <string name="km_remaining">あと %.2f km</string>
 
     <!-- Goal Status -->
     <string name="free_time">自由時間</string>
@@ -277,6 +281,7 @@
     <string name="complete_challenge_earn_title">チャレンジを完了してペット称号をゲット！</string>
     <string name="challenge_list">チャレンジ一覧</string>
     <string name="search_challenge">チャレンジを検索...</string>
+    <string name="completed_times">%d回完了</string>
 
     <!-- Notifications -->
     <string name="notification_goal_achieved_title">目標達成！</string>

@@ -23,6 +23,10 @@
     <string name="unit_km">किमी</string>
     <string name="today_steps">आज %,d कदम</string>
     <string name="today_km">आज %.2f किमी</string>
+    <string name="steps_achieved">%,d कदम हासिल!</string>
+    <string name="km_achieved">%.2f किमी हासिल!</string>
+    <string name="steps_remaining">%,d कदम बाकी</string>
+    <string name="km_remaining">%.2f किमी बाकी</string>
 
     <!-- Goal Status -->
     <string name="free_time">फ्री टाइम</string>
@@ -277,6 +281,7 @@
     <string name="complete_challenge_earn_title">चैलेंज पूरा करें और पेट टाइटल पाएं!</string>
     <string name="challenge_list">चैलेंज सूची</string>
     <string name="search_challenge">चैलेंज खोजें...</string>
+    <string name="completed_times">%d बार पूरा</string>
 
     <!-- Notifications -->
     <string name="notification_goal_achieved_title">लक्ष्य हासिल!</string>

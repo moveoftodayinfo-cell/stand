@@ -23,6 +23,10 @@
     <string name="unit_km">km</string>
     <string name="today_steps">오늘 %,d 보</string>
     <string name="today_km">오늘 %.2f km</string>
+    <string name="steps_achieved">%,d 보 달성!</string>
+    <string name="km_achieved">%.2f km 달성!</string>
+    <string name="steps_remaining">%,d 보 남음</string>
+    <string name="km_remaining">%.2f km 남음</string>
 
     <!-- Goal Status -->
     <string name="free_time">자유 시간</string>
@@ -277,6 +281,7 @@
     <string name="complete_challenge_earn_title">챌린지를 완료하고 펫 칭호를 획득하세요!</string>
     <string name="challenge_list">챌린지 목록</string>
     <string name="search_challenge">챌린지 검색...</string>
+    <string name="completed_times">%d회 완료</string>
 
     <!-- Notifications -->
     <string name="notification_goal_achieved_title">목표 달성!</string>

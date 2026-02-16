@@ -23,6 +23,10 @@
     <string name="unit_km">km</string>
     <string name="today_steps">Today %,d steps</string>
     <string name="today_km">Today %.2f km</string>
+    <string name="steps_achieved">%,d steps achieved!</string>
+    <string name="km_achieved">%.2f km achieved!</string>
+    <string name="steps_remaining">%,d steps remaining</string>
+    <string name="km_remaining">%.2f km remaining</string>
 
     <!-- Goal Status -->
     <string name="free_time">Free Time</string>
@@ -277,6 +281,7 @@
     <string name="complete_challenge_earn_title">Complete challenges and earn pet titles!</string>
     <string name="challenge_list">Challenge List</string>
     <string name="search_challenge">Search challenges...</string>
+    <string name="completed_times">%d times</string>
 
     <!-- Notifications -->
     <string name="notification_goal_achieved_title">Goal Achieved!</string>
