@@ -179,4 +179,110 @@
     <string name="tap_to_enable_in_settings">点击在设置中启用</string>
     <string name="icon">图标</string>
     <string name="info">信息</string>
+
+    <!-- Tutorial - Intro -->
+    <string name="setup_progress">设置进度</string>
+    <string name="stand_up">站起来</string>
+    <string name="stand_up_desc">别停下\n一步一步，改变你的生活</string>
+    <string name="sitting_to_walking">把坐着的时间变成走路的时间</string>
+    <string name="goal_unlocks_apps">达成目标解锁应用</string>
+    <string name="get_started">开始</string>
+    <string name="next">下一步</string>
+    <string name="allow">允许</string>
+    <string name="skip">跳过</string>
+
+    <!-- Tutorial - Permissions -->
+    <string name="permission_settings">权限设置</string>
+    <string name="step_count_permission">测量你的步数</string>
+    <string name="notification_permission">通知你的进度</string>
+
+    <!-- Tutorial - Fitness Connection -->
+    <string name="fitness_app_connection">健身应用连接</string>
+    <string name="fitness_connection_desc">连接健身应用\n获得准确的步数</string>
+    <string name="detected_fitness_apps">检测到的健身应用</string>
+    <string name="installed">已安装 ✓</string>
+    <string name="connecting">连接中...</string>
+    <string name="connect_with_app">连接 %s</string>
+    <string name="health_connect_required">连接 %s 需要\nHealth Connect 应用</string>
+    <string name="install_fitness_app_desc">安装以下应用之一\n获得更准确的步数</string>
+    <string name="samsung_health">三星健康</string>
+    <string name="connect_later_in_settings">稍后可在设置中连接</string>
+    <string name="do_later_use_basic_sensor">稍后（使用基本传感器）</string>
+
+    <!-- Tutorial - App Control -->
+    <string name="app_control_settings">应用控制设置</string>
+    <string name="app_control_ready_desc">准备好控制应用了！\n请启用无障碍功能</string>
+    <string name="go_to_settings">前往设置</string>
+    <string name="select_apps_to_control">选择要控制的应用</string>
+    <string name="select_apps_desc">未达目标时\n将限制使用的应用</string>
+    <string name="no_apps_to_control">没有可控制的应用</string>
+    <string name="next_with_count">下一步（已选 %d 个）</string>
+
+    <!-- Tutorial - Blocking Test -->
+    <string name="experience_complete">体验完成！</string>
+    <string name="app_blocked">应用已被限制！</string>
+    <string name="blocking_experienced_desc">你体验了应用限制！\n下一步来解锁它</string>
+    <string name="try_running_app_desc">尝试运行选中的应用。\n你会看到限制消息！</string>
+    <string name="lets_walk_to_turn_on">走路点亮它？</string>
+    <string name="checking">确认中...</string>
+    <string name="checking_blocking_desc">正在确认你是否\n体验了限制功能。</string>
+    <string name="proceed_soon">即将可以继续</string>
+    <string name="try_running_app">尝试运行应用</string>
+    <string name="must_run_blocked_app">运行被限制的应用以继续</string>
+
+    <!-- Tutorial - Goal Setting -->
+    <string name="goal_setting">目标设置</string>
+    <string name="set_goal_for_experience">为了体验\n请设置目标</string>
+    <string name="step_count">步数</string>
+    <string name="basic_sensor">基本传感器</string>
+    <string name="distance_km">距离（公里）</string>
+    <string name="connection_required">需要连接</string>
+    <string name="when_goal_achieved">目标达成时</string>
+    <string name="blocked_apps_unlock_desc">被限制的应用将解锁！\n下一步试着走走。</string>
+
+    <!-- Tutorial - Walking Test -->
+    <string name="goal_achieved_try_app">目标达成！\n现在试试运行应用</string>
+    <string name="perfect">完美！</string>
+    <string name="goal_achieved_app_tested_desc">你达成了目标并测试了应用！\n应用已解锁。</string>
+    <string name="try_running_app_now">试试运行应用！</string>
+    <string name="walk_with_phone_desc">拿着手机走！\n走得越多，灯越亮。</string>
+    <string name="test_tools">测试工具</string>
+    <string name="achieve">达成</string>
+    <string name="steps_required">需要步数</string>
+    <string name="app_run_required">需要运行应用</string>
+    <string name="fill_steps">完成步数</string>
+    <string name="try_running_app_short">试试运行应用</string>
+    <string name="goal_achieved_unlocked">目标达成！\n应用已解锁！</string>
+    <string name="goal_achieved_explanation">走完目标步数后\n可以再次使用选中的应用！</string>
+    <string name="daily_goal_explanation">每日达成目标，自由使用应用！\n失败则被限制。</string>
+
+    <!-- Tutorial - Break -->
+    <string name="take_a_break">休息一下</string>
+    <string name="break_description">有急事或需要联系时\n休息一下</string>
+    <string name="tutorial_complete">教程完成！</string>
+
+    <!-- Tutorial - Subscription -->
+    <string name="subscription_plan">订阅计划</string>
+    <string name="auto_payment_after_trial">免费试用后自动付费</string>
+    <string name="monthly_subscription">月度订阅</string>
+    <string name="monthly_price">¥25/月</string>
+    <string name="yearly_subscription">年度订阅</string>
+    <string name="yearly_price">¥258/年</string>
+    <string name="coupon_by_achievement">根据月度达成率发放优惠券</string>
+
+    <!-- Challenge Screen -->
+    <string name="all">全部</string>
+    <string name="category_exercise">运动</string>
+    <string name="category_wellness">健康</string>
+    <string name="complete_challenge_earn_title">完成挑战，获得宠物称号！</string>
+    <string name="challenge_list">挑战列表</string>
+    <string name="search_challenge">搜索挑战...</string>
+
+    <!-- Notifications -->
+    <string name="notification_goal_achieved_title">目标达成！</string>
+    <string name="notification_goal_achieved_desc">今天目标达成！自由使用应用吧。</string>
+    <string name="notification_reminder_title">步数目标提醒</string>
+    <string name="notification_reminder_desc">还差%d步。再走走吧！</string>
+    <string name="notification_channel_steps">步数通知</string>
+    <string name="notification_channel_challenge">挑战通知</string>
 </resources>

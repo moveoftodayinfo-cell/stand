@@ -179,4 +179,110 @@
     <string name="tap_to_enable_in_settings">Tap to enable in settings</string>
     <string name="icon">Icon</string>
     <string name="info">Info</string>
+
+    <!-- Tutorial - Intro -->
+    <string name="setup_progress">Setup Progress</string>
+    <string name="stand_up">Stand Up</string>
+    <string name="stand_up_desc">Don\'t stay still\nChange your life, one step at a time</string>
+    <string name="sitting_to_walking">Turn sitting time into walking time</string>
+    <string name="goal_unlocks_apps">Reach your goal to unlock apps</string>
+    <string name="get_started">Get Started</string>
+    <string name="next">Next</string>
+    <string name="allow">Allow</string>
+    <string name="skip">Skip</string>
+
+    <!-- Tutorial - Permissions -->
+    <string name="permission_settings">Permission Settings</string>
+    <string name="step_count_permission">Measure your steps</string>
+    <string name="notification_permission">Notify your progress</string>
+
+    <!-- Tutorial - Fitness Connection -->
+    <string name="fitness_app_connection">Fitness App Connection</string>
+    <string name="fitness_connection_desc">Connect your fitness app\nfor accurate step counting</string>
+    <string name="detected_fitness_apps">Detected Fitness Apps</string>
+    <string name="installed">Installed ✓</string>
+    <string name="connecting">Connecting...</string>
+    <string name="connect_with_app">Connect with %s</string>
+    <string name="health_connect_required">Health Connect app is required\nto connect with %s</string>
+    <string name="install_fitness_app_desc">Install one of these apps\nfor more accurate step counting</string>
+    <string name="samsung_health">Samsung Health</string>
+    <string name="connect_later_in_settings">You can connect later in settings</string>
+    <string name="do_later_use_basic_sensor">Do later (use basic sensor)</string>
+
+    <!-- Tutorial - App Control -->
+    <string name="app_control_settings">App Control Settings</string>
+    <string name="app_control_ready_desc">Ready to control apps!\nPlease enable accessibility</string>
+    <string name="go_to_settings">Go to Settings</string>
+    <string name="select_apps_to_control">Select Apps to Control</string>
+    <string name="select_apps_desc">Select apps to restrict\nwhen goal is not met</string>
+    <string name="no_apps_to_control">No apps to control</string>
+    <string name="next_with_count">Next (%d selected)</string>
+
+    <!-- Tutorial - Blocking Test -->
+    <string name="experience_complete">Experience Complete!</string>
+    <string name="app_blocked">App Blocked!</string>
+    <string name="blocking_experienced_desc">You experienced app blocking!\nLet\'s unlock it in the next step</string>
+    <string name="try_running_app_desc">Try running the selected app.\nYou\'ll see a blocking message!</string>
+    <string name="lets_walk_to_turn_on">Let\'s walk to turn on the lights?</string>
+    <string name="checking">Checking...</string>
+    <string name="checking_blocking_desc">Checking if you\nconfirmed the blocking.</string>
+    <string name="proceed_soon">You can proceed soon</string>
+    <string name="try_running_app">Try running an app</string>
+    <string name="must_run_blocked_app">Run a blocked app to proceed</string>
+
+    <!-- Tutorial - Goal Setting -->
+    <string name="goal_setting">Goal Setting</string>
+    <string name="set_goal_for_experience">Set a goal\nfor the experience</string>
+    <string name="step_count">Step Count</string>
+    <string name="basic_sensor">Basic Sensor</string>
+    <string name="distance_km">Distance (km)</string>
+    <string name="connection_required">Connection Required</string>
+    <string name="when_goal_achieved">When goal achieved</string>
+    <string name="blocked_apps_unlock_desc">Blocked apps unlock!\nTry walking in the next step.</string>
+
+    <!-- Tutorial - Walking Test -->
+    <string name="goal_achieved_try_app">Goal achieved!\nTry running an app now</string>
+    <string name="perfect">Perfect!</string>
+    <string name="goal_achieved_app_tested_desc">You achieved the goal and tested the app!\nApps are now unlocked.</string>
+    <string name="try_running_app_now">Try running an app!</string>
+    <string name="walk_with_phone_desc">Walk with your phone!\nLights turn on as you walk.</string>
+    <string name="test_tools">Test Tools</string>
+    <string name="achieve">Achieve</string>
+    <string name="steps_required">Steps required</string>
+    <string name="app_run_required">App run required</string>
+    <string name="fill_steps">Fill your steps</string>
+    <string name="try_running_app_short">Try running an app</string>
+    <string name="goal_achieved_unlocked">Goal achieved!\nApps unlocked!</string>
+    <string name="goal_achieved_explanation">You walked your goal steps\nand can use selected apps again!</string>
+    <string name="daily_goal_explanation">Achieve daily goals for free apps!\nFail and apps get blocked.</string>
+
+    <!-- Tutorial - Break -->
+    <string name="take_a_break">Take a Break</string>
+    <string name="break_description">When you need urgent work or contact,\ntake a short break</string>
+    <string name="tutorial_complete">Tutorial Complete!</string>
+
+    <!-- Tutorial - Subscription -->
+    <string name="subscription_plan">Subscription Plan</string>
+    <string name="auto_payment_after_trial">Auto payment after free trial</string>
+    <string name="monthly_subscription">Monthly</string>
+    <string name="monthly_price">$3.99/month</string>
+    <string name="yearly_subscription">Yearly</string>
+    <string name="yearly_price">$39.99/year</string>
+    <string name="coupon_by_achievement">Coupons based on monthly achievement</string>
+
+    <!-- Challenge Screen -->
+    <string name="all">All</string>
+    <string name="category_exercise">Exercise</string>
+    <string name="category_wellness">Wellness</string>
+    <string name="complete_challenge_earn_title">Complete challenges and earn pet titles!</string>
+    <string name="challenge_list">Challenge List</string>
+    <string name="search_challenge">Search challenges...</string>
+
+    <!-- Notifications -->
+    <string name="notification_goal_achieved_title">Goal Achieved!</string>
+    <string name="notification_goal_achieved_desc">You achieved today\'s goal! Use apps freely.</string>
+    <string name="notification_reminder_title">Step Goal Reminder</string>
+    <string name="notification_reminder_desc">%d steps to go. Let\'s walk a bit more!</string>
+    <string name="notification_channel_steps">Step Notifications</string>
+    <string name="notification_channel_challenge">Challenge Notifications</string>
 </resources>

@@ -179,4 +179,110 @@
     <string name="tap_to_enable_in_settings">タップして設定で有効化</string>
     <string name="icon">アイコン</string>
     <string name="info">情報</string>
+
+    <!-- Tutorial - Intro -->
+    <string name="setup_progress">設定中</string>
+    <string name="stand_up">立ち上がろう</string>
+    <string name="stand_up_desc">じっとしないで\n一歩ずつ、人生を変えよう</string>
+    <string name="sitting_to_walking">座る時間を歩く時間に</string>
+    <string name="goal_unlocks_apps">目標達成でアプリ解除</string>
+    <string name="get_started">始める</string>
+    <string name="next">次へ</string>
+    <string name="allow">許可</string>
+    <string name="skip">スキップ</string>
+
+    <!-- Tutorial - Permissions -->
+    <string name="permission_settings">権限設定</string>
+    <string name="step_count_permission">歩数を測定します</string>
+    <string name="notification_permission">進捗をお知らせします</string>
+
+    <!-- Tutorial - Fitness Connection -->
+    <string name="fitness_app_connection">フィットネスアプリ連携</string>
+    <string name="fitness_connection_desc">フィットネスアプリと連携すると\n正確な歩数測定ができます</string>
+    <string name="detected_fitness_apps">検出されたフィットネスアプリ</string>
+    <string name="installed">インストール済み ✓</string>
+    <string name="connecting">接続中...</string>
+    <string name="connect_with_app">%sと接続</string>
+    <string name="health_connect_required">%sと接続するには\nHealth Connectアプリが必要です</string>
+    <string name="install_fitness_app_desc">以下のアプリをインストールすると\nより正確な歩数測定ができます</string>
+    <string name="samsung_health">Samsung Health</string>
+    <string name="connect_later_in_settings">後で設定から接続できます</string>
+    <string name="do_later_use_basic_sensor">後で（基本センサー使用）</string>
+
+    <!-- Tutorial - App Control -->
+    <string name="app_control_settings">アプリ制御設定</string>
+    <string name="app_control_ready_desc">アプリ制御の準備完了！\nアクセシビリティを有効にしてください</string>
+    <string name="go_to_settings">設定画面へ</string>
+    <string name="select_apps_to_control">制御するアプリを選択</string>
+    <string name="select_apps_desc">目標未達成時に\n制限するアプリを選択してください</string>
+    <string name="no_apps_to_control">制御するアプリがありません</string>
+    <string name="next_with_count">次へ（%d個選択）</string>
+
+    <!-- Tutorial - Blocking Test -->
+    <string name="experience_complete">体験完了！</string>
+    <string name="app_blocked">アプリがブロックされました！</string>
+    <string name="blocking_experienced_desc">ブロックを体験しました！\n次のステップで解除しましょう</string>
+    <string name="try_running_app_desc">選択したアプリを起動してみてください。\nブロックメッセージが表示されます！</string>
+    <string name="lets_walk_to_turn_on">歩いて明かりをつけましょう？</string>
+    <string name="checking">確認中...</string>
+    <string name="checking_blocking_desc">ブロックを確認したか\nチェック中です。</string>
+    <string name="proceed_soon">もうすぐ次に進めます</string>
+    <string name="try_running_app">アプリを起動してみてください</string>
+    <string name="must_run_blocked_app">ブロックされたアプリを起動してください</string>
+
+    <!-- Tutorial - Goal Setting -->
+    <string name="goal_setting">目標設定</string>
+    <string name="set_goal_for_experience">体験のため\n目標を設定してください</string>
+    <string name="step_count">歩数</string>
+    <string name="basic_sensor">基本センサー</string>
+    <string name="distance_km">距離（km）</string>
+    <string name="connection_required">接続が必要</string>
+    <string name="when_goal_achieved">目標達成すると</string>
+    <string name="blocked_apps_unlock_desc">ブロックされたアプリが解除！\n次のステップで歩いてみましょう。</string>
+
+    <!-- Tutorial - Walking Test -->
+    <string name="goal_achieved_try_app">目標達成！\nアプリを起動してみてください</string>
+    <string name="perfect">完璧！</string>
+    <string name="goal_achieved_app_tested_desc">目標を達成し、アプリもテストしました！\nアプリは解除されました。</string>
+    <string name="try_running_app_now">アプリを起動してみて！</string>
+    <string name="walk_with_phone_desc">スマホを持って歩こう！\n歩くほど明かりがつきます。</string>
+    <string name="test_tools">テストツール</string>
+    <string name="achieve">達成</string>
+    <string name="steps_required">歩数が必要</string>
+    <string name="app_run_required">アプリ起動が必要</string>
+    <string name="fill_steps">歩数を満たしてください</string>
+    <string name="try_running_app_short">アプリを起動してみて</string>
+    <string name="goal_achieved_unlocked">目標達成！\nアプリ解除！</string>
+    <string name="goal_achieved_explanation">目標歩数を歩いたので\n選択したアプリが使えます！</string>
+    <string name="daily_goal_explanation">毎日目標達成でアプリ自由！\n失敗するとブロックされます。</string>
+
+    <!-- Tutorial - Break -->
+    <string name="take_a_break">休憩</string>
+    <string name="break_description">急な仕事や連絡が必要な時\n少し休憩しましょう</string>
+    <string name="tutorial_complete">チュートリアル完了！</string>
+
+    <!-- Tutorial - Subscription -->
+    <string name="subscription_plan">サブスクプラン</string>
+    <string name="auto_payment_after_trial">無料体験後自動決済</string>
+    <string name="monthly_subscription">月額プラン</string>
+    <string name="monthly_price">月額 ¥480</string>
+    <string name="yearly_subscription">年額プラン</string>
+    <string name="yearly_price">年額 ¥4,800</string>
+    <string name="coupon_by_achievement">月間達成率に応じてクーポン支給</string>
+
+    <!-- Challenge Screen -->
+    <string name="all">すべて</string>
+    <string name="category_exercise">運動</string>
+    <string name="category_wellness">ウェルネス</string>
+    <string name="complete_challenge_earn_title">チャレンジを完了してペット称号をゲット！</string>
+    <string name="challenge_list">チャレンジ一覧</string>
+    <string name="search_challenge">チャレンジを検索...</string>
+
+    <!-- Notifications -->
+    <string name="notification_goal_achieved_title">目標達成！</string>
+    <string name="notification_goal_achieved_desc">今日の目標を達成しました！アプリを自由に使えます。</string>
+    <string name="notification_reminder_title">歩数目標リマインダー</string>
+    <string name="notification_reminder_desc">あと%d歩です。もう少し歩きましょう！</string>
+    <string name="notification_channel_steps">歩数通知</string>
+    <string name="notification_channel_challenge">チャレンジ通知</string>
 </resources>

@@ -179,4 +179,110 @@
     <string name="tap_to_enable_in_settings">सेटिंग्स में सक्षम करने के लिए टैप करें</string>
     <string name="icon">आइकन</string>
     <string name="info">जानकारी</string>
+
+    <!-- Tutorial - Intro -->
+    <string name="setup_progress">सेटअप प्रगति</string>
+    <string name="stand_up">उठ जाओ</string>
+    <string name="stand_up_desc">रुको मत\nएक-एक कदम से अपनी जिंदगी बदलो</string>
+    <string name="sitting_to_walking">बैठने का समय चलने में बदलो</string>
+    <string name="goal_unlocks_apps">लक्ष्य पूरा करो, ऐप्स खुलेंगे</string>
+    <string name="get_started">शुरू करें</string>
+    <string name="next">आगे</string>
+    <string name="allow">अनुमति दें</string>
+    <string name="skip">छोड़ें</string>
+
+    <!-- Tutorial - Permissions -->
+    <string name="permission_settings">परमिशन सेटिंग्स</string>
+    <string name="step_count_permission">आपके कदम गिनें</string>
+    <string name="notification_permission">प्रगति की सूचना दें</string>
+
+    <!-- Tutorial - Fitness Connection -->
+    <string name="fitness_app_connection">फिटनेस ऐप कनेक्शन</string>
+    <string name="fitness_connection_desc">फिटनेस ऐप से जोड़ें\nसटीक कदम गिनती के लिए</string>
+    <string name="detected_fitness_apps">पाए गए फिटनेस ऐप्स</string>
+    <string name="installed">इंस्टॉल ✓</string>
+    <string name="connecting">जोड़ रहा है...</string>
+    <string name="connect_with_app">%s से जोड़ें</string>
+    <string name="health_connect_required">%s से जोड़ने के लिए\nHealth Connect ऐप चाहिए</string>
+    <string name="install_fitness_app_desc">इनमें से एक ऐप इंस्टॉल करें\nसटीक कदम गिनती के लिए</string>
+    <string name="samsung_health">Samsung Health</string>
+    <string name="connect_later_in_settings">बाद में सेटिंग्स में जोड़ सकते हैं</string>
+    <string name="do_later_use_basic_sensor">बाद में (बेसिक सेंसर उपयोग)</string>
+
+    <!-- Tutorial - App Control -->
+    <string name="app_control_settings">ऐप कंट्रोल सेटिंग्स</string>
+    <string name="app_control_ready_desc">ऐप्स कंट्रोल करने को तैयार!\nएक्सेसिबिलिटी ऑन करें</string>
+    <string name="go_to_settings">सेटिंग्स पर जाएं</string>
+    <string name="select_apps_to_control">कंट्रोल करने के लिए ऐप्स चुनें</string>
+    <string name="select_apps_desc">लक्ष्य पूरा न होने पर\nप्रतिबंधित होने वाले ऐप्स चुनें</string>
+    <string name="no_apps_to_control">कोई ऐप कंट्रोल करने के लिए नहीं</string>
+    <string name="next_with_count">आगे (%d चुने)</string>
+
+    <!-- Tutorial - Blocking Test -->
+    <string name="experience_complete">अनुभव पूरा!</string>
+    <string name="app_blocked">ऐप ब्लॉक हो गया!</string>
+    <string name="blocking_experienced_desc">आपने ऐप ब्लॉकिंग अनुभव की!\nअगले चरण में अनलॉक करें</string>
+    <string name="try_running_app_desc">चुने हुए ऐप को चलाएं।\nब्लॉकिंग मैसेज दिखेगा!</string>
+    <string name="lets_walk_to_turn_on">चलकर लाइट जलाएं?</string>
+    <string name="checking">जांच रहा है...</string>
+    <string name="checking_blocking_desc">जांच रहा है कि आपने\nब्लॉकिंग देखी या नहीं।</string>
+    <string name="proceed_soon">जल्द ही आगे बढ़ सकते हैं</string>
+    <string name="try_running_app">ऐप चलाकर देखें</string>
+    <string name="must_run_blocked_app">आगे बढ़ने के लिए ब्लॉक ऐप चलाएं</string>
+
+    <!-- Tutorial - Goal Setting -->
+    <string name="goal_setting">लक्ष्य सेटिंग</string>
+    <string name="set_goal_for_experience">अनुभव के लिए\nलक्ष्य सेट करें</string>
+    <string name="step_count">कदम संख्या</string>
+    <string name="basic_sensor">बेसिक सेंसर</string>
+    <string name="distance_km">दूरी (किमी)</string>
+    <string name="connection_required">कनेक्शन चाहिए</string>
+    <string name="when_goal_achieved">लक्ष्य पूरा होने पर</string>
+    <string name="blocked_apps_unlock_desc">ब्लॉक ऐप्स अनलॉक होंगे!\nअगले चरण में चलकर देखें।</string>
+
+    <!-- Tutorial - Walking Test -->
+    <string name="goal_achieved_try_app">लक्ष्य पूरा!\nअब ऐप चलाएं</string>
+    <string name="perfect">परफेक्ट!</string>
+    <string name="goal_achieved_app_tested_desc">लक्ष्य पूरा और ऐप टेस्ट किया!\nऐप्स अनलॉक हो गए।</string>
+    <string name="try_running_app_now">ऐप चलाकर देखें!</string>
+    <string name="walk_with_phone_desc">फोन लेकर चलें!\nजितना चलें, उतनी लाइट।</string>
+    <string name="test_tools">टेस्ट टूल्स</string>
+    <string name="achieve">हासिल</string>
+    <string name="steps_required">कदम चाहिए</string>
+    <string name="app_run_required">ऐप चलाना चाहिए</string>
+    <string name="fill_steps">कदम पूरे करें</string>
+    <string name="try_running_app_short">ऐप चलाएं</string>
+    <string name="goal_achieved_unlocked">लक्ष्य पूरा!\nऐप्स अनलॉक!</string>
+    <string name="goal_achieved_explanation">लक्ष्य कदम चलने के बाद\nचुने हुए ऐप्स फिर से उपयोग कर सकते हैं!</string>
+    <string name="daily_goal_explanation">रोज़ लक्ष्य पूरा करें, ऐप्स फ्री!\nफेल होने पर ब्लॉक।</string>
+
+    <!-- Tutorial - Break -->
+    <string name="take_a_break">ब्रेक लें</string>
+    <string name="break_description">जरूरी काम या संपर्क के लिए\nथोड़ा ब्रेक लें</string>
+    <string name="tutorial_complete">ट्यूटोरियल पूरा!</string>
+
+    <!-- Tutorial - Subscription -->
+    <string name="subscription_plan">सब्सक्रिप्शन प्लान</string>
+    <string name="auto_payment_after_trial">फ्री ट्रायल के बाद ऑटो पेमेंट</string>
+    <string name="monthly_subscription">मासिक</string>
+    <string name="monthly_price">₹329/माह</string>
+    <string name="yearly_subscription">वार्षिक</string>
+    <string name="yearly_price">₹3,299/वर्ष</string>
+    <string name="coupon_by_achievement">मासिक उपलब्धि के आधार पर कूपन</string>
+
+    <!-- Challenge Screen -->
+    <string name="all">सभी</string>
+    <string name="category_exercise">व्यायाम</string>
+    <string name="category_wellness">वेलनेस</string>
+    <string name="complete_challenge_earn_title">चैलेंज पूरा करें और पेट टाइटल पाएं!</string>
+    <string name="challenge_list">चैलेंज सूची</string>
+    <string name="search_challenge">चैलेंज खोजें...</string>
+
+    <!-- Notifications -->
+    <string name="notification_goal_achieved_title">लक्ष्य हासिल!</string>
+    <string name="notification_goal_achieved_desc">आज का लक्ष्य पूरा! ऐप्स फ्री में उपयोग करें।</string>
+    <string name="notification_reminder_title">कदम लक्ष्य रिमाइंडर</string>
+    <string name="notification_reminder_desc">%d कदम बाकी। थोड़ा और चलें!</string>
+    <string name="notification_channel_steps">कदम नोटिफिकेशन</string>
+    <string name="notification_channel_challenge">चैलेंज नोटिफिकेशन</string>
 </resources>

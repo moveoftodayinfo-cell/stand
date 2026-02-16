@@ -179,4 +179,110 @@
     <string name="tap_to_enable_in_settings">Toca para habilitar en ajustes</string>
     <string name="icon">Icono</string>
     <string name="info">Info</string>
+
+    <!-- Tutorial - Intro -->
+    <string name="setup_progress">Progreso de Configuración</string>
+    <string name="stand_up">Levántate</string>
+    <string name="stand_up_desc">No te quedes quieto\nCambia tu vida, paso a paso</string>
+    <string name="sitting_to_walking">Convierte tiempo sentado en caminata</string>
+    <string name="goal_unlocks_apps">Alcanza tu meta para desbloquear apps</string>
+    <string name="get_started">Comenzar</string>
+    <string name="next">Siguiente</string>
+    <string name="allow">Permitir</string>
+    <string name="skip">Omitir</string>
+
+    <!-- Tutorial - Permissions -->
+    <string name="permission_settings">Configuración de Permisos</string>
+    <string name="step_count_permission">Medir tus pasos</string>
+    <string name="notification_permission">Notificar tu progreso</string>
+
+    <!-- Tutorial - Fitness Connection -->
+    <string name="fitness_app_connection">Conexión de App Fitness</string>
+    <string name="fitness_connection_desc">Conecta tu app fitness\npara conteo preciso de pasos</string>
+    <string name="detected_fitness_apps">Apps Fitness Detectadas</string>
+    <string name="installed">Instalada ✓</string>
+    <string name="connecting">Conectando...</string>
+    <string name="connect_with_app">Conectar con %s</string>
+    <string name="health_connect_required">Se necesita Health Connect\npara conectar con %s</string>
+    <string name="install_fitness_app_desc">Instala una de estas apps\npara conteo más preciso</string>
+    <string name="samsung_health">Samsung Health</string>
+    <string name="connect_later_in_settings">Puedes conectar después en ajustes</string>
+    <string name="do_later_use_basic_sensor">Después (usar sensor básico)</string>
+
+    <!-- Tutorial - App Control -->
+    <string name="app_control_settings">Configuración de Control de Apps</string>
+    <string name="app_control_ready_desc">¡Listo para controlar apps!\nPor favor habilita accesibilidad</string>
+    <string name="go_to_settings">Ir a Ajustes</string>
+    <string name="select_apps_to_control">Seleccionar Apps a Controlar</string>
+    <string name="select_apps_desc">Selecciona apps a restringir\ncuando no alcances la meta</string>
+    <string name="no_apps_to_control">Sin apps para controlar</string>
+    <string name="next_with_count">Siguiente (%d seleccionadas)</string>
+
+    <!-- Tutorial - Blocking Test -->
+    <string name="experience_complete">¡Experiencia Completa!</string>
+    <string name="app_blocked">¡App Bloqueada!</string>
+    <string name="blocking_experienced_desc">¡Experimentaste el bloqueo!\nDesbloqueémosla en el siguiente paso</string>
+    <string name="try_running_app_desc">Intenta abrir la app seleccionada.\n¡Verás un mensaje de bloqueo!</string>
+    <string name="lets_walk_to_turn_on">¿Caminamos para encender las luces?</string>
+    <string name="checking">Verificando...</string>
+    <string name="checking_blocking_desc">Verificando si\nconfirmaste el bloqueo.</string>
+    <string name="proceed_soon">Pronto podrás continuar</string>
+    <string name="try_running_app">Intenta abrir una app</string>
+    <string name="must_run_blocked_app">Abre una app bloqueada para continuar</string>
+
+    <!-- Tutorial - Goal Setting -->
+    <string name="goal_setting">Configurar Meta</string>
+    <string name="set_goal_for_experience">Establece una meta\npara la experiencia</string>
+    <string name="step_count">Conteo de Pasos</string>
+    <string name="basic_sensor">Sensor Básico</string>
+    <string name="distance_km">Distancia (km)</string>
+    <string name="connection_required">Conexión Requerida</string>
+    <string name="when_goal_achieved">Al alcanzar la meta</string>
+    <string name="blocked_apps_unlock_desc">¡Apps bloqueadas se desbloquean!\nIntenta caminar en el siguiente paso.</string>
+
+    <!-- Tutorial - Walking Test -->
+    <string name="goal_achieved_try_app">¡Meta alcanzada!\nIntenta abrir una app ahora</string>
+    <string name="perfect">¡Perfecto!</string>
+    <string name="goal_achieved_app_tested_desc">¡Alcanzaste la meta y probaste la app!\nLas apps están desbloqueadas.</string>
+    <string name="try_running_app_now">¡Intenta abrir una app!</string>
+    <string name="walk_with_phone_desc">¡Camina con tu teléfono!\nLas luces se encienden mientras caminas.</string>
+    <string name="test_tools">Herramientas de Prueba</string>
+    <string name="achieve">Lograr</string>
+    <string name="steps_required">Pasos requeridos</string>
+    <string name="app_run_required">Abrir app requerido</string>
+    <string name="fill_steps">Completa tus pasos</string>
+    <string name="try_running_app_short">Intenta abrir una app</string>
+    <string name="goal_achieved_unlocked">¡Meta alcanzada!\n¡Apps desbloqueadas!</string>
+    <string name="goal_achieved_explanation">Caminaste tus pasos meta\n¡y puedes usar las apps de nuevo!</string>
+    <string name="daily_goal_explanation">¡Alcanza metas diarias para apps libres!\nFalla y se bloquean.</string>
+
+    <!-- Tutorial - Break -->
+    <string name="take_a_break">Tomar un Descanso</string>
+    <string name="break_description">Cuando necesites trabajo urgente o contacto,\ntoma un breve descanso</string>
+    <string name="tutorial_complete">¡Tutorial Completo!</string>
+
+    <!-- Tutorial - Subscription -->
+    <string name="subscription_plan">Plan de Suscripción</string>
+    <string name="auto_payment_after_trial">Pago automático tras prueba gratis</string>
+    <string name="monthly_subscription">Mensual</string>
+    <string name="monthly_price">$3.99/mes</string>
+    <string name="yearly_subscription">Anual</string>
+    <string name="yearly_price">$39.99/año</string>
+    <string name="coupon_by_achievement">Cupones según logro mensual</string>
+
+    <!-- Challenge Screen -->
+    <string name="all">Todo</string>
+    <string name="category_exercise">Ejercicio</string>
+    <string name="category_wellness">Bienestar</string>
+    <string name="complete_challenge_earn_title">¡Completa desafíos y gana títulos de mascota!</string>
+    <string name="challenge_list">Lista de Desafíos</string>
+    <string name="search_challenge">Buscar desafíos...</string>
+
+    <!-- Notifications -->
+    <string name="notification_goal_achieved_title">¡Meta Lograda!</string>
+    <string name="notification_goal_achieved_desc">¡Lograste la meta de hoy! Usa apps libremente.</string>
+    <string name="notification_reminder_title">Recordatorio de Pasos</string>
+    <string name="notification_reminder_desc">Faltan %d pasos. ¡Caminemos un poco más!</string>
+    <string name="notification_channel_steps">Notificaciones de Pasos</string>
+    <string name="notification_channel_challenge">Notificaciones de Desafíos</string>
 </resources>
