@@ -29,6 +29,7 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.graphics.drawable.toBitmap
@@ -400,14 +401,14 @@ fun SettingsScreen(
     }
 
     val statusText = when {
-        achievementRate >= 95f -> "완전 달성"
-        achievementRate >= 80f -> "부분 달성"
-        else -> "진행중"
+        achievementRate >= 95f -> context.getString(R.string.fully_achieved)
+        achievementRate >= 80f -> context.getString(R.string.partially_achieved)
+        else -> context.getString(R.string.in_progress)
     }
 
     val statusDescription = when {
-        achievementRate >= 95f -> "친구 초대 쿠폰 획득!"
-        else -> "95% 달성 시 친구 쿠폰"
+        achievementRate >= 95f -> context.getString(R.string.invite_coupon_earned)
+        else -> context.getString(R.string.target_95)
     }
 
     fun formatAmount(amount: Int): String {
@@ -589,7 +590,7 @@ fun SettingsScreen(
                                         fontFamily = kenneyFont
                                     )
                                     Text(
-                                        "탭하여 설정에서 활성화하세요",
+                                        stringResource(R.string.tap_to_enable_in_settings),
                                         color = MockupColors.TextSecondary,
                                         fontSize = 13.sp
                                     )
@@ -605,7 +606,7 @@ fun SettingsScreen(
                     val isPromoFreeUser = preferenceManager?.getPromoCodeType() != null
 
                     // 섹션 타이틀
-                    RetroSectionTitle(title = "구독 관리", fontFamily = kenneyFont)
+                    RetroSectionTitle(title = stringResource(R.string.section_subscription), fontFamily = kenneyFont)
 
                     // 이번 달 달성 현황 카드
                     Box(
@@ -624,7 +625,7 @@ fun SettingsScreen(
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 Text(
-                                    text = "이번 달 달성률",
+                                    text = stringResource(R.string.this_month_achievement),
                                     fontSize = 16.sp,
                                     fontWeight = FontWeight.Bold,
                                     color = MockupColors.TextPrimary
@@ -681,7 +682,7 @@ fun SettingsScreen(
                                     color = MockupColors.TextSecondary
                                 )
                                 Text(
-                                    text = "목표 95%",
+                                    text = stringResource(R.string.target_95),
                                     fontSize = 13.sp,
                                     fontWeight = FontWeight.Bold,
                                     color = MockupColors.Blue
@@ -706,13 +707,13 @@ fun SettingsScreen(
                                     ) {
                                         Column {
                                             Text(
-                                                text = "친구 초대 기능",
+                                                text = stringResource(R.string.invite_feature),
                                                 fontSize = 15.sp,
                                                 fontWeight = FontWeight.Bold,
                                                 color = MockupColors.TextPrimary
                                             )
                                             Text(
-                                                text = "구독 타입에 따라 초대 가능",
+                                                text = stringResource(R.string.invite_available_by_subscription),
                                                 fontSize = 13.sp,
                                                 color = MockupColors.TextSecondary
                                             )
@@ -747,7 +748,7 @@ fun SettingsScreen(
                         ) {
                             Column {
                                 Text(
-                                    text = "구독 갱신",
+                                    text = stringResource(R.string.subscription_renew),
                                     fontSize = 18.sp,
                                     fontWeight = FontWeight.Bold,
                                     color = MockupColors.TextPrimary,
@@ -755,7 +756,7 @@ fun SettingsScreen(
                                 )
                                 Spacer(modifier = Modifier.height(4.dp))
                                 Text(
-                                    text = "구독 플랜 변경 및 갱신",
+                                    text = stringResource(R.string.subscription_renew_desc),
                                     fontSize = 13.sp,
                                     color = MockupColors.TextSecondary
                                 )
@@ -788,7 +789,7 @@ fun SettingsScreen(
                         ) {
                             Column {
                                 Text(
-                                    text = "펫 변경",
+                                    text = stringResource(R.string.pet_change),
                                     fontSize = 18.sp,
                                     fontWeight = FontWeight.Bold,
                                     color = MockupColors.TextPrimary,
@@ -898,7 +899,7 @@ fun SettingsScreen(
                     ) {
                         Column {
                             Text(
-                                text = "친구 초대",
+                                text = stringResource(R.string.invite_friend),
                                 fontSize = 18.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = MockupColors.TextPrimary,
@@ -906,7 +907,7 @@ fun SettingsScreen(
                             )
                             Spacer(modifier = Modifier.height(4.dp))
                             Text(
-                                text = "친구에게 1달 무료 쿠폰을 선물하세요",
+                                text = stringResource(R.string.invite_friend_desc),
                                 fontSize = 13.sp,
                                 color = MockupColors.TextSecondary
                             )
@@ -917,13 +918,13 @@ fun SettingsScreen(
                                 Row(verticalAlignment = Alignment.CenterVertically) {
                                     Icon(
                                         imageVector = Icons.Filled.Info,
-                                        contentDescription = "정보",
+                                        contentDescription = stringResource(R.string.info),
                                         tint = MockupColors.Blue,
                                         modifier = Modifier.size(18.dp)
                                     )
                                     Spacer(modifier = Modifier.width(4.dp))
                                     Text(
-                                        text = "기본 초대 코드",
+                                        text = stringResource(R.string.basic_invite_code),
                                         fontSize = 14.sp,
                                         fontWeight = FontWeight.Bold,
                                         color = MockupColors.TextPrimary
@@ -944,7 +945,7 @@ fun SettingsScreen(
                                             Row(verticalAlignment = Alignment.CenterVertically) {
                                                 Icon(
                                                     imageVector = Icons.Filled.CheckCircle,
-                                                    contentDescription = "사용 중",
+                                                    contentDescription = stringResource(R.string.in_use),
                                                     tint = MockupColors.Green,
                                                     modifier = Modifier.size(18.dp)
                                                 )
@@ -994,7 +995,7 @@ fun SettingsScreen(
                                                     .padding(horizontal = 12.dp, vertical = 6.dp)
                                             ) {
                                                 Text(
-                                                    text = "복사",
+                                                    text = stringResource(R.string.copy),
                                                     fontSize = 13.sp,
                                                     fontWeight = FontWeight.Bold,
                                                     color = MockupColors.Blue,
@@ -1011,13 +1012,13 @@ fun SettingsScreen(
                                 Row(verticalAlignment = Alignment.CenterVertically) {
                                     Icon(
                                         imageVector = Icons.Filled.Info,
-                                        contentDescription = "아이콘",
+                                        contentDescription = stringResource(R.string.icon),
                                         tint = MockupColors.TextMuted,
                                         modifier = Modifier.size(18.dp)
                                     )
                                     Spacer(modifier = Modifier.width(4.dp))
                                     Text(
-                                        text = "보너스 초대 코드",
+                                        text = stringResource(R.string.bonus_invite_code),
                                         fontSize = 14.sp,
                                         fontWeight = FontWeight.Bold,
                                         color = MockupColors.TextMuted
@@ -1045,7 +1046,7 @@ fun SettingsScreen(
                                                 Row(verticalAlignment = Alignment.CenterVertically) {
                                                     Icon(
                                                         imageVector = Icons.Filled.CheckCircle,
-                                                        contentDescription = "아이콘",
+                                                        contentDescription = stringResource(R.string.icon),
                                                         tint = MockupColors.TextPrimary,
                                                         modifier = Modifier.size(18.dp)
                                                     )
@@ -1092,7 +1093,7 @@ fun SettingsScreen(
                                 Spacer(modifier = Modifier.height(12.dp))
 
                                 RetroButton(
-                                    text = "초대 코드와 함께 공유",
+                                    text = stringResource(R.string.share_with_invite_code),
                                     onClick = {
                                         hapticManager.click()
                                         // Analytics: 초대 코드 공유 추적
@@ -1136,7 +1137,7 @@ fun SettingsScreen(
                                         Text("🔒", fontSize = 16.sp)
                                         Spacer(modifier = Modifier.width(8.dp))
                                         Text(
-                                            text = "유료 결제 시 초대 코드를 받을 수 있어요",
+                                            text = stringResource(R.string.invite_code_after_payment),
                                             fontSize = 13.sp,
                                             color = MockupColors.Red
                                         )
@@ -1146,7 +1147,7 @@ fun SettingsScreen(
                                 Spacer(modifier = Modifier.height(12.dp))
 
                                 RetroButton(
-                                    text = "앱 링크 공유",
+                                    text = stringResource(R.string.share_app_link),
                                     onClick = {
                                         hapticManager.click()
                                         val shareText = """
@@ -1248,7 +1249,7 @@ fun SettingsScreen(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Text(
-                                text = "앱 제어",
+                                text = stringResource(R.string.app_control),
                                 fontSize = 20.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = MockupColors.TextPrimary,
@@ -1273,10 +1274,10 @@ fun SettingsScreen(
                             Spacer(modifier = Modifier.height(16.dp))
 
                             // 🎯 목표 설정
-                            RetroSectionTitle(title = "목표 설정", fontFamily = kenneyFont)
+                            RetroSectionTitle(title = stringResource(R.string.section_goal), fontFamily = kenneyFont)
 
                             RetroSettingsItem(
-                        title = "일일 목표",
+                        title = stringResource(R.string.daily_goal),
                         value = if (goalUnit == "km") "%.2f km".format(goal / 1300.0) else "%,d보".format(goal),
                         onClick = {
                             hapticManager.click()
@@ -1302,7 +1303,7 @@ fun SettingsScreen(
                     Spacer(modifier = Modifier.height(16.dp))
 
                     // 🔒 잠금 앱 관리
-                    RetroSectionTitle(title = "잠금 앱", fontFamily = kenneyFont)
+                    RetroSectionTitle(title = stringResource(R.string.section_locked_apps), fontFamily = kenneyFont)
 
                     // 로컬 상태 사용 (변경 시 즉시 반영, Firebase 복원 시에도 자동 갱신)
                     val lockedApps = lockedAppsState
@@ -1341,7 +1342,7 @@ fun SettingsScreen(
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
                                     Text(
-                                        text = "차단 중",
+                                        text = stringResource(R.string.blocking),
                                         fontSize = 16.sp,
                                         fontWeight = FontWeight.Bold,
                                         color = MockupColors.Red,
@@ -1391,7 +1392,7 @@ fun SettingsScreen(
                     }
 
                     RetroButton(
-                        text = if (lockedApps.isEmpty()) "앱 선택" else "앱 수정",
+                        text = if (lockedApps.isEmpty()) stringResource(R.string.select_apps) else stringResource(R.string.edit_apps),
                         onClick = {
                             hapticManager.click()
                             showAppLockScreen = true
@@ -1417,15 +1418,15 @@ fun SettingsScreen(
                     Spacer(modifier = Modifier.height(16.dp))
 
                     // ⏰ 차단 시간대
-                    RetroSectionTitle(title = "차단 시간대", fontFamily = kenneyFont)
+                    RetroSectionTitle(title = stringResource(R.string.section_blocking_periods), fontFamily = kenneyFont)
 
                     // 로컬 상태 사용 (변경 시 즉시 반영, Firebase 복원 시에도 자동 갱신)
                     val blockingPeriods = blockingPeriodsState
                     val periodNames = mapOf(
-                        "morning" to "아침",
-                        "afternoon" to "점심",
-                        "evening" to "저녁",
-                        "night" to "밤"
+                        "morning" to stringResource(R.string.time_morning),
+                        "afternoon" to stringResource(R.string.time_afternoon),
+                        "evening" to stringResource(R.string.time_evening),
+                        "night" to stringResource(R.string.time_night)
                     )
                     val selectedPeriodNames =
                         blockingPeriods.mapNotNull { periodNames[it] }.joinToString(", ")
@@ -1438,7 +1439,7 @@ fun SettingsScreen(
                     }
 
                     RetroSettingsItem(
-                        title = "시간대 설정",
+                        title = stringResource(R.string.time_period_setting),
                         value = displayValue,
                         onClick = {
                             hapticManager.click()
@@ -1476,7 +1477,7 @@ fun SettingsScreen(
                             )
                             Spacer(modifier = Modifier.height(4.dp))
                             Text(
-                                text = "선택한 시간대에만 앱을 차단합니다.\n예: 업무 시간만 차단, 저녁/밤은 자유",
+                                text = stringResource(R.string.blocking_periods_desc),
                                 fontSize = 13.sp,
                                 color = MockupColors.TextSecondary,
                                 lineHeight = 18.sp
@@ -1491,16 +1492,16 @@ fun SettingsScreen(
                     Spacer(modifier = Modifier.height(16.dp))
 
                     // 📅 제어 요일
-                    RetroSectionTitle(title = "제어 요일", fontFamily = kenneyFont)
+                    RetroSectionTitle(title = stringResource(R.string.section_control_days), fontFamily = kenneyFont)
 
                     // 로컬 상태 사용 (변경 시 즉시 반영, Firebase 복원 시에도 자동 갱신)
                     val controlDays = controlDaysState
-                    val dayNames2 = listOf("일", "월", "화", "수", "목", "금", "토")
+                    val dayNames2 = listOf(stringResource(R.string.day_sun), stringResource(R.string.day_mon), stringResource(R.string.day_tue), stringResource(R.string.day_wed), stringResource(R.string.day_thu), stringResource(R.string.day_fri), stringResource(R.string.day_sat))
                     val selectedDayNames = controlDays.sorted().map { dayNames2[it] }.joinToString(", ")
                     val displayDays = if (controlDays.isEmpty()) "없음" else selectedDayNames
 
                     RetroSettingsItem(
-                        title = "요일 설정",
+                        title = stringResource(R.string.day_setting),
                         value = displayDays,
                         onClick = {
                             hapticManager.click()
@@ -1532,7 +1533,7 @@ fun SettingsScreen(
                     // ... (비활성화됨)
 
                     // 🏃 피트니스 앱 연결
-                    RetroSectionTitle(title = "피트니스 연결", fontFamily = kenneyFont)
+                    RetroSectionTitle(title = stringResource(R.string.section_fitness), fontFamily = kenneyFont)
 
                     val healthConnectManager = remember { HealthConnectManager(context) }
                     val isHealthConnectAvailable = remember { healthConnectManager.isAvailable() }
@@ -1566,7 +1567,7 @@ fun SettingsScreen(
                                         color = Color(0xFFE65100)
                                     )
                                     Text(
-                                        text = "걸음수를 정확히 측정하려면 아래에서 연결해주세요",
+                                        text = stringResource(R.string.connect_fitness_for_accuracy),
                                         fontSize = 12.sp,
                                         color = Color(0xFFF57C00)
                                     )
@@ -1599,7 +1600,7 @@ fun SettingsScreen(
                                 Column(modifier = Modifier.weight(1f)) {
                                     if (isHealthConnectConnected) {
                                         Text(
-                                            text = "연결됨",
+                                            text = stringResource(R.string.connected),
                                             fontSize = 16.sp,
                                             fontWeight = FontWeight.Bold,
                                             color = MockupColors.Blue,
@@ -1622,7 +1623,7 @@ fun SettingsScreen(
                                         )
                                     } else {
                                         Text(
-                                            text = "걸음 측정",
+                                            text = stringResource(R.string.step_measurement),
                                             fontSize = 16.sp,
                                             fontWeight = FontWeight.Bold,
                                             color = MockupColors.TextPrimary,
@@ -1631,7 +1632,7 @@ fun SettingsScreen(
                                         Spacer(modifier = Modifier.height(4.dp))
                                         Text(
                                             text = if (isHealthConnectAvailable)
-                                                "삼성 헬스, Google Fit 연결"
+                                                "                                                stringResource(R.string.connect_samsung_health_google_fit)"
                                             else
                                                 "Health Connect 필요",
                                             fontSize = 13.sp,
@@ -1650,7 +1651,7 @@ fun SettingsScreen(
                             Spacer(modifier = Modifier.height(12.dp))
 
                             RetroButton(
-                                text = if (isHealthConnectConnected) "관리" else "연결",
+                                text = if (isHealthConnectConnected) stringResource(R.string.manage) else stringResource(R.string.connect),
                                 onClick = {
                                     hapticManager.click()
                                     showFitnessAppConnectionScreen = true
@@ -1668,7 +1669,7 @@ fun SettingsScreen(
                     Spacer(modifier = Modifier.height(16.dp))
 
                     // 👤 계정
-                    RetroSectionTitle(title = "계정", fontFamily = kenneyFont)
+                    RetroSectionTitle(title = stringResource(R.string.section_account), fontFamily = kenneyFont)
 
                     Box(
                         modifier = Modifier
@@ -1711,7 +1712,7 @@ fun SettingsScreen(
                                     )
                                     Spacer(modifier = Modifier.height(2.dp))
                                     Text(
-                                        text = "데이터 자동 백업 중",
+                                        text = stringResource(R.string.auto_backup_in_progress),
                                         fontSize = 13.sp,
                                         color = MockupColors.Blue
                                     )
@@ -1725,7 +1726,7 @@ fun SettingsScreen(
                                     )
                                     Spacer(modifier = Modifier.height(4.dp))
                                     Text(
-                                        text = "연결하면 데이터가 자동 백업됩니다",
+                                        text = stringResource(R.string.connect_for_auto_backup),
                                         fontSize = 13.sp,
                                         color = MockupColors.TextSecondary
                                     )
@@ -1767,7 +1768,7 @@ fun SettingsScreen(
                     // 불편사항 접수
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    RetroSectionTitle("불편사항 접수", kenneyFont)
+                    RetroSectionTitle(stringResource(R.string.section_feedback), kenneyFont)
 
                     Spacer(modifier = Modifier.height(8.dp))
 
@@ -1779,13 +1780,13 @@ fun SettingsScreen(
                         ) {
                             Column {
                                 Text(
-                                    text = "피드백 보내기",
+                                    text = stringResource(R.string.send_feedback),
                                     fontSize = 16.sp,
                                     fontWeight = FontWeight.Bold,
                                     color = MockupColors.TextPrimary
                                 )
                                 Text(
-                                    text = "버그 신고, 기능 제안 등",
+                                    text = stringResource(R.string.feedback_desc),
                                     fontSize = 13.sp,
                                     color = MockupColors.TextSecondary
                                 )
@@ -1869,7 +1870,7 @@ fun SettingsScreen(
                     },
                     title = {
                         Text(
-                            text = "달성 혜택 안내",
+                            text = stringResource(R.string.benefit_info),
                             fontWeight = FontWeight.Bold
                         )
                     },
@@ -1889,7 +1890,7 @@ fun SettingsScreen(
                             }
                             Spacer(modifier = Modifier.height(8.dp))
                             Text(
-                                text = "친구 초대 쿠폰을 드려요!",
+                                text = stringResource(R.string.invite_coupon_reward),
                                 fontSize = 18.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = MockupColors.Blue
@@ -1908,7 +1909,7 @@ fun SettingsScreen(
                                 PixelIcon(iconName = "icon_chest", size = 20.dp)
                                 Spacer(modifier = Modifier.width(8.dp))
                                 Text(
-                                    text = "친구 초대 방법",
+                                    text = stringResource(R.string.how_to_invite),
                                     fontSize = StandTypography.bodyLarge,
                                     fontWeight = FontWeight.Bold,
                                     color = MockupColors.TextPrimary
@@ -1935,7 +1936,7 @@ fun SettingsScreen(
                                         PixelIcon(iconName = "icon_light_bulb", size = 16.dp)
                                         Spacer(modifier = Modifier.width(6.dp))
                                         Text(
-                                            text = "꿀팁",
+                                            text = stringResource(R.string.tip),
                                             fontSize = StandTypography.bodyMedium,
                                             fontWeight = FontWeight.Bold,
                                             color = MockupColors.Blue
@@ -1943,7 +1944,7 @@ fun SettingsScreen(
                                     }
                                     Spacer(modifier = Modifier.height(8.dp))
                                     Text(
-                                        text = "매일 꾸준히 걸으면 95% 달성은\n어렵지 않아요! 친구들과 함께\n건강해지세요",
+                                        text = stringResource(R.string.tip_message),
                                         fontSize = StandTypography.bodySmall,
                                         lineHeight = 18.sp,
                                         color = MockupColors.TextPrimary
@@ -1956,7 +1957,7 @@ fun SettingsScreen(
                         Button(
                             onClick = { showDepositInfoDialog = false }
                         ) {
-                            Text("확인")
+                            Text(stringResource(R.string.confirm))
                         }
                     }
                 )
@@ -1965,10 +1966,10 @@ fun SettingsScreen(
             // 3일 제한 확인 팝업 - 레트로 스타일
             showChangeConfirmDialog?.let { type ->
                 val title = when (type) {
-                    "goal" -> "걸음 목표 변경"
-                    "controlDays" -> "제어 요일 변경"
-                    "blockingPeriods" -> "차단 시간대 변경"
-                    else -> "설정 변경"
+                    "goal" -> stringResource(R.string.change_goal)
+                    "controlDays" -> stringResource(R.string.change_control_days)
+                    "blockingPeriods" -> stringResource(R.string.change_blocking_periods)
+                    else -> stringResource(R.string.change_settings)
                 }
                 // 목표는 낮추기만 제한, 요일/시간대는 제거만 제한
                 val canRemove = when (type) {
@@ -2019,7 +2020,7 @@ fun SettingsScreen(
                             // 요일/시간대는 추가 자유, 제거만 제한 안내
                             if (isAddRemoveType) {
                                 Text(
-                                    text = "추가는 자유롭게 가능합니다.\n제거는 3일 동안 다시 변경할 수 없습니다.",
+                                    text = stringResource(R.string.add_free_remove_restricted),
                                     fontSize = 15.sp,
                                     color = MockupColors.TextSecondary,
                                     textAlign = TextAlign.Center,
@@ -2027,7 +2028,7 @@ fun SettingsScreen(
                                 )
                             } else {
                                 Text(
-                                    text = "목표를 낮추면 3일 동안\n다시 낮출 수 없습니다.",
+                                    text = stringResource(R.string.goal_decrease_restricted),
                                     fontSize = 15.sp,
                                     color = MockupColors.TextSecondary,
                                     textAlign = TextAlign.Center,
@@ -2072,7 +2073,7 @@ fun SettingsScreen(
                                     contentAlignment = Alignment.Center
                                 ) {
                                     Text(
-                                        text = "취소",
+                                        text = stringResource(R.string.cancel),
                                         fontSize = 16.sp,
                                         fontWeight = FontWeight.Bold,
                                         color = MockupColors.TextPrimary,
@@ -2102,7 +2103,7 @@ fun SettingsScreen(
                                     contentAlignment = Alignment.Center
                                 ) {
                                     Text(
-                                        text = if (canProceed) "변경" else "불가",
+                                        text = if (canProceed) stringResource(R.string.change) else stringResource(R.string.not_allowed),
                                         fontSize = 16.sp,
                                         fontWeight = FontWeight.Bold,
                                         color = Color.White,
@@ -2180,11 +2181,15 @@ fun BlockingPeriodsDialog(
     val kenneyFont = rememberKenneyFont()
     var selectedPeriods by remember { mutableStateOf(currentPeriods) }
 
+    val morningHours = stringResource(R.string.time_morning_hours)
+    val afternoonHours = stringResource(R.string.time_afternoon_hours)
+    val eveningHours = stringResource(R.string.time_evening_hours)
+    val nightHours = stringResource(R.string.time_night_hours)
     val periods = listOf(
-        "morning" to "아침\n06-12시",
-        "afternoon" to "점심\n12-18시",
-        "evening" to "저녁\n18-22시",
-        "night" to "밤\n22-06시"
+        "morning" to morningHours,
+        "afternoon" to afternoonHours,
+        "evening" to eveningHours,
+        "night" to nightHours
     )
 
     // 제거 여부 확인
@@ -2207,7 +2212,7 @@ fun BlockingPeriodsDialog(
 
             // 타이틀
             Text(
-                text = "차단 시간대",
+                text = stringResource(R.string.section_blocking_periods),
                 fontSize = 28.sp,
                 fontFamily = kenneyFont,
                 fontWeight = FontWeight.Bold,
@@ -2217,7 +2222,7 @@ fun BlockingPeriodsDialog(
             Spacer(modifier = Modifier.height(8.dp))
 
             Text(
-                text = "차단할 시간대를 선택하세요",
+                text = stringResource(R.string.select_blocking_periods),
                 fontSize = 16.sp,
                 color = MockupColors.TextSecondary
             )
