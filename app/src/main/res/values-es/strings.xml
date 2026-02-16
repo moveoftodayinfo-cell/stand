@@ -1,0 +1,182 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">rebon</string>
+    <string name="accessibility_service_description">Restringe las aplicaciones seleccionadas cuando no se alcanza la meta diaria de pasos.</string>
+    <string name="widget_description">Muestra el conteo de pasos de hoy</string>
+    <string name="widget_pet_description">Revisa tus pasos con tu mascota</string>
+    <string name="widget_quote_description">Muestra la cita del día</string>
+    <string name="widget_sudoku_description">Disfruta de un sudoku sencillo</string>
+    <string name="widget_fasting_description">Muestra el temporizador de ayuno intermitente</string>
+
+    <!-- Common -->
+    <string name="start">Iniciar</string>
+    <string name="confirm">Aceptar</string>
+    <string name="close">Cerrar</string>
+    <string name="later">Más tarde</string>
+    <string name="none">Ninguno</string>
+    <string name="recommended">Recomendado</string>
+    <string name="preparing">Próximamente</string>
+    <string name="achieved">Logrado</string>
+
+    <!-- Units -->
+    <string name="unit_steps">pasos</string>
+    <string name="unit_km">km</string>
+    <string name="today_steps">Hoy %,d pasos</string>
+    <string name="today_km">Hoy %.2f km</string>
+
+    <!-- Goal Status -->
+    <string name="free_time">Tiempo Libre</string>
+    <string name="goal_in_progress">Meta en Progreso</string>
+    <string name="goal_achieved">¡Meta Lograda!</string>
+    <string name="goal_achieved_apps_available">¡Meta Lograda! Apps Disponibles</string>
+    <string name="apps_blocked">Apps Bloqueadas %s</string>
+    <string name="use_apps_freely">Usa apps libremente</string>
+    <string name="steps_to_goal">%,d pasos para la meta</string>
+    <string name="km_to_goal">%.2f km para la meta</string>
+
+    <!-- Challenge -->
+    <string name="go_to_challenge">Ir al Desafío</string>
+    <string name="preparing_challenge_title">Próximamente</string>
+    <string name="preparing_challenge_message">¡Estamos preparando la función de desafíos!\nPor favor espera un momento.</string>
+
+    <!-- Title/Badge -->
+    <string name="new_title_earned">¡Nuevo Título Obtenido!</string>
+    <string name="equip">Equipar</string>
+    <string name="select_title">Seleccionar Título</string>
+    <string name="no_titles_yet">Aún no tienes títulos\n¡Completa desafíos para ganar títulos!</string>
+    <string name="equipped">Equipado</string>
+
+    <!-- Challenge Categories -->
+    <string name="category_reading">Lectura</string>
+    <string name="category_meditation">Meditación</string>
+    <string name="category_study">Estudio</string>
+
+    <!-- Days of Week -->
+    <string name="day_mon">Lun</string>
+    <string name="day_tue">Mar</string>
+    <string name="day_wed">Mié</string>
+    <string name="day_thu">Jue</string>
+    <string name="day_fri">Vie</string>
+    <string name="day_sat">Sáb</string>
+    <string name="day_sun">Dom</string>
+
+    <!-- Defense Ticket -->
+    <string name="defense_ticket_given">¡1 Ticket de Defensa Otorgado!</string>
+    <string name="defense_ticket_message">Aunque pierdas una meta diaria,\npuedes mantener tu racha con un ticket de defensa</string>
+
+    <!-- Settings Sections -->
+    <string name="section_subscription">Suscripción</string>
+    <string name="section_locked_apps">Apps Bloqueadas</string>
+    <string name="section_blocking_periods">Períodos de Bloqueo</string>
+    <string name="section_control_days">Días de Control</string>
+    <string name="section_fitness">Conexión Fitness</string>
+    <string name="section_account">Cuenta</string>
+    <string name="section_feedback">Comentarios</string>
+    <string name="section_goal">Configurar Meta</string>
+
+    <!-- Settings Items -->
+    <string name="daily_goal">Meta Diaria</string>
+    <string name="pet_change">Cambiar Mascota</string>
+    <string name="current_pet">Actual: %s</string>
+    <string name="invite_friend">Invitar Amigos</string>
+    <string name="invite_friend_desc">Regala 1 mes gratis a tus amigos</string>
+    <string name="app_control">Control de Apps</string>
+    <string name="subscription_renew">Renovar Suscripción</string>
+    <string name="subscription_renew_desc">Cambiar o renovar plan</string>
+    <string name="send_feedback">Enviar Comentarios</string>
+    <string name="feedback_desc">Reportar errores, sugerencias</string>
+
+    <!-- Status -->
+    <string name="connected">Conectado</string>
+    <string name="blocking">Bloqueando</string>
+    <string name="select_apps">Seleccionar Apps</string>
+    <string name="edit_apps">Editar Apps</string>
+    <string name="manage">Gestionar</string>
+    <string name="connect">Conectar</string>
+
+    <!-- Time Periods -->
+    <string name="time_morning">Mañana</string>
+    <string name="time_afternoon">Tarde</string>
+    <string name="time_evening">Atardecer</string>
+    <string name="time_night">Noche</string>
+    <string name="time_morning_hours">Mañana\n06-12</string>
+    <string name="time_afternoon_hours">Tarde\n12-18</string>
+    <string name="time_evening_hours">Atardecer\n18-22</string>
+    <string name="time_night_hours">Noche\n22-06</string>
+    <string name="time_period_setting">Configurar Horarios</string>
+    <string name="select_blocking_periods">Seleccionar períodos de bloqueo</string>
+    <string name="blocking_periods_desc">Bloquear apps solo en períodos seleccionados.\nEj: Bloquear en trabajo, libre en noche</string>
+
+    <!-- Day Settings -->
+    <string name="day_setting">Configurar Días</string>
+
+    <!-- Achievement -->
+    <string name="this_month_achievement">Tasa del Mes</string>
+    <string name="target_95">Meta 95%</string>
+    <string name="fully_achieved">Logrado Totalmente</string>
+    <string name="partially_achieved">Logrado Parcialmente</string>
+    <string name="in_progress">En Progreso</string>
+    <string name="invite_coupon_earned">¡Cupón de Invitación Obtenido!</string>
+    <string name="invite_feature">Función de Invitación</string>
+    <string name="invite_available_by_subscription">Invitación según tipo de suscripción</string>
+
+    <!-- Invite Code -->
+    <string name="basic_invite_code">Código Básico</string>
+    <string name="bonus_invite_code">Código Bonus</string>
+    <string name="copy">Copiar</string>
+    <string name="copy_complete">¡Copiado!</string>
+    <string name="in_use">En Uso</string>
+    <string name="share_with_invite_code">Compartir con Código</string>
+    <string name="share_app_link">Compartir Enlace</string>
+    <string name="share_to_friend">Compartir con Amigos</string>
+    <string name="invite_code_after_payment">Obtén código con suscripción paga</string>
+    <string name="current_achievement_need_95">Actual: %s%% → 95%% necesario</string>
+
+    <!-- Fitness -->
+    <string name="step_measurement">Medición de Pasos</string>
+    <string name="connect_samsung_health_google_fit">Conectar Samsung Health, Google Fit</string>
+    <string name="connect_fitness_for_accuracy">Conecta abajo para contar pasos precisos</string>
+
+    <!-- Account -->
+    <string name="auto_backup_in_progress">Respaldo automático activo</string>
+    <string name="connect_for_auto_backup">Conecta para respaldo automático</string>
+
+    <!-- Data Sync -->
+    <string name="restored_existing_data">¡Datos existentes restaurados!</string>
+    <string name="saved_current_data">¡Datos actuales guardados!</string>
+    <string name="login_failed">Error de inicio</string>
+    <string name="pet_changed">¡Mascota cambiada!</string>
+    <string name="feedback_sent">¡Comentarios enviados!</string>
+
+    <!-- Setting Change Dialogs -->
+    <string name="change_goal">Cambiar Meta de Pasos</string>
+    <string name="change_control_days">Cambiar Días de Control</string>
+    <string name="change_blocking_periods">Cambiar Períodos de Bloqueo</string>
+    <string name="change_settings">Cambiar Configuración</string>
+    <string name="change">Cambiar</string>
+    <string name="cancel">Cancelar</string>
+    <string name="not_allowed">No Permitido</string>
+    <string name="removal_restricted">Eliminación Restringida</string>
+    <string name="add_only_remove_available">Solo agregar · Eliminar disponible: %s</string>
+    <string name="no_selection_no_blocking">Sin selección no hay bloqueo</string>
+    <string name="add_free_remove_restricted">Agregar es libre.\nEliminar bloqueado por 3 días.</string>
+    <string name="goal_decrease_restricted">Tras reducir meta,\nno puedes reducir por 3 días.</string>
+    <string name="goal_decrease_available">Reducir meta disponible: %s</string>
+    <string name="app_remove_available">Eliminar app disponible: %s</string>
+    <string name="period_change_available">Cambio de período disponible: %s</string>
+    <string name="day_change_available">Cambio de día disponible: %s</string>
+    <string name="change_available_date">Cambio disponible: %s</string>
+    <string name="remove_available_date">Eliminación disponible: %s</string>
+
+    <!-- Benefit Info -->
+    <string name="benefit_info">Beneficios de Logro</string>
+    <string name="invite_coupon_reward">¡Obtén cupones de invitación!</string>
+    <string name="how_to_invite">Cómo Invitar</string>
+    <string name="tip">Consejo</string>
+    <string name="tip_message">¡Caminar diario hace fácil el 95%%!\nSé saludable con amigos</string>
+
+    <!-- Accessibility -->
+    <string name="tap_to_enable_in_settings">Toca para habilitar en ajustes</string>
+    <string name="icon">Icono</string>
+    <string name="info">Info</string>
+</resources>

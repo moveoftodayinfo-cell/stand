@@ -1,9 +1,182 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">rebon</string>
-    <string name="accessibility_service_description">목표 걸음 수 미달 시 선택한 앱을 제한합니다.</string>
-    <string name="widget_description">오늘의 걸음 수를 표시합니다</string>
-    <string name="widget_pet_description">펫과 함께 걸음 수를 확인합니다</string>
-    <string name="widget_quote_description">오늘의 명언을 표시합니다</string>
-    <string name="widget_sudoku_description">간단한 스도쿠 퍼즐을 즐깁니다</string>
-    <string name="widget_fasting_description">간헐적 단식 타이머를 표시합니다</string>
+    <string name="accessibility_service_description">Restricts selected apps when daily step goal is not met.</string>
+    <string name="widget_description">Displays today\'s step count</string>
+    <string name="widget_pet_description">Check your steps with your pet</string>
+    <string name="widget_quote_description">Displays today\'s quote</string>
+    <string name="widget_sudoku_description">Enjoy a simple sudoku puzzle</string>
+    <string name="widget_fasting_description">Displays intermittent fasting timer</string>
+
+    <!-- Common -->
+    <string name="start">Start</string>
+    <string name="confirm">OK</string>
+    <string name="close">Close</string>
+    <string name="later">Later</string>
+    <string name="none">None</string>
+    <string name="recommended">Recommended</string>
+    <string name="preparing">Coming Soon</string>
+    <string name="achieved">Achieved</string>
+
+    <!-- Units -->
+    <string name="unit_steps">steps</string>
+    <string name="unit_km">km</string>
+    <string name="today_steps">Today %,d steps</string>
+    <string name="today_km">Today %.2f km</string>
+
+    <!-- Goal Status -->
+    <string name="free_time">Free Time</string>
+    <string name="goal_in_progress">Goal in Progress</string>
+    <string name="goal_achieved">Goal Achieved!</string>
+    <string name="goal_achieved_apps_available">Goal Achieved! Apps Available</string>
+    <string name="apps_blocked">Apps Blocked %s</string>
+    <string name="use_apps_freely">Use apps freely</string>
+    <string name="steps_to_goal">%,d steps to goal</string>
+    <string name="km_to_goal">%.2f km to goal</string>
+
+    <!-- Challenge -->
+    <string name="go_to_challenge">Go to Challenge</string>
+    <string name="preparing_challenge_title">Coming Soon</string>
+    <string name="preparing_challenge_message">We\'re preparing the challenge feature!\nPlease wait a moment.</string>
+
+    <!-- Title/Badge -->
+    <string name="new_title_earned">New Title Earned!</string>
+    <string name="equip">Equip</string>
+    <string name="select_title">Select Title</string>
+    <string name="no_titles_yet">No titles earned yet\nComplete challenges to earn titles!</string>
+    <string name="equipped">Equipped</string>
+
+    <!-- Challenge Categories -->
+    <string name="category_reading">Reading</string>
+    <string name="category_meditation">Meditation</string>
+    <string name="category_study">Study</string>
+
+    <!-- Days of Week -->
+    <string name="day_mon">Mon</string>
+    <string name="day_tue">Tue</string>
+    <string name="day_wed">Wed</string>
+    <string name="day_thu">Thu</string>
+    <string name="day_fri">Fri</string>
+    <string name="day_sat">Sat</string>
+    <string name="day_sun">Sun</string>
+
+    <!-- Defense Ticket -->
+    <string name="defense_ticket_given">1 Defense Ticket Granted!</string>
+    <string name="defense_ticket_message">Even if you miss a daily goal,\nyou can keep your streak with a defense ticket</string>
+
+    <!-- Settings Sections -->
+    <string name="section_subscription">Subscription</string>
+    <string name="section_locked_apps">Locked Apps</string>
+    <string name="section_blocking_periods">Blocking Periods</string>
+    <string name="section_control_days">Control Days</string>
+    <string name="section_fitness">Fitness Connection</string>
+    <string name="section_account">Account</string>
+    <string name="section_feedback">Feedback</string>
+    <string name="section_goal">Goal Settings</string>
+
+    <!-- Settings Items -->
+    <string name="daily_goal">Daily Goal</string>
+    <string name="pet_change">Change Pet</string>
+    <string name="current_pet">Current: %s</string>
+    <string name="invite_friend">Invite Friends</string>
+    <string name="invite_friend_desc">Gift your friends 1 month free</string>
+    <string name="app_control">App Control</string>
+    <string name="subscription_renew">Renew Subscription</string>
+    <string name="subscription_renew_desc">Change or renew subscription plan</string>
+    <string name="send_feedback">Send Feedback</string>
+    <string name="feedback_desc">Report bugs, suggest features</string>
+
+    <!-- Status -->
+    <string name="connected">Connected</string>
+    <string name="blocking">Blocking</string>
+    <string name="select_apps">Select Apps</string>
+    <string name="edit_apps">Edit Apps</string>
+    <string name="manage">Manage</string>
+    <string name="connect">Connect</string>
+
+    <!-- Time Periods -->
+    <string name="time_morning">Morning</string>
+    <string name="time_afternoon">Afternoon</string>
+    <string name="time_evening">Evening</string>
+    <string name="time_night">Night</string>
+    <string name="time_morning_hours">Morning\n06-12</string>
+    <string name="time_afternoon_hours">Afternoon\n12-18</string>
+    <string name="time_evening_hours">Evening\n18-22</string>
+    <string name="time_night_hours">Night\n22-06</string>
+    <string name="time_period_setting">Time Period Settings</string>
+    <string name="select_blocking_periods">Select blocking periods</string>
+    <string name="blocking_periods_desc">Block apps only during selected periods.\nEx: Block during work, free in evening/night</string>
+
+    <!-- Day Settings -->
+    <string name="day_setting">Day Settings</string>
+
+    <!-- Achievement -->
+    <string name="this_month_achievement">This Month\'s Rate</string>
+    <string name="target_95">Target 95%</string>
+    <string name="fully_achieved">Fully Achieved</string>
+    <string name="partially_achieved">Partially Achieved</string>
+    <string name="in_progress">In Progress</string>
+    <string name="invite_coupon_earned">Invite Coupon Earned!</string>
+    <string name="invite_feature">Invite Feature</string>
+    <string name="invite_available_by_subscription">Invite available by subscription type</string>
+
+    <!-- Invite Code -->
+    <string name="basic_invite_code">Basic Invite Code</string>
+    <string name="bonus_invite_code">Bonus Invite Code</string>
+    <string name="copy">Copy</string>
+    <string name="copy_complete">Copied!</string>
+    <string name="in_use">In Use</string>
+    <string name="share_with_invite_code">Share with Invite Code</string>
+    <string name="share_app_link">Share App Link</string>
+    <string name="share_to_friend">Share with Friends</string>
+    <string name="invite_code_after_payment">Get invite code after paid subscription</string>
+    <string name="current_achievement_need_95">Current: %s%% → 95%% needed</string>
+
+    <!-- Fitness -->
+    <string name="step_measurement">Step Measurement</string>
+    <string name="connect_samsung_health_google_fit">Connect Samsung Health, Google Fit</string>
+    <string name="connect_fitness_for_accuracy">Connect below for accurate step counting</string>
+
+    <!-- Account -->
+    <string name="auto_backup_in_progress">Auto backup in progress</string>
+    <string name="connect_for_auto_backup">Connect for automatic data backup</string>
+
+    <!-- Data Sync -->
+    <string name="restored_existing_data">Restored existing data!</string>
+    <string name="saved_current_data">Saved current data!</string>
+    <string name="login_failed">Login failed</string>
+    <string name="pet_changed">Pet changed!</string>
+    <string name="feedback_sent">Feedback sent!</string>
+
+    <!-- Setting Change Dialogs -->
+    <string name="change_goal">Change Step Goal</string>
+    <string name="change_control_days">Change Control Days</string>
+    <string name="change_blocking_periods">Change Blocking Periods</string>
+    <string name="change_settings">Change Settings</string>
+    <string name="change">Change</string>
+    <string name="cancel">Cancel</string>
+    <string name="not_allowed">Not Allowed</string>
+    <string name="removal_restricted">Removal Restricted</string>
+    <string name="add_only_remove_available">Add only · Remove available: %s</string>
+    <string name="no_selection_no_blocking">No blocking without selection</string>
+    <string name="add_free_remove_restricted">Adding is free.\nRemoval locked for 3 days.</string>
+    <string name="goal_decrease_restricted">After decreasing goal,\ncannot decrease again for 3 days.</string>
+    <string name="goal_decrease_available">Goal decrease available: %s</string>
+    <string name="app_remove_available">App removal available: %s</string>
+    <string name="period_change_available">Period change available: %s</string>
+    <string name="day_change_available">Day change available: %s</string>
+    <string name="change_available_date">Change available: %s</string>
+    <string name="remove_available_date">Removal available: %s</string>
+
+    <!-- Benefit Info -->
+    <string name="benefit_info">Achievement Benefits</string>
+    <string name="invite_coupon_reward">Get invite coupons!</string>
+    <string name="how_to_invite">How to Invite</string>
+    <string name="tip">Tip</string>
+    <string name="tip_message">Walking daily makes 95%% easy!\nGet healthy together with friends</string>
+
+    <!-- Accessibility -->
+    <string name="tap_to_enable_in_settings">Tap to enable in settings</string>
+    <string name="icon">Icon</string>
+    <string name="info">Info</string>
 </resources>

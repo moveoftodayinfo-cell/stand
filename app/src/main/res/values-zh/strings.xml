@@ -1,0 +1,182 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">rebon</string>
+    <string name="accessibility_service_description">未达到每日步数目标时限制选定的应用。</string>
+    <string name="widget_description">显示今天的步数</string>
+    <string name="widget_pet_description">与宠物一起查看步数</string>
+    <string name="widget_quote_description">显示今日名言</string>
+    <string name="widget_sudoku_description">享受简单的数独游戏</string>
+    <string name="widget_fasting_description">显示间歇性禁食计时器</string>
+
+    <!-- Common -->
+    <string name="start">开始</string>
+    <string name="confirm">确认</string>
+    <string name="close">关闭</string>
+    <string name="later">稍后</string>
+    <string name="none">无</string>
+    <string name="recommended">推荐</string>
+    <string name="preparing">准备中</string>
+    <string name="achieved">达成</string>
+
+    <!-- Units -->
+    <string name="unit_steps">步</string>
+    <string name="unit_km">公里</string>
+    <string name="today_steps">今天 %,d 步</string>
+    <string name="today_km">今天 %.2f 公里</string>
+
+    <!-- Goal Status -->
+    <string name="free_time">自由时间</string>
+    <string name="goal_in_progress">目标进行中</string>
+    <string name="goal_achieved">目标达成！</string>
+    <string name="goal_achieved_apps_available">目标达成！可使用应用</string>
+    <string name="apps_blocked">应用已限制 %s</string>
+    <string name="use_apps_freely">自由使用应用</string>
+    <string name="steps_to_goal">距离目标 %,d 步</string>
+    <string name="km_to_goal">距离目标 %.2f 公里</string>
+
+    <!-- Challenge -->
+    <string name="go_to_challenge">去挑战</string>
+    <string name="preparing_challenge_title">准备中</string>
+    <string name="preparing_challenge_message">挑战功能正在准备中！\n请稍等。</string>
+
+    <!-- Title/Badge -->
+    <string name="new_title_earned">获得新称号！</string>
+    <string name="equip">装备</string>
+    <string name="select_title">选择称号</string>
+    <string name="no_titles_yet">还没有获得称号\n完成挑战即可获得称号！</string>
+    <string name="equipped">已装备</string>
+
+    <!-- Challenge Categories -->
+    <string name="category_reading">阅读</string>
+    <string name="category_meditation">冥想</string>
+    <string name="category_study">学习</string>
+
+    <!-- Days of Week -->
+    <string name="day_mon">一</string>
+    <string name="day_tue">二</string>
+    <string name="day_wed">三</string>
+    <string name="day_thu">四</string>
+    <string name="day_fri">五</string>
+    <string name="day_sat">六</string>
+    <string name="day_sun">日</string>
+
+    <!-- Defense Ticket -->
+    <string name="defense_ticket_given">获得1张防御券！</string>
+    <string name="defense_ticket_message">即使错过每日目标\n也可以用防御券保持连续记录</string>
+
+    <!-- Settings Sections -->
+    <string name="section_subscription">订阅管理</string>
+    <string name="section_locked_apps">锁定应用</string>
+    <string name="section_blocking_periods">限制时段</string>
+    <string name="section_control_days">控制日</string>
+    <string name="section_fitness">健身连接</string>
+    <string name="section_account">账户</string>
+    <string name="section_feedback">反馈</string>
+    <string name="section_goal">目标设置</string>
+
+    <!-- Settings Items -->
+    <string name="daily_goal">每日目标</string>
+    <string name="pet_change">更换宠物</string>
+    <string name="current_pet">当前: %s</string>
+    <string name="invite_friend">邀请好友</string>
+    <string name="invite_friend_desc">送好友1个月免费券</string>
+    <string name="app_control">应用控制</string>
+    <string name="subscription_renew">续订</string>
+    <string name="subscription_renew_desc">更改或续订订阅</string>
+    <string name="send_feedback">发送反馈</string>
+    <string name="feedback_desc">报告问题、建议功能</string>
+
+    <!-- Status -->
+    <string name="connected">已连接</string>
+    <string name="blocking">限制中</string>
+    <string name="select_apps">选择应用</string>
+    <string name="edit_apps">编辑应用</string>
+    <string name="manage">管理</string>
+    <string name="connect">连接</string>
+
+    <!-- Time Periods -->
+    <string name="time_morning">上午</string>
+    <string name="time_afternoon">下午</string>
+    <string name="time_evening">傍晚</string>
+    <string name="time_night">夜间</string>
+    <string name="time_morning_hours">上午\n06-12</string>
+    <string name="time_afternoon_hours">下午\n12-18</string>
+    <string name="time_evening_hours">傍晚\n18-22</string>
+    <string name="time_night_hours">夜间\n22-06</string>
+    <string name="time_period_setting">时段设置</string>
+    <string name="select_blocking_periods">选择限制时段</string>
+    <string name="blocking_periods_desc">仅在选定时段限制应用。\n例：工作时间限制，晚上自由</string>
+
+    <!-- Day Settings -->
+    <string name="day_setting">日期设置</string>
+
+    <!-- Achievement -->
+    <string name="this_month_achievement">本月达成率</string>
+    <string name="target_95">目标 95%</string>
+    <string name="fully_achieved">完全达成</string>
+    <string name="partially_achieved">部分达成</string>
+    <string name="in_progress">进行中</string>
+    <string name="invite_coupon_earned">获得邀请券！</string>
+    <string name="invite_feature">邀请功能</string>
+    <string name="invite_available_by_subscription">根据订阅类型可邀请</string>
+
+    <!-- Invite Code -->
+    <string name="basic_invite_code">基本邀请码</string>
+    <string name="bonus_invite_code">奖励邀请码</string>
+    <string name="copy">复制</string>
+    <string name="copy_complete">已复制！</string>
+    <string name="in_use">使用中</string>
+    <string name="share_with_invite_code">带邀请码分享</string>
+    <string name="share_app_link">分享应用链接</string>
+    <string name="share_to_friend">分享给朋友</string>
+    <string name="invite_code_after_payment">付费订阅后获取邀请码</string>
+    <string name="current_achievement_need_95">当前: %s%% → 需要 95%%</string>
+
+    <!-- Fitness -->
+    <string name="step_measurement">步数测量</string>
+    <string name="connect_samsung_health_google_fit">连接三星健康、Google Fit</string>
+    <string name="connect_fitness_for_accuracy">请在下方连接以准确测量步数</string>
+
+    <!-- Account -->
+    <string name="auto_backup_in_progress">自动备份中</string>
+    <string name="connect_for_auto_backup">连接后数据将自动备份</string>
+
+    <!-- Data Sync -->
+    <string name="restored_existing_data">已恢复现有数据！</string>
+    <string name="saved_current_data">已保存当前数据！</string>
+    <string name="login_failed">登录失败</string>
+    <string name="pet_changed">宠物已更换！</string>
+    <string name="feedback_sent">反馈已发送！</string>
+
+    <!-- Setting Change Dialogs -->
+    <string name="change_goal">更改步数目标</string>
+    <string name="change_control_days">更改控制日</string>
+    <string name="change_blocking_periods">更改限制时段</string>
+    <string name="change_settings">更改设置</string>
+    <string name="change">更改</string>
+    <string name="cancel">取消</string>
+    <string name="not_allowed">不允许</string>
+    <string name="removal_restricted">删除受限</string>
+    <string name="add_only_remove_available">仅可添加 · 删除可用: %s</string>
+    <string name="no_selection_no_blocking">不选择则不限制</string>
+    <string name="add_free_remove_restricted">添加自由。\n删除后3天内不可再更改。</string>
+    <string name="goal_decrease_restricted">降低目标后\n3天内不能再降低。</string>
+    <string name="goal_decrease_available">目标降低可用: %s</string>
+    <string name="app_remove_available">应用删除可用: %s</string>
+    <string name="period_change_available">时段更改可用: %s</string>
+    <string name="day_change_available">日期更改可用: %s</string>
+    <string name="change_available_date">更改可用: %s</string>
+    <string name="remove_available_date">删除可用: %s</string>
+
+    <!-- Benefit Info -->
+    <string name="benefit_info">达成奖励说明</string>
+    <string name="invite_coupon_reward">送你邀请券！</string>
+    <string name="how_to_invite">邀请方法</string>
+    <string name="tip">小贴士</string>
+    <string name="tip_message">每天坚持走路，95%%达成不难！\n和朋友一起变健康</string>
+
+    <!-- Accessibility -->
+    <string name="tap_to_enable_in_settings">点击在设置中启用</string>
+    <string name="icon">图标</string>
+    <string name="info">信息</string>
+</resources>

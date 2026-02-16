@@ -1,0 +1,182 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">rebon</string>
+    <string name="accessibility_service_description">目標歩数未達成時に選択したアプリを制限します。</string>
+    <string name="widget_description">今日の歩数を表示します</string>
+    <string name="widget_pet_description">ペットと一緒に歩数を確認します</string>
+    <string name="widget_quote_description">今日の名言を表示します</string>
+    <string name="widget_sudoku_description">簡単な数独パズルを楽しみます</string>
+    <string name="widget_fasting_description">断続的断食タイマーを表示します</string>
+
+    <!-- Common -->
+    <string name="start">スタート</string>
+    <string name="confirm">確認</string>
+    <string name="close">閉じる</string>
+    <string name="later">後で</string>
+    <string name="none">なし</string>
+    <string name="recommended">おすすめ</string>
+    <string name="preparing">準備中</string>
+    <string name="achieved">達成</string>
+
+    <!-- Units -->
+    <string name="unit_steps">歩</string>
+    <string name="unit_km">km</string>
+    <string name="today_steps">今日 %,d 歩</string>
+    <string name="today_km">今日 %.2f km</string>
+
+    <!-- Goal Status -->
+    <string name="free_time">自由時間</string>
+    <string name="goal_in_progress">目標進行中</string>
+    <string name="goal_achieved">目標達成！</string>
+    <string name="goal_achieved_apps_available">目標達成！アプリ使用可能</string>
+    <string name="apps_blocked">アプリ制限中 %s</string>
+    <string name="use_apps_freely">アプリを自由に使用</string>
+    <string name="steps_to_goal">目標まで %,d 歩</string>
+    <string name="km_to_goal">目標まで %.2f km</string>
+
+    <!-- Challenge -->
+    <string name="go_to_challenge">チャレンジへ</string>
+    <string name="preparing_challenge_title">準備中</string>
+    <string name="preparing_challenge_message">チャレンジ機能を準備中です！\n少々お待ちください。</string>
+
+    <!-- Title/Badge -->
+    <string name="new_title_earned">新しい称号を獲得！</string>
+    <string name="equip">装着する</string>
+    <string name="select_title">称号を選択</string>
+    <string name="no_titles_yet">まだ獲得した称号がありません\nチャレンジを完了して称号を獲得しましょう！</string>
+    <string name="equipped">装着中</string>
+
+    <!-- Challenge Categories -->
+    <string name="category_reading">読書</string>
+    <string name="category_meditation">瞑想</string>
+    <string name="category_study">勉強</string>
+
+    <!-- Days of Week -->
+    <string name="day_mon">月</string>
+    <string name="day_tue">火</string>
+    <string name="day_wed">水</string>
+    <string name="day_thu">木</string>
+    <string name="day_fri">金</string>
+    <string name="day_sat">土</string>
+    <string name="day_sun">日</string>
+
+    <!-- Defense Ticket -->
+    <string name="defense_ticket_given">防御チケット1枚獲得！</string>
+    <string name="defense_ticket_message">1日の目標を達成できなくても\n防御チケットで連続記録を守れます</string>
+
+    <!-- Settings Sections -->
+    <string name="section_subscription">サブスク管理</string>
+    <string name="section_locked_apps">ロックアプリ</string>
+    <string name="section_blocking_periods">ブロック時間帯</string>
+    <string name="section_control_days">制御曜日</string>
+    <string name="section_fitness">フィットネス連携</string>
+    <string name="section_account">アカウント</string>
+    <string name="section_feedback">フィードバック</string>
+    <string name="section_goal">目標設定</string>
+
+    <!-- Settings Items -->
+    <string name="daily_goal">1日の目標</string>
+    <string name="pet_change">ペット変更</string>
+    <string name="current_pet">現在: %s</string>
+    <string name="invite_friend">友達を招待</string>
+    <string name="invite_friend_desc">友達に1ヶ月無料クーポンをプレゼント</string>
+    <string name="app_control">アプリ制御</string>
+    <string name="subscription_renew">サブスク更新</string>
+    <string name="subscription_renew_desc">プランの変更・更新</string>
+    <string name="send_feedback">フィードバック送信</string>
+    <string name="feedback_desc">バグ報告、機能提案など</string>
+
+    <!-- Status -->
+    <string name="connected">接続済み</string>
+    <string name="blocking">ブロック中</string>
+    <string name="select_apps">アプリを選択</string>
+    <string name="edit_apps">アプリを編集</string>
+    <string name="manage">管理</string>
+    <string name="connect">接続</string>
+
+    <!-- Time Periods -->
+    <string name="time_morning">朝</string>
+    <string name="time_afternoon">昼</string>
+    <string name="time_evening">夕方</string>
+    <string name="time_night">夜</string>
+    <string name="time_morning_hours">朝\n06-12時</string>
+    <string name="time_afternoon_hours">昼\n12-18時</string>
+    <string name="time_evening_hours">夕方\n18-22時</string>
+    <string name="time_night_hours">夜\n22-06時</string>
+    <string name="time_period_setting">時間帯設定</string>
+    <string name="select_blocking_periods">ブロックする時間帯を選択</string>
+    <string name="blocking_periods_desc">選択した時間帯のみアプリをブロック。\n例: 仕事中のみブロック、夜は自由</string>
+
+    <!-- Day Settings -->
+    <string name="day_setting">曜日設定</string>
+
+    <!-- Achievement -->
+    <string name="this_month_achievement">今月の達成率</string>
+    <string name="target_95">目標 95%</string>
+    <string name="fully_achieved">完全達成</string>
+    <string name="partially_achieved">部分達成</string>
+    <string name="in_progress">進行中</string>
+    <string name="invite_coupon_earned">招待クーポン獲得！</string>
+    <string name="invite_feature">招待機能</string>
+    <string name="invite_available_by_subscription">サブスクタイプにより招待可能</string>
+
+    <!-- Invite Code -->
+    <string name="basic_invite_code">基本招待コード</string>
+    <string name="bonus_invite_code">ボーナス招待コード</string>
+    <string name="copy">コピー</string>
+    <string name="copy_complete">コピー完了！</string>
+    <string name="in_use">使用中</string>
+    <string name="share_with_invite_code">招待コードで共有</string>
+    <string name="share_app_link">アプリリンク共有</string>
+    <string name="share_to_friend">友達に共有</string>
+    <string name="invite_code_after_payment">有料登録で招待コード取得可能</string>
+    <string name="current_achievement_need_95">現在: %s%% → 95%% 必要</string>
+
+    <!-- Fitness -->
+    <string name="step_measurement">歩数測定</string>
+    <string name="connect_samsung_health_google_fit">Samsung Health、Google Fit連携</string>
+    <string name="connect_fitness_for_accuracy">正確な歩数測定のため下記から連携してください</string>
+
+    <!-- Account -->
+    <string name="auto_backup_in_progress">自動バックアップ中</string>
+    <string name="connect_for_auto_backup">連携するとデータが自動バックアップされます</string>
+
+    <!-- Data Sync -->
+    <string name="restored_existing_data">既存データを復元しました！</string>
+    <string name="saved_current_data">現在のデータを保存しました！</string>
+    <string name="login_failed">ログイン失敗</string>
+    <string name="pet_changed">ペットが変更されました！</string>
+    <string name="feedback_sent">フィードバックを送信しました！</string>
+
+    <!-- Setting Change Dialogs -->
+    <string name="change_goal">歩数目標を変更</string>
+    <string name="change_control_days">制御曜日を変更</string>
+    <string name="change_blocking_periods">ブロック時間帯を変更</string>
+    <string name="change_settings">設定を変更</string>
+    <string name="change">変更</string>
+    <string name="cancel">キャンセル</string>
+    <string name="not_allowed">変更不可</string>
+    <string name="removal_restricted">削除制限中</string>
+    <string name="add_only_remove_available">追加のみ可能 · 削除可能日: %s</string>
+    <string name="no_selection_no_blocking">選択なしの場合ブロックされません</string>
+    <string name="add_free_remove_restricted">追加は自由にできます。\n削除は3日間変更できません。</string>
+    <string name="goal_decrease_restricted">目標を下げると3日間\n再び下げられません。</string>
+    <string name="goal_decrease_available">目標減少可能日: %s</string>
+    <string name="app_remove_available">アプリ削除可能日: %s</string>
+    <string name="period_change_available">時間帯変更可能日: %s</string>
+    <string name="day_change_available">曜日変更可能日: %s</string>
+    <string name="change_available_date">変更可能日: %s</string>
+    <string name="remove_available_date">削除可能日: %s</string>
+
+    <!-- Benefit Info -->
+    <string name="benefit_info">達成特典案内</string>
+    <string name="invite_coupon_reward">招待クーポンをプレゼント！</string>
+    <string name="how_to_invite">招待方法</string>
+    <string name="tip">コツ</string>
+    <string name="tip_message">毎日歩けば95%%達成は\n難しくない！友達と一緒に\n健康になりましょう</string>
+
+    <!-- Accessibility -->
+    <string name="tap_to_enable_in_settings">タップして設定で有効化</string>
+    <string name="icon">アイコン</string>
+    <string name="info">情報</string>
+</resources>

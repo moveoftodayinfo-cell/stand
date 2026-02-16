@@ -7,4 +7,176 @@
     <string name="widget_quote_description">오늘의 명언을 표시합니다</string>
     <string name="widget_sudoku_description">간단한 스도쿠 퍼즐을 즐깁니다</string>
     <string name="widget_fasting_description">간헐적 단식 타이머를 표시합니다</string>
+
+    <!-- Common -->
+    <string name="start">시작</string>
+    <string name="confirm">확인</string>
+    <string name="close">닫기</string>
+    <string name="later">나중에</string>
+    <string name="none">없음</string>
+    <string name="recommended">추천</string>
+    <string name="preparing">준비중</string>
+    <string name="achieved">달성</string>
+
+    <!-- Units -->
+    <string name="unit_steps">보</string>
+    <string name="unit_km">km</string>
+    <string name="today_steps">오늘 %,d 보</string>
+    <string name="today_km">오늘 %.2f km</string>
+
+    <!-- Goal Status -->
+    <string name="free_time">자유 시간</string>
+    <string name="goal_in_progress">목표 진행중</string>
+    <string name="goal_achieved">목표 달성!</string>
+    <string name="goal_achieved_apps_available">목표 달성! 앱 사용 가능</string>
+    <string name="apps_blocked">앱 차단 %s</string>
+    <string name="use_apps_freely">앱 자유롭게 사용</string>
+    <string name="steps_to_goal">목표까지 %,d보</string>
+    <string name="km_to_goal">목표까지 %.2f km</string>
+
+    <!-- Challenge -->
+    <string name="go_to_challenge">챌린지 하러가기</string>
+    <string name="preparing_challenge_title">준비중</string>
+    <string name="preparing_challenge_message">챌린지 기능을 준비하고 있어요!\n조금만 기다려주세요.</string>
+
+    <!-- Title/Badge -->
+    <string name="new_title_earned">새 칭호 획득!</string>
+    <string name="equip">장착하기</string>
+    <string name="select_title">칭호 선택</string>
+    <string name="no_titles_yet">아직 획득한 칭호가 없어요\n챌린지를 완료하면 칭호를 얻을 수 있어요!</string>
+    <string name="equipped">장착중</string>
+
+    <!-- Challenge Categories -->
+    <string name="category_reading">독서</string>
+    <string name="category_meditation">명상</string>
+    <string name="category_study">공부</string>
+
+    <!-- Days of Week -->
+    <string name="day_mon">월</string>
+    <string name="day_tue">화</string>
+    <string name="day_wed">수</string>
+    <string name="day_thu">목</string>
+    <string name="day_fri">금</string>
+    <string name="day_sat">토</string>
+    <string name="day_sun">일</string>
+
+    <!-- Defense Ticket -->
+    <string name="defense_ticket_given">방어권 1개 지급!</string>
+    <string name="defense_ticket_message">하루 목표를 놓쳐도\n방어권으로 연속 기록을 지킬 수 있어요</string>
+
+    <!-- Settings Sections -->
+    <string name="section_subscription">구독 관리</string>
+    <string name="section_locked_apps">잠금 앱</string>
+    <string name="section_blocking_periods">차단 시간대</string>
+    <string name="section_control_days">제어 요일</string>
+    <string name="section_fitness">피트니스 연결</string>
+    <string name="section_account">계정</string>
+    <string name="section_feedback">불편사항 접수</string>
+    <string name="section_goal">목표 설정</string>
+
+    <!-- Settings Items -->
+    <string name="daily_goal">일일 목표</string>
+    <string name="pet_change">펫 변경</string>
+    <string name="current_pet">현재: %s</string>
+    <string name="invite_friend">친구 초대</string>
+    <string name="invite_friend_desc">친구에게 1달 무료 쿠폰을 선물하세요</string>
+    <string name="app_control">앱 제어</string>
+    <string name="subscription_renew">구독 갱신</string>
+    <string name="subscription_renew_desc">구독 플랜 변경 및 갱신</string>
+    <string name="send_feedback">피드백 보내기</string>
+    <string name="feedback_desc">버그 신고, 기능 제안 등</string>
+
+    <!-- Status -->
+    <string name="connected">연결됨</string>
+    <string name="blocking">차단 중</string>
+    <string name="select_apps">앱 선택</string>
+    <string name="edit_apps">앱 수정</string>
+    <string name="manage">관리</string>
+    <string name="connect">연결</string>
+
+    <!-- Time Periods -->
+    <string name="time_morning">아침</string>
+    <string name="time_afternoon">점심</string>
+    <string name="time_evening">저녁</string>
+    <string name="time_night">밤</string>
+    <string name="time_morning_hours">아침\n06-12시</string>
+    <string name="time_afternoon_hours">점심\n12-18시</string>
+    <string name="time_evening_hours">저녁\n18-22시</string>
+    <string name="time_night_hours">밤\n22-06시</string>
+    <string name="time_period_setting">시간대 설정</string>
+    <string name="select_blocking_periods">차단할 시간대를 선택하세요</string>
+    <string name="blocking_periods_desc">선택한 시간대에만 앱을 차단합니다.\n예: 업무 시간만 차단, 저녁/밤은 자유</string>
+
+    <!-- Day Settings -->
+    <string name="day_setting">요일 설정</string>
+
+    <!-- Achievement -->
+    <string name="this_month_achievement">이번 달 달성률</string>
+    <string name="target_95">목표 95%</string>
+    <string name="fully_achieved">완전 달성</string>
+    <string name="partially_achieved">부분 달성</string>
+    <string name="in_progress">진행중</string>
+    <string name="invite_coupon_earned">친구 초대 쿠폰 획득!</string>
+    <string name="invite_feature">친구 초대 기능</string>
+    <string name="invite_available_by_subscription">구독 타입에 따라 초대 가능</string>
+
+    <!-- Invite Code -->
+    <string name="basic_invite_code">기본 초대 코드</string>
+    <string name="bonus_invite_code">보너스 초대 코드</string>
+    <string name="copy">복사</string>
+    <string name="copy_complete">복사 완료!</string>
+    <string name="in_use">사용 중</string>
+    <string name="share_with_invite_code">초대 코드와 함께 공유</string>
+    <string name="share_app_link">앱 링크 공유</string>
+    <string name="share_to_friend">친구에게 공유하기</string>
+    <string name="invite_code_after_payment">유료 결제 시 초대 코드를 받을 수 있어요</string>
+    <string name="current_achievement_need_95">현재 달성률: %s%% → 95%% 필요</string>
+
+    <!-- Fitness -->
+    <string name="step_measurement">걸음 측정</string>
+    <string name="connect_samsung_health_google_fit">삼성 헬스, Google Fit 연결</string>
+    <string name="connect_fitness_for_accuracy">걸음수를 정확히 측정하려면 아래에서 연결해주세요</string>
+
+    <!-- Account -->
+    <string name="auto_backup_in_progress">데이터 자동 백업 중</string>
+    <string name="connect_for_auto_backup">연결하면 데이터가 자동 백업됩니다</string>
+
+    <!-- Data Sync -->
+    <string name="restored_existing_data">기존 데이터를 복원했어요!</string>
+    <string name="saved_current_data">현재 데이터를 저장했어요!</string>
+    <string name="login_failed">로그인 실패</string>
+    <string name="pet_changed">펫이 변경되었습니다!</string>
+    <string name="feedback_sent">피드백이 전송되었습니다!</string>
+
+    <!-- Setting Change Dialogs -->
+    <string name="change_goal">걸음 목표 변경</string>
+    <string name="change_control_days">제어 요일 변경</string>
+    <string name="change_blocking_periods">차단 시간대 변경</string>
+    <string name="change_settings">설정 변경</string>
+    <string name="change">변경</string>
+    <string name="cancel">취소</string>
+    <string name="not_allowed">불가</string>
+    <string name="removal_restricted">제거 제한 중</string>
+    <string name="add_only_remove_available">추가만 가능 · 제거 가능일: %s</string>
+    <string name="no_selection_no_blocking">선택하지 않으면 차단되지 않습니다</string>
+    <string name="add_free_remove_restricted">추가는 자유롭게 가능합니다.\n제거는 3일 동안 다시 변경할 수 없습니다.</string>
+    <string name="goal_decrease_restricted">목표를 낮추면 3일 동안\n다시 낮출 수 없습니다.</string>
+    <string name="goal_decrease_available">목표 감소 가능: %s</string>
+    <string name="app_remove_available">앱 제거 가능: %s</string>
+    <string name="period_change_available">시간대 변경 가능: %s</string>
+    <string name="day_change_available">요일 변경 가능: %s</string>
+    <string name="change_available_date">변경 가능일: %s</string>
+    <string name="remove_available_date">제거 가능일: %s</string>
+
+    <!-- Benefit Info -->
+    <string name="benefit_info">달성 혜택 안내</string>
+    <string name="invite_coupon_reward">친구 초대 쿠폰을 드려요!</string>
+    <string name="how_to_invite">친구 초대 방법</string>
+    <string name="tip">꿀팁</string>
+    <string name="tip_message">매일 꾸준히 걸으면 95% 달성은\n어렵지 않아요! 친구들과 함께\n건강해지세요</string>
+
+    <!-- Accessibility -->
+    <string name="tap_to_enable_in_settings">탭하여 설정에서 활성화하세요</string>
+    <string name="icon">아이콘</string>
+    <string name="info">정보</string>
 </resources>

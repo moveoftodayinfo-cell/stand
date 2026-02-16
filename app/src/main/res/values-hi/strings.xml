@@ -1,0 +1,182 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">rebon</string>
+    <string name="accessibility_service_description">दैनिक कदम लक्ष्य पूरा न होने पर चयनित ऐप्स को प्रतिबंधित करता है।</string>
+    <string name="widget_description">आज की कदम गिनती दिखाता है</string>
+    <string name="widget_pet_description">अपने पालतू जानवर के साथ कदम देखें</string>
+    <string name="widget_quote_description">आज का उद्धरण दिखाता है</string>
+    <string name="widget_sudoku_description">एक सरल सुडोकू पहेली का आनंद लें</string>
+    <string name="widget_fasting_description">इंटरमिटेंट फास्टिंग टाइमर दिखाता है</string>
+
+    <!-- Common -->
+    <string name="start">शुरू करें</string>
+    <string name="confirm">ठीक है</string>
+    <string name="close">बंद करें</string>
+    <string name="later">बाद में</string>
+    <string name="none">कोई नहीं</string>
+    <string name="recommended">अनुशंसित</string>
+    <string name="preparing">जल्द आ रहा है</string>
+    <string name="achieved">हासिल</string>
+
+    <!-- Units -->
+    <string name="unit_steps">कदम</string>
+    <string name="unit_km">किमी</string>
+    <string name="today_steps">आज %,d कदम</string>
+    <string name="today_km">आज %.2f किमी</string>
+
+    <!-- Goal Status -->
+    <string name="free_time">फ्री टाइम</string>
+    <string name="goal_in_progress">लक्ष्य जारी</string>
+    <string name="goal_achieved">लक्ष्य हासिल!</string>
+    <string name="goal_achieved_apps_available">लक्ष्य हासिल! ऐप्स उपलब्ध</string>
+    <string name="apps_blocked">ऐप्स ब्लॉक %s</string>
+    <string name="use_apps_freely">ऐप्स स्वतंत्र रूप से उपयोग करें</string>
+    <string name="steps_to_goal">लक्ष्य तक %,d कदम</string>
+    <string name="km_to_goal">लक्ष्य तक %.2f किमी</string>
+
+    <!-- Challenge -->
+    <string name="go_to_challenge">चैलेंज पर जाएं</string>
+    <string name="preparing_challenge_title">जल्द आ रहा है</string>
+    <string name="preparing_challenge_message">हम चैलेंज फीचर तैयार कर रहे हैं!\nकृपया थोड़ा इंतज़ार करें।</string>
+
+    <!-- Title/Badge -->
+    <string name="new_title_earned">नया टाइटल मिला!</string>
+    <string name="equip">लगाएं</string>
+    <string name="select_title">टाइटल चुनें</string>
+    <string name="no_titles_yet">अभी तक कोई टाइटल नहीं\nटाइटल पाने के लिए चैलेंज पूरा करें!</string>
+    <string name="equipped">लगा हुआ</string>
+
+    <!-- Challenge Categories -->
+    <string name="category_reading">पढ़ना</string>
+    <string name="category_meditation">ध्यान</string>
+    <string name="category_study">पढ़ाई</string>
+
+    <!-- Days of Week -->
+    <string name="day_mon">सोम</string>
+    <string name="day_tue">मंगल</string>
+    <string name="day_wed">बुध</string>
+    <string name="day_thu">गुरु</string>
+    <string name="day_fri">शुक्र</string>
+    <string name="day_sat">शनि</string>
+    <string name="day_sun">रवि</string>
+
+    <!-- Defense Ticket -->
+    <string name="defense_ticket_given">1 डिफेंस टिकट मिला!</string>
+    <string name="defense_ticket_message">दैनिक लक्ष्य चूक जाने पर भी\nडिफेंस टिकट से स्ट्रीक बचा सकते हैं</string>
+
+    <!-- Settings Sections -->
+    <string name="section_subscription">सदस्यता प्रबंधन</string>
+    <string name="section_locked_apps">लॉक ऐप्स</string>
+    <string name="section_blocking_periods">ब्लॉकिंग समय</string>
+    <string name="section_control_days">नियंत्रण दिन</string>
+    <string name="section_fitness">फिटनेस कनेक्शन</string>
+    <string name="section_account">खाता</string>
+    <string name="section_feedback">फीडबैक</string>
+    <string name="section_goal">लक्ष्य सेटिंग्स</string>
+
+    <!-- Settings Items -->
+    <string name="daily_goal">दैनिक लक्ष्य</string>
+    <string name="pet_change">पेट बदलें</string>
+    <string name="current_pet">वर्तमान: %s</string>
+    <string name="invite_friend">दोस्तों को आमंत्रित करें</string>
+    <string name="invite_friend_desc">दोस्तों को 1 महीना मुफ्त दें</string>
+    <string name="app_control">ऐप नियंत्रण</string>
+    <string name="subscription_renew">सदस्यता नवीनीकरण</string>
+    <string name="subscription_renew_desc">प्लान बदलें या नवीनीकृत करें</string>
+    <string name="send_feedback">फीडबैक भेजें</string>
+    <string name="feedback_desc">बग रिपोर्ट, सुझाव</string>
+
+    <!-- Status -->
+    <string name="connected">जुड़ा हुआ</string>
+    <string name="blocking">ब्लॉकिंग</string>
+    <string name="select_apps">ऐप्स चुनें</string>
+    <string name="edit_apps">ऐप्स संपादित करें</string>
+    <string name="manage">प्रबंधित करें</string>
+    <string name="connect">जोड़ें</string>
+
+    <!-- Time Periods -->
+    <string name="time_morning">सुबह</string>
+    <string name="time_afternoon">दोपहर</string>
+    <string name="time_evening">शाम</string>
+    <string name="time_night">रात</string>
+    <string name="time_morning_hours">सुबह\n06-12</string>
+    <string name="time_afternoon_hours">दोपहर\n12-18</string>
+    <string name="time_evening_hours">शाम\n18-22</string>
+    <string name="time_night_hours">रात\n22-06</string>
+    <string name="time_period_setting">समय सेटिंग्स</string>
+    <string name="select_blocking_periods">ब्लॉकिंग समय चुनें</string>
+    <string name="blocking_periods_desc">चुने गए समय में ही ऐप्स ब्लॉक करें।\nउदा: काम के समय ब्लॉक, शाम को फ्री</string>
+
+    <!-- Day Settings -->
+    <string name="day_setting">दिन सेटिंग्स</string>
+
+    <!-- Achievement -->
+    <string name="this_month_achievement">इस महीने की दर</string>
+    <string name="target_95">लक्ष्य 95%</string>
+    <string name="fully_achieved">पूर्ण हासिल</string>
+    <string name="partially_achieved">आंशिक हासिल</string>
+    <string name="in_progress">प्रगति में</string>
+    <string name="invite_coupon_earned">इनवाइट कूपन मिला!</string>
+    <string name="invite_feature">इनवाइट फीचर</string>
+    <string name="invite_available_by_subscription">सदस्यता के अनुसार इनवाइट उपलब्ध</string>
+
+    <!-- Invite Code -->
+    <string name="basic_invite_code">बेसिक इनवाइट कोड</string>
+    <string name="bonus_invite_code">बोनस इनवाइट कोड</string>
+    <string name="copy">कॉपी</string>
+    <string name="copy_complete">कॉपी हो गया!</string>
+    <string name="in_use">उपयोग में</string>
+    <string name="share_with_invite_code">इनवाइट कोड के साथ शेयर</string>
+    <string name="share_app_link">ऐप लिंक शेयर करें</string>
+    <string name="share_to_friend">दोस्तों के साथ शेयर</string>
+    <string name="invite_code_after_payment">पेड सब्सक्रिप्शन के बाद इनवाइट कोड मिलेगा</string>
+    <string name="current_achievement_need_95">वर्तमान: %s%% → 95%% चाहिए</string>
+
+    <!-- Fitness -->
+    <string name="step_measurement">कदम मापन</string>
+    <string name="connect_samsung_health_google_fit">Samsung Health, Google Fit जोड़ें</string>
+    <string name="connect_fitness_for_accuracy">सटीक कदम गणना के लिए नीचे से जोड़ें</string>
+
+    <!-- Account -->
+    <string name="auto_backup_in_progress">ऑटो बैकअप चालू</string>
+    <string name="connect_for_auto_backup">जोड़ने पर डेटा ऑटो बैकअप होगा</string>
+
+    <!-- Data Sync -->
+    <string name="restored_existing_data">मौजूदा डेटा वापस लाया!</string>
+    <string name="saved_current_data">वर्तमान डेटा सेव किया!</string>
+    <string name="login_failed">लॉगिन विफल</string>
+    <string name="pet_changed">पेट बदल गया!</string>
+    <string name="feedback_sent">फीडबैक भेजा गया!</string>
+
+    <!-- Setting Change Dialogs -->
+    <string name="change_goal">कदम लक्ष्य बदलें</string>
+    <string name="change_control_days">नियंत्रण दिन बदलें</string>
+    <string name="change_blocking_periods">ब्लॉकिंग समय बदलें</string>
+    <string name="change_settings">सेटिंग्स बदलें</string>
+    <string name="change">बदलें</string>
+    <string name="cancel">रद्द करें</string>
+    <string name="not_allowed">अनुमति नहीं</string>
+    <string name="removal_restricted">हटाना प्रतिबंधित</string>
+    <string name="add_only_remove_available">केवल जोड़ें · हटाना उपलब्ध: %s</string>
+    <string name="no_selection_no_blocking">चयन के बिना कोई ब्लॉकिंग नहीं</string>
+    <string name="add_free_remove_restricted">जोड़ना मुफ्त है।\nहटाना 3 दिन के लिए लॉक।</string>
+    <string name="goal_decrease_restricted">लक्ष्य कम करने के बाद\n3 दिन फिर से कम नहीं कर सकते।</string>
+    <string name="goal_decrease_available">लक्ष्य कमी उपलब्ध: %s</string>
+    <string name="app_remove_available">ऐप हटाना उपलब्ध: %s</string>
+    <string name="period_change_available">समय बदलाव उपलब्ध: %s</string>
+    <string name="day_change_available">दिन बदलाव उपलब्ध: %s</string>
+    <string name="change_available_date">बदलाव उपलब्ध: %s</string>
+    <string name="remove_available_date">हटाना उपलब्ध: %s</string>
+
+    <!-- Benefit Info -->
+    <string name="benefit_info">हासिल लाभ</string>
+    <string name="invite_coupon_reward">इनवाइट कूपन पाएं!</string>
+    <string name="how_to_invite">इनवाइट कैसे करें</string>
+    <string name="tip">सुझाव</string>
+    <string name="tip_message">रोज़ चलने से 95%% आसान है!\nदोस्तों के साथ स्वस्थ बनें</string>
+
+    <!-- Accessibility -->
+    <string name="tap_to_enable_in_settings">सेटिंग्स में सक्षम करने के लिए टैप करें</string>
+    <string name="icon">आइकन</string>
+    <string name="info">जानकारी</string>
+</resources>
