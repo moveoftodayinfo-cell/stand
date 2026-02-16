@@ -197,7 +197,10 @@
 
     <!-- Tutorial - Permissions -->
     <string name="permission_settings">परमिशन सेटिंग्स</string>
+    <string name="rebon_needs_permissions">rebon को ठीक से काम करने के लिए\nनीचे दी गई परमिशन चाहिए</string>
+    <string name="step_measurement_title">कदम मापन</string>
     <string name="step_count_permission">आपके कदम गिनें</string>
+    <string name="notification_title">नोटिफिकेशन</string>
     <string name="notification_permission">प्रगति की सूचना दें</string>
 
     <!-- Tutorial - Fitness Connection -->
@@ -207,8 +210,13 @@
     <string name="installed">इंस्टॉल ✓</string>
     <string name="connecting">जोड़ रहा है...</string>
     <string name="connect_with_app">%s से जोड़ें</string>
+    <string name="health_connect_required_title">⚠️ Health Connect चाहिए</string>
     <string name="health_connect_required">%s से जोड़ने के लिए\nHealth Connect ऐप चाहिए</string>
+    <string name="install_from_play_store">Play Store से इंस्टॉल करें</string>
+    <string name="android_9_required">* Android 9 या उससे ऊपर चाहिए</string>
+    <string name="recommended_fitness_apps">📱 अनुशंसित फिटनेस ऐप्स</string>
     <string name="install_fitness_app_desc">इनमें से एक ऐप इंस्टॉल करें\nसटीक कदम गिनती के लिए</string>
+    <string name="basic_sensor_note">* बेसिक सेंसर कम सटीक है और धोखाधड़ी रोकथाम सीमित है</string>
     <string name="samsung_health">Samsung Health</string>
     <string name="connect_later_in_settings">बाद में सेटिंग्स में जोड़ सकते हैं</string>
     <string name="do_later_use_basic_sensor">बाद में (बेसिक सेंसर उपयोग)</string>
@@ -216,14 +224,21 @@
     <!-- Tutorial - App Control -->
     <string name="app_control_settings">ऐप कंट्रोल सेटिंग्स</string>
     <string name="app_control_ready_desc">ऐप्स कंट्रोल करने को तैयार!\nएक्सेसिबिलिटी ऑन करें</string>
+    <string name="how_to_setup">सेटअप कैसे करें</string>
+    <string name="accessibility_setup_steps">1. नीचे बटन टैप करें सेटिंग्स में जाने के लिए\n2. सेटिंग्स में \'rebon\' खोजें\n3. rebon को ON करें\n4. कन्फर्म टैप करें\n\n✅ ON होने पर अपने आप आगे!</string>
+    <string name="rebon_on_required">⚠️ आगे बढ़ने के लिए rebon ON चाहिए</string>
     <string name="go_to_settings">सेटिंग्स पर जाएं</string>
     <string name="select_apps_to_control">कंट्रोल करने के लिए ऐप्स चुनें</string>
     <string name="select_apps_desc">लक्ष्य पूरा न होने पर\nप्रतिबंधित होने वाले ऐप्स चुनें</string>
     <string name="no_apps_to_control">कोई ऐप कंट्रोल करने के लिए नहीं</string>
+    <string name="no_apps_install_guide">Play Store से\nYouTube, Chrome, Instagram\nजैसे ऐप्स इंस्टॉल करें</string>
+    <string name="apps_selected_count">✓ %d चुने</string>
+    <string name="category_apps_count">%d ऐप्स</string>
     <string name="next_with_count">आगे (%d चुने)</string>
 
     <!-- Tutorial - Blocking Test -->
     <string name="experience_complete">अनुभव पूरा!</string>
+    <string name="experience_complete_emoji">💡 अनुभव पूरा!</string>
     <string name="app_blocked">ऐप ब्लॉक हो गया!</string>
     <string name="blocking_experienced_desc">आपने ऐप ब्लॉकिंग अनुभव की!\nअगले चरण में अनलॉक करें</string>
     <string name="try_running_app_desc">चुने हुए ऐप को चलाएं।\nब्लॉकिंग मैसेज दिखेगा!</string>
@@ -232,6 +247,8 @@
     <string name="checking_blocking_desc">जांच रहा है कि आपने\nब्लॉकिंग देखी या नहीं।</string>
     <string name="proceed_soon">जल्द ही आगे बढ़ सकते हैं</string>
     <string name="try_running_app">ऐप चलाकर देखें</string>
+    <string name="try_running_app_emoji">📱 ऐप चलाकर देखें</string>
+    <string name="blocking_test_steps">1. होम बटन दबाकर बाहर निकलें\n2. चुना हुआ ऐप चलाएं\n3. ब्लॉकिंग मैसेज देखें\n4. rebon में वापस आएं</string>
     <string name="must_run_blocked_app">आगे बढ़ने के लिए ब्लॉक ऐप चलाएं</string>
 
     <!-- Tutorial - Goal Setting -->
@@ -240,15 +257,25 @@
     <string name="step_count">कदम संख्या</string>
     <string name="basic_sensor">बेसिक सेंसर</string>
     <string name="distance_km">दूरी (किमी)</string>
+    <string name="fitness_connected">फिटनेस जुड़ा</string>
     <string name="connection_required">कनेक्शन चाहिए</string>
+    <string name="steps_format">%d कदम</string>
+    <string name="km_format">%.2f किमी</string>
+    <string name="steps_range">50~70 कदम</string>
+    <string name="km_range">0.04~0.1 किमी</string>
     <string name="when_goal_achieved">लक्ष्य पूरा होने पर</string>
+    <string name="fitness_required_for_km">⚠️ फिटनेस ऐप कनेक्शन चाहिए</string>
+    <string name="km_requires_fitness">किमी यूनिट के लिए फिटनेस ऐप जोड़ें।</string>
     <string name="blocked_apps_unlock_desc">ब्लॉक ऐप्स अनलॉक होंगे!\nअगले चरण में चलकर देखें।</string>
 
     <!-- Tutorial - Walking Test -->
+    <string name="walk_x_steps">%s चलें!</string>
     <string name="goal_achieved_try_app">लक्ष्य पूरा!\nअब ऐप चलाएं</string>
     <string name="perfect">परफेक्ट!</string>
     <string name="goal_achieved_app_tested_desc">लक्ष्य पूरा और ऐप टेस्ट किया!\nऐप्स अनलॉक हो गए।</string>
     <string name="try_running_app_now">ऐप चलाकर देखें!</string>
+    <string name="app_unlock_guide">1. होम दबाकर बाहर निकलें\n2. ब्लॉक ऐप चलाएं\n3. ऐप अब खुलेगा!\n4. rebon में वापस आएं</string>
+    <string name="walk_emoji">🚶 चलें</string>
     <string name="walk_with_phone_desc">फोन लेकर चलें!\nजितना चलें, उतनी लाइट।</string>
     <string name="test_tools">टेस्ट टूल्स</string>
     <string name="achieve">हासिल</string>
@@ -258,10 +285,13 @@
     <string name="try_running_app_short">ऐप चलाएं</string>
     <string name="goal_achieved_unlocked">लक्ष्य पूरा!\nऐप्स अनलॉक!</string>
     <string name="goal_achieved_explanation">लक्ष्य कदम चलने के बाद\nचुने हुए ऐप्स फिर से उपयोग कर सकते हैं!</string>
+    <string name="rebon_core">rebon कोर</string>
     <string name="daily_goal_explanation">रोज़ लक्ष्य पूरा करें, ऐप्स फ्री!\nफेल होने पर ब्लॉक।</string>
 
     <!-- Tutorial - Break -->
     <string name="take_a_break">ब्रेक लें</string>
+    <string name="break_15_min">15 मिनट ब्रेक मोड</string>
+    <string name="break_features">• जरूरी होने पर 15 मिनट ऐप्स उपयोग करें\n• दिन में सिर्फ 1 बार\n• 15 मिनट बाद ऑटो ब्लॉक</string>
     <string name="break_description">जरूरी काम या संपर्क के लिए\nथोड़ा ब्रेक लें</string>
     <string name="tutorial_complete">ट्यूटोरियल पूरा!</string>
 

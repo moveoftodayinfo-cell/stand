@@ -197,7 +197,10 @@
 
     <!-- Tutorial - Permissions -->
     <string name="permission_settings">权限设置</string>
+    <string name="rebon_needs_permissions">rebon需要以下权限\n才能正常运行</string>
+    <string name="step_measurement_title">步数测量</string>
     <string name="step_count_permission">测量你的步数</string>
+    <string name="notification_title">通知</string>
     <string name="notification_permission">通知你的进度</string>
 
     <!-- Tutorial - Fitness Connection -->
@@ -207,8 +210,13 @@
     <string name="installed">已安装 ✓</string>
     <string name="connecting">连接中...</string>
     <string name="connect_with_app">连接 %s</string>
+    <string name="health_connect_required_title">⚠️ 需要 Health Connect</string>
     <string name="health_connect_required">连接 %s 需要\nHealth Connect 应用</string>
+    <string name="install_from_play_store">从 Play 商店安装</string>
+    <string name="android_9_required">* 需要 Android 9 或更高版本</string>
+    <string name="recommended_fitness_apps">📱 推荐健身应用</string>
     <string name="install_fitness_app_desc">安装以下应用之一\n获得更准确的步数</string>
+    <string name="basic_sensor_note">* 基本传感器精度较低，防作弊功能受限</string>
     <string name="samsung_health">三星健康</string>
     <string name="connect_later_in_settings">稍后可在设置中连接</string>
     <string name="do_later_use_basic_sensor">稍后（使用基本传感器）</string>
@@ -216,14 +224,21 @@
     <!-- Tutorial - App Control -->
     <string name="app_control_settings">应用控制设置</string>
     <string name="app_control_ready_desc">准备好控制应用了！\n请启用无障碍功能</string>
+    <string name="how_to_setup">设置方法</string>
+    <string name="accessibility_setup_steps">1. 点击下方按钮进入设置\n2. 在设置中找到"rebon"\n3. 打开 rebon\n4. 点击确认\n\n✅ 确认开启后自动进入下一步！</string>
+    <string name="rebon_on_required">⚠️ 需要打开 rebon 才能继续</string>
     <string name="go_to_settings">前往设置</string>
     <string name="select_apps_to_control">选择要控制的应用</string>
     <string name="select_apps_desc">未达目标时\n将限制使用的应用</string>
     <string name="no_apps_to_control">没有可控制的应用</string>
+    <string name="no_apps_install_guide">请从 Play 商店安装\nYouTube、Chrome、Instagram\n等应用</string>
+    <string name="apps_selected_count">✓ 已选 %d 个</string>
+    <string name="category_apps_count">%d 个</string>
     <string name="next_with_count">下一步（已选 %d 个）</string>
 
     <!-- Tutorial - Blocking Test -->
     <string name="experience_complete">体验完成！</string>
+    <string name="experience_complete_emoji">💡 体验完成！</string>
     <string name="app_blocked">应用已被限制！</string>
     <string name="blocking_experienced_desc">你体验了应用限制！\n下一步来解锁它</string>
     <string name="try_running_app_desc">尝试运行选中的应用。\n你会看到限制消息！</string>
@@ -232,6 +247,8 @@
     <string name="checking_blocking_desc">正在确认你是否\n体验了限制功能。</string>
     <string name="proceed_soon">即将可以继续</string>
     <string name="try_running_app">尝试运行应用</string>
+    <string name="try_running_app_emoji">📱 尝试运行应用</string>
+    <string name="blocking_test_steps">1. 按 Home 键退出\n2. 运行选中的应用\n3. 查看限制消息\n4. 返回 rebon</string>
     <string name="must_run_blocked_app">运行被限制的应用以继续</string>
 
     <!-- Tutorial - Goal Setting -->
@@ -240,15 +257,25 @@
     <string name="step_count">步数</string>
     <string name="basic_sensor">基本传感器</string>
     <string name="distance_km">距离（公里）</string>
+    <string name="fitness_connected">已连接健身应用</string>
     <string name="connection_required">需要连接</string>
+    <string name="steps_format">%d步</string>
+    <string name="km_format">%.2f公里</string>
+    <string name="steps_range">50~70步</string>
+    <string name="km_range">0.04~0.1公里</string>
     <string name="when_goal_achieved">目标达成时</string>
+    <string name="fitness_required_for_km">⚠️ 需要连接健身应用</string>
+    <string name="km_requires_fitness">使用公里单位需要连接健身应用。</string>
     <string name="blocked_apps_unlock_desc">被限制的应用将解锁！\n下一步试着走走。</string>
 
     <!-- Tutorial - Walking Test -->
+    <string name="walk_x_steps">走 %s！</string>
     <string name="goal_achieved_try_app">目标达成！\n现在试试运行应用</string>
     <string name="perfect">完美！</string>
     <string name="goal_achieved_app_tested_desc">你达成了目标并测试了应用！\n应用已解锁。</string>
     <string name="try_running_app_now">试试运行应用！</string>
+    <string name="app_unlock_guide">1. 按 Home 键退出\n2. 运行被限制的应用\n3. 应用现在可以打开了！\n4. 返回 rebon</string>
+    <string name="walk_emoji">🚶 走吧</string>
     <string name="walk_with_phone_desc">拿着手机走！\n走得越多，灯越亮。</string>
     <string name="test_tools">测试工具</string>
     <string name="achieve">达成</string>
@@ -258,10 +285,13 @@
     <string name="try_running_app_short">试试运行应用</string>
     <string name="goal_achieved_unlocked">目标达成！\n应用已解锁！</string>
     <string name="goal_achieved_explanation">走完目标步数后\n可以再次使用选中的应用！</string>
+    <string name="rebon_core">rebon 核心</string>
     <string name="daily_goal_explanation">每日达成目标，自由使用应用！\n失败则被限制。</string>
 
     <!-- Tutorial - Break -->
     <string name="take_a_break">休息一下</string>
+    <string name="break_15_min">15分钟休息模式</string>
+    <string name="break_features">• 紧急时可使用15分钟应用\n• 每天只能使用1次\n• 15分钟后自动重新限制</string>
     <string name="break_description">有急事或需要联系时\n休息一下</string>
     <string name="tutorial_complete">教程完成！</string>
 

@@ -197,7 +197,10 @@
 
     <!-- Tutorial - Permissions -->
     <string name="permission_settings">Configuración de Permisos</string>
+    <string name="rebon_needs_permissions">rebon necesita los permisos de abajo\npara funcionar correctamente</string>
+    <string name="step_measurement_title">Medición de Pasos</string>
     <string name="step_count_permission">Medir tus pasos</string>
+    <string name="notification_title">Notificaciones</string>
     <string name="notification_permission">Notificar tu progreso</string>
 
     <!-- Tutorial - Fitness Connection -->
@@ -207,8 +210,13 @@
     <string name="installed">Instalada ✓</string>
     <string name="connecting">Conectando...</string>
     <string name="connect_with_app">Conectar con %s</string>
+    <string name="health_connect_required_title">⚠️ Se Necesita Health Connect</string>
     <string name="health_connect_required">Se necesita Health Connect\npara conectar con %s</string>
+    <string name="install_from_play_store">Instalar desde Play Store</string>
+    <string name="android_9_required">* Requiere Android 9 o superior</string>
+    <string name="recommended_fitness_apps">📱 Apps Fitness Recomendadas</string>
     <string name="install_fitness_app_desc">Instala una de estas apps\npara conteo más preciso</string>
+    <string name="basic_sensor_note">* El sensor básico es menos preciso y tiene prevención de fraude limitada</string>
     <string name="samsung_health">Samsung Health</string>
     <string name="connect_later_in_settings">Puedes conectar después en ajustes</string>
     <string name="do_later_use_basic_sensor">Después (usar sensor básico)</string>
@@ -216,14 +224,21 @@
     <!-- Tutorial - App Control -->
     <string name="app_control_settings">Configuración de Control de Apps</string>
     <string name="app_control_ready_desc">¡Listo para controlar apps!\nPor favor habilita accesibilidad</string>
+    <string name="how_to_setup">Cómo Configurar</string>
+    <string name="accessibility_setup_steps">1. Toca el botón abajo para ir a ajustes\n2. Busca \'rebon\' en ajustes\n3. Activa rebon\n4. Toca confirmar\n\n✅ ¡Avanza automático al confirmar!</string>
+    <string name="rebon_on_required">⚠️ Se requiere activar rebon para continuar</string>
     <string name="go_to_settings">Ir a Ajustes</string>
     <string name="select_apps_to_control">Seleccionar Apps a Controlar</string>
     <string name="select_apps_desc">Selecciona apps a restringir\ncuando no alcances la meta</string>
     <string name="no_apps_to_control">Sin apps para controlar</string>
+    <string name="no_apps_install_guide">Instala apps como\nYouTube, Chrome, Instagram\ndesde Play Store</string>
+    <string name="apps_selected_count">✓ %d seleccionadas</string>
+    <string name="category_apps_count">%d apps</string>
     <string name="next_with_count">Siguiente (%d seleccionadas)</string>
 
     <!-- Tutorial - Blocking Test -->
     <string name="experience_complete">¡Experiencia Completa!</string>
+    <string name="experience_complete_emoji">💡 ¡Experiencia Completa!</string>
     <string name="app_blocked">¡App Bloqueada!</string>
     <string name="blocking_experienced_desc">¡Experimentaste el bloqueo!\nDesbloqueémosla en el siguiente paso</string>
     <string name="try_running_app_desc">Intenta abrir la app seleccionada.\n¡Verás un mensaje de bloqueo!</string>
@@ -232,6 +247,8 @@
     <string name="checking_blocking_desc">Verificando si\nconfirmaste el bloqueo.</string>
     <string name="proceed_soon">Pronto podrás continuar</string>
     <string name="try_running_app">Intenta abrir una app</string>
+    <string name="try_running_app_emoji">📱 Intenta abrir una app</string>
+    <string name="blocking_test_steps">1. Presiona inicio para salir\n2. Abre la app seleccionada\n3. Ve el mensaje de bloqueo\n4. Vuelve a rebon</string>
     <string name="must_run_blocked_app">Abre una app bloqueada para continuar</string>
 
     <!-- Tutorial - Goal Setting -->
@@ -240,15 +257,25 @@
     <string name="step_count">Conteo de Pasos</string>
     <string name="basic_sensor">Sensor Básico</string>
     <string name="distance_km">Distancia (km)</string>
+    <string name="fitness_connected">Fitness Conectado</string>
     <string name="connection_required">Conexión Requerida</string>
+    <string name="steps_format">%d pasos</string>
+    <string name="km_format">%.2f km</string>
+    <string name="steps_range">50~70 pasos</string>
+    <string name="km_range">0.04~0.1 km</string>
     <string name="when_goal_achieved">Al alcanzar la meta</string>
+    <string name="fitness_required_for_km">⚠️ Se requiere conexión de app fitness</string>
+    <string name="km_requires_fitness">Para usar km, conecta una app fitness.</string>
     <string name="blocked_apps_unlock_desc">¡Apps bloqueadas se desbloquean!\nIntenta caminar en el siguiente paso.</string>
 
     <!-- Tutorial - Walking Test -->
+    <string name="walk_x_steps">¡Camina %s!</string>
     <string name="goal_achieved_try_app">¡Meta alcanzada!\nIntenta abrir una app ahora</string>
     <string name="perfect">¡Perfecto!</string>
     <string name="goal_achieved_app_tested_desc">¡Alcanzaste la meta y probaste la app!\nLas apps están desbloqueadas.</string>
     <string name="try_running_app_now">¡Intenta abrir una app!</string>
+    <string name="app_unlock_guide">1. Presiona inicio para salir\n2. Abre la app bloqueada\n3. ¡La app se abre ahora!\n4. Vuelve a rebon</string>
+    <string name="walk_emoji">🚶 Camina</string>
     <string name="walk_with_phone_desc">¡Camina con tu teléfono!\nLas luces se encienden mientras caminas.</string>
     <string name="test_tools">Herramientas de Prueba</string>
     <string name="achieve">Lograr</string>
@@ -258,10 +285,13 @@
     <string name="try_running_app_short">Intenta abrir una app</string>
     <string name="goal_achieved_unlocked">¡Meta alcanzada!\n¡Apps desbloqueadas!</string>
     <string name="goal_achieved_explanation">Caminaste tus pasos meta\n¡y puedes usar las apps de nuevo!</string>
+    <string name="rebon_core">Núcleo de rebon</string>
     <string name="daily_goal_explanation">¡Alcanza metas diarias para apps libres!\nFalla y se bloquean.</string>
 
     <!-- Tutorial - Break -->
     <string name="take_a_break">Tomar un Descanso</string>
+    <string name="break_15_min">Modo Descanso 15 Minutos</string>
+    <string name="break_features">• Usa apps 15 min cuando sea urgente\n• Solo 1 vez al día\n• Bloqueo automático tras 15 min</string>
     <string name="break_description">Cuando necesites trabajo urgente o contacto,\ntoma un breve descanso</string>
     <string name="tutorial_complete">¡Tutorial Completo!</string>
 
