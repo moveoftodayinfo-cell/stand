@@ -31,6 +31,7 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.graphics.drawable.toBitmap
@@ -162,7 +163,7 @@ fun TutorialProgressBar(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                text = "설정 진행",
+                text = stringResource(R.string.setup_progress),
                 fontSize = StandTypography.labelLarge,
                 color = Color.White.copy(alpha = 0.6f)
             )
@@ -293,7 +294,7 @@ fun WelcomeStep(hapticManager: HapticManager? = null, onNext: () -> Unit) {
                 Spacer(modifier = Modifier.height(8.dp))
 
                 Text(
-                    text = "일어서세요",
+                    text = stringResource(R.string.stand_up),
                     fontSize = 20.sp,
                     color = Color.White.copy(alpha = 0.8f)
                 )
@@ -301,7 +302,7 @@ fun WelcomeStep(hapticManager: HapticManager? = null, onNext: () -> Unit) {
                 Spacer(modifier = Modifier.height(40.dp))
 
                 Text(
-                    text = "멈춰 있지 마세요\n한 걸음씩, 당신의 삶을 바꿔보세요",
+                    text = stringResource(R.string.stand_up_desc),
                     fontSize = 18.sp,
                     color = Color.White.copy(alpha = 0.9f),
                     textAlign = TextAlign.Center,
@@ -326,14 +327,14 @@ fun WelcomeStep(hapticManager: HapticManager? = null, onNext: () -> Unit) {
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(
-                    text = "앉아있는 시간을 걷는 시간으로",
+                    text = stringResource(R.string.sitting_to_walking),
                     fontSize = 16.sp,
                     color = Color.White.copy(alpha = 0.6f),
                     textAlign = TextAlign.Center
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
-                    text = "목표를 달성하면 앱이 해제됩니다",
+                    text = stringResource(R.string.goal_unlocks_apps),
                     fontSize = 14.sp,
                     color = Color.White.copy(alpha = 0.4f)
                 )
@@ -347,7 +348,7 @@ fun WelcomeStep(hapticManager: HapticManager? = null, onNext: () -> Unit) {
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = "시작하기",
+                        text = stringResource(R.string.get_started),
                         color = Color.White,
                         fontSize = 28.sp,
                         fontWeight = FontWeight.Bold
@@ -418,7 +419,7 @@ fun PermissionStep(
                 verticalArrangement = Arrangement.Center
             ) {
                 Text(
-                    text = "권한 설정",
+                    text = stringResource(R.string.permission_settings),
                     fontSize = StandTypography.headlineLarge,
                     fontWeight = FontWeight.Bold,
                     color = Color.White
@@ -427,7 +428,7 @@ fun PermissionStep(
                 Spacer(modifier = Modifier.height(32.dp))
 
                 Text(
-                    text = "rebon이 제대로 작동하려면\n아래 권한이 필요해요",
+                    text = stringResource(R.string.rebon_needs_permissions),
                     fontSize = StandTypography.bodyLarge,
                     textAlign = TextAlign.Center,
                     color = Color.White.copy(alpha = 0.7f),
@@ -437,8 +438,8 @@ fun PermissionStep(
         Spacer(modifier = Modifier.height(48.dp))
 
         PermissionCard(
-            title = "🚶 걸음 측정",
-            description = "걸음 수를 측정합니다",
+            title = "🚶 " + stringResource(R.string.step_measurement_title),
+            description = stringResource(R.string.step_count_permission),
             isGranted = activityPermissionGranted,
             onRequest = {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
@@ -451,8 +452,8 @@ fun PermissionStep(
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             PermissionCard(
-                title = "🔔 알림",
-                description = "진행 상황을 알려드려요",
+                title = "🔔 " + stringResource(R.string.notification_title),
+                description = stringResource(R.string.notification_permission),
                 isGranted = notificationPermissionGranted,
                 onRequest = {
                     notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
@@ -472,7 +473,7 @@ fun PermissionStep(
                 .height(56.dp),
             enabled = activityPermissionGranted
         ) {
-            Text("다음", fontSize = StandTypography.titleSmall, fontWeight = FontWeight.Bold)
+            Text(stringResource(R.string.next), fontSize = StandTypography.titleSmall, fontWeight = FontWeight.Bold)
         }
             }
         }
@@ -521,7 +522,7 @@ fun PermissionCard(
                 )
             } else {
                 Button(onClick = onRequest) {
-                    Text("허용")
+                    Text(stringResource(R.string.allow))
                 }
             }
         }
@@ -617,7 +618,7 @@ fun FitnessAppConnectionTutorialStep(
                 Spacer(modifier = Modifier.height(32.dp))
 
                 Text(
-                    text = "피트니스 앱 연결",
+                    text = stringResource(R.string.fitness_app_connection),
                     fontSize = StandTypography.headlineMedium,
                     fontWeight = FontWeight.Bold,
                     color = Color.White
@@ -626,7 +627,7 @@ fun FitnessAppConnectionTutorialStep(
                 Spacer(modifier = Modifier.height(16.dp))
 
                 Text(
-                    text = "사용 중인 피트니스 앱과 연결하면\n정확한 걸음 측정이 가능해요",
+                    text = stringResource(R.string.fitness_connection_desc),
                     fontSize = StandTypography.bodyLarge,
                     textAlign = TextAlign.Center,
                     color = Color.White.copy(alpha = 0.7f),
@@ -638,7 +639,7 @@ fun FitnessAppConnectionTutorialStep(
         // 설치된 앱이 있으면 (Health Connect 여부와 상관없이)
         if (installedApps.isNotEmpty()) {
             Text(
-                text = "발견된 피트니스 앱",
+                text = stringResource(R.string.detected_fitness_apps),
                 fontSize = StandTypography.bodyLarge,
                 fontWeight = FontWeight.Bold,
                 color = Color.White,
@@ -668,7 +669,7 @@ fun FitnessAppConnectionTutorialStep(
                             Spacer(modifier = Modifier.width(12.dp))
                             Column {
                                 Text(text = app.appName, fontSize = StandTypography.bodyMedium, fontWeight = FontWeight.Bold, color = Color.White)
-                                Text(text = "설치됨 ✓", fontSize = StandTypography.labelMedium, color = MockupColors.Blue)
+                                Text(text = stringResource(R.string.installed), fontSize = StandTypography.labelMedium, color = MockupColors.Blue)
                             }
                         }
                     }
@@ -693,7 +694,7 @@ fun FitnessAppConnectionTutorialStep(
                     )
                 ) {
                     Text(
-                        text = if (isConnecting) "연결 중..." else "${installedApps.firstOrNull()?.appName ?: "피트니스 앱"}과 연결하기",
+                        text = if (isConnecting) stringResource(R.string.connecting) else stringResource(R.string.connect_with_app, installedApps.firstOrNull()?.appName ?: ""),
                         fontSize = StandTypography.bodyLarge,
                         fontWeight = FontWeight.Bold
                     )
@@ -711,14 +712,14 @@ fun FitnessAppConnectionTutorialStep(
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         Text(
-                            text = "⚠️ Health Connect 필요",
+                            text = stringResource(R.string.health_connect_required_title),
                             fontSize = StandTypography.bodyLarge,
                             fontWeight = FontWeight.Bold,
                             color = MockupColors.TextMuted
                         )
                         Spacer(modifier = Modifier.height(8.dp))
                         Text(
-                            text = "${installedApps.firstOrNull()?.appName ?: "피트니스 앱"}과 연결하려면\nHealth Connect 앱이 필요합니다",
+                            text = stringResource(R.string.health_connect_required, installedApps.firstOrNull()?.appName ?: ""),
                             fontSize = StandTypography.bodyMedium,
                             textAlign = TextAlign.Center,
                             color = Color.White.copy(alpha = 0.7f),
@@ -731,11 +732,11 @@ fun FitnessAppConnectionTutorialStep(
                                 containerColor = MockupColors.TextMuted
                             )
                         ) {
-                            Text("Play Store에서 설치")
+                            Text(stringResource(R.string.install_from_play_store))
                         }
                         Spacer(modifier = Modifier.height(8.dp))
                         Text(
-                            text = "* Android 9 이상 지원",
+                            text = stringResource(R.string.android_9_required),
                             fontSize = StandTypography.labelMedium,
                             color = Color.White.copy(alpha = 0.5f)
                         )
@@ -756,14 +757,14 @@ fun FitnessAppConnectionTutorialStep(
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Text(
-                        text = "📱 추천 피트니스 앱",
+                        text = stringResource(R.string.recommended_fitness_apps),
                         fontSize = StandTypography.bodyLarge,
                         fontWeight = FontWeight.Bold,
                         color = StandColors.WarmLightBright
                     )
                     Spacer(modifier = Modifier.height(12.dp))
                     Text(
-                        text = "아래 앱 중 하나를 설치하면\n더 정확한 걸음 측정이 가능해요",
+                        text = stringResource(R.string.install_fitness_app_desc),
                         fontSize = StandTypography.bodyMedium,
                         textAlign = TextAlign.Center,
                         color = Color.White.copy(alpha = 0.7f),
@@ -773,7 +774,7 @@ fun FitnessAppConnectionTutorialStep(
 
                     // 추천 앱 목록
                     listOf(
-                        "삼성 헬스",
+                        stringResource(R.string.samsung_health),
                         "Google Fit"
                         // "Garmin Connect", // 테스트 미완료
                         // "Fitbit"          // 테스트 미완료
@@ -800,7 +801,7 @@ fun FitnessAppConnectionTutorialStep(
                 PixelIcon(iconName = "icon_light_bulb", size = 16.dp)
                 Spacer(modifier = Modifier.width(6.dp))
                 Text(
-                    text = "나중에 설정에서 연결할 수도 있어요",
+                    text = stringResource(R.string.connect_later_in_settings),
                     fontSize = StandTypography.labelLarge,
                     color = StandColors.WarmLight
                 )
@@ -817,13 +818,13 @@ fun FitnessAppConnectionTutorialStep(
             },
             modifier = Modifier.fillMaxWidth()
         ) {
-            Text("나중에 하기 (기본 센서 사용)", color = Color.White.copy(alpha = 0.7f))
+            Text(stringResource(R.string.do_later_use_basic_sensor), color = Color.White.copy(alpha = 0.7f))
         }
 
         Spacer(modifier = Modifier.height(8.dp))
 
         Text(
-            text = "* 기본 센서는 덜 정확하며 부정 방지 기능이 제한됩니다",
+            text = stringResource(R.string.basic_sensor_note),
             fontSize = StandTypography.labelMedium,
             color = Color.White.copy(alpha = 0.5f),
             textAlign = TextAlign.Center
@@ -883,7 +884,7 @@ fun AccessibilityStep(
                 verticalArrangement = Arrangement.Center
             ) {
                 Text(
-                    text = "앱 제어 설정",
+                    text = stringResource(R.string.app_control_settings),
                     fontSize = StandTypography.headlineMedium,
                     fontWeight = FontWeight.Bold,
                     color = Color.White
@@ -892,7 +893,7 @@ fun AccessibilityStep(
                 Spacer(modifier = Modifier.height(32.dp))
 
                 Text(
-                    text = "이제 앱을 제어할 준비가 되었어요!\n접근성 권한을 켜주세요",
+                    text = stringResource(R.string.app_control_ready_desc),
                     fontSize = StandTypography.bodyLarge,
                     textAlign = TextAlign.Center,
                     color = Color.White.copy(alpha = 0.7f),
@@ -911,14 +912,14 @@ fun AccessibilityStep(
                         modifier = Modifier.padding(16.dp)
                     ) {
                         Text(
-                            text = "⚙️ 설정 방법",
+                            text = "⚙️ " + stringResource(R.string.how_to_setup),
                             fontSize = StandTypography.bodyLarge,
                             fontWeight = FontWeight.Bold,
                             color = Color.White
                         )
                         Spacer(modifier = Modifier.height(8.dp))
                         Text(
-                            text = "1. 아래 버튼을 눌러 설정 화면으로 이동\n2. 설정 화면에서 'rebon' 찾기\n3. rebon을 ON으로 전환\n4. 확인 버튼 누르기\n\n✅ ON 확인되면 자동으로 다음 단계로!",
+                            text = stringResource(R.string.accessibility_setup_steps),
                             fontSize = StandTypography.bodyMedium,
                             color = Color.White.copy(alpha = 0.7f),
                             lineHeight = 20.sp
@@ -942,13 +943,13 @@ fun AccessibilityStep(
                         containerColor = MockupColors.TextMuted
                     )
                 ) {
-                    Text("설정 화면으로", fontSize = StandTypography.titleSmall, fontWeight = FontWeight.Bold)
+                    Text(stringResource(R.string.go_to_settings), fontSize = StandTypography.titleSmall, fontWeight = FontWeight.Bold)
                 }
 
                 Spacer(modifier = Modifier.height(16.dp))
 
                 Text(
-                    text = "⚠️ rebon ON을 해야 다음 단계로 진행됩니다",
+                    text = stringResource(R.string.rebon_on_required),
                     fontSize = StandTypography.labelLarge,
                     color = MockupColors.Red,
                     textAlign = TextAlign.Center
@@ -1004,7 +1005,7 @@ fun AppSelectionStep(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(
-                    text = "제어할 앱 선택",
+                    text = stringResource(R.string.select_apps_to_control),
                     fontSize = StandTypography.headlineMedium,
                     fontWeight = FontWeight.Bold,
                     color = Color.White
@@ -1013,7 +1014,7 @@ fun AppSelectionStep(
                 Spacer(modifier = Modifier.height(16.dp))
 
                 Text(
-                    text = "목표 미달성 시\n사용이 제한될 앱을 선택하세요",
+                    text = stringResource(R.string.select_apps_desc),
                     fontSize = StandTypography.bodyLarge,
                     textAlign = TextAlign.Center,
                     color = Color.White.copy(alpha = 0.7f),
@@ -1027,8 +1028,8 @@ fun AppSelectionStep(
         if (totalApps == 0) {
             EmptyState(
                 icon = "📱",
-                title = "제어할 앱이 없습니다",
-                description = "Play Store에서\nYouTube, Chrome, Instagram 등\n앱을 설치해주세요",
+                title = stringResource(R.string.no_apps_to_control),
+                description = stringResource(R.string.no_apps_install_guide),
                 modifier = Modifier.weight(1f)
             )
         } else {
@@ -1041,7 +1042,7 @@ fun AppSelectionStep(
                     )
                 ) {
                     Text(
-                        text = "✓ ${selectedApps.size}개 선택됨",
+                        text = stringResource(R.string.apps_selected_count, selectedApps.size),
                         fontSize = StandTypography.bodyMedium,
                         fontWeight = FontWeight.Bold,
                         color = StandColors.Primary,
@@ -1087,7 +1088,7 @@ fun AppSelectionStep(
                                 color = Color.White
                             )
                             Text(
-                                text = "${apps.size}개",
+                                text = stringResource(R.string.category_apps_count, apps.size),
                                 fontSize = StandTypography.bodyMedium,
                                 color = Color.White.copy(alpha = 0.6f)
                             )
@@ -1164,7 +1165,7 @@ fun AppSelectionStep(
             enabled = selectedApps.isNotEmpty() || totalApps == 0
         ) {
             Text(
-                text = if (totalApps == 0) "건너뛰기" else "다음 (${selectedApps.size}개 선택)",
+                text = if (totalApps == 0) stringResource(R.string.skip) else stringResource(R.string.next_with_count, selectedApps.size),
                 fontSize = StandTypography.titleSmall,
                 fontWeight = FontWeight.Bold
             )
@@ -1318,7 +1319,7 @@ fun TestBlockingStep(
                 Spacer(modifier = Modifier.height(32.dp))
 
                 Text(
-                    text = if (canProceed) "체험 완료!" else "앱이 차단되었어요!",
+                    text = if (canProceed) stringResource(R.string.experience_complete) else stringResource(R.string.app_blocked),
                     fontSize = StandTypography.headlineMedium,
                     fontWeight = FontWeight.Bold,
                     color = if (canProceed) StandColors.WarmLightBright else StandColors.WarmLightDim
@@ -1328,9 +1329,9 @@ fun TestBlockingStep(
 
                 Text(
                     text = if (canProceed)
-                        "앱 차단을 체험하셨네요!\n이제 다음 단계에서 해제해볼까요?"
+                        stringResource(R.string.blocking_experienced_desc)
                     else
-                        "지금 선택한 앱을 실행해보세요.\n차단 메시지가 뜰 거예요!",
+                        stringResource(R.string.try_running_app_desc),
                     fontSize = StandTypography.bodyLarge,
                     textAlign = TextAlign.Center,
                     color = Color.White.copy(alpha = 0.7f),
@@ -1354,28 +1355,28 @@ fun TestBlockingStep(
                         when {
                             canProceed -> {
                                 Text(
-                                    text = "💡 체험 완료!",
+                                    text = stringResource(R.string.experience_complete_emoji),
                                     fontSize = StandTypography.bodyLarge,
                                     fontWeight = FontWeight.Bold,
                                     color = StandColors.WarmLightBright
                                 )
                                 Spacer(modifier = Modifier.height(8.dp))
                                 Text(
-                                    text = "이제 걸어서 불을 켜볼까요?",
+                                    text = stringResource(R.string.lets_walk_to_turn_on),
                                     fontSize = StandTypography.bodyMedium,
                                     color = Color.White.copy(alpha = 0.7f)
                                 )
                             }
                             hasLeftApp -> {
                                 Text(
-                                    text = "확인 중...",
+                                    text = stringResource(R.string.checking),
                                     fontSize = StandTypography.bodyLarge,
                                     fontWeight = FontWeight.Bold,
                                     color = StandColors.WarmLightDim
                                 )
                                 Spacer(modifier = Modifier.height(8.dp))
                                 Text(
-                                    text = "차단을 제대로 확인하셨는지\n확인 중이에요.",
+                                    text = stringResource(R.string.checking_blocking_desc),
                                     fontSize = StandTypography.bodyMedium,
                                     color = Color.White.copy(alpha = 0.7f),
                                     lineHeight = 22.sp
@@ -1383,14 +1384,14 @@ fun TestBlockingStep(
                             }
                             else -> {
                                 Text(
-                                    text = "📱 앱을 실행해보세요",
+                                    text = stringResource(R.string.try_running_app_emoji),
                                     fontSize = StandTypography.bodyLarge,
                                     fontWeight = FontWeight.Bold,
                                     color = StandColors.WarmLightDim
                                 )
                                 Spacer(modifier = Modifier.height(8.dp))
                                 Text(
-                                    text = "1. 홈 버튼을 눌러 나가기\n2. 선택한 앱 실행\n3. 차단 메시지 확인\n4. rebon으로 돌아오기",
+                                    text = stringResource(R.string.blocking_test_steps),
                                     fontSize = StandTypography.bodyMedium,
                                     color = Color.White.copy(alpha = 0.7f),
                                     lineHeight = 22.sp
@@ -1412,7 +1413,7 @@ fun TestBlockingStep(
                             containerColor = StandColors.WarmLight
                         )
                     ) {
-                        Text("다음", fontSize = StandTypography.titleSmall, fontWeight = FontWeight.Bold, color = StandColors.DarkBackground)
+                        Text(stringResource(R.string.next), fontSize = StandTypography.titleSmall, fontWeight = FontWeight.Bold, color = StandColors.DarkBackground)
                     }
                 } else if (hasLeftApp) {
                     CircularProgressIndicator(
@@ -1421,7 +1422,7 @@ fun TestBlockingStep(
                     )
                     Spacer(modifier = Modifier.height(16.dp))
                     Text(
-                        text = "곧 다음으로 진행할 수 있어요",
+                        text = stringResource(R.string.proceed_soon),
                         fontSize = StandTypography.bodyMedium,
                         color = Color.White.copy(alpha = 0.7f)
                     )
@@ -1433,13 +1434,13 @@ fun TestBlockingStep(
                             .height(56.dp),
                         enabled = false
                     ) {
-                        Text("앱을 실행해보세요", fontSize = StandTypography.titleSmall)
+                        Text(stringResource(R.string.try_running_app), fontSize = StandTypography.titleSmall)
                     }
 
                     Spacer(modifier = Modifier.height(8.dp))
 
                     Text(
-                        text = "차단된 앱을 실행해야 다음으로 진행됩니다",
+                        text = stringResource(R.string.must_run_blocked_app),
                         fontSize = StandTypography.labelLarge,
                         color = StandColors.WarmLightDim,
                         textAlign = TextAlign.Center
@@ -1493,7 +1494,7 @@ fun GoalInputStep(
                 verticalArrangement = Arrangement.Center
             ) {
                 Text(
-                    text = "목표 설정",
+                    text = stringResource(R.string.goal_setting),
                     fontSize = StandTypography.headlineMedium,
                     fontWeight = FontWeight.Bold,
                     textAlign = TextAlign.Center,
@@ -1503,7 +1504,7 @@ fun GoalInputStep(
                 Spacer(modifier = Modifier.height(24.dp))
 
                 Text(
-                    text = "체험을 위해\n목표를 설정해주세요",
+                    text = stringResource(R.string.set_goal_for_experience),
                     fontSize = StandTypography.bodyLarge,
                     textAlign = TextAlign.Center,
                     color = Color.White.copy(alpha = 0.7f),
@@ -1538,13 +1539,13 @@ fun GoalInputStep(
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Text(
-                        text = "걸음 수",
+                        text = stringResource(R.string.step_count),
                         fontSize = StandTypography.bodyLarge,
                         fontWeight = FontWeight.Bold,
                         color = if (selectedUnit == "steps") StandColors.WarmLightBright else Color.White
                     )
                     Text(
-                        text = "기본 센서",
+                        text = stringResource(R.string.basic_sensor),
                         fontSize = StandTypography.labelLarge,
                         color = Color.White.copy(alpha = 0.6f)
                     )
@@ -1578,7 +1579,7 @@ fun GoalInputStep(
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Text(
-                        text = "거리 (km)",
+                        text = stringResource(R.string.distance_km),
                         fontSize = StandTypography.bodyLarge,
                         fontWeight = FontWeight.Bold,
                         color = if (selectedUnit == "km")
@@ -1589,7 +1590,7 @@ fun GoalInputStep(
                             Color.White
                     )
                     Text(
-                        text = if (hasHealthConnectPermission) "피트니스 연결" else "연결 필요",
+                        text = if (hasHealthConnectPermission) stringResource(R.string.fitness_connected) else stringResource(R.string.connection_required),
                         fontSize = StandTypography.labelLarge,
                         color = if (hasHealthConnectPermission) Color.White.copy(alpha = 0.6f) else MockupColors.Red
                     )
@@ -1607,9 +1608,9 @@ fun GoalInputStep(
             // 현재 선택된 값 표시
             Text(
                 text = if (selectedUnit == "steps") {
-                    "${stepsSliderValue.toInt()}보"
+                    stringResource(R.string.steps_format, stepsSliderValue.toInt())
                 } else {
-                    String.format("%.2fkm", kmSliderValue)
+                    stringResource(R.string.km_format, kmSliderValue)
                 },
                 fontSize = 48.sp,
                 fontWeight = FontWeight.Bold,
@@ -1619,7 +1620,7 @@ fun GoalInputStep(
             Spacer(modifier = Modifier.height(8.dp))
 
             Text(
-                text = if (selectedUnit == "steps") "50보 ~ 70보" else "0.04km ~ 0.1km",
+                text = if (selectedUnit == "steps") stringResource(R.string.steps_range) else stringResource(R.string.km_range),
                 fontSize = StandTypography.bodyMedium,
                 color = Color.White.copy(alpha = 0.5f)
             )
@@ -1670,7 +1671,7 @@ fun GoalInputStep(
                     PixelIcon(iconName = "icon_light_bulb", size = 18.dp)
                     Spacer(modifier = Modifier.width(6.dp))
                     Text(
-                        text = "목표 달성하면",
+                        text = stringResource(R.string.when_goal_achieved),
                         fontSize = StandTypography.bodyLarge,
                         fontWeight = FontWeight.Bold,
                         color = StandColors.WarmLightBright
@@ -1678,7 +1679,7 @@ fun GoalInputStep(
                 }
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
-                    text = "차단된 앱이 해제됩니다!\n다음 단계에서 직접 걸어보세요.",
+                    text = stringResource(R.string.blocked_apps_unlock_desc),
                     fontSize = StandTypography.bodyMedium,
                     color = Color.White.copy(alpha = 0.7f),
                     lineHeight = 20.sp
@@ -1699,14 +1700,14 @@ fun GoalInputStep(
                     modifier = Modifier.padding(16.dp)
                 ) {
                     Text(
-                        text = "⚠️ 피트니스 앱 연결 필요",
+                        text = stringResource(R.string.fitness_required_for_km),
                         fontSize = StandTypography.bodyMedium,
                         fontWeight = FontWeight.Bold,
                         color = MockupColors.TextMuted
                     )
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
-                        text = "km 단위를 사용하려면 피트니스 앱과 연결해야 합니다.",
+                        text = stringResource(R.string.km_requires_fitness),
                         fontSize = StandTypography.labelLarge,
                         color = Color.White.copy(alpha = 0.7f)
                     )
@@ -1739,7 +1740,7 @@ fun GoalInputStep(
                 .height(56.dp),
             enabled = true // 슬라이더는 항상 유효한 값
         ) {
-            Text("다음", fontSize = StandTypography.titleSmall, fontWeight = FontWeight.Bold)
+            Text(stringResource(R.string.next), fontSize = StandTypography.titleSmall, fontWeight = FontWeight.Bold)
         }
             }
         }
@@ -1898,11 +1899,11 @@ fun WalkingStep(
 
                 Text(
                     text = if (isGoalAchieved && !hasLeftApp)
-                        "목표 달성!\n이제 앱을 실행해보세요"
+                        stringResource(R.string.goal_achieved_try_app)
                     else if (isGoalAchieved && hasLeftApp)
-                        "체험 완료!"
+                        stringResource(R.string.experience_complete)
                     else
-                        "$targetDisplay 걸어보세요!",
+                        stringResource(R.string.walk_x_steps, targetDisplay),
                     fontSize = StandTypography.headlineMedium,
                     fontWeight = FontWeight.Bold,
                     textAlign = TextAlign.Center,
@@ -2052,7 +2053,7 @@ fun WalkingStep(
                                     PixelIcon(iconName = "icon_trophy", size = 18.dp)
                                     Spacer(modifier = Modifier.width(6.dp))
                                     Text(
-                                        text = "완벽해요!",
+                                        text = stringResource(R.string.perfect),
                                         fontSize = StandTypography.bodyLarge,
                                         fontWeight = FontWeight.Bold,
                                         color = StandColors.WarmLightBright
@@ -2060,7 +2061,7 @@ fun WalkingStep(
                                 }
                                 Spacer(modifier = Modifier.height(8.dp))
                                 Text(
-                                    text = "목표를 달성하고 앱도 실행해보셨네요!\n이제 앱이 해제된 상태입니다.",
+                                    text = stringResource(R.string.goal_achieved_app_tested_desc),
                                     fontSize = StandTypography.bodyMedium,
                                     color = Color.White.copy(alpha = 0.7f),
                                     lineHeight = 22.sp
@@ -2068,14 +2069,14 @@ fun WalkingStep(
                             }
                             isGoalAchieved -> {
                                 Text(
-                                    text = "앱을 실행해보세요!",
+                                    text = stringResource(R.string.try_running_app_now),
                                     fontSize = StandTypography.bodyLarge,
                                     fontWeight = FontWeight.Bold,
                                     color = StandColors.WarmLight
                                 )
                                 Spacer(modifier = Modifier.height(8.dp))
                                 Text(
-                                    text = "1. 홈 버튼으로 나가기\n2. 차단했던 앱 실행\n3. 이제 앱이 열립니다!\n4. rebon으로 돌아오기",
+                                    text = stringResource(R.string.app_unlock_guide),
                                     fontSize = StandTypography.bodyMedium,
                                     color = Color.White.copy(alpha = 0.7f),
                                     lineHeight = 22.sp
@@ -2083,14 +2084,14 @@ fun WalkingStep(
                             }
                             else -> {
                                 Text(
-                                    text = "🚶 걸어보세요",
+                                    text = stringResource(R.string.walk_emoji),
                                     fontSize = StandTypography.bodyLarge,
                                     fontWeight = FontWeight.Bold,
                                     color = StandColors.WarmLight
                                 )
                                 Spacer(modifier = Modifier.height(8.dp))
                                 Text(
-                                    text = "폰을 들고 걸으세요!\n걸을수록 불이 켜집니다.",
+                                    text = stringResource(R.string.walk_with_phone_desc),
                                     fontSize = StandTypography.bodyMedium,
                                     color = Color.White.copy(alpha = 0.7f),
                                     lineHeight = 22.sp
@@ -2113,7 +2114,7 @@ fun WalkingStep(
                             modifier = Modifier.padding(16.dp)
                         ) {
                             Text(
-                                text = "테스트 도구",
+                                text = stringResource(R.string.test_tools),
                                 fontSize = StandTypography.bodyMedium,
                                 fontWeight = FontWeight.Bold,
                                 color = StandColors.WarmLight
@@ -2151,7 +2152,7 @@ fun WalkingStep(
                                         containerColor = StandColors.WarmLight
                                     )
                                 ) {
-                                    Text("달성", fontSize = StandTypography.bodyMedium, color = StandColors.DarkBackground)
+                                    Text(stringResource(R.string.achieve), fontSize = StandTypography.bodyMedium, color = StandColors.DarkBackground)
                                 }
                             }
                         }
@@ -2173,7 +2174,7 @@ fun WalkingStep(
                             containerColor = StandColors.WarmLight
                         )
                     ) {
-                        Text("다음", fontSize = StandTypography.titleSmall, fontWeight = FontWeight.Bold, color = StandColors.DarkBackground)
+                        Text(stringResource(R.string.next), fontSize = StandTypography.titleSmall, fontWeight = FontWeight.Bold, color = StandColors.DarkBackground)
                     }
                 } else {
                     Button(
@@ -2184,7 +2185,7 @@ fun WalkingStep(
                         enabled = false
                     ) {
                         Text(
-                            text = if (!isGoalAchieved) "걸음 수 달성 필요" else "앱 실행 필요",
+                            text = if (!isGoalAchieved) stringResource(R.string.steps_required) else stringResource(R.string.app_run_required),
                             fontSize = StandTypography.titleSmall
                         )
                     }
@@ -2193,9 +2194,9 @@ fun WalkingStep(
 
                     Text(
                         text = if (!isGoalAchieved)
-                            "걸음 수를 채워주세요"
+                            stringResource(R.string.fill_steps)
                         else
-                            "앱을 실행해보세요",
+                            stringResource(R.string.try_running_app_short),
                         fontSize = StandTypography.labelLarge,
                         color = StandColors.WarmLightDim,
                         textAlign = TextAlign.Center
@@ -2300,7 +2301,7 @@ fun UnlockedStep(
                 Spacer(modifier = Modifier.height(32.dp))
 
                 Text(
-                    text = "목표 달성!\n앱이 해제되었어요!",
+                    text = stringResource(R.string.goal_achieved_unlocked),
                     fontSize = StandTypography.headlineMedium,
                     fontWeight = FontWeight.Bold,
                     color = StandColors.WarmLightBright,
@@ -2311,7 +2312,7 @@ fun UnlockedStep(
                 Spacer(modifier = Modifier.height(24.dp))
 
                 Text(
-                    text = "설정한 걸음 수를 걸으니\n선택한 앱을 다시 사용할 수 있어요!",
+                    text = stringResource(R.string.goal_achieved_explanation),
                     fontSize = StandTypography.bodyLarge,
                     textAlign = TextAlign.Center,
                     color = Color.White.copy(alpha = 0.7f),
@@ -2333,7 +2334,7 @@ fun UnlockedStep(
                             PixelIcon(iconName = "icon_light_bulb", size = 18.dp)
                             Spacer(modifier = Modifier.width(6.dp))
                             Text(
-                                text = "rebon의 핵심",
+                                text = stringResource(R.string.rebon_core),
                                 fontSize = StandTypography.bodyLarge,
                                 fontWeight = FontWeight.Bold,
                                 color = StandColors.WarmLightBright
@@ -2341,7 +2342,7 @@ fun UnlockedStep(
                         }
                         Spacer(modifier = Modifier.height(8.dp))
                         Text(
-                            text = "매일 목표를 달성하면 앱을 자유롭게!\n실패하면 차단됩니다.",
+                            text = stringResource(R.string.daily_goal_explanation),
                             fontSize = StandTypography.bodyMedium,
                             color = Color.White.copy(alpha = 0.7f),
                             lineHeight = 22.sp
@@ -2363,7 +2364,7 @@ fun UnlockedStep(
                         containerColor = StandColors.WarmLight
                     )
                 ) {
-                    Text("다음", fontSize = StandTypography.titleSmall, fontWeight = FontWeight.Bold, color = StandColors.DarkBackground)
+                    Text(stringResource(R.string.next), fontSize = StandTypography.titleSmall, fontWeight = FontWeight.Bold, color = StandColors.DarkBackground)
                 }
             }
         }
@@ -2397,7 +2398,7 @@ fun EmergencyButtonStep(
                 verticalArrangement = Arrangement.Center
             ) {
                 Text(
-                    text = "잠시 쉬어가기",
+                    text = stringResource(R.string.take_a_break),
                     fontSize = StandTypography.headlineMedium,
                     fontWeight = FontWeight.Bold,
                     color = Color.White
@@ -2423,7 +2424,7 @@ fun EmergencyButtonStep(
                 Spacer(modifier = Modifier.height(16.dp))
 
                 Text(
-                    text = "15분 휴식 모드",
+                    text = stringResource(R.string.break_15_min),
                     fontSize = StandTypography.titleSmall,
                     fontWeight = FontWeight.Bold,
                     textAlign = TextAlign.Center,
@@ -2434,7 +2435,7 @@ fun EmergencyButtonStep(
                 Spacer(modifier = Modifier.height(16.dp))
 
                 Text(
-                    text = "• 급한 일이 있을 때 15분간 앱 사용 가능\n• 하루에 1회만 사용 가능\n• 15분 후 자동으로 다시 차단",
+                    text = stringResource(R.string.break_features),
                     fontSize = StandTypography.bodyMedium,
                     color = Color.White.copy(alpha = 0.7f),
                     lineHeight = 22.sp
@@ -2448,7 +2449,7 @@ fun EmergencyButtonStep(
             PixelIcon(iconName = "icon_light_bulb", size = 18.dp)
             Spacer(modifier = Modifier.width(6.dp))
             Text(
-                text = "Tip",
+                text = stringResource(R.string.tip),
                 fontSize = StandTypography.bodyLarge,
                 fontWeight = FontWeight.Bold,
                 color = StandColors.WarmLight
@@ -2458,7 +2459,7 @@ fun EmergencyButtonStep(
         Spacer(modifier = Modifier.height(8.dp))
 
         Text(
-            text = "급한 업무나 연락이 필요할 때\n잠시 쉬어가세요",
+            text = stringResource(R.string.break_description),
             fontSize = StandTypography.bodyMedium,
             color = Color.White.copy(alpha = 0.6f),
             textAlign = TextAlign.Center,
@@ -2479,7 +2480,7 @@ fun EmergencyButtonStep(
                 containerColor = StandColors.WarmLight
             )
         ) {
-            Text("튜토리얼 완료!", fontSize = StandTypography.titleSmall, fontWeight = FontWeight.Bold, color = StandColors.DarkBackground)
+            Text(stringResource(R.string.tutorial_complete), fontSize = StandTypography.titleSmall, fontWeight = FontWeight.Bold, color = StandColors.DarkBackground)
         }
             }
         }

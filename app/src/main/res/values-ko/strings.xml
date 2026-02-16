@@ -197,7 +197,10 @@
 
     <!-- Tutorial - Permissions -->
     <string name="permission_settings">권한 설정</string>
+    <string name="rebon_needs_permissions">rebon이 제대로 작동하려면\n아래 권한이 필요해요</string>
+    <string name="step_measurement_title">걸음 측정</string>
     <string name="step_count_permission">걸음 수를 측정합니다</string>
+    <string name="notification_title">알림</string>
     <string name="notification_permission">진행 상황을 알려드려요</string>
 
     <!-- Tutorial - Fitness Connection -->
@@ -207,23 +210,35 @@
     <string name="installed">설치됨 ✓</string>
     <string name="connecting">연결 중...</string>
     <string name="connect_with_app">%s과 연결하기</string>
+    <string name="health_connect_required_title">⚠️ Health Connect 필요</string>
     <string name="health_connect_required">%s과 연결하려면\nHealth Connect 앱이 필요합니다</string>
+    <string name="install_from_play_store">Play Store에서 설치</string>
+    <string name="android_9_required">* Android 9 이상 지원</string>
+    <string name="recommended_fitness_apps">📱 추천 피트니스 앱</string>
     <string name="install_fitness_app_desc">아래 앱 중 하나를 설치하면\n더 정확한 걸음 측정이 가능해요</string>
     <string name="samsung_health">삼성 헬스</string>
     <string name="connect_later_in_settings">나중에 설정에서 연결할 수도 있어요</string>
     <string name="do_later_use_basic_sensor">나중에 하기 (기본 센서 사용)</string>
+    <string name="basic_sensor_note">* 기본 센서는 덜 정확하며 부정 방지 기능이 제한됩니다</string>
 
     <!-- Tutorial - App Control -->
     <string name="app_control_settings">앱 제어 설정</string>
     <string name="app_control_ready_desc">이제 앱을 제어할 준비가 되었어요!\n접근성 권한을 켜주세요</string>
+    <string name="how_to_setup">설정 방법</string>
+    <string name="accessibility_setup_steps">1. 아래 버튼을 눌러 설정 화면으로 이동\n2. 설정 화면에서 \'rebon\' 찾기\n3. rebon을 ON으로 전환\n4. 확인 버튼 누르기\n\n✅ ON 확인되면 자동으로 다음 단계로!</string>
+    <string name="rebon_on_required">⚠️ rebon ON을 해야 다음 단계로 진행됩니다</string>
     <string name="go_to_settings">설정 화면으로</string>
     <string name="select_apps_to_control">제어할 앱 선택</string>
     <string name="select_apps_desc">목표 미달성 시\n사용이 제한될 앱을 선택하세요</string>
     <string name="no_apps_to_control">제어할 앱이 없습니다</string>
+    <string name="no_apps_install_guide">Play Store에서\nYouTube, Chrome, Instagram 등\n앱을 설치해주세요</string>
+    <string name="apps_selected_count">✓ %d개 선택됨</string>
+    <string name="category_apps_count">%d개</string>
     <string name="next_with_count">다음 (%d개 선택)</string>
 
     <!-- Tutorial - Blocking Test -->
     <string name="experience_complete">체험 완료!</string>
+    <string name="experience_complete_emoji">💡 체험 완료!</string>
     <string name="app_blocked">앱이 차단되었어요!</string>
     <string name="blocking_experienced_desc">앱 차단을 체험하셨네요!\n이제 다음 단계에서 해제해볼까요?</string>
     <string name="try_running_app_desc">지금 선택한 앱을 실행해보세요.\n차단 메시지가 뜰 거예요!</string>
@@ -232,6 +247,8 @@
     <string name="checking_blocking_desc">차단을 제대로 확인하셨는지\n확인 중이에요.</string>
     <string name="proceed_soon">곧 다음으로 진행할 수 있어요</string>
     <string name="try_running_app">앱을 실행해보세요</string>
+    <string name="try_running_app_emoji">📱 앱을 실행해보세요</string>
+    <string name="blocking_test_steps">1. 홈 버튼을 눌러 나가기\n2. 선택한 앱 실행\n3. 차단 메시지 확인\n4. rebon으로 돌아오기</string>
     <string name="must_run_blocked_app">차단된 앱을 실행해야 다음으로 진행됩니다</string>
 
     <!-- Tutorial - Goal Setting -->
@@ -240,15 +257,25 @@
     <string name="step_count">걸음 수</string>
     <string name="basic_sensor">기본 센서</string>
     <string name="distance_km">거리 (km)</string>
+    <string name="fitness_connected">피트니스 연결</string>
     <string name="connection_required">연결 필요</string>
+    <string name="steps_format">%d보</string>
+    <string name="km_format">%.2fkm</string>
+    <string name="steps_range">50보 ~ 70보</string>
+    <string name="km_range">0.04km ~ 0.1km</string>
     <string name="when_goal_achieved">목표 달성하면</string>
     <string name="blocked_apps_unlock_desc">차단된 앱이 해제됩니다!\n다음 단계에서 직접 걸어보세요.</string>
+    <string name="fitness_required_for_km">⚠️ 피트니스 앱 연결 필요</string>
+    <string name="km_requires_fitness">km 단위를 사용하려면 피트니스 앱과 연결해야 합니다.</string>
 
     <!-- Tutorial - Walking Test -->
+    <string name="walk_x_steps">%s 걸어보세요!</string>
     <string name="goal_achieved_try_app">목표 달성!\n이제 앱을 실행해보세요</string>
     <string name="perfect">완벽해요!</string>
     <string name="goal_achieved_app_tested_desc">목표를 달성하고 앱도 실행해보셨네요!\n이제 앱이 해제된 상태입니다.</string>
     <string name="try_running_app_now">앱을 실행해보세요!</string>
+    <string name="app_unlock_guide">1. 홈 버튼으로 나가기\n2. 차단했던 앱 실행\n3. 이제 앱이 열립니다!\n4. rebon으로 돌아오기</string>
+    <string name="walk_emoji">🚶 걸어보세요</string>
     <string name="walk_with_phone_desc">폰을 들고 걸으세요!\n걸을수록 불이 켜집니다.</string>
     <string name="test_tools">테스트 도구</string>
     <string name="achieve">달성</string>
@@ -258,10 +285,13 @@
     <string name="try_running_app_short">앱을 실행해보세요</string>
     <string name="goal_achieved_unlocked">목표 달성!\n앱이 해제되었어요!</string>
     <string name="goal_achieved_explanation">설정한 걸음 수를 걸으니\n선택한 앱을 다시 사용할 수 있어요!</string>
+    <string name="rebon_core">rebon의 핵심</string>
     <string name="daily_goal_explanation">매일 목표를 달성하면 앱을 자유롭게!\n실패하면 차단됩니다.</string>
 
     <!-- Tutorial - Break -->
     <string name="take_a_break">잠시 쉬어가기</string>
+    <string name="break_15_min">15분 휴식 모드</string>
+    <string name="break_features">• 급한 일이 있을 때 15분간 앱 사용 가능\n• 하루에 1회만 사용 가능\n• 15분 후 자동으로 다시 차단</string>
     <string name="break_description">급한 업무나 연락이 필요할 때\n잠시 쉬어가세요</string>
     <string name="tutorial_complete">튜토리얼 완료!</string>
 

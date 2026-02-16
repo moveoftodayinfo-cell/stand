@@ -197,7 +197,10 @@
 
     <!-- Tutorial - Permissions -->
     <string name="permission_settings">Permission Settings</string>
+    <string name="rebon_needs_permissions">rebon needs the permissions below\nto work properly</string>
+    <string name="step_measurement_title">Step Measurement</string>
     <string name="step_count_permission">Measure your steps</string>
+    <string name="notification_title">Notifications</string>
     <string name="notification_permission">Notify your progress</string>
 
     <!-- Tutorial - Fitness Connection -->
@@ -207,23 +210,35 @@
     <string name="installed">Installed ✓</string>
     <string name="connecting">Connecting...</string>
     <string name="connect_with_app">Connect with %s</string>
+    <string name="health_connect_required_title">⚠️ Health Connect Required</string>
     <string name="health_connect_required">Health Connect app is required\nto connect with %s</string>
+    <string name="install_from_play_store">Install from Play Store</string>
+    <string name="android_9_required">* Requires Android 9 or above</string>
+    <string name="recommended_fitness_apps">📱 Recommended Fitness Apps</string>
     <string name="install_fitness_app_desc">Install one of these apps\nfor more accurate step counting</string>
     <string name="samsung_health">Samsung Health</string>
     <string name="connect_later_in_settings">You can connect later in settings</string>
     <string name="do_later_use_basic_sensor">Do later (use basic sensor)</string>
+    <string name="basic_sensor_note">* Basic sensor is less accurate and has limited fraud prevention</string>
 
     <!-- Tutorial - App Control -->
     <string name="app_control_settings">App Control Settings</string>
     <string name="app_control_ready_desc">Ready to control apps!\nPlease enable accessibility</string>
+    <string name="how_to_setup">How to Setup</string>
+    <string name="accessibility_setup_steps">1. Tap the button below to go to settings\n2. Find \'rebon\' in settings\n3. Turn rebon ON\n4. Tap confirm\n\n✅ Auto proceeds when ON is confirmed!</string>
+    <string name="rebon_on_required">⚠️ rebon ON is required to proceed</string>
     <string name="go_to_settings">Go to Settings</string>
     <string name="select_apps_to_control">Select Apps to Control</string>
     <string name="select_apps_desc">Select apps to restrict\nwhen goal is not met</string>
     <string name="no_apps_to_control">No apps to control</string>
+    <string name="no_apps_install_guide">Install apps like\nYouTube, Chrome, Instagram\nfrom Play Store</string>
+    <string name="apps_selected_count">✓ %d selected</string>
+    <string name="category_apps_count">%d apps</string>
     <string name="next_with_count">Next (%d selected)</string>
 
     <!-- Tutorial - Blocking Test -->
     <string name="experience_complete">Experience Complete!</string>
+    <string name="experience_complete_emoji">💡 Experience Complete!</string>
     <string name="app_blocked">App Blocked!</string>
     <string name="blocking_experienced_desc">You experienced app blocking!\nLet\'s unlock it in the next step</string>
     <string name="try_running_app_desc">Try running the selected app.\nYou\'ll see a blocking message!</string>
@@ -232,6 +247,8 @@
     <string name="checking_blocking_desc">Checking if you\nconfirmed the blocking.</string>
     <string name="proceed_soon">You can proceed soon</string>
     <string name="try_running_app">Try running an app</string>
+    <string name="try_running_app_emoji">📱 Try running an app</string>
+    <string name="blocking_test_steps">1. Press home button to exit\n2. Run selected app\n3. Check blocking message\n4. Return to rebon</string>
     <string name="must_run_blocked_app">Run a blocked app to proceed</string>
 
     <!-- Tutorial - Goal Setting -->
@@ -240,15 +257,25 @@
     <string name="step_count">Step Count</string>
     <string name="basic_sensor">Basic Sensor</string>
     <string name="distance_km">Distance (km)</string>
+    <string name="fitness_connected">Fitness Connected</string>
     <string name="connection_required">Connection Required</string>
+    <string name="steps_format">%d steps</string>
+    <string name="km_format">%.2f km</string>
+    <string name="steps_range">50~70 steps</string>
+    <string name="km_range">0.04~0.1 km</string>
     <string name="when_goal_achieved">When goal achieved</string>
     <string name="blocked_apps_unlock_desc">Blocked apps unlock!\nTry walking in the next step.</string>
+    <string name="fitness_required_for_km">⚠️ Fitness app connection required</string>
+    <string name="km_requires_fitness">To use km unit, connect a fitness app.</string>
 
     <!-- Tutorial - Walking Test -->
+    <string name="walk_x_steps">Walk %s!</string>
     <string name="goal_achieved_try_app">Goal achieved!\nTry running an app now</string>
     <string name="perfect">Perfect!</string>
     <string name="goal_achieved_app_tested_desc">You achieved the goal and tested the app!\nApps are now unlocked.</string>
     <string name="try_running_app_now">Try running an app!</string>
+    <string name="app_unlock_guide">1. Press home to exit\n2. Run blocked app\n3. App opens now!\n4. Return to rebon</string>
+    <string name="walk_emoji">🚶 Walk</string>
     <string name="walk_with_phone_desc">Walk with your phone!\nLights turn on as you walk.</string>
     <string name="test_tools">Test Tools</string>
     <string name="achieve">Achieve</string>
@@ -258,10 +285,13 @@
     <string name="try_running_app_short">Try running an app</string>
     <string name="goal_achieved_unlocked">Goal achieved!\nApps unlocked!</string>
     <string name="goal_achieved_explanation">You walked your goal steps\nand can use selected apps again!</string>
+    <string name="rebon_core">rebon Core</string>
     <string name="daily_goal_explanation">Achieve daily goals for free apps!\nFail and apps get blocked.</string>
 
     <!-- Tutorial - Break -->
     <string name="take_a_break">Take a Break</string>
+    <string name="break_15_min">15 Minute Break Mode</string>
+    <string name="break_features">• Use apps for 15 min when urgent\n• Only 1 time per day\n• Auto-blocks after 15 min</string>
     <string name="break_description">When you need urgent work or contact,\ntake a short break</string>
     <string name="tutorial_complete">Tutorial Complete!</string>
 
