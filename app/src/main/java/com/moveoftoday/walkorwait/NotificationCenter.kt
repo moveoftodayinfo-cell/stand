@@ -24,6 +24,133 @@ import com.moveoftoday.walkorwait.pet.MockupColors
 import com.moveoftoday.walkorwait.pet.rememberKenneyFont
 import kotlinx.coroutines.delay
 import androidx.compose.runtime.collectAsState
+import java.util.Locale
+
+// 다국어 헬퍼
+private object NotificationStrings {
+    private fun getLang(): String = Locale.getDefault().language
+
+    fun inProgress(name: String): String = when (getLang()) {
+        "ko" -> "$name 진행 중"
+        "ja" -> "$name 進行中"
+        "zh" -> "$name 进行中"
+        "es" -> "$name en progreso"
+        else -> "$name in progress"
+    }
+
+    fun elapsedTime(hours: Int, mins: Int, totalHours: Int): String = when (getLang()) {
+        "ko" -> "${hours}시간 ${mins}분 / ${totalHours}시간"
+        "ja" -> "${hours}時間${mins}分 / ${totalHours}時間"
+        "zh" -> "${hours}小时${mins}分 / ${totalHours}小时"
+        "es" -> "${hours}h ${mins}m / ${totalHours}h"
+        else -> "${hours}h ${mins}m / ${totalHours}h"
+    }
+
+    fun healthConnect(): String = "Health Connect"
+    fun healthConnectDesc(): String = when (getLang()) {
+        "ko" -> "연결된 앱에서 걸음수 측정"
+        "ja" -> "接続アプリで歩数計測"
+        "zh" -> "从连接的应用测量步数"
+        "es" -> "Contando pasos desde app conectada"
+        else -> "Measuring steps from connected app"
+    }
+
+    fun defaultSensor(): String = when (getLang()) {
+        "ko" -> "기본 센서"
+        "ja" -> "基本センサー"
+        "zh" -> "默认传感器"
+        "es" -> "Sensor predeterminado"
+        else -> "Default sensor"
+    }
+
+    fun stepDetector(): String = when (getLang()) {
+        "ko" -> "스텝 감지기"
+        "ja" -> "ステップ検出器"
+        "zh" -> "步数检测器"
+        "es" -> "Detector de pasos"
+        else -> "Step detector"
+    }
+
+    fun accelerometer(): String = when (getLang()) {
+        "ko" -> "가속도계"
+        "ja" -> "加速度計"
+        "zh" -> "加速度计"
+        "es" -> "Acelerómetro"
+        else -> "Accelerometer"
+    }
+
+    fun builtInSensorDesc(): String = when (getLang()) {
+        "ko" -> "기기 내장 센서로 걸음수 측정"
+        "ja" -> "内蔵センサーで歩数計測"
+        "zh" -> "使用内置传感器测量步数"
+        "es" -> "Midiendo con sensor integrado"
+        else -> "Measuring steps with built-in sensor"
+    }
+
+    fun noSensor(): String = when (getLang()) {
+        "ko" -> "센서 없음"
+        "ja" -> "センサーなし"
+        "zh" -> "无传感器"
+        "es" -> "Sin sensor"
+        else -> "No sensor"
+    }
+
+    fun cannotMeasure(): String = when (getLang()) {
+        "ko" -> "걸음수를 측정할 수 없습니다"
+        "ja" -> "歩数を計測できません"
+        "zh" -> "无法测量步数"
+        "es" -> "No se puede medir pasos"
+        else -> "Cannot measure steps"
+    }
+
+    fun accessibilityDisabled(): String = when (getLang()) {
+        "ko" -> "접근성 서비스 비활성화"
+        "ja" -> "アクセシビリティ無効"
+        "zh" -> "无障碍服务已禁用"
+        "es" -> "Accesibilidad desactivada"
+        else -> "Accessibility disabled"
+    }
+
+    fun enableAccessibility(): String = when (getLang()) {
+        "ko" -> "앱 잠금 기능을 사용하려면 활성화하세요"
+        "ja" -> "アプリロックを使用するには有効にしてください"
+        "zh" -> "启用以使用应用锁定功能"
+        "es" -> "Activa para usar el bloqueo de apps"
+        else -> "Enable to use app blocking"
+    }
+
+    fun healthConnectPermission(): String = when (getLang()) {
+        "ko" -> "Health Connect 권한 필요"
+        "ja" -> "Health Connect権限が必要"
+        "zh" -> "需要Health Connect权限"
+        "es" -> "Permiso de Health Connect requerido"
+        else -> "Health Connect permission needed"
+    }
+
+    fun grantPermission(): String = when (getLang()) {
+        "ko" -> "걸음수 측정을 위해 권한을 허용하세요"
+        "ja" -> "歩数計測のために許可してください"
+        "zh" -> "请授予权限以测量步数"
+        "es" -> "Permite para medir pasos"
+        else -> "Grant permission to measure steps"
+    }
+
+    fun notifications(): String = when (getLang()) {
+        "ko" -> "알림"
+        "ja" -> "通知"
+        "zh" -> "通知"
+        "es" -> "Notificaciones"
+        else -> "Notifications"
+    }
+
+    fun noNotifications(): String = when (getLang()) {
+        "ko" -> "알림이 없습니다"
+        "ja" -> "通知はありません"
+        "zh" -> "没有通知"
+        "es" -> "Sin notificaciones"
+        else -> "No notifications"
+    }
+}
 
 /**
  * 알림 타입
@@ -99,7 +226,7 @@ fun rememberNotifications(
             // 1. 백그라운드 챌린지 상태 (간헐적 단식)
             val bgProgress = backgroundProgress?.value
             if (bgProgress != null && bgProgress.status == ChallengeStatus.RUNNING) {
-                val elapsedMinutes = bgProgress.elapsedSeconds / 60
+                val elapsedMinutes = (bgProgress.elapsedSeconds / 60).toInt()
                 val totalMinutes = (bgProgress.challenge.durationMinutes * 60).toInt() / 60
                 val elapsedHours = elapsedMinutes / 60
                 val elapsedMins = elapsedMinutes % 60
@@ -109,8 +236,8 @@ fun rememberNotifications(
                     NotificationItem(
                         id = "background_challenge",
                         type = NotificationType.STATUS,
-                        title = "${bgProgress.challenge.name} 진행 중",
-                        subtitle = "${elapsedHours}시간 ${elapsedMins}분 / ${totalHours}시간",
+                        title = NotificationStrings.inProgress(bgProgress.challenge.name),
+                        subtitle = NotificationStrings.elapsedTime(elapsedHours, elapsedMins, totalHours),
                         action = null,
                         dismissible = false
                     )
@@ -130,15 +257,15 @@ fun rememberNotifications(
             val (sensorTitle, sensorSubtitle) = when {
                 // Health Connect: 설정 + 사용가능 + 권한 있어야 함
                 useHealthConnect && isHealthConnectAvailable && hasHealthConnectPermissions ->
-                    "Health Connect" to "연결된 앱에서 걸음수 측정"
+                    NotificationStrings.healthConnect() to NotificationStrings.healthConnectDesc()
                 sensorManager.getDefaultSensor(android.hardware.Sensor.TYPE_STEP_COUNTER) != null ->
-                    "기본 센서" to "기기 내장 센서로 걸음수 측정"
+                    NotificationStrings.defaultSensor() to NotificationStrings.builtInSensorDesc()
                 sensorManager.getDefaultSensor(android.hardware.Sensor.TYPE_STEP_DETECTOR) != null ->
-                    "스텝 감지기" to "기기 내장 센서로 걸음수 측정"
+                    NotificationStrings.stepDetector() to NotificationStrings.builtInSensorDesc()
                 sensorManager.getDefaultSensor(android.hardware.Sensor.TYPE_ACCELEROMETER) != null ->
-                    "가속도계" to "기기 내장 센서로 걸음수 측정"
+                    NotificationStrings.accelerometer() to NotificationStrings.builtInSensorDesc()
                 else ->
-                    "센서 없음" to "걸음수를 측정할 수 없습니다"
+                    NotificationStrings.noSensor() to NotificationStrings.cannotMeasure()
             }
 
             items.add(
@@ -166,8 +293,8 @@ fun rememberNotifications(
                     NotificationItem(
                         id = "accessibility_disabled",
                         type = NotificationType.WARNING,
-                        title = "접근성 서비스 비활성화",
-                        subtitle = "앱 잠금 기능을 사용하려면 활성화하세요",
+                        title = NotificationStrings.accessibilityDisabled(),
+                        subtitle = NotificationStrings.enableAccessibility(),
                         action = NotificationAction.OpenSettings(Settings.ACTION_ACCESSIBILITY_SETTINGS),
                         dismissible = false
                     )
@@ -187,8 +314,8 @@ fun rememberNotifications(
                         NotificationItem(
                             id = "health_connect_permission",
                             type = NotificationType.WARNING,
-                            title = "Health Connect 권한 필요",
-                            subtitle = "걸음수 측정을 위해 권한을 허용하세요",
+                            title = NotificationStrings.healthConnectPermission(),
+                            subtitle = NotificationStrings.grantPermission(),
                             action = NotificationAction.OpenUrl("market://details?id=com.google.android.apps.healthdata"),
                             dismissible = false
                         )
@@ -248,7 +375,7 @@ fun NotificationCenterPanel(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "알림",
+                    text = NotificationStrings.notifications(),
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
                     color = MockupColors.TextPrimary,
@@ -290,7 +417,7 @@ fun NotificationCenterPanel(
                         )
                         Spacer(modifier = Modifier.height(8.dp))
                         Text(
-                            text = "알림이 없습니다",
+                            text = NotificationStrings.noNotifications(),
                             fontSize = 14.sp,
                             color = MockupColors.TextMuted
                         )

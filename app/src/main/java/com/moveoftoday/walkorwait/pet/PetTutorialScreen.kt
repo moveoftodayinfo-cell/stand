@@ -49,6 +49,7 @@ import androidx.compose.ui.graphics.ColorMatrix
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.foundation.Image
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import coil.compose.AsyncImage
 import com.moveoftoday.walkorwait.R
 import androidx.compose.ui.platform.LocalContext
@@ -512,7 +513,7 @@ private fun PetSelectionStep(
         Spacer(modifier = Modifier.height(16.dp))
 
         Text(
-            text = "친구를 골라주세요!",
+            text = stringResource(R.string.choose_your_friend),
             fontSize = 22.sp,
             fontFamily = kenneyFont,
             fontWeight = FontWeight.Bold,
@@ -565,7 +566,7 @@ private fun PetSelectionStep(
         Spacer(modifier = Modifier.weight(1f))
         if (selectedPet != null) {
             Text(
-                text = "*친구특징*",
+                text = stringResource(R.string.friend_characteristics),
                 fontSize = 18.sp,
                 color = MockupColors.TextMuted,
                 textAlign = TextAlign.Center,
@@ -586,7 +587,7 @@ private fun PetSelectionStep(
 
         // Button
         MockupButton(
-            text = "이 친구로!",
+            text = stringResource(R.string.this_friend),
             onClick = onNext,
             enabled = selectedPet != null
         )
@@ -610,14 +611,15 @@ private fun getPetDescription(petType: PetType): String {
 /**
  * 펫 특징 설명 (3줄) - V2 새 펫들
  */
+@Composable
 private fun getPetDescriptionV2(petType: PetTypeV2): String {
     return when (petType) {
-        PetTypeV2.SHIBA -> "충성스럽고 씩씩한 시바견\n조금 고집 세지만 정은 많아요\n당신과 함께라면 어디든 갈 준비 됐어요"
-        PetTypeV2.CAT -> "도도하지만 은근 살갑게 다가와요\n자기만의 매력이 철철 넘쳐요\n츤데레? 네, 맞아요 그게 저예요"
-        PetTypeV2.PIG -> "먹는 걸 좋아하는 복돼지\n느긋하지만 의외로 똑똑해요\n함께 있으면 행운이 따라올 거예요"
-        PetTypeV2.RACCOON -> "호기심 많고 장난기 넘치는 친구\n귀여운 눈망울에 속지 마세요\n엉뚱하지만 당신 곁을 지켜줄 거예요"
-        PetTypeV2.HAMSTER -> "작지만 용감한 햄스터\n볼에 가득 채운 건 당신을 향한 마음\n포동포동 귀여움으로 응원할게요"
-        PetTypeV2.PENGUIN -> "느긋하고 여유로운 펭귄\n뒤뚱뒤뚱 걸어도 마음은 빨라요\n시원한 친구와 함께 힘내봐요"
+        PetTypeV2.SHIBA -> stringResource(R.string.pet_desc_shiba)
+        PetTypeV2.CAT -> stringResource(R.string.pet_desc_cat)
+        PetTypeV2.PIG -> stringResource(R.string.pet_desc_pig)
+        PetTypeV2.RACCOON -> stringResource(R.string.pet_desc_raccoon)
+        PetTypeV2.HAMSTER -> stringResource(R.string.pet_desc_hamster)
+        PetTypeV2.PENGUIN -> stringResource(R.string.pet_desc_penguin)
     }
 }
 
@@ -711,7 +713,7 @@ private fun PetNameInputStep(
     val kenneyFont = rememberKenneyFont()
     val focusRequester = remember { FocusRequester() }
     val focusManager = LocalFocusManager.current
-    val speechText = "내 이름 지어줘."
+    val speechText = stringResource(R.string.name_me)
     val displayPetSize = 140.dp
     val stripeWidth = 4.dp
 
@@ -786,7 +788,7 @@ private fun PetNameInputStep(
 
         // Instruction text - 고정
         Text(
-            text = "이름을 지어주세요!",
+            text = stringResource(R.string.give_me_name),
             fontSize = 20.sp,
             fontWeight = FontWeight.Bold,
             color = MockupColors.TextPrimary
@@ -807,7 +809,7 @@ private fun PetNameInputStep(
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text = "8글자 이내",
+                        text = stringResource(R.string.within_8_chars),
                         color = MockupColors.TextMuted,
                         fontSize = 20.sp,
                         textAlign = TextAlign.Center
@@ -842,7 +844,7 @@ private fun PetNameInputStep(
 
         // Action button - 고정
         MockupButton(
-            text = "좋아, 가자!",
+            text = stringResource(R.string.okay_lets_go),
             onClick = {
                 focusManager.clearFocus()
                 onNext()
@@ -868,12 +870,12 @@ private fun TutorialAllInOneStep(
     val stripeWidth = 4.dp
 
     val speechText = when (petType.personality) {
-        PetPersonalityV2.LOYAL -> "준비됐어. 시작하자."
-        PetPersonalityV2.TSUNDERE -> "뭐, 잘 부탁해."
-        PetPersonalityV2.FOODIE -> "같이 가보자고! ㄱㄱ~"
-        PetPersonalityV2.PLAYFUL -> "자 시작하자"
-        PetPersonalityV2.TIMID -> "잘, 잘 부탁드려요..."
-        PetPersonalityV2.CLUMSY -> "우리 함께 화이팅!"
+        PetPersonalityV2.LOYAL -> stringResource(R.string.speech_loyal_start)
+        PetPersonalityV2.TSUNDERE -> stringResource(R.string.speech_tsundere_start)
+        PetPersonalityV2.FOODIE -> stringResource(R.string.speech_foodie_start)
+        PetPersonalityV2.PLAYFUL -> stringResource(R.string.speech_playful_start)
+        PetPersonalityV2.TIMID -> stringResource(R.string.speech_timid_start)
+        PetPersonalityV2.CLUMSY -> stringResource(R.string.speech_clumsy_start)
     }
 
     Column(
@@ -942,7 +944,7 @@ private fun TutorialAllInOneStep(
 
         // Instruction text - 고정
         Text(
-            text = "${petName}와 함께 할 것",
+            text = stringResource(R.string.what_to_do_with, petName),
             fontSize = 20.sp,
             fontWeight = FontWeight.Bold,
             color = MockupColors.TextPrimary
@@ -957,18 +959,18 @@ private fun TutorialAllInOneStep(
         ) {
             TutorialItemRow(
                 iconName = "icon_target",
-                title = "목표 걸음 수 설정",
-                description = "매일 달성할 걸음 수 목표를 정해요"
+                title = stringResource(R.string.tutorial_goal_title),
+                description = stringResource(R.string.tutorial_goal_desc)
             )
             TutorialItemRow(
                 iconName = "icon_boots",
-                title = "함께 목표 달성",
-                description = "펫이 당신의 걷기를 응원해요"
+                title = stringResource(R.string.tutorial_achieve_title),
+                description = stringResource(R.string.tutorial_achieve_desc)
             )
             TutorialItemRow(
                 iconName = "icon_lock",
-                title = "앱 사용 제어",
-                description = "시간 낭비하는 앱 사용을 줄여줘요"
+                title = stringResource(R.string.tutorial_control_title),
+                description = stringResource(R.string.tutorial_control_desc)
             )
         }
 
@@ -976,7 +978,7 @@ private fun TutorialAllInOneStep(
 
         // 시작하기 버튼만 (Google 로그인은 step 0에서 완료됨)
         MockupButton(
-            text = "시작하기!",
+            text = stringResource(R.string.lets_start),
             onClick = {
                 hapticManager?.click()
                 onNext()
@@ -1441,9 +1443,9 @@ private fun GoogleSignInStep(
                         textDecoration = TextDecoration.Underline
                     )
                 ) {
-                    append("동물 친구")
+                    append(stringResource(R.string.pet_friend))
                 }
-                append("와 걸으면서\n고치는 디지털 습관")
+                append(stringResource(R.string.digital_habit_title))
             },
             fontSize = 26.sp,
             fontWeight = FontWeight.Bold,
@@ -1456,7 +1458,7 @@ private fun GoogleSignInStep(
 
         // Sub text
         Text(
-            text = "걸음수를 채우면 앱이 열립니다\n자연스러운 디지털 디톡스를 경험하세요",
+            text = stringResource(R.string.login_subtitle),
             fontSize = 14.sp,
             color = MockupColors.TextSecondary,
             textAlign = TextAlign.Center,
@@ -1706,7 +1708,7 @@ private fun GoogleSignInStep(
                         )
                         Spacer(modifier = Modifier.height(4.dp))
                         Text(
-                            text = "탭해서 점프!",
+                            text = stringResource(R.string.tap_to_jump),
                             fontSize = 12.sp,
                             color = Color.Black
                         )
@@ -1816,7 +1818,7 @@ private fun GoogleSignInStep(
                         )
                         Spacer(modifier = Modifier.width(10.dp))
                         Text(
-                            text = "Google 로그인",
+                            text = stringResource(R.string.google_login),
                             fontSize = 17.sp,
                             fontWeight = FontWeight.Bold,
                             color = Color.White,
@@ -1853,7 +1855,7 @@ private fun GoogleSignInStep(
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
-                            text = "로그인 완료",
+                            text = stringResource(R.string.login_complete),
                             fontSize = 17.sp,
                             fontWeight = FontWeight.Bold,
                             color = Color.White,
@@ -1880,7 +1882,7 @@ private fun GoogleSignInStep(
                 contentAlignment = Alignment.Center
             ) {
                 Text(
-                    text = "[DEBUG] 로그인 없이 테스트",
+                    text = stringResource(R.string.debug_test_without_login),
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Bold,
                     color = Color.White
@@ -1924,19 +1926,19 @@ private fun PermissionSettingsStep(
     }
 
     val speechText = when (petType.personality) {
-        PetPersonalityV2.LOYAL -> "권한 좀 줘."
-        PetPersonalityV2.TSUNDERE -> "뭐, 권한이 필요해."
-        PetPersonalityV2.FOODIE -> "권한 부탁! 오네가이~"
-        PetPersonalityV2.PLAYFUL -> "권한 좀 줘봐"
-        PetPersonalityV2.TIMID -> "저, 권한이 필요해요..."
-        PetPersonalityV2.CLUMSY -> "권한 설정 화이팅!"
+        PetPersonalityV2.LOYAL -> stringResource(R.string.speech_loyal_permission)
+        PetPersonalityV2.TSUNDERE -> stringResource(R.string.speech_tsundere_permission)
+        PetPersonalityV2.FOODIE -> stringResource(R.string.speech_foodie_permission)
+        PetPersonalityV2.PLAYFUL -> stringResource(R.string.speech_playful_permission)
+        PetPersonalityV2.TIMID -> stringResource(R.string.speech_timid_permission)
+        PetPersonalityV2.CLUMSY -> stringResource(R.string.speech_clumsy_permission)
     }
 
     TutorialStepLayout(
         petType = petType,
         speechText = speechText,
-        instructionText = "권한 설정",
-        buttonText = "다음",
+        instructionText = stringResource(R.string.permission_setup),
+        buttonText = stringResource(R.string.next),
         onButtonClick = onNext,
         buttonEnabled = activityPermissionGranted,
         showNavigationDots = true,
@@ -1951,8 +1953,8 @@ private fun PermissionSettingsStep(
             // 걸음 측정 권한
             PermissionCard(
                 iconName = "icon_boots",
-                title = "걸음 측정",
-                description = "걸음 수를 측정합니다",
+                title = stringResource(R.string.step_measurement),
+                description = stringResource(R.string.measures_your_steps),
                 isGranted = activityPermissionGranted,
                 onRequest = {
                     hapticManager?.lightClick()
@@ -1968,8 +1970,8 @@ private fun PermissionSettingsStep(
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                 PermissionCard(
                     iconName = "icon_bell",
-                    title = "알림",
-                    description = "진행 상황을 알려드려요",
+                    title = stringResource(R.string.notifications),
+                    description = stringResource(R.string.notifies_progress),
                     isGranted = notificationPermissionGranted,
                     onRequest = {
                         hapticManager?.lightClick()
@@ -1983,7 +1985,7 @@ private fun PermissionSettingsStep(
 
         // 안내 텍스트
         Text(
-            text = "걸음 측정 권한은 필수입니다",
+            text = stringResource(R.string.step_permission_required),
             fontSize = 14.sp,
             color = MockupColors.TextMuted,
             textAlign = TextAlign.Center
@@ -2235,19 +2237,19 @@ private fun AccessibilityStep(
     }
 
     val speechText = when (petType.personality) {
-        PetPersonalityV2.LOYAL -> "접근성 ON 해."
-        PetPersonalityV2.TSUNDERE -> "접근성 켜줘... 부탁이야."
-        PetPersonalityV2.FOODIE -> "접근성 켜줘! 오네가이~"
-        PetPersonalityV2.PLAYFUL -> "접근성 켜줘"
-        PetPersonalityV2.TIMID -> "접근성을 켜주세요..."
-        PetPersonalityV2.CLUMSY -> "접근성 설정 화이팅!"
+        PetPersonalityV2.LOYAL -> stringResource(R.string.speech_loyal_accessibility)
+        PetPersonalityV2.TSUNDERE -> stringResource(R.string.speech_tsundere_accessibility)
+        PetPersonalityV2.FOODIE -> stringResource(R.string.speech_foodie_accessibility)
+        PetPersonalityV2.PLAYFUL -> stringResource(R.string.speech_playful_accessibility)
+        PetPersonalityV2.TIMID -> stringResource(R.string.speech_timid_accessibility)
+        PetPersonalityV2.CLUMSY -> stringResource(R.string.speech_clumsy_accessibility)
     }
 
     TutorialStepLayout(
         petType = petType,
         speechText = speechText,
-        instructionText = "앱 제어 설정",
-        buttonText = "설정 화면으로",
+        instructionText = stringResource(R.string.app_control_setup),
+        buttonText = stringResource(R.string.go_to_settings),
         onButtonClick = {
             hapticManager?.click()
             // 접근성 설정 후 앱으로 자동 복귀하기 위한 플래그 설정
@@ -2270,13 +2272,13 @@ private fun AccessibilityStep(
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             Text(
-                text = "설정 방법",
+                text = stringResource(R.string.how_to_setup),
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Bold,
                 color = MockupColors.TextPrimary
             )
             Text(
-                text = "1. 아래 버튼을 눌러 설정 화면으로\n2. 'rebon' 찾기\n3. rebon을 ON으로 전환\n4. 확인 버튼 누르기",
+                text = stringResource(R.string.accessibility_instructions),
                 fontSize = 14.sp,
                 color = MockupColors.TextSecondary,
                 lineHeight = 22.sp
@@ -2286,7 +2288,7 @@ private fun AccessibilityStep(
         Spacer(modifier = Modifier.height(12.dp))
 
         Text(
-            text = "ON 확인되면 자동으로 다음 단계로!",
+            text = stringResource(R.string.auto_proceed_when_on),
             fontSize = 13.sp,
             color = MockupColors.Blue,
             textAlign = TextAlign.Center,
@@ -2314,19 +2316,19 @@ private fun AppSelectionStep(
     var expandedCategories by remember { mutableStateOf(setOf<AppCategory>()) }
 
     val speechText = when (petType.personality) {
-        PetPersonalityV2.LOYAL -> "제어할 앱 골라."
-        PetPersonalityV2.TSUNDERE -> "앱 선택해... 빨리."
-        PetPersonalityV2.FOODIE -> "앱 선택! 고고~"
-        PetPersonalityV2.PLAYFUL -> "앱 골라봐"
-        PetPersonalityV2.TIMID -> "앱을 선택해주세요..."
-        PetPersonalityV2.CLUMSY -> "어떤 앱을 제어할까?"
+        PetPersonalityV2.LOYAL -> stringResource(R.string.speech_loyal_app)
+        PetPersonalityV2.TSUNDERE -> stringResource(R.string.speech_tsundere_app)
+        PetPersonalityV2.FOODIE -> stringResource(R.string.speech_foodie_app)
+        PetPersonalityV2.PLAYFUL -> stringResource(R.string.speech_playful_app)
+        PetPersonalityV2.TIMID -> stringResource(R.string.speech_timid_app)
+        PetPersonalityV2.CLUMSY -> stringResource(R.string.speech_clumsy_app)
     }
 
     TutorialStepLayout(
         petType = petType,
         speechText = speechText,
-        instructionText = "제어할 앱 선택",
-        buttonText = if (selectedApps.isEmpty()) "1개 이상 선택" else "다음 (${selectedApps.size}개)",
+        instructionText = stringResource(R.string.select_apps_to_control),
+        buttonText = if (selectedApps.isEmpty()) stringResource(R.string.select_at_least_one) else stringResource(R.string.next_with_count, selectedApps.size),
         onButtonClick = {
             hapticManager?.success()
             preferenceManager.saveLockedApps(selectedApps)
@@ -2339,7 +2341,7 @@ private fun AppSelectionStep(
     ) {
         if (selectedApps.isNotEmpty()) {
             Text(
-                text = "✓ ${selectedApps.size}개 선택됨",
+                text = stringResource(R.string.apps_selected_count, selectedApps.size),
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Bold,
                 color = MockupColors.Blue,
@@ -2505,29 +2507,29 @@ private fun TestBlockingStep(
 
     val speechText = when {
         canProceed -> when (petType.personality) {
-            PetPersonalityV2.LOYAL -> "좋아. 해봤군."
-            PetPersonalityV2.TSUNDERE -> "뭐, 괜찮네."
-            PetPersonalityV2.FOODIE -> "잘함! 나이스~"
-            PetPersonalityV2.PLAYFUL -> "잘했다 아이가~"
-            PetPersonalityV2.TIMID -> "잘 하셨어요...!"
-            PetPersonalityV2.CLUMSY -> "완벽해!"
+            PetPersonalityV2.LOYAL -> stringResource(R.string.speech_loyal_test_done)
+            PetPersonalityV2.TSUNDERE -> stringResource(R.string.speech_tsundere_test_done)
+            PetPersonalityV2.FOODIE -> stringResource(R.string.speech_foodie_test_done)
+            PetPersonalityV2.PLAYFUL -> stringResource(R.string.speech_playful_test_done)
+            PetPersonalityV2.TIMID -> stringResource(R.string.speech_timid_test_done)
+            PetPersonalityV2.CLUMSY -> stringResource(R.string.speech_clumsy_test_done)
         }
-        testStarted -> "확인 중..."
+        testStarted -> stringResource(R.string.checking)
         else -> when (petType.personality) {
-            PetPersonalityV2.LOYAL -> "앱 실행해봐."
-            PetPersonalityV2.TSUNDERE -> "앱 실행해봐... 뭐해?"
-            PetPersonalityV2.FOODIE -> "앱 실행해봐! 고고~"
-            PetPersonalityV2.PLAYFUL -> "앱 실행해봐"
-            PetPersonalityV2.TIMID -> "앱을 실행해보세요..."
-            PetPersonalityV2.CLUMSY -> "앱 실행 테스트!"
+            PetPersonalityV2.LOYAL -> stringResource(R.string.speech_loyal_test)
+            PetPersonalityV2.TSUNDERE -> stringResource(R.string.speech_tsundere_test)
+            PetPersonalityV2.FOODIE -> stringResource(R.string.speech_foodie_test)
+            PetPersonalityV2.PLAYFUL -> stringResource(R.string.speech_playful_test)
+            PetPersonalityV2.TIMID -> stringResource(R.string.speech_timid_test)
+            PetPersonalityV2.CLUMSY -> stringResource(R.string.speech_clumsy_test)
         }
     }
 
     TutorialStepLayout(
         petType = petType,
         speechText = speechText,
-        instructionText = if (canProceed) "체험 완료!" else "앱 차단 체험",
-        buttonText = if (canProceed) "다음" else "앱을 실행해보세요",
+        instructionText = if (canProceed) stringResource(R.string.test_complete) else stringResource(R.string.app_blocking_test),
+        buttonText = if (canProceed) stringResource(R.string.next) else stringResource(R.string.try_launching_app),
         onButtonClick = {
             if (canProceed) {
                 hapticManager?.click()
@@ -2549,25 +2551,25 @@ private fun TestBlockingStep(
         ) {
             if (canProceed) {
                 Text(
-                    text = "✓ 차단 체험 완료!",
+                    text = stringResource(R.string.blocking_test_done),
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold,
                     color = MockupColors.Blue
                 )
                 Text(
-                    text = "이제 걸어서 해제해볼까요?",
+                    text = stringResource(R.string.now_try_walking),
                     fontSize = 14.sp,
                     color = MockupColors.TextSecondary
                 )
             } else {
                 Text(
-                    text = "테스트 방법",
+                    text = stringResource(R.string.test_method),
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold,
                     color = MockupColors.TextPrimary
                 )
                 Text(
-                    text = "1. 홈 버튼을 눌러 나가기\n2. 선택한 앱 실행\n3. 차단 메시지 확인\n4. rebon으로 돌아오기",
+                    text = stringResource(R.string.test_instructions),
                     fontSize = 14.sp,
                     color = MockupColors.TextSecondary,
                     lineHeight = 22.sp
@@ -2593,19 +2595,19 @@ private fun GoalInputStep(
     var stepsSliderValue by remember { mutableFloatStateOf(60f) }
 
     val speechText = when (petType.personality) {
-        PetPersonalityV2.LOYAL -> "목표를 정해."
-        PetPersonalityV2.TSUNDERE -> "목표... 적당히 해."
-        PetPersonalityV2.FOODIE -> "목표 정하자! ㄱㄱ!"
-        PetPersonalityV2.PLAYFUL -> "목표 정해봐"
-        PetPersonalityV2.TIMID -> "목표를 정해주세요..."
-        PetPersonalityV2.CLUMSY -> "목표 설정 화이팅!"
+        PetPersonalityV2.LOYAL -> stringResource(R.string.speech_loyal_goal)
+        PetPersonalityV2.TSUNDERE -> stringResource(R.string.speech_tsundere_goal)
+        PetPersonalityV2.FOODIE -> stringResource(R.string.speech_foodie_goal)
+        PetPersonalityV2.PLAYFUL -> stringResource(R.string.speech_playful_goal)
+        PetPersonalityV2.TIMID -> stringResource(R.string.speech_timid_goal)
+        PetPersonalityV2.CLUMSY -> stringResource(R.string.speech_clumsy_goal)
     }
 
     TutorialStepLayout(
         petType = petType,
         speechText = speechText,
-        instructionText = "목표 설정",
-        buttonText = "다음",
+        instructionText = stringResource(R.string.goal_setting),
+        buttonText = stringResource(R.string.next),
         onButtonClick = {
             hapticManager?.success()
             preferenceManager.saveGoal(stepsSliderValue.toInt())
@@ -2623,7 +2625,7 @@ private fun GoalInputStep(
         ) {
             // 현재 값 표시
             Text(
-                text = "${stepsSliderValue.toInt()}보",
+                text = stringResource(R.string.steps_count, stepsSliderValue.toInt()),
                 fontSize = 48.sp,
                 fontWeight = FontWeight.Bold,
                 color = MockupColors.TextPrimary
@@ -2632,7 +2634,7 @@ private fun GoalInputStep(
             Spacer(modifier = Modifier.height(8.dp))
 
             Text(
-                text = "50보 ~ 70보 (체험용)",
+                text = stringResource(R.string.trial_range),
                 fontSize = 14.sp,
                 color = MockupColors.TextMuted
             )
@@ -2667,13 +2669,13 @@ private fun GoalInputStep(
                     .padding(12.dp)
             ) {
                 Text(
-                    text = "목표 달성하면",
+                    text = stringResource(R.string.when_goal_achieved),
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Bold,
                     color = MockupColors.TextPrimary
                 )
                 Text(
-                    text = "차단된 앱이 해제됩니다!",
+                    text = stringResource(R.string.apps_unblocked),
                     fontSize = 13.sp,
                     color = MockupColors.TextSecondary
                 )
@@ -2695,23 +2697,31 @@ private fun ControlDaysStep(
     hapticManager: HapticManager?,
     onNext: () -> Unit
 ) {
-    var selectedDays by remember { mutableStateOf(setOf(1, 2, 3, 4, 5)) } // 월~금
-    val dayNames = listOf("일", "월", "화", "수", "목", "금", "토")
+    var selectedDays by remember { mutableStateOf(setOf(1, 2, 3, 4, 5)) } // Mon-Fri
+    val dayNames = listOf(
+        stringResource(R.string.day_sun),
+        stringResource(R.string.day_mon),
+        stringResource(R.string.day_tue),
+        stringResource(R.string.day_wed),
+        stringResource(R.string.day_thu),
+        stringResource(R.string.day_fri),
+        stringResource(R.string.day_sat)
+    )
 
     val speechText = when (petType.personality) {
-        PetPersonalityV2.LOYAL -> "제어할 요일 골라."
-        PetPersonalityV2.TSUNDERE -> "요일... 빨리 골라."
-        PetPersonalityV2.FOODIE -> "요일 선택! 고고~"
-        PetPersonalityV2.PLAYFUL -> "요일 골라봐"
-        PetPersonalityV2.TIMID -> "요일을 선택해주세요..."
-        PetPersonalityV2.CLUMSY -> "어떤 요일에 제어할까?"
+        PetPersonalityV2.LOYAL -> stringResource(R.string.speech_loyal_days)
+        PetPersonalityV2.TSUNDERE -> stringResource(R.string.speech_tsundere_days)
+        PetPersonalityV2.FOODIE -> stringResource(R.string.speech_foodie_days)
+        PetPersonalityV2.PLAYFUL -> stringResource(R.string.speech_playful_days)
+        PetPersonalityV2.TIMID -> stringResource(R.string.speech_timid_days)
+        PetPersonalityV2.CLUMSY -> stringResource(R.string.speech_clumsy_days)
     }
 
     TutorialStepLayout(
         petType = petType,
         speechText = speechText,
-        instructionText = "제어 요일 선택",
-        buttonText = "다음",
+        instructionText = stringResource(R.string.control_days_select),
+        buttonText = stringResource(R.string.next),
         onButtonClick = {
             hapticManager?.success()
             preferenceManager.saveControlDays(selectedDays)
@@ -2771,14 +2781,14 @@ private fun ControlDaysStep(
                 PixelIcon(iconName = "icon_light_bulb", size = 16.dp)
                 Spacer(modifier = Modifier.width(6.dp))
                 Text(
-                    text = "추천: 평일(월~금)",
+                    text = stringResource(R.string.recommend_weekdays),
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Bold,
                     color = MockupColors.TextPrimary
                 )
             }
             Text(
-                text = "주말은 자유롭게!",
+                text = stringResource(R.string.weekend_free),
                 fontSize = 13.sp,
                 color = MockupColors.TextSecondary
             )
@@ -2800,27 +2810,31 @@ private fun BlockTimeStep(
     onNext: () -> Unit
 ) {
     var selectedPeriods by remember { mutableStateOf(setOf("morning", "afternoon", "evening", "night")) }
+    val periodMorning = stringResource(R.string.period_morning)
+    val periodAfternoon = stringResource(R.string.period_afternoon)
+    val periodEvening = stringResource(R.string.period_evening)
+    val periodNight = stringResource(R.string.period_night)
     val periods = listOf(
-        "morning" to "아침\n06-12시",
-        "afternoon" to "점심\n12-18시",
-        "evening" to "저녁\n18-22시",
-        "night" to "밤\n22-06시"
+        "morning" to periodMorning,
+        "afternoon" to periodAfternoon,
+        "evening" to periodEvening,
+        "night" to periodNight
     )
 
     val speechText = when (petType.personality) {
-        PetPersonalityV2.LOYAL -> "차단 시간 정해."
-        PetPersonalityV2.TSUNDERE -> "시간... 골라."
-        PetPersonalityV2.FOODIE -> "시간 정하자! 렛츠고~"
-        PetPersonalityV2.PLAYFUL -> "시간 정해봐"
-        PetPersonalityV2.TIMID -> "시간을 정해주세요..."
-        PetPersonalityV2.CLUMSY -> "언제 제어할까?"
+        PetPersonalityV2.LOYAL -> stringResource(R.string.speech_loyal_time)
+        PetPersonalityV2.TSUNDERE -> stringResource(R.string.speech_tsundere_time)
+        PetPersonalityV2.FOODIE -> stringResource(R.string.speech_foodie_time)
+        PetPersonalityV2.PLAYFUL -> stringResource(R.string.speech_playful_time)
+        PetPersonalityV2.TIMID -> stringResource(R.string.speech_timid_time)
+        PetPersonalityV2.CLUMSY -> stringResource(R.string.speech_clumsy_time)
     }
 
     TutorialStepLayout(
         petType = petType,
         speechText = speechText,
-        instructionText = "차단 시간대",
-        buttonText = "다음",
+        instructionText = stringResource(R.string.blocking_time),
+        buttonText = stringResource(R.string.next),
         onButtonClick = {
             hapticManager?.success()
             preferenceManager.saveBlockingPeriods(selectedPeriods)
@@ -2893,7 +2907,7 @@ private fun BlockTimeStep(
                 )
             }
             Text(
-                text = "선택하지 않으면 차단되지 않습니다",
+                text = stringResource(R.string.unselected_not_blocked),
                 fontSize = 13.sp,
                 color = MockupColors.TextSecondary
             )
@@ -3023,36 +3037,36 @@ private fun WalkingTestStep(
 
     val speechText = when {
         goalAchieved -> when (petType.personality) {
-            PetPersonalityV2.LOYAL -> "잘했어."
-            PetPersonalityV2.TSUNDERE -> "뭐, 괜찮네."
-            PetPersonalityV2.FOODIE -> "대박! 대단해ㅋㅋ"
-            PetPersonalityV2.PLAYFUL -> "잘했다 아이가~"
-            PetPersonalityV2.TIMID -> "정말 잘하셨어요...!"
-            PetPersonalityV2.CLUMSY -> "완벽해! 최고야!"
+            PetPersonalityV2.LOYAL -> stringResource(R.string.speech_loyal_walk_done)
+            PetPersonalityV2.TSUNDERE -> stringResource(R.string.speech_tsundere_walk_done)
+            PetPersonalityV2.FOODIE -> stringResource(R.string.speech_foodie_walk_done)
+            PetPersonalityV2.PLAYFUL -> stringResource(R.string.speech_playful_walk_done)
+            PetPersonalityV2.TIMID -> stringResource(R.string.speech_timid_walk_done)
+            PetPersonalityV2.CLUMSY -> stringResource(R.string.speech_clumsy_walk_done)
         }
         currentSteps == 0 -> when (petType.personality) {
-            PetPersonalityV2.LOYAL -> "가볍게 산책하고 오면 채워질 거야."
-            PetPersonalityV2.TSUNDERE -> "산책이나 하고 와. 그럼 차."
-            PetPersonalityV2.FOODIE -> "가볍게 산책하고 오면 돼~"
-            PetPersonalityV2.PLAYFUL -> "산책하고 오면 완성이야!"
-            PetPersonalityV2.TIMID -> "산책하고 오시면... 채워질 거예요..."
-            PetPersonalityV2.CLUMSY -> "산책하고 오면 끝! 화이팅!"
+            PetPersonalityV2.LOYAL -> stringResource(R.string.speech_loyal_walk_zero)
+            PetPersonalityV2.TSUNDERE -> stringResource(R.string.speech_tsundere_walk_zero)
+            PetPersonalityV2.FOODIE -> stringResource(R.string.speech_foodie_walk_zero)
+            PetPersonalityV2.PLAYFUL -> stringResource(R.string.speech_playful_walk_zero)
+            PetPersonalityV2.TIMID -> stringResource(R.string.speech_timid_walk_zero)
+            PetPersonalityV2.CLUMSY -> stringResource(R.string.speech_clumsy_walk_zero)
         }
         else -> when (petType.personality) {
-            PetPersonalityV2.LOYAL -> "걸어."
-            PetPersonalityV2.TSUNDERE -> "걸어... 빨리."
-            PetPersonalityV2.FOODIE -> "걸어보자! ㄱㄱ~"
-            PetPersonalityV2.PLAYFUL -> "걸어봐"
-            PetPersonalityV2.TIMID -> "걸어주세요..."
-            PetPersonalityV2.CLUMSY -> "걷기 화이팅!"
+            PetPersonalityV2.LOYAL -> stringResource(R.string.speech_loyal_walk)
+            PetPersonalityV2.TSUNDERE -> stringResource(R.string.speech_tsundere_walk)
+            PetPersonalityV2.FOODIE -> stringResource(R.string.speech_foodie_walk)
+            PetPersonalityV2.PLAYFUL -> stringResource(R.string.speech_playful_walk)
+            PetPersonalityV2.TIMID -> stringResource(R.string.speech_timid_walk)
+            PetPersonalityV2.CLUMSY -> stringResource(R.string.speech_clumsy_walk)
         }
     }
 
     TutorialStepLayout(
         petType = petType,
         speechText = speechText,
-        instructionText = if (goalAchieved) "목표 달성!" else "${targetSteps}보 걸어보세요!",
-        buttonText = if (goalAchieved) "다음" else "걸음 수 달성 필요",
+        instructionText = if (goalAchieved) stringResource(R.string.goal_achieved_exclaim) else stringResource(R.string.walk_steps_format, targetSteps),
+        buttonText = if (goalAchieved) stringResource(R.string.next) else stringResource(R.string.steps_needed),
         onButtonClick = {
             if (goalAchieved) {
                 hapticManager?.click()
@@ -3077,7 +3091,7 @@ private fun WalkingTestStep(
                 color = MockupColors.TextPrimary
             )
             Text(
-                text = "/ $targetSteps 보",
+                text = stringResource(R.string.out_of_steps, targetSteps),
                 fontSize = 18.sp,
                 color = MockupColors.TextMuted
             )
@@ -3107,35 +3121,35 @@ private fun WalkingTestStep(
             if (!goalAchieved) {
                 if (useHealthConnect) {
                     Text(
-                        text = "Health App과 동기화에 몇 초 소요될 수 있어요",
+                        text = stringResource(R.string.health_sync_delay),
                         fontSize = 12.sp,
                         color = MockupColors.TextMuted,
                         textAlign = TextAlign.Center
                     )
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
-                        text = "걸음 수가 안 올라가면 삼성헬스/Health Connect 문제예요",
+                        text = stringResource(R.string.steps_not_increasing),
                         fontSize = 11.sp,
                         color = Color(0xFFFF9800),
                         textAlign = TextAlign.Center
                     )
                 } else {
                     Text(
-                        text = "걸음수 동기화에 약 30초 정도 걸려요",
+                        text = stringResource(R.string.sync_30_seconds),
                         fontSize = 12.sp,
                         color = MockupColors.TextMuted,
                         textAlign = TextAlign.Center
                     )
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
-                        text = "완료되면 알림으로 알려드릴게요",
+                        text = stringResource(R.string.notification_when_done),
                         fontSize = 11.sp,
                         color = Color(0xFF4CAF50),
                         textAlign = TextAlign.Center
                     )
                     Spacer(modifier = Modifier.height(2.dp))
                     Text(
-                        text = "가볍게 산책하고 돌아오세요!",
+                        text = stringResource(R.string.take_light_walk),
                         fontSize = 11.sp,
                         color = MockupColors.TextMuted,
                         textAlign = TextAlign.Center
@@ -3155,7 +3169,7 @@ private fun WalkingTestStep(
                     colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF666666)),
                     shape = RoundedCornerShape(8.dp)
                 ) {
-                    Text("지금은 걷기 어려워요.", color = Color.White, fontSize = 13.sp)
+                    Text(stringResource(R.string.cant_walk_now), color = Color.White, fontSize = 13.sp)
                 }
             }
         }
@@ -3175,19 +3189,19 @@ private fun HowItWorksStep(
     onNext: () -> Unit
 ) {
     val speechText = when (petType.personality) {
-        PetPersonalityV2.LOYAL -> "이렇게 쓰면 돼."
-        PetPersonalityV2.TSUNDERE -> "설명... 해줄게."
-        PetPersonalityV2.FOODIE -> "이렇게 하면 돼! 심플~"
-        PetPersonalityV2.PLAYFUL -> "간단해 봐봐"
-        PetPersonalityV2.TIMID -> "이렇게 사용해요..."
-        PetPersonalityV2.CLUMSY -> "사용법 알려줄게!"
+        PetPersonalityV2.LOYAL -> stringResource(R.string.speech_loyal_howto)
+        PetPersonalityV2.TSUNDERE -> stringResource(R.string.speech_tsundere_howto)
+        PetPersonalityV2.FOODIE -> stringResource(R.string.speech_foodie_howto)
+        PetPersonalityV2.PLAYFUL -> stringResource(R.string.speech_playful_howto)
+        PetPersonalityV2.TIMID -> stringResource(R.string.speech_timid_howto)
+        PetPersonalityV2.CLUMSY -> stringResource(R.string.speech_clumsy_howto)
     }
 
     TutorialStepLayout(
         petType = petType,
         speechText = speechText,
-        instructionText = "rebon 사용법",
-        buttonText = "다음",
+        instructionText = stringResource(R.string.rebon_usage),
+        buttonText = stringResource(R.string.next),
         onButtonClick = {
             hapticManager?.success()
             onNext()
@@ -3216,14 +3230,14 @@ private fun HowItWorksStep(
                 ) {
                     PixelIcon(iconName = "icon_star", size = 20.dp)
                     Text(
-                        text = "핵심 규칙",
+                        text = stringResource(R.string.core_rule),
                         fontSize = 15.sp,
                         fontWeight = FontWeight.Bold,
                         color = MockupColors.TextPrimary
                     )
                 }
                 Text(
-                    text = "목표 달성 → 앱 자유롭게\n미달성 → 앱 차단",
+                    text = stringResource(R.string.goal_rule_text),
                     fontSize = 14.sp,
                     color = MockupColors.TextSecondary,
                     lineHeight = 20.sp
@@ -3245,14 +3259,14 @@ private fun HowItWorksStep(
                 ) {
                     PixelIcon(iconName = "icon_timer", size = 20.dp)
                     Text(
-                        text = "15분 휴식 모드",
+                        text = stringResource(R.string.break_mode_15min),
                         fontSize = 15.sp,
                         fontWeight = FontWeight.Bold,
                         color = MockupColors.TextPrimary
                     )
                 }
                 Text(
-                    text = "급할 땐 15분간 앱 사용 가능 (하루 1회)",
+                    text = stringResource(R.string.break_mode_desc),
                     fontSize = 14.sp,
                     color = MockupColors.TextSecondary,
                     lineHeight = 20.sp
@@ -3275,19 +3289,19 @@ private fun EmergencyButtonStep(
     onNext: () -> Unit
 ) {
     val speechText = when (petType.personality) {
-        PetPersonalityV2.LOYAL -> "급할 땐 쉬어가."
-        PetPersonalityV2.TSUNDERE -> "급하면... 쉬어가."
-        PetPersonalityV2.FOODIE -> "급하면 쉬어가! 다이죠부~"
-        PetPersonalityV2.PLAYFUL -> "급하면 쉬어가"
-        PetPersonalityV2.TIMID -> "급하시면 쉬어가세요..."
-        PetPersonalityV2.CLUMSY -> "가끔은 쉬어가도 돼!"
+        PetPersonalityV2.LOYAL -> stringResource(R.string.speech_loyal_emergency)
+        PetPersonalityV2.TSUNDERE -> stringResource(R.string.speech_tsundere_emergency)
+        PetPersonalityV2.FOODIE -> stringResource(R.string.speech_foodie_emergency)
+        PetPersonalityV2.PLAYFUL -> stringResource(R.string.speech_playful_emergency)
+        PetPersonalityV2.TIMID -> stringResource(R.string.speech_timid_emergency)
+        PetPersonalityV2.CLUMSY -> stringResource(R.string.speech_clumsy_emergency)
     }
 
     TutorialStepLayout(
         petType = petType,
         speechText = speechText,
-        instructionText = "잠시 쉬어가기",
-        buttonText = "다음",
+        instructionText = stringResource(R.string.take_a_break),
+        buttonText = stringResource(R.string.next),
         onButtonClick = {
             hapticManager?.success()
             onNext()
@@ -3309,14 +3323,14 @@ private fun EmergencyButtonStep(
             PixelIcon(iconName = "icon_timer", size = 32.dp)
 
             Text(
-                text = "15분 휴식 모드",
+                text = stringResource(R.string.break_mode_15min),
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Bold,
                 color = MockupColors.TextPrimary
             )
 
             Text(
-                text = "• 급한 일이 있을 때 15분간 앱 사용 가능\n• 하루에 1회만 사용 가능\n• 15분 후 자동으로 다시 차단",
+                text = stringResource(R.string.break_mode_details),
                 fontSize = 14.sp,
                 color = MockupColors.TextSecondary,
                 lineHeight = 22.sp
@@ -3337,17 +3351,6 @@ private data class WidgetInfo(
     val icon: String  // Unicode symbol
 )
 
-// 위젯 목록
-private val widgetList = listOf(
-    WidgetInfo("걸음 수", "2×1", "오늘 걸음 수와 펫을 한눈에", UnicodeSymbols.FOOTPRINTS),
-    WidgetInfo("펫", "2×2", "내 펫과 대화하기", UnicodeSymbols.SPARKLES),
-    WidgetInfo("날씨 예보", "4×1", "시간대별 날씨와 펫", UnicodeSymbols.SUN),
-    WidgetInfo("명언", "2×2", "매일 새로운 명언", UnicodeSymbols.STAR),
-    WidgetInfo("단식 타이머", "2×1", "간헐적 단식 시간 관리", UnicodeSymbols.CLOCK),
-    WidgetInfo("오늘의 단어", "2×1", "영어/일본어/중국어 학습", UnicodeSymbols.GLOBE),
-    WidgetInfo("스도쿠", "2×2", "두뇌 트레이닝 미니게임", UnicodeSymbols.GRID)
-)
-
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun WidgetSetupStep(
@@ -3358,23 +3361,42 @@ private fun WidgetSetupStep(
     hapticManager: HapticManager?,
     onComplete: () -> Unit
 ) {
+    // 기기 언어에 따라 언어 학습 위젯 결정
+    val isDeviceKorean = java.util.Locale.getDefault().language == "ko"
+
+    // 위젯 목록 (로컬라이즈 + 언어 기반 필터링)
+    val widgetList = listOf(
+        WidgetInfo(stringResource(R.string.widget_steps), "2×1", stringResource(R.string.widget_steps_desc), UnicodeSymbols.FOOTPRINTS),
+        WidgetInfo(stringResource(R.string.widget_pet), "2×2", stringResource(R.string.widget_pet_desc), UnicodeSymbols.SPARKLES),
+        WidgetInfo(stringResource(R.string.widget_weather), "4×1", stringResource(R.string.widget_weather_desc), UnicodeSymbols.SUN),
+        WidgetInfo(stringResource(R.string.widget_quote), "2×2", stringResource(R.string.widget_quote_desc), UnicodeSymbols.STAR),
+        WidgetInfo(stringResource(R.string.widget_fasting), "2×1", stringResource(R.string.widget_fasting_desc), UnicodeSymbols.CLOCK),
+        // 한국어 기기 → 외국어 학습, 외국 기기 → 한국어 학습
+        if (isDeviceKorean) {
+            WidgetInfo(stringResource(R.string.widget_vocab), "2×1", stringResource(R.string.widget_vocab_desc), UnicodeSymbols.GLOBE)
+        } else {
+            WidgetInfo(stringResource(R.string.widget_korean), "2×1", stringResource(R.string.widget_korean_desc), UnicodeSymbols.GLOBE)
+        },
+        WidgetInfo(stringResource(R.string.widget_sudoku), "2×2", stringResource(R.string.widget_sudoku_desc), UnicodeSymbols.GRID)
+    )
+
     val pagerState = rememberPagerState(pageCount = { widgetList.size })
     val currentWidget = widgetList[pagerState.currentPage]
 
     val speechText = when (petType.personality) {
-        PetPersonalityV2.LOYAL -> "위젯 추가해."
-        PetPersonalityV2.TSUNDERE -> "위젯... 추가해줘."
-        PetPersonalityV2.FOODIE -> "위젯 추가! 고고~"
-        PetPersonalityV2.PLAYFUL -> "위젯 추가해봐"
-        PetPersonalityV2.TIMID -> "위젯을 추가해주세요..."
-        PetPersonalityV2.CLUMSY -> "위젯으로 한눈에 확인!"
+        PetPersonalityV2.LOYAL -> stringResource(R.string.speech_loyal_widget)
+        PetPersonalityV2.TSUNDERE -> stringResource(R.string.speech_tsundere_widget)
+        PetPersonalityV2.FOODIE -> stringResource(R.string.speech_foodie_widget)
+        PetPersonalityV2.PLAYFUL -> stringResource(R.string.speech_playful_widget)
+        PetPersonalityV2.TIMID -> stringResource(R.string.speech_timid_widget)
+        PetPersonalityV2.CLUMSY -> stringResource(R.string.speech_clumsy_widget)
     }
 
     TutorialStepLayout(
         petType = petType,
         speechText = speechText,
-        instructionText = "7종 위젯 제공",
-        buttonText = "다음",
+        instructionText = stringResource(R.string.seven_widgets),
+        buttonText = stringResource(R.string.next),
         onButtonClick = {
             hapticManager?.click()
             onComplete()

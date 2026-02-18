@@ -16,6 +16,137 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.moveoftoday.walkorwait.pet.MockupColors
 import com.moveoftoday.walkorwait.pet.rememberKenneyFont
+import java.util.Locale
+
+// 다국어 헬퍼
+private object GoalSettingStrings {
+    private fun getLang(): String = Locale.getDefault().language
+
+    fun goalSetting(): String = when (getLang()) {
+        "ko" -> "목표 설정"
+        "ja" -> "目標設定"
+        "zh" -> "目标设置"
+        "es" -> "Meta"
+        else -> "Set Goal"
+    }
+
+    fun currentGoal(steps: Int): String = when (getLang()) {
+        "ko" -> "현재 목표: %,d보".format(steps)
+        "ja" -> "現在の目標: %,d歩".format(steps)
+        "zh" -> "当前目标: %,d步".format(steps)
+        "es" -> "Meta actual: %,d pasos".format(steps)
+        else -> "Current goal: %,d steps".format(steps)
+    }
+
+    fun steps(): String = when (getLang()) {
+        "ko" -> "걸음 수"
+        "ja" -> "歩数"
+        "zh" -> "步数"
+        "es" -> "Pasos"
+        else -> "Steps"
+    }
+
+    fun distance(): String = when (getLang()) {
+        "ko" -> "거리 (km)"
+        "ja" -> "距離 (km)"
+        "zh" -> "距离 (km)"
+        "es" -> "Distancia (km)"
+        else -> "Distance (km)"
+    }
+
+    fun fullMarathon(): String = when (getLang()) {
+        "ko" -> "풀마라톤"
+        "ja" -> "フルマラソン"
+        "zh" -> "全程马拉松"
+        "es" -> "Maratón"
+        else -> "Full Marathon"
+    }
+
+    fun halfMarathon(): String = when (getLang()) {
+        "ko" -> "하프마라톤"
+        "ja" -> "ハーフマラソン"
+        "zh" -> "半程马拉松"
+        "es" -> "Media Maratón"
+        else -> "Half Marathon"
+    }
+
+    fun stepsUnit(steps: Int): String = when (getLang()) {
+        "ko" -> "%,d보".format(steps)
+        "ja" -> "%,d歩".format(steps)
+        "zh" -> "%,d步".format(steps)
+        else -> "%,d steps".format(steps)
+    }
+
+    fun aboutSteps(steps: Int): String = when (getLang()) {
+        "ko" -> "약 %,d보".format(steps)
+        "ja" -> "約%,d歩".format(steps)
+        "zh" -> "约%,d步".format(steps)
+        "es" -> "~%,d pasos".format(steps)
+        else -> "~%,d steps".format(steps)
+    }
+
+    fun aboutKm(km: Float): String = when (getLang()) {
+        "ko" -> "약 %.1fkm".format(km)
+        "ja" -> "約%.1fkm".format(km)
+        "zh" -> "约%.1fkm".format(km)
+        "es" -> "~%.1fkm".format(km)
+        else -> "~%.1fkm".format(km)
+    }
+
+    fun halfBtn(): String = when (getLang()) {
+        "ko" -> "하프 21.1km"
+        "ja" -> "ハーフ 21.1km"
+        "zh" -> "半马 21.1km"
+        "es" -> "Media 21.1km"
+        else -> "Half 21.1km"
+    }
+
+    fun fullBtn(): String = when (getLang()) {
+        "ko" -> "풀 42.195km"
+        "ja" -> "フル 42.195km"
+        "zh" -> "全马 42.195km"
+        "es" -> "Maratón 42.195km"
+        else -> "Full 42.195km"
+    }
+
+    fun minSteps(): String = when (getLang()) {
+        "ko" -> "1,000보"
+        "ja" -> "1,000歩"
+        "zh" -> "1,000步"
+        else -> "1,000"
+    }
+
+    fun maxSteps(): String = when (getLang()) {
+        "ko" -> "55,000보"
+        "ja" -> "55,000歩"
+        "zh" -> "55,000步"
+        else -> "55,000"
+    }
+
+    fun decreaseWarning(date: String): String = when (getLang()) {
+        "ko" -> "⚠️ 목표 감소는 $date 부터 가능합니다"
+        "ja" -> "⚠️ 目標の減少は${date}から可能です"
+        "zh" -> "⚠️ 目标降低将于${date}后可用"
+        "es" -> "⚠️ Reducir meta disponible desde $date"
+        else -> "⚠️ Goal decrease available from $date"
+    }
+
+    fun cancel(): String = when (getLang()) {
+        "ko" -> "취소"
+        "ja" -> "キャンセル"
+        "zh" -> "取消"
+        "es" -> "Cancelar"
+        else -> "Cancel"
+    }
+
+    fun confirm(): String = when (getLang()) {
+        "ko" -> "확인"
+        "ja" -> "確認"
+        "zh" -> "确认"
+        "es" -> "Confirmar"
+        else -> "Confirm"
+    }
+}
 
 @Composable
 fun GoalSettingDialog(
@@ -48,8 +179,8 @@ fun GoalSettingDialog(
 
     // 특별 거리 라벨
     val specialLabel = when {
-        selectedUnit == "km" && kotlin.math.abs(displayKm - 42.195f) < 0.2f -> "풀마라톤"
-        selectedUnit == "km" && kotlin.math.abs(displayKm - 21.1f) < 0.2f -> "하프마라톤"
+        selectedUnit == "km" && kotlin.math.abs(displayKm - 42.195f) < 0.2f -> GoalSettingStrings.fullMarathon()
+        selectedUnit == "km" && kotlin.math.abs(displayKm - 21.1f) < 0.2f -> GoalSettingStrings.halfMarathon()
         else -> null
     }
 
@@ -72,7 +203,7 @@ fun GoalSettingDialog(
 
             // 타이틀
             Text(
-                text = "목표 설정",
+                text = GoalSettingStrings.goalSetting(),
                 fontSize = 28.sp,
                 fontFamily = kenneyFont,
                 fontWeight = FontWeight.Bold,
@@ -82,7 +213,7 @@ fun GoalSettingDialog(
             Spacer(modifier = Modifier.height(8.dp))
 
             Text(
-                text = "현재 목표: ${"%,d".format(validGoal)}보",
+                text = GoalSettingStrings.currentGoal(validGoal),
                 fontSize = 14.sp,
                 color = MockupColors.TextMuted
             )
@@ -115,7 +246,7 @@ fun GoalSettingDialog(
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text = "걸음 수",
+                        text = GoalSettingStrings.steps(),
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Bold,
                         color = if (selectedUnit == "steps") Color.White else MockupColors.TextSecondary
@@ -143,7 +274,7 @@ fun GoalSettingDialog(
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text = "거리 (km)",
+                        text = GoalSettingStrings.distance(),
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Bold,
                         color = if (selectedUnit == "km") Color.White else MockupColors.TextSecondary
@@ -167,7 +298,7 @@ fun GoalSettingDialog(
                             else if (kotlin.math.abs(displayKm - 21.1f) < 0.2f) "21.1 km"
                             else String.format("%.1f km", displayKm)
                         } else {
-                            "%,d보".format(goalSteps.toInt())
+                            GoalSettingStrings.stepsUnit(goalSteps.toInt())
                         },
                         fontSize = 48.sp,
                         fontWeight = FontWeight.Bold,
@@ -189,9 +320,9 @@ fun GoalSettingDialog(
                     // 환산 값 표시
                     Text(
                         text = if (selectedUnit == "km") {
-                            "약 %,d보".format(goalSteps.toInt())
+                            GoalSettingStrings.aboutSteps(goalSteps.toInt())
                         } else {
-                            "약 ${String.format("%.1f", displayKm)}km"
+                            GoalSettingStrings.aboutKm(displayKm)
                         },
                         fontSize = 14.sp,
                         color = MockupColors.TextMuted
@@ -220,7 +351,7 @@ fun GoalSettingDialog(
                             contentAlignment = Alignment.Center
                         ) {
                             Text(
-                                text = "하프 21.1km",
+                                text = GoalSettingStrings.halfBtn(),
                                 fontSize = 13.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = MockupColors.TextPrimary
@@ -241,7 +372,7 @@ fun GoalSettingDialog(
                             contentAlignment = Alignment.Center
                         ) {
                             Text(
-                                text = "풀 42.195km",
+                                text = GoalSettingStrings.fullBtn(),
                                 fontSize = 13.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = MockupColors.TextPrimary
@@ -277,12 +408,12 @@ fun GoalSettingDialog(
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Text(
-                    text = if (selectedUnit == "km") "0.8km" else "1,000보",
+                    text = if (selectedUnit == "km") "0.8km" else GoalSettingStrings.minSteps(),
                     fontSize = 12.sp,
                     color = MockupColors.TextMuted
                 )
                 Text(
-                    text = if (selectedUnit == "km") "42.3km" else "55,000보",
+                    text = if (selectedUnit == "km") "42.3km" else GoalSettingStrings.maxSteps(),
                     fontSize = 12.sp,
                     color = MockupColors.TextMuted
                 )
@@ -300,7 +431,7 @@ fun GoalSettingDialog(
                         .padding(12.dp)
                 ) {
                     Text(
-                        text = "⚠️ 목표 감소는 $nextDecreaseDate 부터 가능합니다",
+                        text = GoalSettingStrings.decreaseWarning(nextDecreaseDate),
                         fontSize = 14.sp,
                         color = Color(0xFFFF9800),
                         fontWeight = FontWeight.Bold,
@@ -332,7 +463,7 @@ fun GoalSettingDialog(
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
-                            text = "취소",
+                            text = GoalSettingStrings.cancel(),
                             fontSize = 18.sp,
                             fontWeight = FontWeight.Bold,
                             color = MockupColors.TextPrimary,
@@ -362,7 +493,7 @@ fun GoalSettingDialog(
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text = "확인",
+                        text = GoalSettingStrings.confirm(),
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Bold,
                         color = Color.White,

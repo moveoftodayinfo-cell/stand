@@ -52,6 +52,211 @@ import java.io.FileOutputStream
 import java.text.SimpleDateFormat
 import java.util.*
 
+// 다국어 헬퍼
+private object StreakStrings {
+    private fun getLang(): String = Locale.getDefault().language
+
+    fun achievingPercent(percent: Int): String = when (getLang()) {
+        "ko" -> "$percent% 달성 중"
+        "ja" -> "$percent% 達成中"
+        "zh" -> "$percent% 进行中"
+        "es" -> "$percent% progreso"
+        else -> "$percent% progress"
+    }
+
+    fun stepsUnit(): String = when (getLang()) {
+        "ko" -> "보"
+        "ja" -> "歩"
+        "zh" -> "步"
+        else -> "steps"
+    }
+
+    fun consecutiveDays(days: Int): String = when (getLang()) {
+        "ko" -> "${days}일 연속 달성"
+        "ja" -> "${days}日連続達成"
+        "zh" -> "连续${days}天达成"
+        "es" -> "${days} días consecutivos"
+        else -> "${days}-day streak"
+    }
+
+    fun totalDistance(): String = when (getLang()) {
+        "ko" -> "총 거리"
+        "ja" -> "総距離"
+        "zh" -> "总距离"
+        "es" -> "Distancia"
+        else -> "Distance"
+    }
+
+    fun achievementDays(): String = when (getLang()) {
+        "ko" -> "달성 일수"
+        "ja" -> "達成日数"
+        "zh" -> "达成天数"
+        "es" -> "Días logrados"
+        else -> "Days"
+    }
+
+    fun consecutiveStreak(): String = when (getLang()) {
+        "ko" -> "연속 달성"
+        "ja" -> "連続達成"
+        "zh" -> "连续达成"
+        "es" -> "Racha"
+        else -> "Streak"
+    }
+
+    fun daysUnit(days: Int): String = when (getLang()) {
+        "ko" -> "${days}일"
+        "ja" -> "${days}日"
+        "zh" -> "${days}天"
+        "es" -> "${days}d"
+        else -> "${days}d"
+    }
+
+    fun savedToGallery(): String = when (getLang()) {
+        "ko" -> "갤러리에 저장됨"
+        "ja" -> "ギャラリーに保存"
+        "zh" -> "已保存到相册"
+        "es" -> "Guardado en galería"
+        else -> "Saved to gallery"
+    }
+
+    fun saveFailed(msg: String): String = when (getLang()) {
+        "ko" -> "저장 실패: $msg"
+        "ja" -> "保存失敗: $msg"
+        "zh" -> "保存失败: $msg"
+        "es" -> "Error al guardar: $msg"
+        else -> "Save failed: $msg"
+    }
+
+    fun streakDefenseSuccess(): String = when (getLang()) {
+        "ko" -> "스트릭 방어 성공!"
+        "ja" -> "ストリーク防御成功！"
+        "zh" -> "连胜保护成功！"
+        "es" -> "¡Racha protegida!"
+        else -> "Streak Protected!"
+    }
+
+    fun defenseUsedMessage(days: Int): String = when (getLang()) {
+        "ko" -> "방어 티켓을 사용해서\n${days}일 스트릭을 이어갑니다!"
+        "ja" -> "防御チケットを使用して\n${days}日ストリークを継続！"
+        "zh" -> "使用保护券\n保持${days}天连胜！"
+        "es" -> "Usaste un ticket de protección\n¡Tu racha de ${days} días continúa!"
+        else -> "Used defense ticket\nto keep your ${days}-day streak!"
+    }
+
+    fun remainingTickets(count: Int): String = when (getLang()) {
+        "ko" -> "남은 방어 티켓: ${count}장"
+        "ja" -> "残り防御チケット: ${count}枚"
+        "zh" -> "剩余保护券: ${count}张"
+        "es" -> "Tickets restantes: $count"
+        else -> "Tickets left: $count"
+    }
+
+    fun continueBtn(): String = when (getLang()) {
+        "ko" -> "계속하기"
+        "ja" -> "続ける"
+        "zh" -> "继续"
+        "es" -> "Continuar"
+        else -> "Continue"
+    }
+
+    // 성격별 축하 대사 - 첫날
+    fun toughFirstDay(): String = when (getLang()) {
+        "ko" -> "오늘도 달성했다고?\n됐다. 좋은 시작이야."
+        "ja" -> "今日も達成したって?\nよし、いいスタートだ。"
+        "zh" -> "今天也达成了?\n好，不错的开始。"
+        "es" -> "¿Lograste la meta hoy?\nBien. Buen comienzo."
+        else -> "You made it today?\nGood. Nice start."
+    }
+
+    fun toughStreak(days: Int, km: Float): String = when (getLang()) {
+        "ko" -> "총 ${days}일 달성,\n${km}km 걸었다고?\n됐다. 잘했어."
+        "ja" -> "合計${days}日達成、\n${km}km歩いた？\nよし、よくやった。"
+        "zh" -> "共${days}天达成，\n走了${km}km?\n好，干得不错。"
+        "es" -> "${days} días, ${km}km.\nBien hecho."
+        else -> "${days} days, ${km}km.\nGood job."
+    }
+
+    fun cuteFirstDay(): String = when (getLang()) {
+        "ko" -> "우와~! 오늘도 달성!\n대단해용!"
+        "ja" -> "わあ~！今日も達成！\nすごいです~！"
+        "zh" -> "哇~！今天也达成了！\n太厉害了~！"
+        "es" -> "¡Woow~! ¡Lo lograste!\n¡Increíble~!"
+        else -> "Wow~! You did it!\nAmazing~!"
+    }
+
+    fun cuteStreak(days: Int, km: Float): String = when (getLang()) {
+        "ko" -> "우와~! 총 ${days}일 달성!\n${km}km 걸었다니 대단해용!"
+        "ja" -> "わあ~！合計${days}日達成！\n${km}km歩いたなんてすごい~！"
+        "zh" -> "哇~！共${days}天达成！\n走了${km}km太厉害了~！"
+        "es" -> "¡Wow~! ¡${days} días!\n¡${km}km es increíble~!"
+        else -> "Wow~! ${days} days!\n${km}km is amazing~!"
+    }
+
+    fun tsundereFirstDay(): String = when (getLang()) {
+        "ko" -> "흥, 오늘도 달성?\n뭐... 나쁘지 않네."
+        "ja" -> "ふん、今日も達成？\nまあ...悪くないね。"
+        "zh" -> "哼，今天也达成了？\n嗯...还不错吧。"
+        "es" -> "Hmph, ¿lo lograste?\nBueno... no está mal."
+        else -> "Hmph, you made it?\nWell... not bad."
+    }
+
+    fun tsundereStreak(days: Int, km: Float): String = when (getLang()) {
+        "ko" -> "흥, 총 ${days}일 달성에\n${km}km?\n뭐... 나쁘지 않네."
+        "ja" -> "ふん、合計${days}日達成で\n${km}km？\nまあ...悪くないね。"
+        "zh" -> "哼，共${days}天达成，\n${km}km？\n嗯...还不错吧。"
+        "es" -> "Hmph, ${days} días,\n${km}km?\nBueno... no está mal."
+        else -> "Hmph, ${days} days,\n${km}km?\nWell... not bad."
+    }
+
+    fun dialectFirstDay(): String = when (getLang()) {
+        "ko" -> "오늘도 달성했노~\n좋은 시작이다!"
+        "ja" -> "今日も達成やで~\nええスタートや！"
+        "zh" -> "今天也达成咯~\n好的开始呀！"
+        "es" -> "¡Lo lograste hoy~!\n¡Buen inicio!"
+        else -> "You did it today~!\nGreat start!"
+    }
+
+    fun dialectStreak(days: Int, km: Float): String = when (getLang()) {
+        "ko" -> "총 ${days}일 달성에\n${km}km 걸었노~\nㄹㅇ 대단하다!"
+        "ja" -> "合計${days}日達成で\n${km}km歩いたんか~\nマジすごいで！"
+        "zh" -> "共${days}天达成，\n走了${km}km呀~\n真的很厉害！"
+        "es" -> "¡${days} días y ${km}km~!\n¡De verdad genial!"
+        else -> "${days} days, ${km}km~!\nReally awesome!"
+    }
+
+    fun timidFirstDay(): String = when (getLang()) {
+        "ko" -> "대, 대단해요...!\n오늘도 달성...!"
+        "ja" -> "す、すごいです...！\n今日も達成...！"
+        "zh" -> "好, 好厉害...！\n今天也达成了...！"
+        "es" -> "In-increíble...!\n¡Lo lograste hoy...!"
+        else -> "A-amazing...!\nYou made it today...!"
+    }
+
+    fun timidStreak(days: Int, km: Float): String = when (getLang()) {
+        "ko" -> "대, 대단해요...! 총 ${days}일 달성에\n${km}km 걸었어요...!"
+        "ja" -> "す、すごいです...！合計${days}日達成で\n${km}km歩いた...！"
+        "zh" -> "好, 好厉害...！共${days}天达成，\n走了${km}km...！"
+        "es" -> "In-increíble...! ${days} días,\n${km}km...!"
+        else -> "A-amazing...! ${days} days,\n${km}km...!"
+    }
+
+    fun positiveFirstDay(): String = when (getLang()) {
+        "ko" -> "오늘도 달성!\n좋은 시작! 최고야!"
+        "ja" -> "今日も達成！\nいいスタート！最高！"
+        "zh" -> "今天也达成了！\n好的开始！最棒！"
+        "es" -> "¡Lo lograste!\n¡Buen comienzo! ¡Genial!"
+        else -> "You did it!\nGreat start! Awesome!"
+    }
+
+    fun positiveStreak(days: Int, km: Float): String = when (getLang()) {
+        "ko" -> "총 ${days}일 달성!\n${km}km 걸었어! 최고야!"
+        "ja" -> "合計${days}日達成！\n${km}km歩いた！最高！"
+        "zh" -> "共${days}天达成！\n走了${km}km！最棒！"
+        "es" -> "¡${days} días! ¡${km}km!\n¡Eres genial!"
+        else -> "${days} days! ${km}km!\nYou're awesome!"
+    }
+}
+
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun StreakCelebrationDialog(
@@ -428,12 +633,7 @@ private fun FullCardContent(
             if (isQuickShare) {
                 // 빠른 공유: 현재 진행률 표시
                 Text(
-                    text = buildAnnotatedString {
-                        withStyle(SpanStyle(fontWeight = FontWeight.ExtraBold)) {
-                            append("$progressPercent")
-                        }
-                        append("% 달성 중")
-                    },
+                    text = StreakStrings.achievingPercent(progressPercent),
                     fontSize = 22.sp,
                     fontFamily = kenneyFont,
                     fontWeight = FontWeight.Bold,
@@ -454,7 +654,7 @@ private fun FullCardContent(
                             withStyle(SpanStyle(fontWeight = FontWeight.Bold)) {
                                 append("%,d".format(safeCurrentSteps))
                             }
-                            append(" / %,d 보".format(goalSteps))
+                            append(" / %,d ${StreakStrings.stepsUnit()}".format(goalSteps))
                         }
                     },
                     fontSize = 16.sp,
@@ -475,12 +675,7 @@ private fun FullCardContent(
                     color = MockupColors.TextPrimary
                 )
                 Text(
-                    text = buildAnnotatedString {
-                        withStyle(SpanStyle(fontWeight = FontWeight.Bold)) {
-                            append("${streakCount}일")
-                        }
-                        append(" 연속 달성")
-                    },
+                    text = StreakStrings.consecutiveDays(streakCount),
                     fontSize = 16.sp,
                     color = MockupColors.TextMuted
                 )
@@ -603,7 +798,7 @@ private fun FullCardContent(
                             color = MockupColors.TextPrimary
                         )
                         Text(
-                            text = "총 거리",
+                            text = StreakStrings.totalDistance(),
                             fontSize = 11.sp,
                             color = MockupColors.TextMuted
                         )
@@ -611,13 +806,13 @@ private fun FullCardContent(
                     // 전체 달성 일수
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Text(
-                            text = "${successDays}일",
+                            text = StreakStrings.daysUnit(successDays),
                             fontSize = 18.sp,
                             fontWeight = FontWeight.Bold,
                             color = MockupColors.TextPrimary
                         )
                         Text(
-                            text = "달성 일수",
+                            text = StreakStrings.achievementDays(),
                             fontSize = 11.sp,
                             color = MockupColors.TextMuted
                         )
@@ -625,13 +820,13 @@ private fun FullCardContent(
                     // 연속 달성
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Text(
-                            text = "${streakCount}일",
+                            text = StreakStrings.daysUnit(streakCount),
                             fontSize = 18.sp,
                             fontWeight = FontWeight.Bold,
                             color = MockupColors.TextPrimary
                         )
                         Text(
-                            text = "연속 달성",
+                            text = StreakStrings.consecutiveStreak(),
                             fontSize = 11.sp,
                             color = MockupColors.TextMuted
                         )
@@ -893,7 +1088,7 @@ private fun SpeechBubbleMultiline(
 
 /**
  * Get streak celebration speech based on pet personality
- * 중요한 숫자(걸음수, km, 일수)는 볼드 처리
+ * 다국어 지원 (ko, ja, zh, es, en)
  */
 private fun getStreakCelebrationSpeech(
     personality: PetPersonality,
@@ -901,93 +1096,44 @@ private fun getStreakCelebrationSpeech(
     successDays: Int,
     totalKm: Float
 ): androidx.compose.ui.text.AnnotatedString {
-    val boldStyle = SpanStyle(fontWeight = FontWeight.Bold)
-
-    return when (personality) {
+    val text = when (personality) {
         PetPersonality.TOUGH -> if (streakDays == 1) {
-            buildAnnotatedString {
-                append("오늘도 달성했다고?\n됐다. 좋은 시작이야.")
-            }
+            StreakStrings.toughFirstDay()
         } else {
-            buildAnnotatedString {
-                append("총 ")
-                withStyle(boldStyle) { append("${successDays}일") }
-                append(" 달성,\n")
-                withStyle(boldStyle) { append("${totalKm}km") }
-                append(" 걸었다고?\n됐다. 잘했어.")
-            }
+            StreakStrings.toughStreak(successDays, totalKm)
         }
 
         PetPersonality.CUTE -> if (streakDays == 1) {
-            buildAnnotatedString {
-                append("우와~! 오늘도 달성!\n대단해용!")
-            }
+            StreakStrings.cuteFirstDay()
         } else {
-            buildAnnotatedString {
-                append("우와~! 총 ")
-                withStyle(boldStyle) { append("${successDays}일") }
-                append(" 달성!\n")
-                withStyle(boldStyle) { append("${totalKm}km") }
-                append(" 걸었다니 대단해용!")
-            }
+            StreakStrings.cuteStreak(successDays, totalKm)
         }
 
         PetPersonality.TSUNDERE -> if (streakDays == 1) {
-            buildAnnotatedString {
-                append("흥, 오늘도 달성?\n뭐... 나쁘지 않네.")
-            }
+            StreakStrings.tsundereFirstDay()
         } else {
-            buildAnnotatedString {
-                append("흥, 총 ")
-                withStyle(boldStyle) { append("${successDays}일") }
-                append(" 달성에\n")
-                withStyle(boldStyle) { append("${totalKm}km") }
-                append("?\n뭐... 나쁘지 않네.")
-            }
+            StreakStrings.tsundereStreak(successDays, totalKm)
         }
 
         PetPersonality.DIALECT -> if (streakDays == 1) {
-            buildAnnotatedString {
-                append("오늘도 달성했노~\n좋은 시작이다!")
-            }
+            StreakStrings.dialectFirstDay()
         } else {
-            buildAnnotatedString {
-                append("총 ")
-                withStyle(boldStyle) { append("${successDays}일") }
-                append(" 달성에\n")
-                withStyle(boldStyle) { append("${totalKm}km") }
-                append(" 걸었노~\nㄹㅇ 대단하다!")
-            }
+            StreakStrings.dialectStreak(successDays, totalKm)
         }
 
         PetPersonality.TIMID -> if (streakDays == 1) {
-            buildAnnotatedString {
-                append("대, 대단해요...!\n오늘도 달성...!")
-            }
+            StreakStrings.timidFirstDay()
         } else {
-            buildAnnotatedString {
-                append("대, 대단해요...! 총 ")
-                withStyle(boldStyle) { append("${successDays}일") }
-                append(" 달성에\n")
-                withStyle(boldStyle) { append("${totalKm}km") }
-                append(" 걸었어요...!")
-            }
+            StreakStrings.timidStreak(successDays, totalKm)
         }
 
         PetPersonality.POSITIVE -> if (streakDays == 1) {
-            buildAnnotatedString {
-                append("오늘도 달성!\n좋은 시작! 최고야!")
-            }
+            StreakStrings.positiveFirstDay()
         } else {
-            buildAnnotatedString {
-                append("총 ")
-                withStyle(boldStyle) { append("${successDays}일") }
-                append(" 달성!\n")
-                withStyle(boldStyle) { append("${totalKm}km") }
-                append(" 걸었어! 최고야!")
-            }
+            StreakStrings.positiveStreak(successDays, totalKm)
         }
     }
+    return buildAnnotatedString { append(text) }
 }
 
 /**
@@ -1052,9 +1198,9 @@ private fun saveAndShareImage(context: Context, bitmap: Bitmap, streakCount: Int
             }
         }
 
-        Toast.makeText(context, "Saved to gallery", Toast.LENGTH_SHORT).show()
+        Toast.makeText(context, StreakStrings.savedToGallery(), Toast.LENGTH_SHORT).show()
     } catch (e: Exception) {
-        Toast.makeText(context, "Save failed: ${e.message}", Toast.LENGTH_SHORT).show()
+        Toast.makeText(context, StreakStrings.saveFailed(e.message ?: ""), Toast.LENGTH_SHORT).show()
     }
 }
 
@@ -1101,7 +1247,7 @@ fun StreakDefenseDialog(
 
                 // 메인 메시지
                 Text(
-                    text = "스트릭 방어 성공!",
+                    text = StreakStrings.streakDefenseSuccess(),
                     fontSize = 24.sp,
                     fontFamily = kenneyFont,
                     fontWeight = FontWeight.Bold,
@@ -1112,7 +1258,7 @@ fun StreakDefenseDialog(
 
                 // 설명
                 Text(
-                    text = "방어 티켓을 사용해서\n${currentStreak}일 스트릭을 이어갑니다!",
+                    text = StreakStrings.defenseUsedMessage(currentStreak),
                     fontSize = 16.sp,
                     color = MockupColors.TextSecondary,
                     textAlign = TextAlign.Center,
@@ -1128,7 +1274,7 @@ fun StreakDefenseDialog(
                         .padding(horizontal = 16.dp, vertical = 8.dp)
                 ) {
                     Text(
-                        text = "남은 방어 티켓: ${remainingTickets}장",
+                        text = StreakStrings.remainingTickets(remainingTickets),
                         fontSize = 14.sp,
                         fontWeight = FontWeight.Bold,
                         color = MockupColors.Blue
@@ -1152,7 +1298,7 @@ fun StreakDefenseDialog(
                     shape = RoundedCornerShape(12.dp)
                 ) {
                     Text(
-                        text = "계속하기",
+                        text = StreakStrings.continueBtn(),
                         fontSize = 16.sp,
                         fontFamily = kenneyFont,
                         fontWeight = FontWeight.Bold

@@ -64,12 +64,12 @@ class PetWidget2x2Provider : AppWidgetProvider() {
             // V2 펫 정보 우선, 없으면 V1
             val petTypeV2 = prefs.getPetTypeV2()
             val petName = prefs.getPetNameV2()?.takeIf { it.isNotBlank() }
-                ?: prefs.getPetName() ?: "펫"
+                ?: prefs.getPetName() ?: getDefaultPetName()
 
             val views = RemoteViews(context.packageName, R.layout.widget_pet_2x2)
 
             // 연속 배지
-            views.setTextViewText(R.id.widget_streak, "$streakCount 연속")
+            views.setTextViewText(R.id.widget_streak, "$streakCount ${getStreakLabel()}")
 
             // 펫 이름
             views.setTextViewText(R.id.widget_pet_name, petName)
@@ -104,17 +104,18 @@ class PetWidget2x2Provider : AppWidgetProvider() {
                 if (personality != null) {
                     getDialogueByProgress(personality, percent)
                 } else {
-                    "산책하자!"
+                    getDefaultWalkMessage()
                 }
             }
             views.setTextViewText(R.id.widget_speech, dialogue)
 
             // 걸음/km 텍스트
             val numberFormat = NumberFormat.getNumberInstance(Locale.getDefault())
+            val stepsUnit = getStepsUnit()
             val stepsText = if (isKmMode) {
                 "${String.format("%.2f", displayValue)} / ${String.format("%.2f", displayGoal)} km"
             } else {
-                "${numberFormat.format(displayValue.toInt())} / ${numberFormat.format(displayGoal.toInt())} 보"
+                "${numberFormat.format(displayValue.toInt())} / ${numberFormat.format(displayGoal.toInt())} $stepsUnit"
             }
             views.setTextViewText(R.id.widget_steps_text, stepsText)
 
@@ -293,6 +294,45 @@ class PetWidget2x2Provider : AppWidgetProvider() {
             paint.colorFilter = ColorMatrixColorFilter(colorMatrix)
             canvas.drawBitmap(original, 0f, 0f, paint)
             return result
+        }
+
+        private fun getDefaultPetName(): String {
+            return when (java.util.Locale.getDefault().language) {
+                "ko" -> "펫"
+                "ja" -> "ペット"
+                "zh" -> "宠物"
+                "es" -> "Mascota"
+                else -> "Pet"
+            }
+        }
+
+        private fun getStreakLabel(): String {
+            return when (java.util.Locale.getDefault().language) {
+                "ko" -> "연속"
+                "ja" -> "連続"
+                "zh" -> "连续"
+                "es" -> "días"
+                else -> "streak"
+            }
+        }
+
+        private fun getDefaultWalkMessage(): String {
+            return when (java.util.Locale.getDefault().language) {
+                "ko" -> "산책하자!"
+                "ja" -> "散歩しよう！"
+                "zh" -> "去散步吧！"
+                "es" -> "¡Vamos a pasear!"
+                else -> "Let's walk!"
+            }
+        }
+
+        private fun getStepsUnit(): String {
+            return when (java.util.Locale.getDefault().language) {
+                "ko" -> "보"
+                "ja" -> "歩"
+                "zh" -> "步"
+                else -> "steps"
+            }
         }
 
         fun updateAllWidgets(context: Context) {

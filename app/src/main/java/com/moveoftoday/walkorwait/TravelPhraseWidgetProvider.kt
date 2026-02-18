@@ -9,6 +9,7 @@ import android.graphics.BitmapFactory
 import android.view.View
 import android.widget.RemoteViews
 import com.moveoftoday.walkorwait.pet.PetTypeV2
+import java.util.Locale
 
 /**
  * 여행 회화 위젯 (2x1)

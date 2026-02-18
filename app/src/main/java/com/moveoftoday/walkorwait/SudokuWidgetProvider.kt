@@ -207,7 +207,7 @@ class SudokuWidgetProvider : AppWidgetProvider() {
 
             // 상태 메시지 - Clear! 검정색
             val statusText = when {
-                isCompleted -> "Clear!"
+                isCompleted -> getClearText()
                 hasErrors -> ""
                 else -> ""
             }
@@ -373,6 +373,19 @@ class SudokuWidgetProvider : AppWidgetProvider() {
                 }
             }
             return count
+        }
+
+        /**
+         * Clear 텍스트 다국어
+         */
+        private fun getClearText(): String {
+            return when (java.util.Locale.getDefault().language) {
+                "ko" -> "완료!"
+                "ja" -> "クリア!"
+                "zh" -> "完成!"
+                "es" -> "¡Listo!"
+                else -> "Clear!"
+            }
         }
 
         /**

@@ -41,7 +41,7 @@ class QuoteWidgetProvider : AppWidgetProvider() {
             if (appWidgetId != AppWidgetManager.INVALID_APPWIDGET_ID) {
                 // 새 명언으로 업데이트
                 val prefs = PreferenceManager(context)
-                prefs.setQuoteIndex((prefs.getQuoteIndex() + 1) % QUOTES.size)
+                prefs.setQuoteIndex((prefs.getQuoteIndex() + 1) % getQuotes().size)
                 updateWidget(context, AppWidgetManager.getInstance(context), appWidgetId)
             }
         }
@@ -50,8 +50,18 @@ class QuoteWidgetProvider : AppWidgetProvider() {
     companion object {
         private const val ACTION_REFRESH = "com.moveoftoday.walkorwait.QUOTE_REFRESH"
 
-        // 동기부여 명언 모음
-        private val QUOTES = listOf(
+        // 언어별 명언 가져오기
+        private fun getQuotes(): List<Quote> {
+            return when (java.util.Locale.getDefault().language) {
+                "ko" -> QUOTES_KO
+                "ja" -> QUOTES_JA
+                "zh" -> QUOTES_ZH
+                "es" -> QUOTES_ES
+                else -> QUOTES_EN
+            }
+        }
+
+        private val QUOTES_KO = listOf(
             Quote("천 리 길도 한 걸음부터", "노자"),
             Quote("오늘 걷지 않으면 내일은 뛰어야 한다", ""),
             Quote("작은 진전도 진전이다", ""),
@@ -60,28 +70,85 @@ class QuoteWidgetProvider : AppWidgetProvider() {
             Quote("시작이 반이다", "아리스토텔레스"),
             Quote("걷는 것은 최고의 운동이다", "히포크라테스"),
             Quote("몸이 움직이면 마음도 움직인다", ""),
-            Quote("오늘의 나는 어제보다 낫다", ""),
             Quote("한 걸음 한 걸음이 목표로 이끈다", ""),
             Quote("건강은 최고의 재산이다", "버질"),
             Quote("꾸준함이 천재를 이긴다", ""),
-            Quote("지금 이 순간이 가장 빠르다", ""),
             Quote("할 수 있다고 믿으면 이미 반은 이룬 것", "루즈벨트"),
             Quote("작은 습관이 인생을 바꾼다", ""),
-            Quote("움직이는 자만이 앞으로 간다", ""),
-            Quote("내 몸은 내가 가꾼다", ""),
-            Quote("오늘도 한 발 더", ""),
             Quote("멈추지 않으면 얼마나 천천히 가도 상관없다", "공자"),
-            Quote("변화는 오늘부터 시작된다", ""),
-            Quote("나 자신을 위한 시간", ""),
-            Quote("걸으며 생각하고, 생각하며 걷는다", ""),
-            Quote("건강한 몸에 건강한 정신", "유베날리스"),
-            Quote("매일 1%씩 성장하자", ""),
-            Quote("포기란 없다", ""),
-            Quote("끝까지 가보는 거다", ""),
-            Quote("오늘 하루도 파이팅", ""),
-            Quote("나는 할 수 있다", ""),
-            Quote("꿈을 향해 걸어가자", ""),
-            Quote("좋은 습관이 좋은 인생을 만든다", "")
+            Quote("건강한 몸에 건강한 정신", "유베날리스")
+        )
+
+        private val QUOTES_EN = listOf(
+            Quote("A journey of a thousand miles begins with a single step", "Lao Tzu"),
+            Quote("If you don't walk today, you'll have to run tomorrow", ""),
+            Quote("Small progress is still progress", ""),
+            Quote("It's not failure if you don't give up", ""),
+            Quote("Take it one day at a time", ""),
+            Quote("Well begun is half done", "Aristotle"),
+            Quote("Walking is the best exercise", "Hippocrates"),
+            Quote("When the body moves, the mind follows", ""),
+            Quote("Every step leads to the goal", ""),
+            Quote("Health is the greatest wealth", "Virgil"),
+            Quote("Consistency beats talent", ""),
+            Quote("Believe you can and you're halfway there", "Roosevelt"),
+            Quote("Small habits change lives", ""),
+            Quote("It doesn't matter how slowly you go, as long as you don't stop", "Confucius"),
+            Quote("A healthy mind in a healthy body", "Juvenal")
+        )
+
+        private val QUOTES_JA = listOf(
+            Quote("千里の道も一歩から", "老子"),
+            Quote("今日歩かなければ、明日は走らなければならない", ""),
+            Quote("小さな進歩も進歩だ", ""),
+            Quote("諦めなければ失敗ではない", ""),
+            Quote("毎日少しずつ進めばいい", ""),
+            Quote("始まりは半分だ", "アリストテレス"),
+            Quote("歩くことは最高の運動だ", "ヒポクラテス"),
+            Quote("体が動けば心も動く", ""),
+            Quote("一歩一歩が目標に導く", ""),
+            Quote("健康は最高の財産", "ウェルギリウス"),
+            Quote("継続は天才に勝る", ""),
+            Quote("できると信じれば、半分達成したようなものだ", "ルーズベルト"),
+            Quote("小さな習慣が人生を変える", ""),
+            Quote("止まらなければ、どんなにゆっくりでも構わない", "孔子"),
+            Quote("健全な肉体に健全な精神", "ユウェナリス")
+        )
+
+        private val QUOTES_ZH = listOf(
+            Quote("千里之行，始于足下", "老子"),
+            Quote("今天不走，明天就要跑", ""),
+            Quote("小小的进步也是进步", ""),
+            Quote("不放弃就不是失败", ""),
+            Quote("每天进步一点点", ""),
+            Quote("好的开始是成功的一半", "亚里士多德"),
+            Quote("散步是最好的运动", "希波克拉底"),
+            Quote("身体动，心也动", ""),
+            Quote("每一步都通向目标", ""),
+            Quote("健康是最大的财富", "维吉尔"),
+            Quote("坚持胜过天才", ""),
+            Quote("相信你能做到，你就已经成功了一半", "罗斯福"),
+            Quote("小习惯改变人生", ""),
+            Quote("只要不停下来，走得多慢都没关系", "孔子"),
+            Quote("健康的身体里有健康的精神", "尤维纳利斯")
+        )
+
+        private val QUOTES_ES = listOf(
+            Quote("Un viaje de mil millas comienza con un solo paso", "Lao Tzu"),
+            Quote("Si no caminas hoy, tendrás que correr mañana", ""),
+            Quote("Un pequeño progreso sigue siendo progreso", ""),
+            Quote("No es fracaso si no te rindes", ""),
+            Quote("Un día a la vez", ""),
+            Quote("Bien empezado, medio acabado", "Aristóteles"),
+            Quote("Caminar es el mejor ejercicio", "Hipócrates"),
+            Quote("Cuando el cuerpo se mueve, la mente sigue", ""),
+            Quote("Cada paso lleva a la meta", ""),
+            Quote("La salud es la mayor riqueza", "Virgilio"),
+            Quote("La constancia vence al talento", ""),
+            Quote("Cree que puedes y ya estás a mitad de camino", "Roosevelt"),
+            Quote("Los pequeños hábitos cambian vidas", ""),
+            Quote("No importa cuán lento vayas, siempre y cuando no te detengas", "Confucio"),
+            Quote("Mente sana en cuerpo sano", "Juvenal")
         )
 
         fun updateWidget(
@@ -90,8 +157,9 @@ class QuoteWidgetProvider : AppWidgetProvider() {
             appWidgetId: Int
         ) {
             val prefs = PreferenceManager(context)
-            val quoteIndex = prefs.getQuoteIndex() % QUOTES.size
-            val quote = QUOTES[quoteIndex]
+            val quotes = getQuotes()
+            val quoteIndex = prefs.getQuoteIndex() % quotes.size
+            val quote = quotes[quoteIndex]
 
             val views = RemoteViews(context.packageName, R.layout.widget_quote)
 

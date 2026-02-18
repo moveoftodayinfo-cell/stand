@@ -26,6 +26,84 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import java.util.Locale
+
+// 다국어 헬퍼
+private object RepChallengeStrings {
+    private fun getLang(): String = Locale.getDefault().language
+
+    fun earnedTitle(title: String): String = when (getLang()) {
+        "ko" -> "획득 칭호: \"$title\""
+        "ja" -> "獲得称号: \"$title\""
+        "zh" -> "获得称号: \"$title\""
+        "es" -> "Título: \"$title\""
+        else -> "Earned Title: \"$title\""
+    }
+
+    fun start(): String = when (getLang()) {
+        "ko" -> "시작하기"
+        "ja" -> "開始"
+        "zh" -> "开始"
+        "es" -> "Empezar"
+        else -> "Start"
+    }
+
+    fun holdPhoneAndSquat(): String = when (getLang()) {
+        "ko" -> "폰을 손에 들고 스쿼트를 하세요"
+        "ja" -> "スマホを持ってスクワットしてください"
+        "zh" -> "拿着手机做深蹲"
+        "es" -> "Sostén el teléfono y haz sentadillas"
+        else -> "Hold your phone and do squats"
+    }
+
+    fun doLater(): String = when (getLang()) {
+        "ko" -> "다음에 하기"
+        "ja" -> "次にする"
+        "zh" -> "下次再做"
+        "es" -> "Hacer después"
+        else -> "Do Later"
+    }
+
+    fun exerciseGuide(): String = when (getLang()) {
+        "ko" -> "운동 자세 안내"
+        "ja" -> "運動姿勢ガイド"
+        "zh" -> "运动姿势指南"
+        "es" -> "Guía de postura"
+        else -> "Exercise Guide"
+    }
+
+    fun instruction1(): String = when (getLang()) {
+        "ko" -> "폰을 손에 들고 하세요"
+        "ja" -> "スマホを手に持ってください"
+        "zh" -> "拿着手机"
+        "es" -> "Sostén tu teléfono"
+        else -> "Hold your phone"
+    }
+
+    fun instruction2(): String = when (getLang()) {
+        "ko" -> "발을 어깨 너비로 벌리세요"
+        "ja" -> "足を肩幅に開いてください"
+        "zh" -> "双脚与肩同宽"
+        "es" -> "Pies al ancho de hombros"
+        else -> "Feet shoulder-width apart"
+    }
+
+    fun instruction3(): String = when (getLang()) {
+        "ko" -> "무릎을 90도로 굽혔다 펴세요"
+        "ja" -> "膝を90度に曲げて伸ばしてください"
+        "zh" -> "膝盖弯曲90度后站起"
+        "es" -> "Flexiona 90° y levántate"
+        else -> "Bend knees 90° and stand"
+    }
+
+    fun instruction4(): String = when (getLang()) {
+        "ko" -> "화면에서 횟수를 확인하세요"
+        "ja" -> "画面で回数を確認してください"
+        "zh" -> "在屏幕上查看次数"
+        "es" -> "Ve el conteo en pantalla"
+        else -> "Check count on screen"
+    }
+}
 
 @Composable
 fun RepBasedChallengeDialog(
@@ -77,7 +155,7 @@ fun RepBasedChallengeDialog(
 
                 // 챌린지 이름
                 Text(
-                    text = progress.challenge.name,
+                    text = progress.challenge.type.getLocalizedDisplayName(),
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold,
                     color = Color.Black
@@ -87,7 +165,7 @@ fun RepBasedChallengeDialog(
 
                 // 획득 칭호
                 Text(
-                    text = "획득 칭호: \"${progress.challenge.type.title}\"",
+                    text = RepChallengeStrings.earnedTitle(progress.challenge.type.getLocalizedTitle()),
                     fontSize = 12.sp,
                     color = Color(0xFF999999)
                 )
@@ -104,7 +182,7 @@ fun RepBasedChallengeDialog(
 
                         // 시작 버튼
                         MockupButton(
-                            text = "시작하기",
+                            text = RepChallengeStrings.start(),
                             onClick = onStart,
                             modifier = Modifier.fillMaxWidth()
                         )
@@ -122,7 +200,7 @@ fun RepBasedChallengeDialog(
 
                         // 안내 메시지
                         Text(
-                            text = "폰을 손에 들고 스쿼트를 하세요",
+                            text = RepChallengeStrings.holdPhoneAndSquat(),
                             fontSize = 14.sp,
                             color = Color(0xFF666666),
                             textAlign = TextAlign.Center
@@ -136,7 +214,7 @@ fun RepBasedChallengeDialog(
 
                 // 다음에 하기 버튼
                 Text(
-                    text = "다음에 하기",
+                    text = RepChallengeStrings.doLater(),
                     fontSize = 14.sp,
                     color = Color(0xFF999999),
                     modifier = Modifier
@@ -155,7 +233,7 @@ private fun ExerciseInstructions(type: ChallengeType) {
         horizontalAlignment = Alignment.Start
     ) {
         Text(
-            text = "운동 자세 안내",
+            text = RepChallengeStrings.exerciseGuide(),
             fontSize = 16.sp,
             fontWeight = FontWeight.Bold,
             color = Color.Black
@@ -164,13 +242,13 @@ private fun ExerciseInstructions(type: ChallengeType) {
         Spacer(modifier = Modifier.height(16.dp))
 
         // 스쿼트 자세 안내
-        InstructionItem("1.", "폰을 손에 들고 하세요")
+        InstructionItem("1.", RepChallengeStrings.instruction1())
         Spacer(modifier = Modifier.height(8.dp))
-        InstructionItem("2.", "발을 어깨 너비로 벌리세요")
+        InstructionItem("2.", RepChallengeStrings.instruction2())
         Spacer(modifier = Modifier.height(8.dp))
-        InstructionItem("3.", "무릎을 90도로 굽혔다 펴세요")
+        InstructionItem("3.", RepChallengeStrings.instruction3())
         Spacer(modifier = Modifier.height(8.dp))
-        InstructionItem("4.", "화면에서 횟수를 확인하세요", isHighlight = true)
+        InstructionItem("4.", RepChallengeStrings.instruction4(), isHighlight = true)
     }
 }
 

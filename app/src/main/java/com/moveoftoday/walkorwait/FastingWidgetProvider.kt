@@ -82,12 +82,12 @@ class FastingWidgetProvider : AppWidgetProvider() {
 
                 // 남은 시간 계산
                 val remainingSeconds = backgroundProgress.remainingSeconds
-                val remainingHours = remainingSeconds / 3600
-                val remainingMinutes = (remainingSeconds % 3600) / 60
+                val remainingHours = (remainingSeconds / 3600).toInt()
+                val remainingMinutes = ((remainingSeconds % 3600) / 60).toInt()
 
                 // 타이머 텍스트 (왼쪽)
-                views.setTextViewText(R.id.timer_elapsed, String.format("%d:%02d 경과", elapsedHours, elapsedMinutes))
-                views.setTextViewText(R.id.timer_remaining, String.format("%d:%02d 남음", remainingHours, remainingMinutes))
+                views.setTextViewText(R.id.timer_elapsed, getElapsedText(elapsedHours, elapsedMinutes))
+                views.setTextViewText(R.id.timer_remaining, getRemainingText(remainingHours, remainingMinutes))
 
                 // 진행률 바
                 val progress = (backgroundProgress.progressPercent * 100).toInt()
@@ -101,11 +101,11 @@ class FastingWidgetProvider : AppWidgetProvider() {
                 views.setTextViewText(R.id.challenge_name, backgroundProgress.challenge.name)
             } else {
                 // 진행 중인 단식 없음
-                views.setTextViewText(R.id.timer_elapsed, "단식 없음")
+                views.setTextViewText(R.id.timer_elapsed, getNoFastingText())
                 views.setTextViewText(R.id.timer_remaining, "")
                 views.setProgressBar(R.id.progress_bar, 100, 0, false)
-                views.setTextViewText(R.id.pet_message, "단식 시작해보세요")
-                views.setTextViewText(R.id.challenge_name, "간헐적 단식")
+                views.setTextViewText(R.id.pet_message, getStartFastingText())
+                views.setTextViewText(R.id.challenge_name, getIntermittentFastingText())
             }
 
             // 위젯 클릭 시 앱 열기
@@ -120,12 +120,93 @@ class FastingWidgetProvider : AppWidgetProvider() {
         }
 
         private fun getFastingStageMessage(elapsedHours: Int): String {
+            val lang = java.util.Locale.getDefault().language
             return when {
-                elapsedHours < 4 -> "소화 중!\n혈당 안정화"
-                elapsedHours < 8 -> "지방 연소\n시작!"
-                elapsedHours < 12 -> "케톤 생성 중"
-                elapsedHours < 16 -> "자가포식\n활성화!"
-                else -> "성장호르몬\n증가!"
+                elapsedHours < 4 -> when (lang) {
+                    "ko" -> "소화 중!\n혈당 안정화"
+                    "ja" -> "消化中!\n血糖安定化"
+                    "zh" -> "消化中!\n血糖稳定"
+                    "es" -> "¡Digiriendo!\nEstabilizando azúcar"
+                    else -> "Digesting!\nStabilizing glucose"
+                }
+                elapsedHours < 8 -> when (lang) {
+                    "ko" -> "지방 연소\n시작!"
+                    "ja" -> "脂肪燃焼\n開始!"
+                    "zh" -> "开始燃烧\n脂肪!"
+                    "es" -> "¡Quemando\ngrasa!"
+                    else -> "Fat burning\nstarted!"
+                }
+                elapsedHours < 12 -> when (lang) {
+                    "ko" -> "케톤 생성 중"
+                    "ja" -> "ケトン生成中"
+                    "zh" -> "生成酮体中"
+                    "es" -> "Generando cetonas"
+                    else -> "Producing ketones"
+                }
+                elapsedHours < 16 -> when (lang) {
+                    "ko" -> "자가포식\n활성화!"
+                    "ja" -> "オートファジー\n活性化!"
+                    "zh" -> "自噬\n激活!"
+                    "es" -> "¡Autofagia\nactivada!"
+                    else -> "Autophagy\nactivated!"
+                }
+                else -> when (lang) {
+                    "ko" -> "성장호르몬\n증가!"
+                    "ja" -> "成長ホルモン\n増加!"
+                    "zh" -> "生长激素\n增加!"
+                    "es" -> "¡Hormona de crecimiento\naumentada!"
+                    else -> "Growth hormone\nincreased!"
+                }
+            }
+        }
+
+        private fun getNoFastingText(): String {
+            return when (java.util.Locale.getDefault().language) {
+                "ko" -> "단식 없음"
+                "ja" -> "断食なし"
+                "zh" -> "无禁食"
+                "es" -> "Sin ayuno"
+                else -> "No fasting"
+            }
+        }
+
+        private fun getStartFastingText(): String {
+            return when (java.util.Locale.getDefault().language) {
+                "ko" -> "단식 시작해보세요"
+                "ja" -> "断食を始めてみよう"
+                "zh" -> "开始禁食吧"
+                "es" -> "Intenta ayunar"
+                else -> "Try starting a fast"
+            }
+        }
+
+        private fun getIntermittentFastingText(): String {
+            return when (java.util.Locale.getDefault().language) {
+                "ko" -> "간헐적 단식"
+                "ja" -> "間欠的断食"
+                "zh" -> "间歇性禁食"
+                "es" -> "Ayuno intermitente"
+                else -> "Intermittent Fasting"
+            }
+        }
+
+        private fun getElapsedText(hours: Int, minutes: Int): String {
+            return when (java.util.Locale.getDefault().language) {
+                "ko" -> String.format("%d:%02d 경과", hours, minutes)
+                "ja" -> String.format("%d:%02d 経過", hours, minutes)
+                "zh" -> String.format("%d:%02d 已过", hours, minutes)
+                "es" -> String.format("%d:%02d pasado", hours, minutes)
+                else -> String.format("%d:%02d elapsed", hours, minutes)
+            }
+        }
+
+        private fun getRemainingText(hours: Int, minutes: Int): String {
+            return when (java.util.Locale.getDefault().language) {
+                "ko" -> String.format("%d:%02d 남음", hours, minutes)
+                "ja" -> String.format("%d:%02d 残り", hours, minutes)
+                "zh" -> String.format("%d:%02d 剩余", hours, minutes)
+                "es" -> String.format("%d:%02d restante", hours, minutes)
+                else -> String.format("%d:%02d remaining", hours, minutes)
             }
         }
 

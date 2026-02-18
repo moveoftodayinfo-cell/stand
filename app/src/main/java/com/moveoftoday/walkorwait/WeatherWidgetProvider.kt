@@ -11,6 +11,7 @@ import android.graphics.Canvas
 import android.util.Log
 import android.widget.RemoteViews
 import com.moveoftoday.walkorwait.pet.PetTypeV2
+import java.util.Locale
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -21,6 +22,19 @@ import kotlinx.coroutines.launch
  * - 왼쪽에 펫
  * - 오른쪽에 시간대별 날씨 예보
  */
+// 위젯 다국어 헬퍼
+private object WeatherWidgetStrings {
+    private fun getLang(): String = Locale.getDefault().language
+
+    fun now(): String = when (getLang()) {
+        "ko" -> "지금"
+        "ja" -> "今"
+        "zh" -> "现在"
+        "es" -> "Ahora"
+        else -> "Now"
+    }
+}
+
 class WeatherWidgetProvider : AppWidgetProvider() {
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
@@ -66,7 +80,7 @@ class WeatherWidgetProvider : AppWidgetProvider() {
         views.setOnClickPendingIntent(R.id.widget_container, pendingIntent)
 
         // 기본 로딩 표시
-        views.setTextViewText(R.id.weather_time_0, "Now")
+        views.setTextViewText(R.id.weather_time_0, WeatherWidgetStrings.now())
         views.setTextViewText(R.id.weather_temp_0, "--°")
 
         appWidgetManager.updateAppWidget(appWidgetId, views)
@@ -127,7 +141,7 @@ class WeatherWidgetProvider : AppWidgetProvider() {
 
             // 시간 포맷 (AM/PM)
             val timeLabel = if (i == 0) {
-                "Now"
+                WeatherWidgetStrings.now()
             } else {
                 val hour = forecast.hour
                 when {

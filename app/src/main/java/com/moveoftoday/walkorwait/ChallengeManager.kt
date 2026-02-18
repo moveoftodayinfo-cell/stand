@@ -45,7 +45,74 @@ enum class ChallengeType(val displayName: String, val category: String, val titl
     // 웰니스 - 간헐적 단식 (백그라운드 타이머)
     FASTING_16_8("간헐적 단식 16:8", "웰니스", "건강한", ChallengeMode.BACKGROUND_TIMER),
     FASTING_18_6("간헐적 단식 18:6", "웰니스", "단식 마스터", ChallengeMode.BACKGROUND_TIMER),
-    FASTING_20_4("간헐적 단식 20:4", "웰니스", "단식 끝판왕", ChallengeMode.BACKGROUND_TIMER)
+    FASTING_20_4("간헐적 단식 20:4", "웰니스", "단식 끝판왕", ChallengeMode.BACKGROUND_TIMER);
+
+    companion object {
+        private fun getLang(): String = java.util.Locale.getDefault().language
+    }
+
+    /** 다국어 챌린지 이름 */
+    fun getLocalizedDisplayName(): String {
+        val lang = java.util.Locale.getDefault().language
+        return when (this) {
+            READING_15 -> when (lang) { "ko" -> "15분 독서"; "ja" -> "15分読書"; "zh" -> "15分钟阅读"; "es" -> "15 min lectura"; else -> "15 min Reading" }
+            READING_30 -> when (lang) { "ko" -> "30분 독서"; "ja" -> "30分読書"; "zh" -> "30分钟阅读"; "es" -> "30 min lectura"; else -> "30 min Reading" }
+            READING_60 -> when (lang) { "ko" -> "1시간 독서"; "ja" -> "1時間読書"; "zh" -> "1小时阅读"; "es" -> "1h lectura"; else -> "1h Reading" }
+            MEDITATION_5 -> when (lang) { "ko" -> "5분 명상"; "ja" -> "5分瞑想"; "zh" -> "5分钟冥想"; "es" -> "5 min meditación"; else -> "5 min Meditation" }
+            MEDITATION_15 -> when (lang) { "ko" -> "15분 명상"; "ja" -> "15分瞑想"; "zh" -> "15分钟冥想"; "es" -> "15 min meditación"; else -> "15 min Meditation" }
+            MEDITATION_30 -> when (lang) { "ko" -> "30분 명상"; "ja" -> "30分瞑想"; "zh" -> "30分钟冥想"; "es" -> "30 min meditación"; else -> "30 min Meditation" }
+            STUDY_30 -> when (lang) { "ko" -> "30분 공부"; "ja" -> "30分勉強"; "zh" -> "30分钟学习"; "es" -> "30 min estudio"; else -> "30 min Study" }
+            STUDY_60 -> when (lang) { "ko" -> "1시간 공부"; "ja" -> "1時間勉強"; "zh" -> "1小时学习"; "es" -> "1h estudio"; else -> "1h Study" }
+            STUDY_120 -> when (lang) { "ko" -> "2시간 공부"; "ja" -> "2時間勉強"; "zh" -> "2小时学习"; "es" -> "2h estudio"; else -> "2h Study" }
+            SQUAT_10 -> when (lang) { "ko" -> "스쿼트 10회"; "ja" -> "スクワット10回"; "zh" -> "深蹲10次"; "es" -> "10 sentadillas"; else -> "10 Squats" }
+            SQUAT_20 -> when (lang) { "ko" -> "스쿼트 20회"; "ja" -> "スクワット20回"; "zh" -> "深蹲20次"; "es" -> "20 sentadillas"; else -> "20 Squats" }
+            SQUAT_50 -> when (lang) { "ko" -> "스쿼트 50회"; "ja" -> "スクワット50回"; "zh" -> "深蹲50次"; "es" -> "50 sentadillas"; else -> "50 Squats" }
+            PLANK_30 -> when (lang) { "ko" -> "30초 플랭크"; "ja" -> "30秒プランク"; "zh" -> "30秒平板支撑"; "es" -> "30s plancha"; else -> "30s Plank" }
+            PLANK_60 -> when (lang) { "ko" -> "1분 플랭크"; "ja" -> "1分プランク"; "zh" -> "1分钟平板支撑"; "es" -> "1 min plancha"; else -> "1 min Plank" }
+            PLANK_120 -> when (lang) { "ko" -> "2분 플랭크"; "ja" -> "2分プランク"; "zh" -> "2分钟平板支撑"; "es" -> "2 min plancha"; else -> "2 min Plank" }
+            FASTING_16_8 -> when (lang) { "ko" -> "간헐적 단식 16:8"; "ja" -> "16:8断食"; "zh" -> "16:8间歇性禁食"; "es" -> "Ayuno 16:8"; else -> "16:8 Fasting" }
+            FASTING_18_6 -> when (lang) { "ko" -> "간헐적 단식 18:6"; "ja" -> "18:6断食"; "zh" -> "18:6间歇性禁食"; "es" -> "Ayuno 18:6"; else -> "18:6 Fasting" }
+            FASTING_20_4 -> when (lang) { "ko" -> "간헐적 단식 20:4"; "ja" -> "20:4断食"; "zh" -> "20:4间歇性禁食"; "es" -> "Ayuno 20:4"; else -> "20:4 Fasting" }
+        }
+    }
+
+    /** 다국어 카테고리 */
+    fun getLocalizedCategory(): String {
+        val lang = java.util.Locale.getDefault().language
+        return when (category) {
+            "독서" -> when (lang) { "ko" -> "독서"; "ja" -> "読書"; "zh" -> "阅读"; "es" -> "Lectura"; else -> "Reading" }
+            "명상" -> when (lang) { "ko" -> "명상"; "ja" -> "瞑想"; "zh" -> "冥想"; "es" -> "Meditación"; else -> "Meditation" }
+            "공부" -> when (lang) { "ko" -> "공부"; "ja" -> "勉強"; "zh" -> "学习"; "es" -> "Estudio"; else -> "Study" }
+            "운동" -> when (lang) { "ko" -> "운동"; "ja" -> "運動"; "zh" -> "运动"; "es" -> "Ejercicio"; else -> "Exercise" }
+            "웰니스" -> when (lang) { "ko" -> "웰니스"; "ja" -> "ウェルネス"; "zh" -> "健康"; "es" -> "Bienestar"; else -> "Wellness" }
+            else -> category
+        }
+    }
+
+    /** 다국어 칭호 */
+    fun getLocalizedTitle(): String {
+        val lang = java.util.Locale.getDefault().language
+        return when (this) {
+            READING_15 -> when (lang) { "ko" -> "책을 좋아하는"; "ja" -> "本好きな"; "zh" -> "爱读书的"; "es" -> "Amante de libros"; else -> "Book Lover" }
+            READING_30 -> when (lang) { "ko" -> "독서하는"; "ja" -> "読書家"; "zh" -> "读书人"; "es" -> "Lector"; else -> "Reader" }
+            READING_60 -> when (lang) { "ko" -> "책벌레"; "ja" -> "本の虫"; "zh" -> "书虫"; "es" -> "Ratón de biblioteca"; else -> "Bookworm" }
+            MEDITATION_5 -> when (lang) { "ko" -> "명상 입문자"; "ja" -> "瞑想初心者"; "zh" -> "冥想入门"; "es" -> "Principiante zen"; else -> "Meditation Beginner" }
+            MEDITATION_15 -> when (lang) { "ko" -> "명상하는"; "ja" -> "瞑想する"; "zh" -> "冥想者"; "es" -> "Meditador"; else -> "Meditator" }
+            MEDITATION_30 -> when (lang) { "ko" -> "명상 마스터"; "ja" -> "瞑想マスター"; "zh" -> "冥想大师"; "es" -> "Maestro zen"; else -> "Meditation Master" }
+            STUDY_30 -> when (lang) { "ko" -> "공부하는"; "ja" -> "勉強する"; "zh" -> "学习中的"; "es" -> "Estudioso"; else -> "Studious" }
+            STUDY_60 -> when (lang) { "ko" -> "열공하는"; "ja" -> "猛勉強する"; "zh" -> "努力学习的"; "es" -> "Estudioso dedicado"; else -> "Hard Worker" }
+            STUDY_120 -> when (lang) { "ko" -> "공부왕"; "ja" -> "勉強王"; "zh" -> "学霸"; "es" -> "Rey del estudio"; else -> "Study King" }
+            SQUAT_10 -> when (lang) { "ko" -> "다리 튼튼한"; "ja" -> "足が丈夫な"; "zh" -> "腿部结实的"; "es" -> "Piernas fuertes"; else -> "Strong Legs" }
+            SQUAT_20 -> when (lang) { "ko" -> "스쿼트 마스터"; "ja" -> "スクワットマスター"; "zh" -> "深蹲大师"; "es" -> "Maestro sentadillas"; else -> "Squat Master" }
+            SQUAT_50 -> when (lang) { "ko" -> "하체 끝판왕"; "ja" -> "下半身の王"; "zh" -> "下肢之王"; "es" -> "Rey de piernas"; else -> "Leg Champion" }
+            PLANK_30 -> when (lang) { "ko" -> "코어 튼튼한"; "ja" -> "体幹が強い"; "zh" -> "核心强壮的"; "es" -> "Core fuerte"; else -> "Strong Core" }
+            PLANK_60 -> when (lang) { "ko" -> "플랭크 마스터"; "ja" -> "プランクマスター"; "zh" -> "平板支撑大师"; "es" -> "Maestro plancha"; else -> "Plank Master" }
+            PLANK_120 -> when (lang) { "ko" -> "코어 끝판왕"; "ja" -> "体幹の王"; "zh" -> "核心之王"; "es" -> "Rey del core"; else -> "Core Champion" }
+            FASTING_16_8 -> when (lang) { "ko" -> "건강한"; "ja" -> "健康な"; "zh" -> "健康的"; "es" -> "Saludable"; else -> "Healthy" }
+            FASTING_18_6 -> when (lang) { "ko" -> "단식 마스터"; "ja" -> "断食マスター"; "zh" -> "禁食大师"; "es" -> "Maestro ayuno"; else -> "Fasting Master" }
+            FASTING_20_4 -> when (lang) { "ko" -> "단식 끝판왕"; "ja" -> "断食の王"; "zh" -> "禁食之王"; "es" -> "Rey del ayuno"; else -> "Fasting Champion" }
+        }
+    }
 }
 
 enum class ChallengeStatus {
@@ -217,11 +284,40 @@ class ChallengeManager private constructor(private val context: Context) {
     }
 
     fun getChallengesByCategory(category: String?): List<Challenge> {
-        return if (category == null || category == "전체") {
+        // "전체" / "All" 등 로컬라이즈된 전체 카테고리명
+        val allCategory = getAllCategoryLabel()
+        return if (category == null || category == allCategory || category == "전체" || category == "All") {
             allChallenges
         } else {
-            allChallenges.filter { it.category == category }
+            // 로컬라이즈된 카테고리명으로 필터링
+            allChallenges.filter {
+                it.category == category || it.type.getLocalizedCategory() == category
+            }
         }
+    }
+
+    /** 전체 카테고리 라벨 */
+    fun getAllCategoryLabel(): String {
+        return when (java.util.Locale.getDefault().language) {
+            "ko" -> "전체"
+            "ja" -> "すべて"
+            "zh" -> "全部"
+            "es" -> "Todo"
+            else -> "All"
+        }
+    }
+
+    /** 카테고리 목록 (다국어) */
+    fun getLocalizedCategories(): List<String> {
+        val lang = java.util.Locale.getDefault().language
+        return listOf(
+            getAllCategoryLabel(),
+            when (lang) { "ko" -> "독서"; "ja" -> "読書"; "zh" -> "阅读"; "es" -> "Lectura"; else -> "Reading" },
+            when (lang) { "ko" -> "명상"; "ja" -> "瞑想"; "zh" -> "冥想"; "es" -> "Meditación"; else -> "Meditation" },
+            when (lang) { "ko" -> "공부"; "ja" -> "勉強"; "zh" -> "学习"; "es" -> "Estudio"; else -> "Study" },
+            when (lang) { "ko" -> "운동"; "ja" -> "運動"; "zh" -> "运动"; "es" -> "Ejercicio"; else -> "Exercise" },
+            when (lang) { "ko" -> "웰니스"; "ja" -> "ウェルネス"; "zh" -> "健康"; "es" -> "Bienestar"; else -> "Wellness" }
+        )
     }
 
     fun searchChallenges(query: String): List<Challenge> {
@@ -788,7 +884,7 @@ class ChallengeManager private constructor(private val context: Context) {
                 .set(userUpdate, SetOptions.merge())
                 .await()
 
-            Log.d(TAG, "✅ Equipped title saved to Firebase (parent doc): ${type?.title ?: "없음"}")
+            Log.d(TAG, "✅ Equipped title saved to Firebase (parent doc): ${type?.title ?: "none"}")
         } catch (e: Exception) {
             Log.e(TAG, "❌ Failed to save equipped title to Firebase: ${e.message}")
         }

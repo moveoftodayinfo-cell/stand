@@ -63,7 +63,7 @@ class StepWidgetProvider : AppWidgetProvider() {
             val views = RemoteViews(context.packageName, R.layout.widget_step_counter)
 
             // 연속 배지
-            views.setTextViewText(R.id.widget_streak, "$streakCount 연속")
+            views.setTextViewText(R.id.widget_streak, "$streakCount ${getStreakLabel()}")
 
             // 진행률에 따른 펫 상태 결정
             val (animationType, emotionSymbol) = getStateByProgress(percent)
@@ -84,16 +84,17 @@ class StepWidgetProvider : AppWidgetProvider() {
             val dialogue = if (personality != null) {
                 getDialogueByProgress(personality, percent)
             } else {
-                "산책하자!"
+                getDefaultWalkMessage()
             }
             views.setTextViewText(R.id.widget_speech, dialogue)
 
             // 걸음/km 텍스트 (현재 걸음수만 표시)
             val numberFormat = NumberFormat.getNumberInstance(Locale.getDefault())
+            val stepsUnit = getStepsUnit()
             val stepsText = if (isKmMode) {
                 "${String.format("%.2f", displayValue)} km"
             } else {
-                "${numberFormat.format(displayValue.toInt())} 보"
+                "${numberFormat.format(displayValue.toInt())} $stepsUnit"
             }
             views.setTextViewText(R.id.widget_steps_text, stepsText)
 
@@ -263,6 +264,35 @@ class StepWidgetProvider : AppWidgetProvider() {
             paint.colorFilter = ColorMatrixColorFilter(colorMatrix)
             canvas.drawBitmap(original, 0f, 0f, paint)
             return result
+        }
+
+        private fun getDefaultWalkMessage(): String {
+            return when (Locale.getDefault().language) {
+                "ko" -> "산책하자!"
+                "ja" -> "散歩しよう！"
+                "zh" -> "去散步吧！"
+                "es" -> "¡Vamos a pasear!"
+                else -> "Let's walk!"
+            }
+        }
+
+        private fun getStepsUnit(): String {
+            return when (Locale.getDefault().language) {
+                "ko" -> "보"
+                "ja" -> "歩"
+                "zh" -> "步"
+                else -> "steps"
+            }
+        }
+
+        private fun getStreakLabel(): String {
+            return when (Locale.getDefault().language) {
+                "ko" -> "연속"
+                "ja" -> "連続"
+                "zh" -> "连续"
+                "es" -> "días"
+                else -> "streak"
+            }
         }
 
         fun updateAllWidgets(context: Context) {

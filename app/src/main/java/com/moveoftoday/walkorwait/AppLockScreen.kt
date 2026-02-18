@@ -23,6 +23,99 @@ import androidx.compose.ui.unit.sp
 import com.moveoftoday.walkorwait.pet.MockupColors
 import com.moveoftoday.walkorwait.pet.PixelIcon
 import com.moveoftoday.walkorwait.pet.rememberKenneyFont
+import java.util.Locale
+
+// 다국어 헬퍼
+private object AppLockStrings {
+    private fun getLang(): String = Locale.getDefault().language
+
+    fun selectApps(): String = when (getLang()) {
+        "ko" -> "제어할 앱 선택"
+        "ja" -> "制御するアプリを選択"
+        "zh" -> "选择要控制的应用"
+        "es" -> "Seleccionar apps"
+        else -> "Select Apps to Control"
+    }
+
+    fun selectAppsDesc(): String = when (getLang()) {
+        "ko" -> "목표 미달성 시\n사용이 제한될 앱을 선택하세요"
+        "ja" -> "目標未達成時に\n使用が制限されるアプリを選択"
+        "zh" -> "目标未达成时\n将限制使用的应用"
+        "es" -> "Apps limitadas si\nno alcanzas tu meta"
+        else -> "Apps will be blocked\nif you don't reach your goal"
+    }
+
+    fun rebonDisabled(): String = when (getLang()) {
+        "ko" -> "rebon이 비활성화되어 있어요"
+        "ja" -> "rebonが無効になっています"
+        "zh" -> "rebon已禁用"
+        "es" -> "rebon está desactivado"
+        else -> "rebon is disabled"
+    }
+
+    fun blockingNotWorking(): String = when (getLang()) {
+        "ko" -> "앱 차단 기능이 작동하지 않습니다"
+        "ja" -> "アプリブロック機能が動作しません"
+        "zh" -> "应用阻止功能无法工作"
+        "es" -> "El bloqueo no funciona"
+        else -> "App blocking won't work"
+    }
+
+    fun noApps(): String = when (getLang()) {
+        "ko" -> "제어할 앱이 없습니다"
+        "ja" -> "制御するアプリがありません"
+        "zh" -> "没有可控制的应用"
+        "es" -> "No hay apps"
+        else -> "No apps available"
+    }
+
+    fun installApps(): String = when (getLang()) {
+        "ko" -> "Play Store에서\nYouTube, Chrome, Instagram 등\n앱을 설치해주세요"
+        "ja" -> "Play Storeから\nYouTube、Chrome、Instagramなど\nアプリをインストールしてください"
+        "zh" -> "请从Play Store安装\nYouTube、Chrome、Instagram等应用"
+        "es" -> "Instala apps desde\nPlay Store como\nYouTube, Chrome, Instagram"
+        else -> "Install apps from\nPlay Store like\nYouTube, Chrome, Instagram"
+    }
+
+    fun selected(count: Int): String = when (getLang()) {
+        "ko" -> "${count}개 선택됨"
+        "ja" -> "${count}個選択中"
+        "zh" -> "已选${count}个"
+        "es" -> "$count seleccionado(s)"
+        else -> "$count selected"
+    }
+
+    fun appCount(count: Int): String = when (getLang()) {
+        "ko" -> "${count}개"
+        "ja" -> "${count}個"
+        "zh" -> "${count}个"
+        else -> "$count"
+    }
+
+    fun removeAvailableFrom(date: String): String = when (getLang()) {
+        "ko" -> "앱 제거는 ${date}에 가능해요"
+        "ja" -> "アプリの削除は${date}から可能です"
+        "zh" -> "可在${date}后移除应用"
+        "es" -> "Eliminar disponible desde $date"
+        else -> "Remove available from $date"
+    }
+
+    fun close(): String = when (getLang()) {
+        "ko" -> "닫기"
+        "ja" -> "閉じる"
+        "zh" -> "关闭"
+        "es" -> "Cerrar"
+        else -> "Close"
+    }
+
+    fun doneWithCount(count: Int): String = when (getLang()) {
+        "ko" -> "완료 (${count}개 선택)"
+        "ja" -> "完了 (${count}個選択)"
+        "zh" -> "完成 (已选${count}个)"
+        "es" -> "Listo ($count)"
+        else -> "Done ($count selected)"
+    }
+}
 
 @Composable
 fun AppLockScreen(
@@ -65,7 +158,7 @@ fun AppLockScreen(
 
             // 타이틀
             Text(
-                text = "제어할 앱 선택",
+                text = AppLockStrings.selectApps(),
                 fontSize = 28.sp,
                 fontWeight = FontWeight.Bold,
                 color = MockupColors.TextPrimary,
@@ -75,7 +168,7 @@ fun AppLockScreen(
             Spacer(modifier = Modifier.height(8.dp))
 
             Text(
-                text = "목표 미달성 시\n사용이 제한될 앱을 선택하세요",
+                text = AppLockStrings.selectAppsDesc(),
                 fontSize = 14.sp,
                 color = MockupColors.TextMuted,
                 lineHeight = 20.sp
@@ -107,13 +200,13 @@ fun AppLockScreen(
                         Spacer(modifier = Modifier.width(12.dp))
                         Column(modifier = Modifier.weight(1f)) {
                             Text(
-                                text = "rebon이 비활성화되어 있어요",
+                                text = AppLockStrings.rebonDisabled(),
                                 fontSize = 15.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = MockupColors.Red
                             )
                             Text(
-                                text = "앱 차단 기능이 작동하지 않습니다",
+                                text = AppLockStrings.blockingNotWorking(),
                                 fontSize = 13.sp,
                                 color = MockupColors.TextSecondary
                             )
@@ -144,7 +237,7 @@ fun AppLockScreen(
                         PixelIcon(iconName = "icon_lock", size = 64.dp)
                         Spacer(modifier = Modifier.height(16.dp))
                         Text(
-                            text = "제어할 앱이 없습니다",
+                            text = AppLockStrings.noApps(),
                             fontSize = 20.sp,
                             fontWeight = FontWeight.Bold,
                             color = MockupColors.TextPrimary,
@@ -152,7 +245,7 @@ fun AppLockScreen(
                         )
                         Spacer(modifier = Modifier.height(8.dp))
                         Text(
-                            text = "Play Store에서\nYouTube, Chrome, Instagram 등\n앱을 설치해주세요",
+                            text = AppLockStrings.installApps(),
                             fontSize = 14.sp,
                             color = MockupColors.TextMuted,
                             textAlign = TextAlign.Center,
@@ -171,7 +264,7 @@ fun AppLockScreen(
                             .padding(10.dp)
                     ) {
                         Text(
-                            text = "${selectedApps.size}개 선택됨",
+                            text = AppLockStrings.selected(selectedApps.size),
                             fontSize = 14.sp,
                             fontWeight = FontWeight.Bold,
                             color = MockupColors.Blue
@@ -216,7 +309,7 @@ fun AppLockScreen(
                                         color = MockupColors.TextPrimary
                                     )
                                     Text(
-                                        text = "${apps.size}개",
+                                        text = AppLockStrings.appCount(apps.size),
                                         fontSize = 13.sp,
                                         color = MockupColors.TextMuted
                                     )
@@ -254,7 +347,7 @@ fun AppLockScreen(
                                                     android.widget.Toast
                                                         .makeText(
                                                             context,
-                                                            "앱 제거는 ${preferenceManager?.getNextAppRemoveDate()}에 가능해요",
+                                                            AppLockStrings.removeAvailableFrom(preferenceManager?.getNextAppRemoveDate() ?: ""),
                                                             android.widget.Toast.LENGTH_LONG
                                                         )
                                                         .show()
@@ -299,7 +392,7 @@ fun AppLockScreen(
                                                     hapticManager.warning()
                                                     android.widget.Toast.makeText(
                                                         context,
-                                                        "앱 제거는 ${preferenceManager?.getNextAppRemoveDate()}에 가능해요",
+                                                        AppLockStrings.removeAvailableFrom(preferenceManager?.getNextAppRemoveDate() ?: ""),
                                                         android.widget.Toast.LENGTH_LONG
                                                     ).show()
                                                 }
@@ -337,7 +430,7 @@ fun AppLockScreen(
                 contentAlignment = Alignment.Center
             ) {
                 Text(
-                    text = if (totalApps == 0) "닫기" else "완료 (${selectedApps.size}개 선택)",
+                    text = if (totalApps == 0) AppLockStrings.close() else AppLockStrings.doneWithCount(selectedApps.size),
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
                     color = Color.White,

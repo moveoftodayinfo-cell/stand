@@ -18,6 +18,36 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.moveoftoday.walkorwait.pet.*
+import java.util.Locale
+
+// 다국어 헬퍼
+private object SkinUnlockStrings {
+    private fun getLang(): String = Locale.getDefault().language
+
+    fun newSkinUnlocked(): String = when (getLang()) {
+        "ko" -> "✧ 새 스킨 획득 ✧"
+        "ja" -> "✧ 新スキン獲得 ✧"
+        "zh" -> "✧ 新皮肤解锁 ✧"
+        "es" -> "✧ Nueva Skin ✧"
+        else -> "✧ New Skin Unlocked ✧"
+    }
+
+    fun later(): String = when (getLang()) {
+        "ko" -> "나중에"
+        "ja" -> "後で"
+        "zh" -> "稍后"
+        "es" -> "Después"
+        else -> "Later"
+    }
+
+    fun equip(): String = when (getLang()) {
+        "ko" -> "장착하기"
+        "ja" -> "装着する"
+        "zh" -> "装备"
+        "es" -> "Equipar"
+        else -> "Equip"
+    }
+}
 
 /**
  * 스킨 해금 축하 다이얼로그
@@ -78,7 +108,7 @@ fun SkinUnlockDialog(
         ) {
             // 타이틀
             Text(
-                text = "✧ 새 스킨 획득 ✧",
+                text = SkinUnlockStrings.newSkinUnlocked(),
                 fontSize = 22.sp,
                 fontWeight = FontWeight.Bold,
                 color = Color.Black,
@@ -163,7 +193,7 @@ fun SkinUnlockDialog(
                     )
                 ) {
                     Text(
-                        text = "나중에",
+                        text = SkinUnlockStrings.later(),
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Medium
                     )
@@ -182,7 +212,7 @@ fun SkinUnlockDialog(
                     )
                 ) {
                     Text(
-                        text = "장착하기",
+                        text = SkinUnlockStrings.equip(),
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Bold,
                         color = Color.White

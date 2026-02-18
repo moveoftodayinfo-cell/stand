@@ -10,6 +10,59 @@ import android.util.Log
 import java.text.SimpleDateFormat
 import java.util.*
 
+// 다국어 헬퍼
+private object AppBlockStrings {
+    private fun getLang(): String = Locale.getDefault().language
+
+    fun tutorialAchieveGoal(): String = when (getLang()) {
+        "ko" -> "튜토리얼: 목표를 달성하세요!"
+        "ja" -> "チュートリアル: 目標を達成してください!"
+        "zh" -> "教程: 请达成目标!"
+        "es" -> "Tutorial: ¡Alcanza tu meta!"
+        else -> "Tutorial: Achieve your goal!"
+    }
+
+    fun restTimeRemaining(minutes: Long, seconds: Long): String = when (getLang()) {
+        "ko" -> "휴식 중 - 남은 시간: ${minutes}분 ${seconds}초"
+        "ja" -> "休憩中 - 残り: ${minutes}分${seconds}秒"
+        "zh" -> "休息中 - 剩余: ${minutes}分${seconds}秒"
+        "es" -> "Descanso - Quedan: ${minutes}m ${seconds}s"
+        else -> "Resting - Remaining: ${minutes}m ${seconds}s"
+    }
+
+    fun restTimeEnded(): String = when (getLang()) {
+        "ko" -> "휴식 시간이 끝났어요"
+        "ja" -> "休憩時間が終わりました"
+        "zh" -> "休息时间结束了"
+        "es" -> "El descanso ha terminado"
+        else -> "Rest time is over"
+    }
+
+    fun walkABitMore(): String = when (getLang()) {
+        "ko" -> "목표까지 조금 더 걸어주세요"
+        "ja" -> "目標までもう少し歩いてください"
+        "zh" -> "请再走一点到达目标"
+        "es" -> "Camina un poco más hasta tu meta"
+        else -> "Walk a bit more to reach your goal"
+    }
+
+    fun stepsUnit(): String = when (getLang()) {
+        "ko" -> "걸음"
+        "ja" -> "歩"
+        "zh" -> "步"
+        "es" -> "pasos"
+        else -> "steps"
+    }
+
+    fun walkMoreMessage(current: String, goal: String, unit: String, remaining: String): String = when (getLang()) {
+        "ko" -> "🚶 조금만 더 걸어볼까요?\n$current / $goal $unit\n$remaining $unit 남았어요"
+        "ja" -> "🚶 もう少し歩きませんか?\n$current / $goal $unit\n残り $remaining $unit"
+        "zh" -> "🚶 再走一点吧?\n$current / $goal $unit\n还剩 $remaining $unit"
+        "es" -> "🚶 ¿Caminamos un poco más?\n$current / $goal $unit\nQuedan $remaining $unit"
+        else -> "🚶 Walk a bit more?\n$current / $goal $unit\n$remaining $unit remaining"
+    }
+}
+
 class AppBlockService : AccessibilityService() {
 
     private val TAG = "AppBlockService"
@@ -115,7 +168,7 @@ class AppBlockService : AccessibilityService() {
 
             // 목표 미달성이면 차단!
             Log.d(TAG, "🎓 Tutorial - Goal NOT achieved - BLOCKING!")
-            blockAppImmediately(packageName, "튜토리얼: 목표를 달성하세요!")
+            blockAppImmediately(packageName, AppBlockStrings.tutorialAchieveGoal())
             return
         }
 
@@ -195,7 +248,7 @@ class AppBlockService : AccessibilityService() {
                 handler.post {
                     Toast.makeText(
                         this,
-                        "휴식 중 - 남은 시간: ${minutes}분 ${seconds}초",
+                        AppBlockStrings.restTimeRemaining(minutes, seconds),
                         Toast.LENGTH_SHORT
                     ).show()
                 }
@@ -205,14 +258,14 @@ class AppBlockService : AccessibilityService() {
                 Log.d(TAG, "Emergency mode EXPIRED")
                 prefs.saveEmergencyMode(false)
                 notificationHelper.cancelEmergencyNotification()
-                blockAppImmediately(packageName, "휴식 시간이 끝났어요")
+                blockAppImmediately(packageName, AppBlockStrings.restTimeEnded())
                 return
             }
         }
 
         // 긴급 모드 아니면 완전 차단
         Log.d(TAG, "No emergency mode - BLOCKING")
-        blockAppImmediately(packageName, "목표까지 조금 더 걸어주세요")
+        blockAppImmediately(packageName, AppBlockStrings.walkABitMore())
     }
 
     private fun blockAppImmediately(packageName: String, message: String) {
@@ -239,7 +292,7 @@ class AppBlockService : AccessibilityService() {
         val estimatedTime = prefs.getEstimatedArrivalTime()
 
         // 표시 텍스트 생성
-        val unitText = if (goalUnit == "km") "km" else "걸음"
+        val unitText = if (goalUnit == "km") "km" else AppBlockStrings.stepsUnit()
         val currentText = if (goalUnit == "km") String.format("%.2f", currentProgress) else currentProgress.toInt().toString()
         val goalText = if (goalUnit == "km") String.format("%.2f", goal) else goal.toInt().toString()
         val remainingText = if (goalUnit == "km") String.format("%.2f", remaining) else remaining.toInt().toString()
@@ -287,7 +340,7 @@ class AppBlockService : AccessibilityService() {
 
         // Toast 알림 (친근한 메시지)
         handler.post {
-            val detailedMessage = "🚶 조금만 더 걸어볼까요?\n$currentText / $goalText $unitText\n$remainingText $unitText 남았어요"
+            val detailedMessage = AppBlockStrings.walkMoreMessage(currentText, goalText, unitText, remainingText)
             Toast.makeText(this, detailedMessage, Toast.LENGTH_LONG).show()
         }
     }
