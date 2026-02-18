@@ -459,11 +459,23 @@ private object PetTutorialStrings {
     }
 
     fun startForFree(): String = when (getLang()) {
-        "ko" -> "무료로 시작하기"
-        "ja" -> "無料で始める"
-        "zh" -> "免费开始"
-        "es" -> "Empezar gratis"
-        else -> "Start for Free"
+        "ko" -> "3일 무료 체험 시작"
+        "ja" -> "3日間無料お試し"
+        "zh" -> "3天免费试用"
+        "es" -> "3 días gratis"
+        else -> "Start 3-Day Free Trial"
+    }
+
+    fun trialSubtitle(isYearly: Boolean): String {
+        val monthlyPrice = "3,900"
+        val yearlyPrice = "39,000"
+        return when (getLang()) {
+            "ko" -> if (isYearly) "3일 후 연 ${yearlyPrice}원" else "3일 후 월 ${monthlyPrice}원"
+            "ja" -> if (isYearly) "3日後に年額¥${yearlyPrice}" else "3日後に月額¥${monthlyPrice}"
+            "zh" -> if (isYearly) "3天后年费¥${yearlyPrice}" else "3天后月费¥${monthlyPrice}"
+            "es" -> if (isYearly) "Después €${yearlyPrice}/año" else "Después €${monthlyPrice}/mes"
+            else -> if (isYearly) "Then \$${yearlyPrice}/year" else "Then \$${monthlyPrice}/month"
+        }
     }
 
     fun restartAgain(): String = when (getLang()) {
@@ -4545,6 +4557,12 @@ fun PaymentScreen(
         else -> PetTutorialStrings.startForFree()
     }
 
+    // 3일 무료 체험 후 가격 안내 (isYearly 체크)
+    val isYearlyPlan = selectedPlan == BillingManager.SubscriptionType.YEARLY
+    val trialSubtitle = if (!isPromoFree && !isReturningUser) {
+        PetTutorialStrings.trialSubtitle(isYearlyPlan)
+    } else null
+
     // 결제 처리 함수
     fun processPayment() {
         isProcessing = true
@@ -5140,6 +5158,17 @@ fun PaymentScreen(
                     color = Color.White
                 )
             }
+        }
+
+        // 3일 무료 체험 후 가격 안내
+        if (trialSubtitle != null) {
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = trialSubtitle,
+                fontSize = 12.sp,
+                color = MockupColors.TextSecondary,
+                textAlign = TextAlign.Center
+            )
         }
     }
     }

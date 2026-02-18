@@ -176,8 +176,8 @@ class BillingManager(
 
     /**
      * 구독 시작 (결제 플로우)
-     * - 월간 구독: 3,900원/월 (7일 무료 체험)
-     * - 연간 구독: 39,000원/년 (7일 무료 체험, 2개월 무료)
+     * - 월간 구독: 3,900원/월 (3일 무료 체험)
+     * - 연간 구독: 39,000원/년 (3일 무료 체험, 2개월 무료)
      */
     fun startSubscription(activity: Activity, type: SubscriptionType = SubscriptionType.MONTHLY) {
         pendingSubscriptionType = type
