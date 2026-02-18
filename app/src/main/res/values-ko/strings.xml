@@ -55,6 +55,17 @@
     <string name="category_meditation">명상</string>
     <string name="category_study">공부</string>
 
+    <!-- App Categories -->
+    <string name="app_category_social">소셜</string>
+    <string name="app_category_video">동영상</string>
+    <string name="app_category_game">게임</string>
+    <string name="app_category_entertainment">엔터테인먼트</string>
+    <string name="app_category_shopping">쇼핑</string>
+    <string name="app_category_communication">통신</string>
+    <string name="app_category_music_audio">음악</string>
+    <string name="app_category_productivity">생산성</string>
+    <string name="app_category_other">기타</string>
+
     <!-- Days of Week -->
     <string name="day_mon">월</string>
     <string name="day_tue">화</string>
@@ -144,6 +155,17 @@
     <!-- Account -->
     <string name="auto_backup_in_progress">데이터 자동 백업 중</string>
     <string name="connect_for_auto_backup">연결하면 데이터가 자동 백업됩니다</string>
+
+    <!-- Language Settings -->
+    <string name="language_setting">언어</string>
+    <string name="language_system">시스템 기본값</string>
+    <string name="language_english">영어</string>
+    <string name="language_korean">한국어</string>
+    <string name="language_japanese">일본어</string>
+    <string name="language_chinese">중국어 (간체)</string>
+    <string name="language_spanish">스페인어</string>
+    <string name="language_change_restart">언어가 변경되었습니다. 완전히 적용하려면 앱을 다시 시작하세요.</string>
+    <string name="current_language">현재: %s</string>
 
     <!-- Data Sync -->
     <string name="restored_existing_data">기존 데이터를 복원했어요!</string>
@@ -531,4 +553,17 @@
     <string name="speech_timid_widget">위젯을 추가해주세요...</string>
     <string name="speech_clumsy_widget">위젯으로 한눈에 확인!</string>
     <string name="seven_widgets">7종 위젯 제공</string>
+
+    <!-- Accessibility Consent Dialog (CRITICAL for Google Play compliance) -->
+    <string name="accessibility_consent_title">앱 제어 권한 안내</string>
+    <string name="accessibility_consent_desc">rebon은 일일 걸음 목표를 달성하지 못했을 때 선택한 앱을 차단하기 위해 접근성 서비스를 사용합니다.\n\n이 권한은 오직 앱 차단 기능에만 사용되며, 개인정보를 수집하거나 전송하지 않습니다.\n\n언제든지 기기 설정에서 이 권한을 해제할 수 있습니다.</string>
+    <string name="accessibility_consent_feature_title">이 권한으로 가능한 기능:</string>
+    <string name="accessibility_consent_feature_1">• 차단된 앱 실행 감지</string>
+    <string name="accessibility_consent_feature_2">• 목표 달성 전까지 차단 화면 표시</string>
+    <string name="accessibility_consent_feature_3">• 목표 달성 시 자동으로 앱 잠금 해제</string>
+    <string name="accessibility_consent_agree">동의합니다</string>
+    <string name="accessibility_consent_decline">동의하지 않습니다</string>
+    <string name="accessibility_declined_title">앱을 사용할 수 없습니다</string>
+    <string name="accessibility_declined_message">rebon의 핵심 기능인 앱 차단을 위해 접근성 서비스 권한이 필요합니다.\n\n이 권한 없이는 앱의 주요 기능을 사용할 수 없습니다.</string>
+    <string name="accessibility_declined_understand">확인</string>
 </resources>

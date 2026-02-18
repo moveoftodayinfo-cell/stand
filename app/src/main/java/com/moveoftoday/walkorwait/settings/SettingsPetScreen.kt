@@ -31,6 +31,433 @@ import androidx.compose.ui.unit.sp
 import com.moveoftoday.walkorwait.*
 import com.moveoftoday.walkorwait.pet.*
 import kotlinx.coroutines.launch
+import java.util.Locale
+
+// ============ 다국어 지원 헬퍼 객체 ============
+private object SettingsPetStrings {
+    private fun getLang(): String = Locale.getDefault().language
+
+    fun currentPet(): String = when (getLang()) {
+        "ko" -> "현재 펫"
+        "ja" -> "現在のペット"
+        "zh" -> "当前宠物"
+        "es" -> "Mascota actual"
+        else -> "Current Pet"
+    }
+
+    fun growthStage(): String = when (getLang()) {
+        "ko" -> "성장 단계"
+        "ja" -> "成長段階"
+        "zh" -> "成长阶段"
+        "es" -> "Etapa de crecimiento"
+        else -> "Growth Stage"
+    }
+
+    fun petSkin(): String = when (getLang()) {
+        "ko" -> "펫 스킨"
+        "ja" -> "ペットスキン"
+        "zh" -> "宠物皮肤"
+        "es" -> "Skin de mascota"
+        else -> "Pet Skin"
+    }
+
+    fun petTitle(): String = when (getLang()) {
+        "ko" -> "칭호 선택"
+        "ja" -> "称号選択"
+        "zh" -> "称号选择"
+        "es" -> "Seleccionar título"
+        else -> "Select Title"
+    }
+
+    fun noTitlesYet(): String = when (getLang()) {
+        "ko" -> "아직 획득한 칭호가 없어요\n챌린지를 완료하면 칭호를 얻을 수 있어요!"
+        "ja" -> "まだ称号がありません\nチャレンジを完了して称号を獲得しよう！"
+        "zh" -> "还没有获得称号\n完成挑战即可获得称号！"
+        "es" -> "Aún no tienes títulos\n¡Completa desafíos para ganar títulos!"
+        else -> "No titles earned yet\nComplete challenges to earn titles!"
+    }
+
+    fun equipped(): String = when (getLang()) {
+        "ko" -> "장착중"
+        "ja" -> "装備中"
+        "zh" -> "已装备"
+        "es" -> "Equipado"
+        else -> "Equipped"
+    }
+
+    fun unequip(): String = when (getLang()) {
+        "ko" -> "해제"
+        "ja" -> "解除"
+        "zh" -> "卸下"
+        "es" -> "Desequipar"
+        else -> "Unequip"
+    }
+
+    fun equip(): String = when (getLang()) {
+        "ko" -> "장착"
+        "ja" -> "装備"
+        "zh" -> "装备"
+        "es" -> "Equipar"
+        else -> "Equip"
+    }
+
+    fun titleCount(count: Int): String = when (getLang()) {
+        "ko" -> "획득한 칭호 ($count)"
+        "ja" -> "獲得した称号 ($count)"
+        "zh" -> "已获得称号 ($count)"
+        "es" -> "Títulos obtenidos ($count)"
+        else -> "Earned Titles ($count)"
+    }
+
+    fun goToChallenge(): String = when (getLang()) {
+        "ko" -> "챌린지 하러 가기"
+        "ja" -> "チャレンジへ"
+        "zh" -> "去挑战"
+        "es" -> "Ir a desafíos"
+        else -> "Go to Challenge"
+    }
+
+    fun petStats(): String = when (getLang()) {
+        "ko" -> "펫 통계"
+        "ja" -> "ペット統計"
+        "zh" -> "宠物统计"
+        "es" -> "Estadísticas de mascota"
+        else -> "Pet Stats"
+    }
+
+    fun changePet(): String = when (getLang()) {
+        "ko" -> "펫 변경"
+        "ja" -> "ペット変更"
+        "zh" -> "更换宠物"
+        "es" -> "Cambiar mascota"
+        else -> "Change Pet"
+    }
+
+    fun totalSteps(): String = when (getLang()) {
+        "ko" -> "총 걸음수"
+        "ja" -> "総歩数"
+        "zh" -> "总步数"
+        "es" -> "Pasos totales"
+        else -> "Total Steps"
+    }
+
+    fun totalExp(): String = when (getLang()) {
+        "ko" -> "총 경험치"
+        "ja" -> "総経験値"
+        "zh" -> "总经验"
+        "es" -> "EXP total"
+        else -> "Total EXP"
+    }
+
+    fun currentPersonality(): String = when (getLang()) {
+        "ko" -> "현재 성격"
+        "ja" -> "現在の性格"
+        "zh" -> "当前性格"
+        "es" -> "Personalidad actual"
+        else -> "Current Personality"
+    }
+
+    fun changeToOtherPet(): String = when (getLang()) {
+        "ko" -> "다른 펫으로 변경"
+        "ja" -> "他のペットに変更"
+        "zh" -> "更换为其他宠物"
+        "es" -> "Cambiar a otra mascota"
+        else -> "Change to another pet"
+    }
+
+    fun levelKept(): String = when (getLang()) {
+        "ko" -> "레벨은 유지됩니다"
+        "ja" -> "レベルは維持されます"
+        "zh" -> "等级将保留"
+        "es" -> "El nivel se mantiene"
+        else -> "Level is kept"
+    }
+
+    fun petChanged(): String = when (getLang()) {
+        "ko" -> "펫이 변경되었습니다!"
+        "ja" -> "ペットが変更されました！"
+        "zh" -> "宠物已更改！"
+        "es" -> "¡Mascota cambiada!"
+        else -> "Pet changed!"
+    }
+
+    fun friend(): String = when (getLang()) {
+        "ko" -> "친구"
+        "ja" -> "フレンド"
+        "zh" -> "朋友"
+        "es" -> "Amigo"
+        else -> "Friend"
+    }
+
+    fun petName(): String = when (getLang()) {
+        "ko" -> "펫 이름"
+        "ja" -> "ペット名"
+        "zh" -> "宠物名字"
+        "es" -> "Nombre de mascota"
+        else -> "Pet Name"
+    }
+
+    fun cancel(): String = when (getLang()) {
+        "ko" -> "취소"
+        "ja" -> "キャンセル"
+        "zh" -> "取消"
+        "es" -> "Cancelar"
+        else -> "Cancel"
+    }
+
+    fun changeWithPrice(price: String?): String {
+        val displayPrice = price ?: defaultPrice()
+        return when (getLang()) {
+            "ko" -> "변경 ($displayPrice)"
+            "ja" -> "変更 ($displayPrice)"
+            "zh" -> "更换 ($displayPrice)"
+            "es" -> "Cambiar ($displayPrice)"
+            else -> "Change ($displayPrice)"
+        }
+    }
+
+    fun priceOnly(price: String?): String = price ?: defaultPrice()
+
+    private fun defaultPrice(): String = when (getLang()) {
+        "ko" -> "₩1,000"
+        "ja" -> "¥100"
+        "zh" -> "¥7"
+        "es" -> "\$0.99"
+        else -> "\$0.99"
+    }
+
+    fun restoreToDefault(): String = when (getLang()) {
+        "ko" -> "기본으로 복원"
+        "ja" -> "デフォルトに復元"
+        "zh" -> "恢复默认"
+        "es" -> "Restaurar a predeterminado"
+        else -> "Restore to Default"
+    }
+
+    fun changeAppearance(): String = when (getLang()) {
+        "ko" -> "외형 변경"
+        "ja" -> "外見変更"
+        "zh" -> "更改外观"
+        "es" -> "Cambiar apariencia"
+        else -> "Change Appearance"
+    }
+
+    fun restoreAppearance(): String = when (getLang()) {
+        "ko" -> "외형 복원"
+        "ja" -> "外見復元"
+        "zh" -> "恢复外观"
+        "es" -> "Restaurar apariencia"
+        else -> "Restore Appearance"
+    }
+
+    fun restoreAppearanceConfirm(): String = when (getLang()) {
+        "ko" -> "펫의 외형을 기본으로 복원하시겠습니까?"
+        "ja" -> "ペットの外見をデフォルトに復元しますか？"
+        "zh" -> "确定要将宠物外观恢复为默认吗？"
+        "es" -> "¿Restaurar la apariencia de la mascota a predeterminado?"
+        else -> "Restore pet appearance to default?"
+    }
+
+    fun changeAppearanceConfirm(stageName: String): String = when (getLang()) {
+        "ko" -> "펫의 외형을 ${stageName}으로 변경하시겠습니까?"
+        "ja" -> "ペットの外見を${stageName}に変更しますか？"
+        "zh" -> "确定要将宠物外观更改为${stageName}吗？"
+        "es" -> "¿Cambiar la apariencia de la mascota a $stageName?"
+        else -> "Change pet appearance to $stageName?"
+    }
+
+    fun confirm(): String = when (getLang()) {
+        "ko" -> "확인"
+        "ja" -> "確認"
+        "zh" -> "确认"
+        "es" -> "Confirmar"
+        else -> "Confirm"
+    }
+
+    fun owned(count: Int): String = when (getLang()) {
+        "ko" -> "보유중 ($count)"
+        "ja" -> "所持中 ($count)"
+        "zh" -> "已拥有 ($count)"
+        "es" -> "Poseído ($count)"
+        else -> "Owned ($count)"
+    }
+
+    fun notOwned(count: Int): String = when (getLang()) {
+        "ko" -> "미보유 ($count)"
+        "ja" -> "未所持 ($count)"
+        "zh" -> "未拥有 ($count)"
+        "es" -> "No poseído ($count)"
+        else -> "Not Owned ($count)"
+    }
+
+    fun changeSkin(): String = when (getLang()) {
+        "ko" -> "스킨 변경"
+        "ja" -> "スキン変更"
+        "zh" -> "更换皮肤"
+        "es" -> "Cambiar skin"
+        else -> "Change Skin"
+    }
+
+    fun changeSkinConfirm(): String = when (getLang()) {
+        "ko" -> "이 스킨으로 변경하시겠습니까?"
+        "ja" -> "このスキンに変更しますか？"
+        "zh" -> "确定要更换为此皮肤吗？"
+        "es" -> "¿Cambiar a este skin?"
+        else -> "Change to this skin?"
+    }
+
+    fun change(): String = when (getLang()) {
+        "ko" -> "변경"
+        "ja" -> "変更"
+        "zh" -> "更换"
+        "es" -> "Cambiar"
+        else -> "Change"
+    }
+
+    fun unlockCondition(): String = when (getLang()) {
+        "ko" -> "해금 조건"
+        "ja" -> "解除条件"
+        "zh" -> "解锁条件"
+        "es" -> "Condición de desbloqueo"
+        else -> "Unlock Condition"
+    }
+
+    fun defaultSkin(): String = when (getLang()) {
+        "ko" -> "기본"
+        "ja" -> "デフォルト"
+        "zh" -> "默认"
+        "es" -> "Predeterminado"
+        else -> "Default"
+    }
+
+    fun stepsCondition(steps: Long): String = when (getLang()) {
+        "ko" -> "${steps}보"
+        "ja" -> "${steps}歩"
+        "zh" -> "${steps}步"
+        "es" -> "$steps pasos"
+        else -> "$steps steps"
+    }
+
+    fun streakCondition(days: Int): String = when (getLang()) {
+        "ko" -> "${days}일 연속"
+        "ja" -> "${days}日連続"
+        "zh" -> "连续${days}天"
+        "es" -> "$days días seguidos"
+        else -> "$days day streak"
+    }
+
+    fun levelCondition(level: Int): String = when (getLang()) {
+        "ko" -> "Lv.$level"
+        "ja" -> "Lv.$level"
+        "zh" -> "Lv.$level"
+        "es" -> "Lv.$level"
+        else -> "Lv.$level"
+    }
+
+    fun challengeCondition(category: String, count: Int): String = when (getLang()) {
+        "ko" -> "$category ${count}회"
+        "ja" -> "$category ${count}回"
+        "zh" -> "$category ${count}次"
+        "es" -> "$category $count veces"
+        else -> "$category $count times"
+    }
+
+    fun defaultSkinProvided(): String = when (getLang()) {
+        "ko" -> "기본 제공 스킨"
+        "ja" -> "デフォルト提供スキン"
+        "zh" -> "默认提供皮肤"
+        "es" -> "Skin predeterminado"
+        else -> "Default skin"
+    }
+
+    fun earnedBySteps(steps: Long): String = when (getLang()) {
+        "ko" -> "총 ${steps}보 달성으로 획득"
+        "ja" -> "総${steps}歩達成で獲得"
+        "zh" -> "累计${steps}步后获得"
+        "es" -> "Obtenido con $steps pasos totales"
+        else -> "Earned by $steps total steps"
+    }
+
+    fun earnedByStreak(days: Int): String = when (getLang()) {
+        "ko" -> "${days}일 연속 달성으로 획득"
+        "ja" -> "${days}日連続達成で獲得"
+        "zh" -> "连续${days}天达成后获得"
+        "es" -> "Obtenido con $days días seguidos"
+        else -> "Earned by $days day streak"
+    }
+
+    fun earnedByLevel(lvl: Int): String = when (getLang()) {
+        "ko" -> "레벨 $lvl 달성으로 획득"
+        "ja" -> "レベル${lvl}達成で獲得"
+        "zh" -> "达到等级$lvl 后获得"
+        "es" -> "Obtenido al nivel $lvl"
+        else -> "Earned at level $lvl"
+    }
+
+    fun earnedByEvent(eventId: String): String = when (getLang()) {
+        "ko" -> "이벤트 '$eventId'로 획득"
+        "ja" -> "イベント '$eventId' で獲得"
+        "zh" -> "通过活动 '$eventId' 获得"
+        "es" -> "Obtenido en evento '$eventId'"
+        else -> "Earned by event '$eventId'"
+    }
+
+    fun earnedByChallenge(category: String, count: Int): String = when (getLang()) {
+        "ko" -> "$category ${count}회 완료로 획득"
+        "ja" -> "$category ${count}回完了で獲得"
+        "zh" -> "完成 $category ${count}次后获得"
+        "es" -> "Obtenido completando $category $count veces"
+        else -> "Earned by completing $category $count times"
+    }
+
+    fun defaultSkinDescription(): String = when (getLang()) {
+        "ko" -> "기본 제공되는 스킨입니다."
+        "ja" -> "デフォルトで提供されるスキンです。"
+        "zh" -> "这是默认提供的皮肤。"
+        "es" -> "Este es el skin predeterminado."
+        else -> "This is the default skin."
+    }
+
+    fun stepsUnlockDetail(required: Long, current: Long): String = when (getLang()) {
+        "ko" -> "총 ${required}보 걸으면 해금됩니다.\n현재: ${current}보 / ${required}보"
+        "ja" -> "総${required}歩歩くと解除されます。\n現在: ${current}歩 / ${required}歩"
+        "zh" -> "累计走${required}步后解锁。\n当前: ${current}步 / ${required}步"
+        "es" -> "Se desbloquea con $required pasos totales.\nActual: $current / $required pasos"
+        else -> "Unlocks at $required total steps.\nCurrent: $current / $required steps"
+    }
+
+    fun streakUnlockDetail(required: Int, current: Int): String = when (getLang()) {
+        "ko" -> "${required}일 연속 목표 달성 시 해금됩니다.\n현재: ${current}일 연속"
+        "ja" -> "${required}日連続目標達成で解除されます。\n現在: ${current}日連続"
+        "zh" -> "连续${required}天达成目标后解锁。\n当前: 连续${current}天"
+        "es" -> "Se desbloquea con $required días seguidos.\nActual: $current días seguidos"
+        else -> "Unlocks at $required day streak.\nCurrent: $current day streak"
+    }
+
+    fun levelUnlockDetail(required: Int, current: Int): String = when (getLang()) {
+        "ko" -> "펫 레벨 $required 달성 시 해금됩니다.\n현재 레벨: Lv.$current"
+        "ja" -> "ペットレベル${required}達成で解除されます。\n現在のレベル: Lv.$current"
+        "zh" -> "宠物达到等级$required 后解锁。\n当前等级: Lv.$current"
+        "es" -> "Se desbloquea al nivel $required.\nNivel actual: Lv.$current"
+        else -> "Unlocks at pet level $required.\nCurrent level: Lv.$current"
+    }
+
+    fun eventUnlockDetail(eventId: String): String = when (getLang()) {
+        "ko" -> "특별 이벤트 기간에 해금됩니다.\n이벤트: $eventId"
+        "ja" -> "特別イベント期間中に解除されます。\nイベント: $eventId"
+        "zh" -> "在特别活动期间解锁。\n活动: $eventId"
+        "es" -> "Se desbloquea durante el evento.\nEvento: $eventId"
+        else -> "Unlocks during special event.\nEvent: $eventId"
+    }
+
+    fun challengeUnlockDetail(category: String, required: Int, current: Int): String = when (getLang()) {
+        "ko" -> "$category 챌린지 ${required}회 완료 시 해금됩니다.\n현재: ${current}회 / ${required}회"
+        "ja" -> "${category}チャレンジ${required}回完了で解除されます。\n現在: ${current}回 / ${required}回"
+        "zh" -> "完成$category 挑战${required}次后解锁。\n当前: ${current}次 / ${required}次"
+        "es" -> "Se desbloquea completando $category $required veces.\nActual: $current / $required veces"
+        else -> "Unlocks by completing $category $required times.\nCurrent: $current / $required times"
+    }
+}
 
 /**
  * 펫 관리 화면
@@ -73,6 +500,16 @@ fun SettingsPetScreen(
 
     // BillingManager
     var billingManager by remember { mutableStateOf<BillingManager?>(null) }
+
+    // 펫 변경 가격 (Google Play에서 조회)
+    var petChangePrice by remember { mutableStateOf<String?>(null) }
+
+    // 가격 조회
+    LaunchedEffect(billingManager) {
+        billingManager?.let { billing ->
+            petChangePrice = billing.getPetChangePrice()
+        }
+    }
 
     // 펫 변경 결제 시작
     fun startPetChangePurchase(newPetType: PetTypeV2, newPetName: String) {
@@ -129,7 +566,7 @@ fun SettingsPetScreen(
 
                             // Toast는 메인 스레드에서만
                             scope.launch(kotlinx.coroutines.Dispatchers.Main) {
-                                Toast.makeText(context, "펫이 변경되었습니다!", Toast.LENGTH_SHORT).show()
+                                Toast.makeText(context, SettingsPetStrings.petChanged(), Toast.LENGTH_SHORT).show()
                             }
                         } catch (e: Exception) {
                             android.util.Log.e("SettingsPetScreen", "Pet change failed: ${e.message}")
@@ -173,7 +610,7 @@ fun SettingsPetScreen(
                     .navigationBarsPadding()
             ) {
                 // ========== 현재 펫 ==========
-                RetroSectionTitle("현재 펫", kenneyFont)
+                RetroSectionTitle(SettingsPetStrings.currentPet(), kenneyFont)
 
                 // 디버그 모드: 길게 누르면 레벨업
                 val isDebug = BuildConfig.DEBUG
@@ -239,7 +676,7 @@ fun SettingsPetScreen(
                         // 레벨 & 단계 (실제 성장 단계 표시)
                         val displayStage = preferenceManager?.getEffectiveDisplayStage() ?: petLevel.stage
                         Text(
-                            text = "Lv.${petLevel.level} (${displayStage.displayName})",
+                            text = "Lv.${petLevel.level} (${displayStage.getLocalizedName()})",
                             fontSize = 15.sp,
                             color = MockupColors.TextPrimary,
                             fontWeight = FontWeight.Bold,
@@ -296,6 +733,14 @@ fun SettingsPetScreen(
 
                 Spacer(modifier = Modifier.height(12.dp))
 
+                // ========== 칭호 선택 ==========
+                TitleSelectionSection(
+                    kenneyFont = kenneyFont,
+                    hapticManager = hapticManager
+                )
+
+                Spacer(modifier = Modifier.height(12.dp))
+
                 // ========== 펫 스킨 ==========
                 SkinManagementSection(
                     petTypeV2 = petTypeV2,
@@ -307,7 +752,7 @@ fun SettingsPetScreen(
                 Spacer(modifier = Modifier.height(12.dp))
 
                 // ========== 펫 통계 ==========
-                RetroSectionTitle("펫 통계", kenneyFont)
+                RetroSectionTitle(SettingsPetStrings.petStats(), kenneyFont)
 
                 Box(
                     modifier = Modifier
@@ -317,18 +762,18 @@ fun SettingsPetScreen(
                         .padding(12.dp)
                 ) {
                     Column {
-                        StatRow("총 걸음수", "${petTotalSteps.formatWithComma()}보", kenneyFont)
+                        StatRow(SettingsPetStrings.totalSteps(), "${petTotalSteps.formatWithComma()}", kenneyFont)
                         Spacer(modifier = Modifier.height(8.dp))
-                        StatRow("총 경험치", "${petLevel.totalExp} EXP", kenneyFont)
+                        StatRow(SettingsPetStrings.totalExp(), "${petLevel.totalExp} EXP", kenneyFont)
                         Spacer(modifier = Modifier.height(8.dp))
-                        StatRow("현재 성격", petTypeV2?.personality?.description ?: "-", kenneyFont)
+                        StatRow(SettingsPetStrings.currentPersonality(), petTypeV2?.personality?.description ?: "-", kenneyFont)
                     }
                 }
 
                 Spacer(modifier = Modifier.height(12.dp))
 
                 // ========== 펫 변경 ==========
-                RetroSectionTitle("펫 변경", kenneyFont)
+                RetroSectionTitle(SettingsPetStrings.changePet(), kenneyFont)
 
                 Box(
                     modifier = Modifier
@@ -348,13 +793,13 @@ fun SettingsPetScreen(
                     ) {
                         Column {
                             Text(
-                                text = "다른 펫으로 변경",
+                                text = SettingsPetStrings.changeToOtherPet(),
                                 fontSize = 16.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = MockupColors.TextPrimary
                             )
                             Text(
-                                text = "레벨은 유지됩니다",
+                                text = SettingsPetStrings.levelKept(),
                                 fontSize = 13.sp,
                                 color = MockupColors.TextSecondary
                             )
@@ -366,7 +811,7 @@ fun SettingsPetScreen(
                                 .padding(horizontal = 12.dp, vertical = 6.dp)
                         ) {
                             Text(
-                                text = "₩1,000",
+                                text = SettingsPetStrings.priceOnly(petChangePrice),
                                 fontSize = 14.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = MockupColors.TextPrimary,
@@ -385,6 +830,7 @@ fun SettingsPetScreen(
             PetChangeDialog(
                 currentPetType = petTypeV2?.name,
                 currentPetName = petName,
+                price = petChangePrice,
                 onDismiss = { showPetChangeDialog = false },
                 onConfirm = { newType, newName ->
                     startPetChangePurchase(newType, newName)
@@ -431,6 +877,7 @@ private fun Long.formatWithComma(): String {
 private fun PetChangeDialog(
     currentPetType: String?,
     currentPetName: String,
+    price: String?,
     onDismiss: () -> Unit,
     onConfirm: (PetTypeV2, String) -> Unit,
     hapticManager: HapticManager
@@ -460,7 +907,7 @@ private fun PetChangeDialog(
         ) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Text(
-                    text = "펫 변경",
+                    text = SettingsPetStrings.changePet(),
                     fontSize = 24.sp,
                     fontWeight = FontWeight.Bold,
                     color = MockupColors.TextPrimary,
@@ -547,7 +994,7 @@ private fun PetChangeDialog(
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
-                            text = "취소",
+                            text = SettingsPetStrings.cancel(),
                             fontSize = 14.sp,
                             fontWeight = FontWeight.Bold,
                             color = MockupColors.TextSecondary
@@ -567,7 +1014,7 @@ private fun PetChangeDialog(
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
-                            text = "변경 (₩1,000)",
+                            text = SettingsPetStrings.changeWithPrice(price),
                             fontSize = 14.sp,
                             fontWeight = FontWeight.Bold,
                             color = Color.White
@@ -750,7 +1197,7 @@ private fun EvolutionStageCard(
             // 단계 이름 + 레벨 범위
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Text(
-                    text = stage.displayName,
+                    text = stage.getLocalizedName(),
                     fontSize = 13.sp,
                     fontWeight = FontWeight.Bold,
                     color = style.textColor
@@ -810,7 +1257,7 @@ private fun EvolutionPreviewSection(
     var isRestoreAction by remember { mutableStateOf(false) }
 
     Column {
-        RetroSectionTitle("성장 단계", kenneyFont)
+        RetroSectionTitle(SettingsPetStrings.growthStage(), kenneyFont)
 
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -870,7 +1317,7 @@ private fun EvolutionPreviewSection(
                 )
             ) {
                 Text(
-                    text = "기본으로 복원",
+                    text = SettingsPetStrings.restoreToDefault(),
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold,
                     color = Color.White
@@ -891,10 +1338,10 @@ private fun EvolutionPreviewSection(
             },
             text = {
                 val message = if (isRestoreAction) {
-                    "펫의 외형을 기본으로 복원하시겠습니까?"
+                    SettingsPetStrings.restoreAppearanceConfirm()
                 } else {
-                    val stageName = pendingStage?.displayName ?: ""
-                    "펫의 외형을 ${stageName}으로 변경하시겠습니까?"
+                    val stageName = pendingStage?.getLocalizedName() ?: ""
+                    SettingsPetStrings.changeAppearanceConfirm(stageName)
                 }
                 Text(text = message)
             },
@@ -1002,13 +1449,13 @@ private fun SkinManagementSection(
 
     Column {
         // 타이틀
-        RetroSectionTitle("펫 스킨", kenneyFont)
+        RetroSectionTitle(SettingsPetStrings.petSkin(), kenneyFont)
 
         Spacer(modifier = Modifier.height(8.dp))
 
         // ========== 보유중 섹션 (항상 표시) ==========
         Text(
-            text = "보유중 (${ownedSkinsList.size})",
+            text = SettingsPetStrings.owned(ownedSkinsList.size),
             fontSize = 13.sp,
             fontWeight = FontWeight.Bold,
             color = MockupColors.TextPrimary,
@@ -1062,7 +1509,7 @@ private fun SkinManagementSection(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                text = "미보유 (${lockedSkinsList.size})",
+                text = SettingsPetStrings.notOwned(lockedSkinsList.size),
                 fontSize = 13.sp,
                 fontWeight = FontWeight.Bold,
                 color = MockupColors.TextMuted
@@ -1118,7 +1565,7 @@ private fun SkinManagementSection(
             },
             title = {
                 Text(
-                    text = "스킨 변경",
+                    text = SettingsPetStrings.changeSkin(),
                     fontWeight = FontWeight.Bold
                 )
             },
@@ -1171,7 +1618,7 @@ private fun SkinManagementSection(
                     Spacer(modifier = Modifier.height(12.dp))
 
                     Text(
-                        text = "이 스킨으로 변경하시겠습니까?",
+                        text = SettingsPetStrings.changeSkinConfirm(),
                         fontSize = 14.sp,
                         color = MockupColors.TextPrimary
                     )
@@ -1258,7 +1705,7 @@ private fun SkinManagementSection(
 
                     // 해금 조건
                     Text(
-                        text = "해금 조건",
+                        text = SettingsPetStrings.unlockCondition(),
                         fontSize = 14.sp,
                         fontWeight = FontWeight.Bold,
                         color = MockupColors.TextPrimary
@@ -1278,7 +1725,7 @@ private fun SkinManagementSection(
                         lockedSkinInfo = null
                     }
                 ) {
-                    Text("확인")
+                    Text(SettingsPetStrings.confirm())
                 }
             }
         )
@@ -1347,7 +1794,7 @@ private fun SkinItemCompact(
 
         // 스킨 이름 (하단 고정)
         Text(
-            text = skin.displayName,
+            text = skin.getLocalizedDisplayName(),
             fontSize = 11.sp,
             fontWeight = FontWeight.SemiBold,
             color = Color.Black,
@@ -1374,17 +1821,122 @@ private fun SkinItemCompact(
     }
 }
 
+// 다국어 헬퍼 (해금 조건 텍스트)
+private object UnlockConditionStrings {
+    private fun getLang(): String = java.util.Locale.getDefault().language
+
+    fun defaultText(): String = when (getLang()) {
+        "ko" -> "기본"; "ja" -> "デフォルト"; "zh" -> "默认"; "es" -> "Defecto"; else -> "Default"
+    }
+
+    fun steps(count: Long): String = when (getLang()) {
+        "ko" -> "${count}보"; "ja" -> "${count}歩"; "zh" -> "${count}步"; "es" -> "${count} pasos"; else -> "${count} steps"
+    }
+
+    fun streak(days: Int): String = when (getLang()) {
+        "ko" -> "${days}일 연속"; "ja" -> "${days}日連続"; "zh" -> "连续${days}天"; "es" -> "${days} días seguidos"; else -> "${days} day streak"
+    }
+
+    fun challengeCount(category: String, count: Int): String = when (getLang()) {
+        "ko" -> "$category ${count}회"; "ja" -> "$category ${count}回"; "zh" -> "$category ${count}次"; "es" -> "$category ${count}x"; else -> "$category ${count}x"
+    }
+
+    fun defaultSkin(): String = when (getLang()) {
+        "ko" -> "기본 제공 스킨"; "ja" -> "デフォルトスキン"; "zh" -> "默认皮肤"; "es" -> "Skin predeterminado"; else -> "Default skin"
+    }
+
+    fun stepsEarned(totalSteps: Long): String = when (getLang()) {
+        "ko" -> "총 ${totalSteps}보 달성으로 획득"; "ja" -> "合計${totalSteps}歩達成で獲得"; "zh" -> "累计${totalSteps}步获得"; "es" -> "Obtenido con ${totalSteps} pasos"; else -> "Earned with ${totalSteps} steps"
+    }
+
+    fun streakEarned(days: Int): String = when (getLang()) {
+        "ko" -> "${days}일 연속 달성으로 획득"; "ja" -> "${days}日連続達成で獲得"; "zh" -> "连续${days}天达成获得"; "es" -> "Obtenido con ${days} días seguidos"; else -> "Earned with ${days} day streak"
+    }
+
+    fun levelEarned(level: Int): String = when (getLang()) {
+        "ko" -> "레벨 ${level} 달성으로 획득"; "ja" -> "レベル${level}達成で獲得"; "zh" -> "达到等级${level}获得"; "es" -> "Obtenido al nivel ${level}"; else -> "Earned at level ${level}"
+    }
+
+    fun eventEarned(eventId: String): String = when (getLang()) {
+        "ko" -> "이벤트 '${eventId}'로 획득"; "ja" -> "イベント「${eventId}」で獲得"; "zh" -> "通过活动「${eventId}」获得"; "es" -> "Obtenido en evento '${eventId}'"; else -> "Earned from event '${eventId}'"
+    }
+
+    fun challengeCountEarned(category: String, count: Int): String = when (getLang()) {
+        "ko" -> "$category ${count}회 완료로 획득"; "ja" -> "$category ${count}回完了で獲得"; "zh" -> "$category 完成${count}次获得"; "es" -> "Obtenido con ${count}x $category"; else -> "Earned with ${count}x $category"
+    }
+
+    fun defaultSkinDetail(): String = when (getLang()) {
+        "ko" -> "기본 제공되는 스킨입니다."; "ja" -> "デフォルトで提供されるスキンです。"; "zh" -> "这是默认提供的皮肤。"; "es" -> "Este skin es predeterminado."; else -> "This is a default skin."
+    }
+
+    fun stepsDetailText(required: Long, current: Long): String = when (getLang()) {
+        "ko" -> "총 ${required}보 걸으면 해금됩니다.\n현재: ${current}보 / ${required}보"
+        "ja" -> "合計${required}歩で解放されます。\n現在: ${current}歩 / ${required}歩"
+        "zh" -> "累计行走${required}步后解锁。\n当前: ${current}步 / ${required}步"
+        "es" -> "Se desbloquea con ${required} pasos.\nActual: ${current} / ${required} pasos"
+        else -> "Unlocks at ${required} steps.\nCurrent: ${current} / ${required} steps"
+    }
+
+    fun streakDetailText(required: Int, current: Int): String = when (getLang()) {
+        "ko" -> "${required}일 연속 목표 달성 시 해금됩니다.\n현재: ${current}일 연속"
+        "ja" -> "${required}日連続目標達成で解放されます。\n現在: ${current}日連続"
+        "zh" -> "连续${required}天达成目标后解锁。\n当前: 连续${current}天"
+        "es" -> "Se desbloquea con ${required} días seguidos.\nActual: ${current} días seguidos"
+        else -> "Unlocks at ${required} day streak.\nCurrent: ${current} day streak"
+    }
+
+    fun levelDetailText(required: Int, current: Int): String = when (getLang()) {
+        "ko" -> "펫 레벨 ${required} 달성 시 해금됩니다.\n현재 레벨: Lv.${current}"
+        "ja" -> "ペットレベル${required}達成で解放されます。\n現在レベル: Lv.${current}"
+        "zh" -> "宠物达到等级${required}后解锁。\n当前等级: Lv.${current}"
+        "es" -> "Se desbloquea al nivel ${required}.\nNivel actual: Lv.${current}"
+        else -> "Unlocks at pet level ${required}.\nCurrent level: Lv.${current}"
+    }
+
+    fun eventDetailText(eventId: String): String = when (getLang()) {
+        "ko" -> "특별 이벤트 기간에 해금됩니다.\n이벤트: ${eventId}"
+        "ja" -> "特別イベント期間中に解放されます。\nイベント: ${eventId}"
+        "zh" -> "特别活动期间解锁。\n活动: ${eventId}"
+        "es" -> "Se desbloquea durante evento especial.\nEvento: ${eventId}"
+        else -> "Unlocks during special event.\nEvent: ${eventId}"
+    }
+
+    fun challengeDetailText(category: String, required: Int, current: Int): String = when (getLang()) {
+        "ko" -> "$category 챌린지 ${required}회 완료 시 해금됩니다.\n현재: ${current}회 / ${required}회"
+        "ja" -> "$category チャレンジ${required}回完了で解放されます。\n現在: ${current}回 / ${required}回"
+        "zh" -> "完成${required}次$category 挑战后解锁。\n当前: ${current}次 / ${required}次"
+        "es" -> "Se desbloquea con ${required}x $category.\nActual: ${current} / ${required}"
+        else -> "Unlocks with ${required}x $category challenge.\nCurrent: ${current} / ${required}"
+    }
+
+    /** 카테고리 이름 로컬라이즈 */
+    fun localizeCategory(category: String): String {
+        val lang = getLang()
+        return when (category) {
+            "독서" -> when (lang) { "ko" -> "독서"; "ja" -> "読書"; "zh" -> "阅读"; "es" -> "Lectura"; else -> "Reading" }
+            "명상" -> when (lang) { "ko" -> "명상"; "ja" -> "瞑想"; "zh" -> "冥想"; "es" -> "Meditación"; else -> "Meditation" }
+            "공부" -> when (lang) { "ko" -> "공부"; "ja" -> "勉強"; "zh" -> "学习"; "es" -> "Estudio"; else -> "Study" }
+            "운동" -> when (lang) { "ko" -> "운동"; "ja" -> "運動"; "zh" -> "运动"; "es" -> "Ejercicio"; else -> "Exercise" }
+            "웰니스" -> when (lang) { "ko" -> "웰니스"; "ja" -> "ウェルネス"; "zh" -> "健康"; "es" -> "Bienestar"; else -> "Wellness" }
+            else -> category
+        }
+    }
+}
+
 /**
  * 해금 조건을 텍스트로 변환 (간단한 버전)
  */
 private fun getUnlockConditionText(condition: UnlockCondition): String {
     return when (condition) {
-        is UnlockCondition.Default -> "기본"
-        is UnlockCondition.Steps -> "${condition.totalSteps}보"
-        is UnlockCondition.Streak -> "${condition.days}일 연속"
+        is UnlockCondition.Default -> UnlockConditionStrings.defaultText()
+        is UnlockCondition.Steps -> UnlockConditionStrings.steps(condition.totalSteps)
+        is UnlockCondition.Streak -> UnlockConditionStrings.streak(condition.days)
         is UnlockCondition.Level -> "Lv.${condition.level}"
         is UnlockCondition.Event -> condition.eventId
-        is UnlockCondition.ChallengeCount -> "${condition.category} ${condition.count}회"
+        is UnlockCondition.ChallengeCount -> {
+            val localizedCategory = UnlockConditionStrings.localizeCategory(condition.category)
+            UnlockConditionStrings.challengeCount(localizedCategory, condition.count)
+        }
     }
 }
 
@@ -1393,12 +1945,15 @@ private fun getUnlockConditionText(condition: UnlockCondition): String {
  */
 private fun getOwnedSkinConditionText(condition: UnlockCondition): String {
     return when (condition) {
-        is UnlockCondition.Default -> "기본 제공 스킨"
-        is UnlockCondition.Steps -> "총 ${condition.totalSteps}보 달성으로 획득"
-        is UnlockCondition.Streak -> "${condition.days}일 연속 달성으로 획득"
-        is UnlockCondition.Level -> "레벨 ${condition.level} 달성으로 획득"
-        is UnlockCondition.Event -> "이벤트 '${condition.eventId}'로 획득"
-        is UnlockCondition.ChallengeCount -> "${condition.category} ${condition.count}회 완료로 획득"
+        is UnlockCondition.Default -> UnlockConditionStrings.defaultSkin()
+        is UnlockCondition.Steps -> UnlockConditionStrings.stepsEarned(condition.totalSteps)
+        is UnlockCondition.Streak -> UnlockConditionStrings.streakEarned(condition.days)
+        is UnlockCondition.Level -> UnlockConditionStrings.levelEarned(condition.level)
+        is UnlockCondition.Event -> UnlockConditionStrings.eventEarned(condition.eventId)
+        is UnlockCondition.ChallengeCount -> {
+            val localizedCategory = UnlockConditionStrings.localizeCategory(condition.category)
+            UnlockConditionStrings.challengeCountEarned(localizedCategory, condition.count)
+        }
     }
 }
 
@@ -1407,27 +1962,304 @@ private fun getOwnedSkinConditionText(condition: UnlockCondition): String {
  */
 private fun getUnlockConditionDetailText(condition: UnlockCondition, prefs: PreferenceManager): String {
     return when (condition) {
-        is UnlockCondition.Default -> "기본 제공되는 스킨입니다."
+        is UnlockCondition.Default -> UnlockConditionStrings.defaultSkinDetail()
         is UnlockCondition.Steps -> {
             val current = prefs.getPetTotalSteps()
             val required = condition.totalSteps
-            "총 ${required}보 걸으면 해금됩니다.\n현재: ${current}보 / ${required}보"
+            UnlockConditionStrings.stepsDetailText(required, current)
         }
         is UnlockCondition.Streak -> {
             val current = prefs.getStreak()
             val required = condition.days
-            "${required}일 연속 목표 달성 시 해금됩니다.\n현재: ${current}일 연속"
+            UnlockConditionStrings.streakDetailText(required, current)
         }
         is UnlockCondition.Level -> {
             val current = prefs.getPetLevelV2()?.level ?: 1
             val required = condition.level
-            "펫 레벨 ${required} 달성 시 해금됩니다.\n현재 레벨: Lv.${current}"
+            UnlockConditionStrings.levelDetailText(required, current)
         }
-        is UnlockCondition.Event -> "특별 이벤트 기간에 해금됩니다.\n이벤트: ${condition.eventId}"
+        is UnlockCondition.Event -> UnlockConditionStrings.eventDetailText(condition.eventId)
         is UnlockCondition.ChallengeCount -> {
+            val localizedCategory = UnlockConditionStrings.localizeCategory(condition.category)
             val current = prefs.getChallengeCountByCategory(condition.category)
             val required = condition.count
-            "${condition.category} 챌린지 ${required}회 완료 시 해금됩니다.\n현재: ${current}회 / ${required}회"
+            UnlockConditionStrings.challengeDetailText(localizedCategory, required, current)
+        }
+    }
+}
+
+// ========== 칭호 선택 시스템 UI ==========
+
+/**
+ * 칭호 선택 섹션
+ */
+@Composable
+private fun TitleSelectionSection(
+    kenneyFont: FontFamily,
+    hapticManager: HapticManager
+) {
+    val context = LocalContext.current
+    val challengeManager = remember { ChallengeManager.getInstance(context) }
+
+    // 획득한 칭호 목록
+    val unlockedTitles by challengeManager.unlockedTitles.collectAsState()
+
+    // 현재 장착된 칭호
+    val equippedTitle by challengeManager.equippedTitle.collectAsState()
+
+    // 펼침/접힘 상태
+    var isExpanded by remember { mutableStateOf(false) }
+
+    Column {
+        // 타이틀
+        RetroSectionTitle(SettingsPetStrings.petTitle(), kenneyFont)
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        if (unlockedTitles.isEmpty()) {
+            // 획득한 칭호가 없을 때
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .border(2.dp, MockupColors.Border.copy(alpha = 0.5f), RoundedCornerShape(12.dp))
+                    .background(MockupColors.CardBackground, RoundedCornerShape(12.dp))
+                    .padding(20.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    // 잠금 아이콘
+                    DrawableIcon(
+                        iconName = "icon_lock",
+                        size = 32.dp,
+                        tint = MockupColors.TextMuted
+                    )
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    Text(
+                        text = SettingsPetStrings.noTitlesYet(),
+                        fontSize = 13.sp,
+                        color = MockupColors.TextMuted,
+                        textAlign = TextAlign.Center
+                    )
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    // 챌린지 하러 가기 버튼
+                    Box(
+                        modifier = Modifier
+                            .border(2.dp, MockupColors.TextPrimary, RoundedCornerShape(8.dp))
+                            .background(MockupColors.TextPrimary, RoundedCornerShape(8.dp))
+                            .clickable {
+                                hapticManager.click()
+                                // MainActivity로 챌린지 화면 이동 요청
+                                val activity = context as? android.app.Activity
+                                activity?.let {
+                                    val intent = android.content.Intent("com.moveoftoday.walkorwait.NAVIGATE_TO_CHALLENGE")
+                                    context.sendBroadcast(intent)
+                                    // 또는 뒤로가기로 메인 화면 복귀
+                                    (context as? android.app.Activity)?.onBackPressed()
+                                }
+                            }
+                            .padding(horizontal = 16.dp, vertical = 8.dp)
+                    ) {
+                        Text(
+                            text = SettingsPetStrings.goToChallenge(),
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White
+                        )
+                    }
+                }
+            }
+        } else {
+            // 획득한 칭호가 있을 때
+            // 현재 장착 중인 칭호 표시
+            if (equippedTitle != null) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .border(3.dp, MockupColors.TextPrimary, RoundedCornerShape(12.dp))
+                        .background(MockupColors.Border.copy(alpha = 0.1f), RoundedCornerShape(12.dp))
+                        .padding(12.dp)
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Column {
+                            Text(
+                                text = SettingsPetStrings.equipped(),
+                                fontSize = 11.sp,
+                                color = MockupColors.TextSecondary
+                            )
+                            Spacer(modifier = Modifier.height(2.dp))
+                            Text(
+                                text = equippedTitle!!.getLocalizedTitle(),
+                                fontSize = 18.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = MockupColors.TextPrimary,
+                                fontFamily = kenneyFont
+                            )
+                        }
+
+                        // 해제 버튼
+                        Box(
+                            modifier = Modifier
+                                .border(2.dp, MockupColors.Border, RoundedCornerShape(6.dp))
+                                .clickable {
+                                    hapticManager.click()
+                                    challengeManager.equipTitle(null)
+                                }
+                                .padding(horizontal = 12.dp, vertical = 6.dp)
+                        ) {
+                            Text(
+                                text = SettingsPetStrings.unequip(),
+                                fontSize = 13.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = MockupColors.TextSecondary
+                            )
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(12.dp))
+            }
+
+            // 획득한 칭호 목록 (펼침/접힘)
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable {
+                        hapticManager.lightClick()
+                        isExpanded = !isExpanded
+                    }
+                    .padding(vertical = 4.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = SettingsPetStrings.titleCount(unlockedTitles.size),
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = MockupColors.TextPrimary
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = if (isExpanded) "▼" else "▶",
+                    fontSize = 12.sp,
+                    color = MockupColors.TextMuted,
+                    fontFamily = kenneyFont
+                )
+            }
+
+            // 칭호 목록 (펼쳤을 때)
+            if (isExpanded) {
+                Spacer(modifier = Modifier.height(8.dp))
+
+                val titlesList = unlockedTitles.toList()
+                val rows = (titlesList.size + 2) / 3
+                val gridHeight = (rows * 80).coerceAtLeast(80).dp
+
+                LazyVerticalGrid(
+                    columns = GridCells.Fixed(3),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(gridHeight),
+                    userScrollEnabled = false
+                ) {
+                    items(titlesList) { titleType ->
+                        val isEquipped = equippedTitle == titleType
+
+                        TitleItemCompact(
+                            titleType = titleType,
+                            isEquipped = isEquipped,
+                            onClick = {
+                                hapticManager.click()
+                                if (isEquipped) {
+                                    challengeManager.equipTitle(null)
+                                } else {
+                                    challengeManager.equipTitle(titleType)
+                                }
+                            }
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+/**
+ * 컴팩트한 칭호 아이템 - ChallengeBox 스타일
+ */
+@Composable
+private fun TitleItemCompact(
+    titleType: ChallengeType,
+    isEquipped: Boolean,
+    onClick: () -> Unit
+) {
+    Box(
+        modifier = Modifier
+            .aspectRatio(1.2f)
+            .border(
+                width = if (isEquipped) 3.dp else 2.dp,
+                color = if (isEquipped) MockupColors.TextPrimary else MockupColors.Border,
+                shape = RoundedCornerShape(12.dp)
+            )
+            .background(
+                if (isEquipped) MockupColors.Border.copy(alpha = 0.15f) else MockupColors.CardBackground,
+                RoundedCornerShape(12.dp)
+            )
+            .clickable(onClick = onClick)
+            .padding(8.dp)
+    ) {
+        Column(
+            modifier = Modifier.fillMaxSize(),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            // 칭호 이름
+            Text(
+                text = titleType.getLocalizedTitle(),
+                fontSize = 11.sp,
+                fontWeight = FontWeight.Bold,
+                color = MockupColors.TextPrimary,
+                textAlign = TextAlign.Center,
+                maxLines = 2
+            )
+
+            Spacer(modifier = Modifier.height(4.dp))
+
+            // 장착/장착해제 상태 표시
+            Text(
+                text = if (isEquipped) SettingsPetStrings.equipped() else SettingsPetStrings.equip(),
+                fontSize = 9.sp,
+                fontWeight = FontWeight.Medium,
+                color = if (isEquipped) MockupColors.TextPrimary else MockupColors.TextMuted
+            )
+        }
+
+        // 장착 표시 (우상단 체크마크)
+        if (isEquipped) {
+            Box(
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .size(18.dp)
+                    .background(MockupColors.TextPrimary, CircleShape)
+            ) {
+                Text(
+                    text = "✓",
+                    color = Color.White,
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.align(Alignment.Center)
+                )
+            }
         }
     }
 }

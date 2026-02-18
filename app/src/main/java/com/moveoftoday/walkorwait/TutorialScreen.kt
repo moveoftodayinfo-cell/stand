@@ -200,9 +200,18 @@ fun TutorialScreen(
                 totalSteps = totalSteps,
                 onNext = { currentStep = 3 }
             )
-            3 -> AccessibilityStep(
+            // Step 3: 접근성 권한 동의 (Google Play 정책 준수)
+            3 -> AccessibilityConsentStep(
                 hapticManager = hapticManager,
                 currentStep = currentStep,
+                totalSteps = totalSteps,
+                onAgree = { currentStep = 31 },  // 접근성 설정으로
+                onDecline = { currentStep = 4 }  // 앱 선택으로 스킵
+            )
+            // Step 31: 실제 접근성 설정 (동의 후)
+            31 -> AccessibilityStep(
+                hapticManager = hapticManager,
+                currentStep = 3,  // 표시용 단계는 3으로 유지
                 totalSteps = totalSteps,
                 onNext = { currentStep = 4 }
             )
@@ -956,6 +965,177 @@ fun FitnessAppConnectionTutorialStep(
     }
 }
 
+// 3.5 접근성 권한 동의 (Google Play 정책 준수 - 명시적 동의 필수)
+@Composable
+fun AccessibilityConsentStep(
+    hapticManager: HapticManager? = null,
+    currentStep: Int = 3,
+    totalSteps: Int = 10,
+    onAgree: () -> Unit,
+    onDecline: () -> Unit
+) {
+    var showDeclineDialog by remember { mutableStateOf(false) }
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(StandColors.DarkBackground)
+    ) {
+        Column(
+            modifier = Modifier.fillMaxSize(),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            TutorialProgressBar(currentStep = currentStep, totalSteps = totalSteps)
+
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(start = 32.dp, end = 32.dp, bottom = 80.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                Text(
+                    text = stringResource(R.string.accessibility_consent_title),
+                    fontSize = StandTypography.headlineMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White
+                )
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                // 설명 카드
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MockupColors.TextMuted.copy(alpha = 0.15f)
+                    )
+                ) {
+                    Column(
+                        modifier = Modifier.padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        Text(
+                            text = stringResource(R.string.accessibility_consent_desc),
+                            fontSize = StandTypography.bodyMedium,
+                            color = Color.White.copy(alpha = 0.8f),
+                            lineHeight = 20.sp
+                        )
+
+                        Spacer(modifier = Modifier.height(4.dp))
+
+                        Text(
+                            text = stringResource(R.string.accessibility_consent_feature_title),
+                            fontSize = StandTypography.bodyMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White
+                        )
+
+                        Text(
+                            text = stringResource(R.string.accessibility_consent_feature_1),
+                            fontSize = StandTypography.bodySmall,
+                            color = Color.White.copy(alpha = 0.7f)
+                        )
+
+                        Text(
+                            text = stringResource(R.string.accessibility_consent_feature_2),
+                            fontSize = StandTypography.bodySmall,
+                            color = Color.White.copy(alpha = 0.7f)
+                        )
+
+                        Text(
+                            text = stringResource(R.string.accessibility_consent_feature_3),
+                            fontSize = StandTypography.bodySmall,
+                            color = Color.White.copy(alpha = 0.7f)
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.weight(1f))
+
+                // 동의 버튼 (메인)
+                Button(
+                    onClick = {
+                        hapticManager?.click()
+                        onAgree()
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(56.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MockupColors.TextMuted
+                    )
+                ) {
+                    Text(
+                        text = stringResource(R.string.accessibility_consent_agree),
+                        fontSize = StandTypography.titleSmall,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                // 동의하지 않음 버튼 (두 번째 버튼 - Google Play 정책 준수)
+                OutlinedButton(
+                    onClick = {
+                        hapticManager?.click()
+                        showDeclineDialog = true
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(48.dp),
+                    border = androidx.compose.foundation.BorderStroke(
+                        1.dp,
+                        Color.White.copy(alpha = 0.5f)
+                    )
+                ) {
+                    Text(
+                        text = stringResource(R.string.accessibility_consent_decline),
+                        fontSize = StandTypography.bodyMedium,
+                        color = Color.White.copy(alpha = 0.7f)
+                    )
+                }
+            }
+        }
+    }
+
+    // 동의 거부 시 표시되는 다이얼로그
+    if (showDeclineDialog) {
+        AlertDialog(
+            onDismissRequest = { showDeclineDialog = false },
+            title = {
+                Text(
+                    text = stringResource(R.string.accessibility_declined_title),
+                    fontWeight = FontWeight.Bold
+                )
+            },
+            text = {
+                Text(
+                    text = stringResource(R.string.accessibility_declined_message),
+                    fontSize = 14.sp,
+                    lineHeight = 20.sp
+                )
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        showDeclineDialog = false
+                        onDecline()  // 앱 선택 단계로 스킵
+                    }
+                ) {
+                    Text(stringResource(R.string.accessibility_declined_understand))
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = { showDeclineDialog = false }
+                ) {
+                    Text(stringResource(R.string.cancel))
+                }
+            }
+        )
+    }
+}
+
 // 4. 접근성 설정 (rebon ON - 필수!)
 @Composable
 fun AccessibilityStep(
@@ -1204,7 +1384,7 @@ fun AppSelectionStep(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Text(
-                                text = "${getCategoryIcon(category)} ${category.displayName}",
+                                text = "${getCategoryIcon(category)} ${stringResource(category.displayNameRes)}",
                                 fontSize = StandTypography.bodyLarge,
                                 fontWeight = FontWeight.Bold,
                                 color = Color.White

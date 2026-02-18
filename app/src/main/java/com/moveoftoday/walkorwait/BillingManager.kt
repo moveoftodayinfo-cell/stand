@@ -49,6 +49,139 @@ class BillingManager(
 
     fun isReady(): Boolean = isConnected
 
+    // 펫 변경 상품 가격 캐시
+    private var petChangePriceCache: String? = null
+
+    /**
+     * 펫 변경 상품 가격 조회 (Google Play에서 실제 가격)
+     * 국가별 통화로 자동 변환됨
+     */
+    suspend fun getPetChangePrice(): String? {
+        // 캐시된 가격 반환
+        petChangePriceCache?.let { return it }
+
+        if (!isConnected) return null
+
+        return try {
+            val productList = listOf(
+                QueryProductDetailsParams.Product.newBuilder()
+                    .setProductId(PET_CHANGE_PRODUCT_ID)
+                    .setProductType(BillingClient.ProductType.INAPP)
+                    .build()
+            )
+
+            val params = QueryProductDetailsParams.newBuilder()
+                .setProductList(productList)
+                .build()
+
+            val result = billingClient.queryProductDetails(params)
+            if (result.billingResult.responseCode == BillingClient.BillingResponseCode.OK) {
+                val price = result.productDetailsList?.firstOrNull()
+                    ?.oneTimePurchaseOfferDetails?.formattedPrice
+                petChangePriceCache = price
+                price
+            } else {
+                null
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to get pet change price: ${e.message}")
+            null
+        }
+    }
+
+    // 구독 가격 캐시
+    private var monthlyPriceCache: String? = null
+    private var yearlyPriceCache: String? = null
+    private var dailyPriceCache: String? = null  // 연간을 일 단위로 계산
+
+    /**
+     * 구독 가격 정보 데이터 클래스
+     */
+    data class SubscriptionPrices(
+        val monthlyPrice: String?,      // "₩3,900", "$2.99" 등
+        val yearlyPrice: String?,       // "₩26,900", "$19.99" 등
+        val dailyPrice: String?         // "₩74", "$0.05" 등 (연간/365)
+    )
+
+    /**
+     * 구독 가격 조회 (Google Play에서 실제 가격)
+     * 월간, 연간, 일간(연간/365) 가격 반환
+     */
+    suspend fun getSubscriptionPrices(): SubscriptionPrices {
+        // 캐시된 가격 반환
+        if (monthlyPriceCache != null && yearlyPriceCache != null) {
+            return SubscriptionPrices(monthlyPriceCache, yearlyPriceCache, dailyPriceCache)
+        }
+
+        if (!isConnected) {
+            return SubscriptionPrices(null, null, null)
+        }
+
+        return try {
+            val productList = listOf(
+                QueryProductDetailsParams.Product.newBuilder()
+                    .setProductId(SUBSCRIPTION_PRODUCT_ID)
+                    .setProductType(BillingClient.ProductType.SUBS)
+                    .build()
+            )
+
+            val params = QueryProductDetailsParams.newBuilder()
+                .setProductList(productList)
+                .build()
+
+            val result = billingClient.queryProductDetails(params)
+            if (result.billingResult.responseCode == BillingClient.BillingResponseCode.OK) {
+                val productDetails = result.productDetailsList?.firstOrNull()
+                val offerDetails = productDetails?.subscriptionOfferDetails
+
+                // Monthly 가격 찾기
+                val monthlyOffer = offerDetails?.find { it.basePlanId == BASE_PLAN_MONTHLY }
+                val monthlyPhase = monthlyOffer?.pricingPhases?.pricingPhaseList?.lastOrNull()
+                monthlyPriceCache = monthlyPhase?.formattedPrice
+
+                // Yearly 가격 찾기
+                val yearlyOffer = offerDetails?.find { it.basePlanId == BASE_PLAN_YEARLY }
+                val yearlyPhase = yearlyOffer?.pricingPhases?.pricingPhaseList?.lastOrNull()
+                yearlyPriceCache = yearlyPhase?.formattedPrice
+
+                // Daily 가격 계산 (연간가격 / 365)
+                val yearlyMicros = yearlyPhase?.priceAmountMicros ?: 0
+                val currencyCode = yearlyPhase?.priceCurrencyCode ?: "USD"
+                if (yearlyMicros > 0) {
+                    val dailyMicros = yearlyMicros / 365
+                    dailyPriceCache = formatMicrosToPrice(dailyMicros, currencyCode)
+                }
+
+                Log.d(TAG, "💰 Subscription prices: monthly=$monthlyPriceCache, yearly=$yearlyPriceCache, daily=$dailyPriceCache")
+
+                SubscriptionPrices(monthlyPriceCache, yearlyPriceCache, dailyPriceCache)
+            } else {
+                SubscriptionPrices(null, null, null)
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to get subscription prices: ${e.message}")
+            SubscriptionPrices(null, null, null)
+        }
+    }
+
+    /**
+     * 마이크로 단위 가격을 포맷된 문자열로 변환
+     */
+    private fun formatMicrosToPrice(micros: Long, currencyCode: String): String {
+        val amount = micros / 1_000_000.0
+        return when (currencyCode) {
+            "KRW" -> "₩${amount.toInt()}"
+            "JPY" -> "¥${amount.toInt()}"
+            "USD" -> "$${String.format("%.2f", amount)}"
+            "EUR" -> "€${String.format("%.2f", amount)}"
+            "GBP" -> "£${String.format("%.2f", amount)}"
+            "CNY" -> "¥${String.format("%.2f", amount)}"
+            "INR" -> "₹${amount.toInt()}"
+            "BRL" -> "R$${String.format("%.2f", amount)}"
+            else -> "$${String.format("%.2f", amount)}"
+        }
+    }
+
     // PurchasesUpdatedListener를 먼저 선언
     private val purchasesUpdatedListener = PurchasesUpdatedListener { billingResult, purchases ->
         if (billingResult.responseCode == BillingClient.BillingResponseCode.OK && purchases != null) {

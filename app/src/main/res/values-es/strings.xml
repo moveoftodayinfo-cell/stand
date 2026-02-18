@@ -55,6 +55,17 @@
     <string name="category_meditation">Meditación</string>
     <string name="category_study">Estudio</string>
 
+    <!-- App Categories -->
+    <string name="app_category_social">Social</string>
+    <string name="app_category_video">Video</string>
+    <string name="app_category_game">Juegos</string>
+    <string name="app_category_entertainment">Entretenimiento</string>
+    <string name="app_category_shopping">Compras</string>
+    <string name="app_category_communication">Comunicación</string>
+    <string name="app_category_music_audio">Música</string>
+    <string name="app_category_productivity">Productividad</string>
+    <string name="app_category_other">Otros</string>
+
     <!-- Days of Week -->
     <string name="day_mon">Lun</string>
     <string name="day_tue">Mar</string>
@@ -144,6 +155,17 @@
     <!-- Account -->
     <string name="auto_backup_in_progress">Respaldo automático activo</string>
     <string name="connect_for_auto_backup">Conecta para respaldo automático</string>
+
+    <!-- Language Settings -->
+    <string name="language_setting">Idioma</string>
+    <string name="language_system">Predeterminado del sistema</string>
+    <string name="language_english">Inglés</string>
+    <string name="language_korean">Coreano</string>
+    <string name="language_japanese">Japonés</string>
+    <string name="language_chinese">Chino (Simplificado)</string>
+    <string name="language_spanish">Español</string>
+    <string name="language_change_restart">Idioma cambiado. Reinicia la app para aplicar completamente.</string>
+    <string name="current_language">Actual: %s</string>
 
     <!-- Data Sync -->
     <string name="restored_existing_data">¡Datos existentes restaurados!</string>
@@ -531,4 +553,17 @@
     <string name="speech_timid_widget">Por favor agrega un widget...</string>
     <string name="speech_clumsy_widget">¡Ve todo de un vistazo con widgets!</string>
     <string name="seven_widgets">7 tipos de widgets</string>
+
+    <!-- Accessibility Consent Dialog (CRITICAL for Google Play compliance) -->
+    <string name="accessibility_consent_title">Permiso de Control de Apps</string>
+    <string name="accessibility_consent_desc">rebon usa el Servicio de Accesibilidad para bloquear las apps seleccionadas cuando no alcanzas tu meta diaria de pasos.\n\nEste permiso se usa SOLO para la función de bloqueo y NO recopila ni transmite datos personales.\n\nPuedes desactivar este permiso en cualquier momento en la configuración del dispositivo.</string>
+    <string name="accessibility_consent_feature_title">Lo que este permiso permite:</string>
+    <string name="accessibility_consent_feature_1">• Detectar cuando se abren apps bloqueadas</string>
+    <string name="accessibility_consent_feature_2">• Mostrar pantalla de bloqueo hasta lograr la meta</string>
+    <string name="accessibility_consent_feature_3">• Desbloquear apps automáticamente al lograr la meta</string>
+    <string name="accessibility_consent_agree">Acepto</string>
+    <string name="accessibility_consent_decline">No acepto</string>
+    <string name="accessibility_declined_title">No Se Puede Usar la App</string>
+    <string name="accessibility_declined_message">El Servicio de Accesibilidad es necesario para la función principal de bloqueo de apps de rebon.\n\nSin este permiso, no puedes usar las funciones principales de la app.</string>
+    <string name="accessibility_declined_understand">OK</string>
 </resources>

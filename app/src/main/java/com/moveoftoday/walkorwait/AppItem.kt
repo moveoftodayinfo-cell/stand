@@ -1,5 +1,6 @@
 package com.moveoftoday.walkorwait
 
+import androidx.annotation.StringRes
 import androidx.compose.ui.graphics.ImageBitmap
 
 data class AppItem(
@@ -11,14 +12,14 @@ data class AppItem(
     val category: AppCategory = AppCategory.OTHER
 )
 
-enum class AppCategory(val displayName: String) {
-    SOCIAL("소셜"),
-    VIDEO("동영상"),
-    GAME("게임"),
-    ENTERTAINMENT("엔터테인먼트"),
-    SHOPPING("쇼핑"),
-    COMMUNICATION("통신"),
-    MUSIC_AUDIO("음악"),
-    PRODUCTIVITY("생산성"),
-    OTHER("기타")
+enum class AppCategory(@StringRes val displayNameRes: Int) {
+    SOCIAL(R.string.app_category_social),
+    VIDEO(R.string.app_category_video),
+    GAME(R.string.app_category_game),
+    ENTERTAINMENT(R.string.app_category_entertainment),
+    SHOPPING(R.string.app_category_shopping),
+    COMMUNICATION(R.string.app_category_communication),
+    MUSIC_AUDIO(R.string.app_category_music_audio),
+    PRODUCTIVITY(R.string.app_category_productivity),
+    OTHER(R.string.app_category_other)
 }

@@ -23,10 +23,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.moveoftoday.walkorwait.*
 import kotlinx.coroutines.delay
+import java.util.Locale
 import kotlinx.coroutines.launch
 
 /**
@@ -868,7 +870,7 @@ fun PetAppSelectionScreen(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Text(
-                                text = "${getCategoryIcon(category)} ${category.displayName}",
+                                text = "${getCategoryIcon(category)} ${stringResource(category.displayNameRes)}",
                                 fontSize = 16.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = MockupColors.TextPrimary
@@ -968,6 +970,161 @@ private fun getCategoryIcon(category: AppCategory): String {
     }
 }
 
+// ============ RealGoalSetupScreen 다국어 지원 ============
+private object RealGoalStrings {
+    private fun getLang(): String = Locale.getDefault().language
+
+    fun dailyGoalSetting(): String = when (getLang()) {
+        "ko" -> "매일 목표 설정"
+        "ja" -> "毎日の目標設定"
+        "zh" -> "每日目标设置"
+        "es" -> "Meta diaria"
+        else -> "Daily Goal"
+    }
+
+    fun steps(): String = when (getLang()) {
+        "ko" -> "걸음 수"
+        "ja" -> "歩数"
+        "zh" -> "步数"
+        "es" -> "Pasos"
+        else -> "Steps"
+    }
+
+    fun distanceKm(): String = when (getLang()) {
+        "ko" -> "거리 (km)"
+        "ja" -> "距離 (km)"
+        "zh" -> "距离 (km)"
+        "es" -> "Distancia (km)"
+        else -> "Distance (km)"
+    }
+
+    fun stepsFormat(steps: Int): String = when (getLang()) {
+        "ko" -> "%,d보".format(steps)
+        "ja" -> "%,d歩".format(steps)
+        "zh" -> "%,d步".format(steps)
+        else -> "%,d steps".format(steps)
+    }
+
+    fun aboutSteps(steps: Int): String = when (getLang()) {
+        "ko" -> "약 %,d보".format(steps)
+        "ja" -> "約%,d歩".format(steps)
+        "zh" -> "约%,d步".format(steps)
+        "es" -> "~%,d pasos".format(steps)
+        else -> "~%,d steps".format(steps)
+    }
+
+    fun aboutKm(km: Float): String = when (getLang()) {
+        "ko" -> "약 %.1fkm".format(km)
+        "ja" -> "約%.1fkm".format(km)
+        "zh" -> "约%.1fkm".format(km)
+        "es" -> "~%.1fkm".format(km)
+        else -> "~%.1fkm".format(km)
+    }
+
+    fun minSteps(): String = when (getLang()) {
+        "ko" -> "1,000보"
+        "ja" -> "1,000歩"
+        "zh" -> "1,000步"
+        else -> "1,000"
+    }
+
+    fun maxSteps(): String = when (getLang()) {
+        "ko" -> "55,000보"
+        "ja" -> "55,000歩"
+        "zh" -> "55,000步"
+        else -> "55,000"
+    }
+
+    fun halfMarathon(): String = when (getLang()) {
+        "ko" -> "하프마라톤"
+        "ja" -> "ハーフマラソン"
+        "zh" -> "半程马拉松"
+        "es" -> "Media Maratón"
+        else -> "Half Marathon"
+    }
+
+    fun fullMarathon(): String = when (getLang()) {
+        "ko" -> "풀마라톤"
+        "ja" -> "フルマラソン"
+        "zh" -> "全程马拉松"
+        "es" -> "Maratón"
+        else -> "Full Marathon"
+    }
+
+    fun halfBtn(): String = when (getLang()) {
+        "ko" -> "하프 21.1km"
+        "ja" -> "ハーフ 21.1km"
+        "zh" -> "半马 21.1km"
+        "es" -> "Media 21.1km"
+        else -> "Half 21.1km"
+    }
+
+    fun fullBtn(): String = when (getLang()) {
+        "ko" -> "풀 42.195km"
+        "ja" -> "フル 42.195km"
+        "zh" -> "全马 42.195km"
+        "es" -> "Maratón 42.195km"
+        else -> "Full 42.195km"
+    }
+
+    fun start(): String = when (getLang()) {
+        "ko" -> "시작하기"
+        "ja" -> "始める"
+        "zh" -> "开始"
+        "es" -> "Empezar"
+        else -> "Start"
+    }
+
+    // 펫 성격별 대사
+    fun speechLoyal(): String = when (getLang()) {
+        "ko" -> "매일 달성할 목표 정해."
+        "ja" -> "毎日達成する目標を決めろ。"
+        "zh" -> "设定每天要达成的目标。"
+        "es" -> "Establece tu meta diaria."
+        else -> "Set your daily goal."
+    }
+
+    fun speechTsundere(): String = when (getLang()) {
+        "ko" -> "매일 달성할 목표... 정해."
+        "ja" -> "毎日の目標...決めて。"
+        "zh" -> "每天的目标...定吧。"
+        "es" -> "Tu meta diaria... ponla."
+        else -> "Your daily goal... set it."
+    }
+
+    fun speechFoodie(): String = when (getLang()) {
+        "ko" -> "매일 목표! 얼마나 걸을래~?"
+        "ja" -> "毎日の目標！どれくらい歩く~？"
+        "zh" -> "每日目标！想走多少~？"
+        "es" -> "¡Meta diaria! ¿Cuánto caminarás~?"
+        else -> "Daily goal! How much will you walk~?"
+    }
+
+    fun speechPlayful(): String = when (getLang()) {
+        "ko" -> "매일 얼마나 걸을끼고?"
+        "ja" -> "毎日どれくらい歩く~？"
+        "zh" -> "每天想走多少~？"
+        "es" -> "¿Cuánto caminarás cada día~?"
+        else -> "How much will you walk daily~?"
+    }
+
+    fun speechTimid(): String = when (getLang()) {
+        "ko" -> "매일 달성할 목표를 정해주세요..."
+        "ja" -> "毎日の目標を決めてください..."
+        "zh" -> "请设定每天的目标..."
+        "es" -> "Por favor establece tu meta diaria..."
+        else -> "Please set your daily goal..."
+    }
+
+    fun speechClumsy(): String = when (getLang()) {
+        "ko" -> "매일 달성할 목표를 정하자!"
+        "ja" -> "毎日の目標を決めよう！"
+        "zh" -> "来定每天的目标吧！"
+        "es" -> "¡Vamos a poner tu meta diaria!"
+        else -> "Let's set your daily goal!"
+    }
+}
+
 /**
  * Real Goal Setup Screen - 튜토리얼 완료 후 실제 목표 설정
  * Pet Layout 약속: Title(32sp, Kenney) → Display Area(240dp, stripes) → Instruction(22sp) → Action Button
@@ -1000,18 +1157,18 @@ fun RealGoalSetupScreen(
 
     // 특별 거리 라벨
     val specialLabel = when {
-        selectedUnit == "km" && kotlin.math.abs(displayKm - 42.195f) < 0.2f -> "풀마라톤"
-        selectedUnit == "km" && kotlin.math.abs(displayKm - 21.1f) < 0.2f -> "하프마라톤"
+        selectedUnit == "km" && kotlin.math.abs(displayKm - 42.195f) < 0.2f -> RealGoalStrings.fullMarathon()
+        selectedUnit == "km" && kotlin.math.abs(displayKm - 21.1f) < 0.2f -> RealGoalStrings.halfMarathon()
         else -> null
     }
 
     val speechText = when (petType.personality) {
-        PetPersonalityV2.LOYAL -> "매일 달성할 목표 정해."
-        PetPersonalityV2.TSUNDERE -> "매일 달성할 목표... 정해."
-        PetPersonalityV2.FOODIE -> "매일 목표! 얼마나 걸을래~?"
-        PetPersonalityV2.PLAYFUL -> "매일 얼마나 걸을끼고?"
-        PetPersonalityV2.TIMID -> "매일 달성할 목표를 정해주세요..."
-        PetPersonalityV2.CLUMSY -> "매일 달성할 목표를 정하자!"
+        PetPersonalityV2.LOYAL -> RealGoalStrings.speechLoyal()
+        PetPersonalityV2.TSUNDERE -> RealGoalStrings.speechTsundere()
+        PetPersonalityV2.FOODIE -> RealGoalStrings.speechFoodie()
+        PetPersonalityV2.PLAYFUL -> RealGoalStrings.speechPlayful()
+        PetPersonalityV2.TIMID -> RealGoalStrings.speechTimid()
+        PetPersonalityV2.CLUMSY -> RealGoalStrings.speechClumsy()
     }
 
     Column(
@@ -1080,7 +1237,7 @@ fun RealGoalSetupScreen(
 
         // 3. Instruction - 22sp
         Text(
-            text = "매일 목표 설정",
+            text = RealGoalStrings.dailyGoalSetting(),
             fontSize = 22.sp,
             fontFamily = kenneyFont,
             fontWeight = FontWeight.Bold,
@@ -1112,7 +1269,7 @@ fun RealGoalSetupScreen(
                     ),
                     shape = RoundedCornerShape(12.dp)
                 ) {
-                    Text("걸음 수", fontWeight = FontWeight.Bold)
+                    Text(RealGoalStrings.steps(), fontWeight = FontWeight.Bold)
                 }
 
                 // km 버튼
@@ -1128,7 +1285,7 @@ fun RealGoalSetupScreen(
                     ),
                     shape = RoundedCornerShape(12.dp)
                 ) {
-                    Text("거리 (km)", fontWeight = FontWeight.Bold)
+                    Text(RealGoalStrings.distanceKm(), fontWeight = FontWeight.Bold)
                 }
             }
 
@@ -1148,7 +1305,7 @@ fun RealGoalSetupScreen(
                             else if (kotlin.math.abs(displayKm - 21.1f) < 0.2f) "21.1 km"
                             else String.format("%.1f km", displayKm)
                         } else {
-                            "%,d보".format(goalSteps.toInt())
+                            RealGoalStrings.stepsFormat(goalSteps.toInt())
                         },
                         fontSize = 48.sp,
                         fontWeight = FontWeight.Bold,
@@ -1158,9 +1315,9 @@ fun RealGoalSetupScreen(
                     // 환산 값 표시
                     Text(
                         text = if (selectedUnit == "km") {
-                            "약 %,d보".format(goalSteps.toInt())
+                            RealGoalStrings.aboutSteps(goalSteps.toInt())
                         } else {
-                            "약 ${String.format("%.1f", displayKm)}km"
+                            RealGoalStrings.aboutKm(displayKm)
                         },
                         fontSize = 14.sp,
                         color = MockupColors.TextMuted
@@ -1206,12 +1363,12 @@ fun RealGoalSetupScreen(
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Text(
-                    text = if (selectedUnit == "km") "0.5km" else "1,000보",
+                    text = if (selectedUnit == "km") "0.5km" else RealGoalStrings.minSteps(),
                     fontSize = 12.sp,
                     color = MockupColors.TextMuted
                 )
                 Text(
-                    text = if (selectedUnit == "km") "42.195km" else "55,000보",
+                    text = if (selectedUnit == "km") "42.195km" else RealGoalStrings.maxSteps(),
                     fontSize = 12.sp,
                     color = MockupColors.TextMuted
                 )
@@ -1239,7 +1396,7 @@ fun RealGoalSetupScreen(
                             shape = RoundedCornerShape(8.dp),
                             contentPadding = PaddingValues(8.dp)
                         ) {
-                            Text("하프 21.1km", fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                            Text(RealGoalStrings.halfBtn(), fontSize = 12.sp, fontWeight = FontWeight.Bold)
                         }
 
                         // 풀마라톤
@@ -1256,7 +1413,7 @@ fun RealGoalSetupScreen(
                             shape = RoundedCornerShape(8.dp),
                             contentPadding = PaddingValues(8.dp)
                         ) {
-                            Text("풀 42.195km", fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                            Text(RealGoalStrings.fullBtn(), fontSize = 12.sp, fontWeight = FontWeight.Bold)
                         }
                     }
                 }
@@ -1267,7 +1424,7 @@ fun RealGoalSetupScreen(
 
         // 5. Action Button
         MockupButton(
-            text = "시작하기",
+            text = RealGoalStrings.start(),
             onClick = {
                 hapticManager?.success()
                 preferenceManager?.saveGoal(goalSteps.toInt())

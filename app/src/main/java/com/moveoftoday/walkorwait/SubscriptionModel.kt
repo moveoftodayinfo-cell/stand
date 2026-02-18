@@ -3,9 +3,9 @@ package com.moveoftoday.walkorwait
 /**
  * rebon 구독 모델
  *
- * 구독 가격:
- * - 월간: 3,900원/월 (3일 무료 체험)
- * - 연간: 39,000원/년 (3일 무료 체험, 2개월 무료)
+ * 구독 가격 (USD - Google Play 기준):
+ * - 월간: $2.49/월 (3일 무료 체험)
+ * - 연간: $26.99/년 (3일 무료 체험, 2개월 무료)
  *
  * 보상 시스템:
  * - 일일 목표 달성 시: 방어 티켓 획득 (연속일수 보호용)
@@ -16,9 +16,13 @@ package com.moveoftoday.walkorwait
  */
 object SubscriptionModel {
 
-    // 결제 가격
-    const val MONTHLY_PRICE = 3900        // 월간 구독
-    const val YEARLY_PRICE = 39000        // 연간 구독 (2개월 무료)
+    // USD 가격 (센트 단위)
+    const val MONTHLY_PRICE_CENTS = 249     // $2.49/월
+    const val YEARLY_PRICE_CENTS = 2699     // $26.99/년
+
+    // 레거시 KRW 가격 (내부 계산용)
+    const val MONTHLY_PRICE = 3900        // 월간 구독 (KRW)
+    const val YEARLY_PRICE = 39000        // 연간 구독 (KRW)
 
     // 친구 초대 설정
     const val YEARLY_INVITE_COUNT = 12    // 연간 구독자 초대 가능 수

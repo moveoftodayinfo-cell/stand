@@ -207,7 +207,7 @@ fun PetMainScreenV2Wrapper(
 
         // 성장 단계 표시
         androidx.compose.material3.Text(
-            text = "${petState.stage.displayName} (${(petState.level.expProgress * 100).toInt()}%)",
+            text = "${petState.stage.getLocalizedName()} (${(petState.level.expProgress * 100).toInt()}%)",
             fontSize = 12.sp,
             color = MockupColors.TextSecondary
         )
@@ -268,7 +268,7 @@ fun LevelUpCelebrationDialog(
             if (isStageEvolution) {
                 Spacer(modifier = Modifier.height(8.dp))
                 androidx.compose.material3.Text(
-                    text = "${PetGrowthStage.fromLevel(oldLevel).displayName} → ${petState.stage.displayName}",
+                    text = "${PetGrowthStage.fromLevel(oldLevel).getLocalizedName()} → ${petState.stage.getLocalizedName()}",
                     fontSize = 16.sp,
                     color = MockupColors.TextPrimary
                 )

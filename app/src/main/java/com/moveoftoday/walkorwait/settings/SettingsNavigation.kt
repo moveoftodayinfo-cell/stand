@@ -23,6 +23,124 @@ import androidx.compose.ui.unit.sp
 import com.google.firebase.auth.FirebaseAuth
 import com.moveoftoday.walkorwait.*
 import com.moveoftoday.walkorwait.pet.*
+import java.util.Locale
+
+// ============ 다국어 지원 헬퍼 객체 ============
+private object SettingsNavigationStrings {
+    private fun getLang(): String = Locale.getDefault().language
+
+    fun petManagement(): String = when (getLang()) {
+        "ko" -> "펫 관리"
+        "ja" -> "ペット管理"
+        "zh" -> "宠物管理"
+        "es" -> "Gestión de mascota"
+        else -> "Pet Management"
+    }
+
+    fun goalSetting(): String = when (getLang()) {
+        "ko" -> "목표 설정"
+        "ja" -> "目標設定"
+        "zh" -> "目标设置"
+        "es" -> "Configuración de meta"
+        else -> "Goal Setting"
+    }
+
+    fun appControl(): String = when (getLang()) {
+        "ko" -> "앱 제어"
+        "ja" -> "アプリ制御"
+        "zh" -> "应用控制"
+        "es" -> "Control de apps"
+        else -> "App Control"
+    }
+
+    fun myProfile(): String = when (getLang()) {
+        "ko" -> "내 정보"
+        "ja" -> "マイページ"
+        "zh" -> "我的信息"
+        "es" -> "Mi perfil"
+        else -> "My Profile"
+    }
+
+    fun friend(): String = when (getLang()) {
+        "ko" -> "친구"
+        "ja" -> "フレンド"
+        "zh" -> "朋友"
+        "es" -> "Amigo"
+        else -> "Friend"
+    }
+
+    fun everyday(): String = when (getLang()) {
+        "ko" -> "매일"
+        "ja" -> "毎日"
+        "zh" -> "每天"
+        "es" -> "Todos los días"
+        else -> "Everyday"
+    }
+
+    fun noLockedApps(): String = when (getLang()) {
+        "ko" -> "잠금 앱 없음"
+        "ja" -> "ロック中のアプリなし"
+        "zh" -> "无锁定应用"
+        "es" -> "Sin apps bloqueadas"
+        else -> "No locked apps"
+    }
+
+    fun appsLocked(count: Int): String = when (getLang()) {
+        "ko" -> "${count}개 앱 잠금 중"
+        "ja" -> "${count}個のアプリをロック中"
+        "zh" -> "已锁定${count}个应用"
+        "es" -> "$count apps bloqueadas"
+        else -> "$count apps locked"
+    }
+
+    fun loginToBackup(): String = when (getLang()) {
+        "ko" -> "로그인하여 데이터 백업"
+        "ja" -> "ログインしてデータをバックアップ"
+        "zh" -> "登录备份数据"
+        "es" -> "Inicia sesión para backup"
+        else -> "Login to backup data"
+    }
+
+    fun feedback(): String = when (getLang()) {
+        "ko" -> "피드백"
+        "ja" -> "フィードバック"
+        "zh" -> "反馈"
+        "es" -> "Feedback"
+        else -> "Feedback"
+    }
+
+    fun terms(): String = when (getLang()) {
+        "ko" -> "약관"
+        "ja" -> "利用規約"
+        "zh" -> "条款"
+        "es" -> "Términos"
+        else -> "Terms"
+    }
+
+    fun stepsUnit(): String = when (getLang()) {
+        "ko" -> "보"
+        "ja" -> "歩"
+        "zh" -> "步"
+        "es" -> " pasos"
+        else -> " steps"
+    }
+
+    fun minutesUnit(): String = when (getLang()) {
+        "ko" -> "분"
+        "ja" -> "分"
+        "zh" -> "分钟"
+        "es" -> " min"
+        else -> " min"
+    }
+
+    fun getDayNames(): List<String> = when (getLang()) {
+        "ko" -> listOf("일", "월", "화", "수", "목", "금", "토")
+        "ja" -> listOf("日", "月", "火", "水", "木", "金", "土")
+        "zh" -> listOf("日", "一", "二", "三", "四", "五", "六")
+        "es" -> listOf("Do", "Lu", "Ma", "Mi", "Ju", "Vi", "Sá")
+        else -> listOf("Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat")
+    }
+}
 
 /**
  * 설정 화면 네비게이션 상태
@@ -168,7 +286,7 @@ private fun SettingsMainContent(
 
     // 펫 정보
     val petTypeV2 = preferenceManager?.getPetTypeV2()
-    val petName = preferenceManager?.getPetNameV2() ?: "친구"
+    val petName = preferenceManager?.getPetNameV2() ?: SettingsNavigationStrings.friend()
     val petLevel = preferenceManager?.getPetLevelV2() ?: PetLevel()
 
     // 목표 정보
@@ -218,7 +336,7 @@ private fun SettingsMainContent(
                 // 1. 펫 관리
                 SettingsMenuCard(
                     iconName = "icon_beetle",  // PNG 아이콘
-                    title = "펫 관리",
+                    title = SettingsNavigationStrings.petManagement(),
                     subtitle = "$petName Lv.${petLevel.level}",
                     kenneyFont = kenneyFont,
                     onClick = {
@@ -230,16 +348,16 @@ private fun SettingsMainContent(
                 // 2. 목표 설정
                 val goalText = when (goalUnit) {
                     "km" -> "${goal / 1000.0}km"
-                    "minutes" -> "${goal}분"
-                    else -> "${goal}보"
+                    "minutes" -> "${goal}${SettingsNavigationStrings.minutesUnit()}"
+                    else -> "${goal}${SettingsNavigationStrings.stepsUnit()}"
                 }
-                val daysText = if (controlDays.isEmpty()) "매일" else {
-                    val dayNames = listOf("일", "월", "화", "수", "목", "금", "토")
+                val daysText = if (controlDays.isEmpty()) SettingsNavigationStrings.everyday() else {
+                    val dayNames = SettingsNavigationStrings.getDayNames()
                     controlDays.sorted().map { dayNames[it % 7] }.joinToString("")
                 }
                 SettingsMenuCard(
                     iconName = "icon_flag",  // PNG 아이콘
-                    title = "목표 설정",
+                    title = SettingsNavigationStrings.goalSetting(),
                     subtitle = "$goalText / $daysText",
                     kenneyFont = kenneyFont,
                     onClick = {
@@ -251,8 +369,8 @@ private fun SettingsMainContent(
                 // 3. 앱 제어
                 SettingsMenuCard(
                     iconName = "icon_shield",  // PNG 아이콘
-                    title = "앱 제어",
-                    subtitle = if (lockedApps.isEmpty()) "잠금 앱 없음" else "${lockedApps.size}개 앱 잠금 중",
+                    title = SettingsNavigationStrings.appControl(),
+                    subtitle = if (lockedApps.isEmpty()) SettingsNavigationStrings.noLockedApps() else SettingsNavigationStrings.appsLocked(lockedApps.size),
                     kenneyFont = kenneyFont,
                     onClick = {
                         hapticManager.click()
@@ -263,8 +381,8 @@ private fun SettingsMainContent(
                 // 4. 내 정보
                 SettingsMenuCard(
                     iconName = "icon_character",  // PNG 아이콘
-                    title = "내 정보",
-                    subtitle = if (isGoogleSignedIn) googleEmail else "로그인하여 데이터 백업",
+                    title = SettingsNavigationStrings.myProfile(),
+                    subtitle = if (isGoogleSignedIn) googleEmail else SettingsNavigationStrings.loginToBackup(),
                     kenneyFont = kenneyFont,
                     onClick = {
                         hapticManager.click()
@@ -508,7 +626,7 @@ private fun SettingsFooter(
                 color = MockupColors.TextMuted
             )
             Text(
-                text = "피드백",
+                text = SettingsNavigationStrings.feedback(),
                 fontSize = 13.sp,
                 color = MockupColors.TextSecondary,
                 modifier = Modifier.clickable {
@@ -522,7 +640,7 @@ private fun SettingsFooter(
                 color = MockupColors.TextMuted
             )
             Text(
-                text = "약관",
+                text = SettingsNavigationStrings.terms(),
                 fontSize = 13.sp,
                 color = MockupColors.TextSecondary,
                 modifier = Modifier.clickable {

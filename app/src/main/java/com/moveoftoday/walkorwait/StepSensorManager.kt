@@ -9,6 +9,92 @@ import android.util.Log
 import android.widget.Toast
 import kotlinx.coroutines.*
 import kotlin.math.sqrt
+import java.util.Locale
+
+// 다국어 헬퍼
+private object StepSensorStrings {
+    private fun getLang(): String = Locale.getDefault().language
+
+    fun defaultSensor(): String = when (getLang()) {
+        "ko" -> "기본 걸음 센서 사용"
+        "ja" -> "基本歩数センサー使用"
+        "zh" -> "使用默认步数传感器"
+        "es" -> "Sensor de pasos predeterminado"
+        else -> "Using default step sensor"
+    }
+
+    fun stepDetector(): String = when (getLang()) {
+        "ko" -> "걸음 감지 센서 사용"
+        "ja" -> "歩行検出センサー使用"
+        "zh" -> "使用步行检测传感器"
+        "es" -> "Sensor de detección de pasos"
+        else -> "Using step detector sensor"
+    }
+
+    fun accelerometer(): String = when (getLang()) {
+        "ko" -> "가속도계로 걸음 감지"
+        "ja" -> "加速度計で歩数検出"
+        "zh" -> "使用加速度计检测步数"
+        "es" -> "Detección por acelerómetro"
+        else -> "Using accelerometer"
+    }
+
+    fun accelerometerNoSensor(): String = when (getLang()) {
+        "ko" -> "가속도계로 걸음 감지 (센서 없음)"
+        "ja" -> "加速度計で歩数検出 (センサーなし)"
+        "zh" -> "使用加速度计检测 (无传感器)"
+        "es" -> "Acelerómetro (sin sensor)"
+        else -> "Using accelerometer (no sensor)"
+    }
+
+    fun noSensorAvailable(): String = when (getLang()) {
+        "ko" -> "사용 가능한 센서 없음"
+        "ja" -> "利用可能なセンサーがありません"
+        "zh" -> "没有可用的传感器"
+        "es" -> "Sin sensores disponibles"
+        else -> "No sensors available"
+    }
+
+    fun stepSensor(): String = when (getLang()) {
+        "ko" -> "걸음 센서 사용"
+        "ja" -> "歩数センサー使用"
+        "zh" -> "使用步数传感器"
+        "es" -> "Usando sensor de pasos"
+        else -> "Using step sensor"
+    }
+
+    fun fitnessConnected(appName: String): String = when (getLang()) {
+        "ko" -> if (appName.isNotEmpty()) "$appName 연결됨" else "피트니스 앱 연결됨"
+        "ja" -> if (appName.isNotEmpty()) "$appName 接続済み" else "フィットネスアプリ接続済み"
+        "zh" -> if (appName.isNotEmpty()) "$appName 已连接" else "健身应用已连接"
+        "es" -> if (appName.isNotEmpty()) "$appName conectado" else "App de fitness conectada"
+        else -> if (appName.isNotEmpty()) "$appName connected" else "Fitness app connected"
+    }
+
+    fun fitnessDisconnected(): String = when (getLang()) {
+        "ko" -> "피트니스 앱 연결이 끊어졌습니다.\n설정에서 재연결하세요"
+        "ja" -> "フィットネスアプリが切断されました。\n設定で再接続してください"
+        "zh" -> "健身应用连接已断开。\n请在设置中重新连接"
+        "es" -> "App de fitness desconectada.\nReconecta en ajustes"
+        else -> "Fitness app disconnected.\nReconnect in settings"
+    }
+
+    fun fitnessError(): String = when (getLang()) {
+        "ko" -> "피트니스 앱 연결 오류.\n기본 센서로 전환합니다"
+        "ja" -> "フィットネスアプリ接続エラー。\n基本センサーに切り替えます"
+        "zh" -> "健身应用连接错误。\n切换到默认传感器"
+        "es" -> "Error de app de fitness.\nCambiando a sensor básico"
+        else -> "Fitness app error.\nSwitching to default sensor"
+    }
+
+    fun stepsReset(): String = when (getLang()) {
+        "ko" -> "걸음 수 리셋!"
+        "ja" -> "歩数リセット!"
+        "zh" -> "步数已重置!"
+        "es" -> "Pasos reiniciados!"
+        else -> "Steps reset!"
+    }
+}
 
 class StepSensorManager(private val context: Context) : SensorEventListener {
     private val TAG = "StepSensorManager"
@@ -85,9 +171,9 @@ class StepSensorManager(private val context: Context) : SensorEventListener {
         // 2. Health Connect 미사용 또는 사용 불가 시 기본 센서 사용
         else if (stepSensor != null) {
             sensorType = SensorType.STEP_COUNTER
-            Log.d(TAG, "✅ Using STEP_COUNTER sensor")
+            Log.d(TAG, "Using STEP_COUNTER sensor")
             if (!useHealthConnect) {
-                Toast.makeText(context, "기본 걸음 센서 사용", Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, StepSensorStrings.defaultSensor(), Toast.LENGTH_SHORT).show()
             }
         }
         // 3. STEP_DETECTOR 센서
@@ -96,8 +182,8 @@ class StepSensorManager(private val context: Context) : SensorEventListener {
         } != null) {
             sensorType = SensorType.STEP_DETECTOR
             currentSteps = prefs.getTodaySteps()
-            Log.d(TAG, "✅ Using STEP_DETECTOR sensor")
-            Toast.makeText(context, "걸음 감지 센서 사용", Toast.LENGTH_SHORT).show()
+            Log.d(TAG, "Using STEP_DETECTOR sensor")
+            Toast.makeText(context, StepSensorStrings.stepDetector(), Toast.LENGTH_SHORT).show()
         }
         // 4. ACCELEROMETER (최후 수단)
         else if (sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER).also {
@@ -105,44 +191,44 @@ class StepSensorManager(private val context: Context) : SensorEventListener {
         } != null) {
             sensorType = SensorType.ACCELEROMETER
             currentSteps = prefs.getTodaySteps()
-            Log.d(TAG, "⚙️ Using ACCELEROMETER sensor")
-            Toast.makeText(context, "가속도계로 걸음 감지 (센서 없음)", Toast.LENGTH_LONG).show()
+            Log.d(TAG, "Using ACCELEROMETER sensor")
+            Toast.makeText(context, StepSensorStrings.accelerometerNoSensor(), Toast.LENGTH_LONG).show()
         }
         // 5. 사용 가능한 것이 없음
         else {
             sensorType = SensorType.NONE
-            Log.e(TAG, "❌ No sensors available")
-            Toast.makeText(context, "사용 가능한 센서 없음", Toast.LENGTH_LONG).show()
+            Log.e(TAG, "No sensors available")
+            Toast.makeText(context, StepSensorStrings.noSensorAvailable(), Toast.LENGTH_LONG).show()
         }
     }
 
     private fun fallbackToSensor() {
-        Log.d(TAG, "⚠️ Falling back to sensor")
+        Log.d(TAG, "Falling back to sensor")
         when {
             stepSensor != null -> {
                 sensorType = SensorType.STEP_COUNTER
-                Log.d(TAG, "✅ Fallback to STEP_COUNTER")
-                Toast.makeText(context, "걸음 센서 사용", Toast.LENGTH_SHORT).show()
+                Log.d(TAG, "Fallback to STEP_COUNTER")
+                Toast.makeText(context, StepSensorStrings.stepSensor(), Toast.LENGTH_SHORT).show()
             }
             sensorManager.getDefaultSensor(Sensor.TYPE_STEP_DETECTOR).also {
                 stepDetectorSensor = it
             } != null -> {
                 sensorType = SensorType.STEP_DETECTOR
                 currentSteps = prefs.getTodaySteps()
-                Log.d(TAG, "✅ Fallback to STEP_DETECTOR")
-                Toast.makeText(context, "걸음 감지 센서 사용", Toast.LENGTH_SHORT).show()
+                Log.d(TAG, "Fallback to STEP_DETECTOR")
+                Toast.makeText(context, StepSensorStrings.stepDetector(), Toast.LENGTH_SHORT).show()
             }
             sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER).also {
                 accelerometerSensor = it
             } != null -> {
                 sensorType = SensorType.ACCELEROMETER
                 currentSteps = prefs.getTodaySteps()
-                Log.d(TAG, "⚙️ Fallback to ACCELEROMETER")
-                Toast.makeText(context, "가속도계로 걸음 감지", Toast.LENGTH_SHORT).show()
+                Log.d(TAG, "Fallback to ACCELEROMETER")
+                Toast.makeText(context, StepSensorStrings.accelerometer(), Toast.LENGTH_SHORT).show()
             }
             else -> {
                 sensorType = SensorType.NONE
-                Log.e(TAG, "❌ No fallback available")
+                Log.e(TAG, "No fallback available")
             }
         }
     }
@@ -168,12 +254,8 @@ class StepSensorManager(private val context: Context) : SensorEventListener {
                         val hasPermissions = healthConnectManager.hasAllPermissions()
                         if (hasPermissions) {
                             val connectedAppName = prefs.getConnectedFitnessAppName()
-                            Log.d(TAG, "🏃 Using HEALTH_CONNECT - $connectedAppName")
-                            val toastMsg = if (connectedAppName.isNotEmpty())
-                                "✅ $connectedAppName 연결됨 (기본 센서 OFF)"
-                            else
-                                "✅ 피트니스 앱 연결됨 (기본 센서 OFF)"
-                            Toast.makeText(context, toastMsg, Toast.LENGTH_SHORT).show()
+                            Log.d(TAG, "Using HEALTH_CONNECT - $connectedAppName")
+                            Toast.makeText(context, StepSensorStrings.fitnessConnected(connectedAppName), Toast.LENGTH_SHORT).show()
 
                             // 즉시 첫 데이터 로드
                             val initialSteps = healthConnectManager.getTodaySteps()
@@ -241,20 +323,20 @@ class StepSensorManager(private val context: Context) : SensorEventListener {
                             Log.d(TAG, "HEALTH_CONNECT polling started")
                         } else {
                             // 권한 없으면 사용자에게 알림 후 센서로 fallback
-                            Log.d(TAG, "⚠️ Health Connect permissions not granted")
+                            Log.d(TAG, "Health Connect permissions not granted")
                             Toast.makeText(
                                 context,
-                                "⚠️ 피트니스 앱 연결이 끊어졌습니다.\n설정에서 재연결하세요",
+                                StepSensorStrings.fitnessDisconnected(),
                                 Toast.LENGTH_LONG
                             ).show()
                             fallbackToSensor()
                             startListeningSensor() // 센서 리스닝 시작
                         }
                     } catch (e: Exception) {
-                        Log.e(TAG, "❌ Health Connect error: ${e.message}")
+                        Log.e(TAG, "Health Connect error: ${e.message}")
                         Toast.makeText(
                             context,
-                            "⚠️ 피트니스 앱 연결 오류.\n기본 센서로 전환합니다",
+                            StepSensorStrings.fitnessError(),
                             Toast.LENGTH_LONG
                         ).show()
                         fallbackToSensor()
@@ -486,6 +568,6 @@ class StepSensorManager(private val context: Context) : SensorEventListener {
             SensorType.NONE -> {}
         }
 
-        Toast.makeText(context, "걸음 수 리셋!", Toast.LENGTH_SHORT).show()
+        Toast.makeText(context, StepSensorStrings.stepsReset(), Toast.LENGTH_SHORT).show()
     }
 }

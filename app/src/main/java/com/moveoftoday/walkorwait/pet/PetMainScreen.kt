@@ -516,7 +516,7 @@ fun PetMainScreen(
             hapticManager = hapticManager,
             petType = petType,
             petName = petStateV2?.name ?: petName,  // V2 이름 우선
-            equippedTitle = equippedTitle?.title,  // 칭호는 별도로 전달 (볼드용)
+            equippedTitle = equippedTitle?.getLocalizedTitle(),  // 칭호는 별도로 전달 (볼드용)
             successDays = preferenceManager.getSuccessDays(),
             totalKm = totalDistanceKm,
             // 첫 주 판단용 파라미터
@@ -814,7 +814,7 @@ fun PetMainScreen(
                 val currentEquippedTitle = equippedTitle
                 if (currentEquippedTitle != null) {
                     Text(
-                        text = "${currentEquippedTitle.title} ",
+                        text = "${currentEquippedTitle.getLocalizedTitle()} ",
                         fontSize = 13.sp,
                         fontWeight = FontWeight.Bold,
                         color = MockupColors.TextSecondary,
@@ -1457,7 +1457,7 @@ fun TitleUnlockedDialog(
                 contentAlignment = Alignment.Center
             ) {
                 Text(
-                    text = "${titleType.title} $petName",
+                    text = "${titleType.getLocalizedTitle()} $petName",
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
                     color = Color.Black,
@@ -1469,7 +1469,7 @@ fun TitleUnlockedDialog(
 
             // 챌린지 설명
             Text(
-                text = PetMainStrings.challengeComplete(titleType.displayName),
+                text = PetMainStrings.challengeComplete(titleType.getLocalizedDisplayName()),
                 fontSize = 14.sp,
                 color = Color(0xFF666666)
             )
@@ -1584,7 +1584,7 @@ fun TitleSelectionDialog(
             } else {
                 unlockedTitles.forEach { titleType ->
                     TitleOptionItem(
-                        title = titleType.title,
+                        title = titleType.getLocalizedTitle(),
                         isSelected = equippedTitle == titleType,
                         onClick = {
                             hapticManager?.click()

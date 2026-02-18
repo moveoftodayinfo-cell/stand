@@ -17,6 +17,172 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.moveoftoday.walkorwait.*
 import com.moveoftoday.walkorwait.pet.*
+import java.util.Locale
+
+// ============ 다국어 지원 헬퍼 객체 ============
+private object SettingsGoalStrings {
+    private fun getLang(): String = Locale.getDefault().language
+
+    fun dailyGoal(): String = when (getLang()) {
+        "ko" -> "일일 목표"
+        "ja" -> "1日の目標"
+        "zh" -> "每日目标"
+        "es" -> "Meta diaria"
+        else -> "Daily Goal"
+    }
+
+    fun stepGoal(): String = when (getLang()) {
+        "ko" -> "걸음 목표"
+        "ja" -> "歩数目標"
+        "zh" -> "步数目标"
+        "es" -> "Meta de pasos"
+        else -> "Step Goal"
+    }
+
+    fun controlDays(): String = when (getLang()) {
+        "ko" -> "제어 요일"
+        "ja" -> "制御曜日"
+        "zh" -> "控制星期"
+        "es" -> "Días de control"
+        else -> "Control Days"
+    }
+
+    fun selectDays(): String = when (getLang()) {
+        "ko" -> "요일 선택"
+        "ja" -> "曜日選択"
+        "zh" -> "选择星期"
+        "es" -> "Seleccionar días"
+        else -> "Select Days"
+    }
+
+    fun everyday(): String = when (getLang()) {
+        "ko" -> "매일"
+        "ja" -> "毎日"
+        "zh" -> "每天"
+        "es" -> "Todos los días"
+        else -> "Everyday"
+    }
+
+    fun blockingPeriods(): String = when (getLang()) {
+        "ko" -> "차단 시간대"
+        "ja" -> "ブロック時間帯"
+        "zh" -> "阻止时段"
+        "es" -> "Periodos de bloqueo"
+        else -> "Blocking Periods"
+    }
+
+    fun selectPeriods(): String = when (getLang()) {
+        "ko" -> "시간대 선택"
+        "ja" -> "時間帯選択"
+        "zh" -> "选择时段"
+        "es" -> "Seleccionar periodos"
+        else -> "Select Periods"
+    }
+
+    fun notSet(): String = when (getLang()) {
+        "ko" -> "설정 안 함"
+        "ja" -> "設定なし"
+        "zh" -> "未设置"
+        "es" -> "No configurado"
+        else -> "Not Set"
+    }
+
+    fun periodsCount(count: Int): String = when (getLang()) {
+        "ko" -> "${count}개 시간대"
+        "ja" -> "${count}個の時間帯"
+        "zh" -> "${count}个时段"
+        "es" -> "$count periodos"
+        else -> "$count periods"
+    }
+
+    fun stepsUnit(): String = when (getLang()) {
+        "ko" -> "보"
+        "ja" -> "歩"
+        "zh" -> "步"
+        "es" -> " pasos"
+        else -> " steps"
+    }
+
+    fun minutesUnit(): String = when (getLang()) {
+        "ko" -> "분"
+        "ja" -> "分"
+        "zh" -> "分钟"
+        "es" -> " min"
+        else -> " min"
+    }
+
+    fun example(): String = when (getLang()) {
+        "ko" -> "예시:"
+        "ja" -> "例:"
+        "zh" -> "示例:"
+        "es" -> "Ejemplo:"
+        else -> "Example:"
+    }
+
+    fun morning(): String = when (getLang()) {
+        "ko" -> "오전 (06:00 ~ 12:00)"
+        "ja" -> "午前 (06:00 ~ 12:00)"
+        "zh" -> "上午 (06:00 ~ 12:00)"
+        "es" -> "Mañana (06:00 ~ 12:00)"
+        else -> "Morning (06:00 ~ 12:00)"
+    }
+
+    fun afternoon(): String = when (getLang()) {
+        "ko" -> "오후 (12:00 ~ 18:00)"
+        "ja" -> "午後 (12:00 ~ 18:00)"
+        "zh" -> "下午 (12:00 ~ 18:00)"
+        "es" -> "Tarde (12:00 ~ 18:00)"
+        else -> "Afternoon (12:00 ~ 18:00)"
+    }
+
+    fun evening(): String = when (getLang()) {
+        "ko" -> "저녁 (18:00 ~ 22:00)"
+        "ja" -> "夕方 (18:00 ~ 22:00)"
+        "zh" -> "傍晚 (18:00 ~ 22:00)"
+        "es" -> "Noche (18:00 ~ 22:00)"
+        else -> "Evening (18:00 ~ 22:00)"
+    }
+
+    fun night(): String = when (getLang()) {
+        "ko" -> "심야 (22:00 ~ 06:00)"
+        "ja" -> "深夜 (22:00 ~ 06:00)"
+        "zh" -> "深夜 (22:00 ~ 06:00)"
+        "es" -> "Madrugada (22:00 ~ 06:00)"
+        else -> "Night (22:00 ~ 06:00)"
+    }
+
+    fun exampleMorning(): String = when (getLang()) {
+        "ko" -> "09:00 ~ 12:00 (오전)"
+        "ja" -> "09:00 ~ 12:00 (午前)"
+        "zh" -> "09:00 ~ 12:00 (上午)"
+        "es" -> "09:00 ~ 12:00 (Mañana)"
+        else -> "09:00 ~ 12:00 (Morning)"
+    }
+
+    fun exampleAfternoon(): String = when (getLang()) {
+        "ko" -> "14:00 ~ 18:00 (오후)"
+        "ja" -> "14:00 ~ 18:00 (午後)"
+        "zh" -> "14:00 ~ 18:00 (下午)"
+        "es" -> "14:00 ~ 18:00 (Tarde)"
+        else -> "14:00 ~ 18:00 (Afternoon)"
+    }
+
+    fun getDayNames(): List<String> = when (getLang()) {
+        "ko" -> listOf("일", "월", "화", "수", "목", "금", "토")
+        "ja" -> listOf("日", "月", "火", "水", "木", "金", "土")
+        "zh" -> listOf("日", "一", "二", "三", "四", "五", "六")
+        "es" -> listOf("Do", "Lu", "Ma", "Mi", "Ju", "Vi", "Sá")
+        else -> listOf("Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat")
+    }
+
+    fun getPeriodDisplayText(period: String): String = when (period) {
+        "morning" -> morning()
+        "afternoon" -> afternoon()
+        "evening" -> evening()
+        "night" -> night()
+        else -> period
+    }
+}
 
 /**
  * 목표 설정 화면 (걸음 목표, 요일, 시간대)
@@ -67,16 +233,16 @@ fun SettingsGoalScreen(
                     .navigationBarsPadding()
             ) {
                 // ========== 일일 목표 ==========
-                RetroSectionTitle("일일 목표", kenneyFont)
+                RetroSectionTitle(SettingsGoalStrings.dailyGoal(), kenneyFont)
 
                 val goalText = when (goalUnit) {
                     "km" -> "${goal / 1000.0}km"
-                    "minutes" -> "${goal}분"
-                    else -> "${goal}보"
+                    "minutes" -> "${goal}${SettingsGoalStrings.minutesUnit()}"
+                    else -> "${goal}${SettingsGoalStrings.stepsUnit()}"
                 }
 
                 SettingsItemCard(
-                    title = "걸음 목표",
+                    title = SettingsGoalStrings.stepGoal(),
                     value = goalText,
                     kenneyFont = kenneyFont,
                     onClick = {
@@ -88,17 +254,17 @@ fun SettingsGoalScreen(
                 Spacer(modifier = Modifier.height(16.dp))
 
                 // ========== 제어 요일 ==========
-                RetroSectionTitle("제어 요일", kenneyFont)
+                RetroSectionTitle(SettingsGoalStrings.controlDays(), kenneyFont)
 
-                val dayNames = listOf("일", "월", "화", "수", "목", "금", "토")
+                val dayNames = SettingsGoalStrings.getDayNames()
                 val daysText = if (controlDays.isEmpty()) {
-                    "매일"
+                    SettingsGoalStrings.everyday()
                 } else {
                     controlDays.sorted().map { dayNames[it % 7] }.joinToString(", ")
                 }
 
                 SettingsItemCard(
-                    title = "요일 선택",
+                    title = SettingsGoalStrings.selectDays(),
                     value = daysText,
                     kenneyFont = kenneyFont,
                     onClick = {
@@ -144,16 +310,16 @@ fun SettingsGoalScreen(
                 Spacer(modifier = Modifier.height(16.dp))
 
                 // ========== 차단 시간대 ==========
-                RetroSectionTitle("차단 시간대", kenneyFont)
+                RetroSectionTitle(SettingsGoalStrings.blockingPeriods(), kenneyFont)
 
                 val periodsText = if (blockingPeriods.isEmpty()) {
-                    "설정 안 함"
+                    SettingsGoalStrings.notSet()
                 } else {
-                    "${blockingPeriods.size}개 시간대"
+                    SettingsGoalStrings.periodsCount(blockingPeriods.size)
                 }
 
                 SettingsItemCard(
-                    title = "시간대 선택",
+                    title = SettingsGoalStrings.selectPeriods(),
                     value = periodsText,
                     kenneyFont = kenneyFont,
                     onClick = {
@@ -179,13 +345,7 @@ fun SettingsGoalScreen(
                             blockingPeriods
                                 .sortedBy { sortOrder.indexOf(it).takeIf { i -> i >= 0 } ?: 99 }
                                 .forEach { period ->
-                                    val displayText = when (period) {
-                                        "morning" -> "오전 (06:00 ~ 12:00)"
-                                        "afternoon" -> "오후 (12:00 ~ 18:00)"
-                                        "evening" -> "저녁 (18:00 ~ 22:00)"
-                                        "night" -> "심야 (22:00 ~ 06:00)"
-                                        else -> period
-                                    }
+                                    val displayText = SettingsGoalStrings.getPeriodDisplayText(period)
                                     Text(
                                         text = displayText,
                                         fontSize = 14.sp,
@@ -197,17 +357,17 @@ fun SettingsGoalScreen(
                         // 예시 표시
                         Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                             Text(
-                                text = "예시:",
+                                text = SettingsGoalStrings.example(),
                                 fontSize = 12.sp,
                                 color = MockupColors.TextMuted
                             )
                             Text(
-                                text = "09:00 ~ 12:00 (오전)",
+                                text = SettingsGoalStrings.exampleMorning(),
                                 fontSize = 14.sp,
                                 color = MockupColors.TextMuted
                             )
                             Text(
-                                text = "14:00 ~ 18:00 (오후)",
+                                text = SettingsGoalStrings.exampleAfternoon(),
                                 fontSize = 14.sp,
                                 color = MockupColors.TextMuted
                             )

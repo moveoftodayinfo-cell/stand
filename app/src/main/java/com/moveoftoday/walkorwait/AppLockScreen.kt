@@ -18,6 +18,7 @@ import androidx.compose.ui.graphics.ColorMatrix
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.moveoftoday.walkorwait.pet.MockupColors
@@ -303,7 +304,7 @@ fun AppLockScreen(
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
                                     Text(
-                                        text = category.displayName,
+                                        text = stringResource(category.displayNameRes),
                                         fontSize = 14.sp,
                                         fontWeight = FontWeight.Bold,
                                         color = MockupColors.TextPrimary

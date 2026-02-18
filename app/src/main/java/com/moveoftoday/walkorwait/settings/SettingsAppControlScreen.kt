@@ -20,6 +20,156 @@ import androidx.compose.material3.Text
 import com.moveoftoday.walkorwait.*
 import com.moveoftoday.walkorwait.pet.*
 import kotlinx.coroutines.delay
+import java.util.Locale
+
+// ============ 다국어 지원 헬퍼 객체 ============
+private object SettingsAppControlStrings {
+    private fun getLang(): String = Locale.getDefault().language
+
+    fun rebonDisabled(): String = when (getLang()) {
+        "ko" -> "rebon 비활성화됨"
+        "ja" -> "rebon無効化中"
+        "zh" -> "rebon已禁用"
+        "es" -> "rebon desactivado"
+        else -> "rebon disabled"
+    }
+
+    fun tapToEnable(): String = when (getLang()) {
+        "ko" -> "탭하여 설정에서 활성화하세요"
+        "ja" -> "タップして設定で有効化してください"
+        "zh" -> "点击在设置中启用"
+        "es" -> "Toca para activar en configuración"
+        else -> "Tap to enable in settings"
+    }
+
+    fun rebonEnabled(): String = when (getLang()) {
+        "ko" -> "rebon 활성화됨"
+        "ja" -> "rebon有効化中"
+        "zh" -> "rebon已启用"
+        "es" -> "rebon activado"
+        else -> "rebon enabled"
+    }
+
+    fun appLockWorking(): String = when (getLang()) {
+        "ko" -> "앱 잠금이 정상 작동합니다"
+        "ja" -> "アプリロックが正常に動作しています"
+        "zh" -> "应用锁定正常工作"
+        "es" -> "El bloqueo de apps funciona correctamente"
+        else -> "App lock is working normally"
+    }
+
+    fun lockedApps(): String = when (getLang()) {
+        "ko" -> "잠금 앱"
+        "ja" -> "ロックアプリ"
+        "zh" -> "锁定应用"
+        "es" -> "Apps bloqueadas"
+        else -> "Locked Apps"
+    }
+
+    fun manageLockedApps(): String = when (getLang()) {
+        "ko" -> "잠금 앱 관리"
+        "ja" -> "ロックアプリ管理"
+        "zh" -> "管理锁定应用"
+        "es" -> "Gestionar apps bloqueadas"
+        else -> "Manage Locked Apps"
+    }
+
+    fun noLockedApps(): String = when (getLang()) {
+        "ko" -> "잠금 앱 없음"
+        "ja" -> "ロック中のアプリなし"
+        "zh" -> "无锁定应用"
+        "es" -> "Sin apps bloqueadas"
+        else -> "No locked apps"
+    }
+
+    fun appsLocked(count: Int): String = when (getLang()) {
+        "ko" -> "${count}개 앱 잠금 중"
+        "ja" -> "${count}個のアプリをロック中"
+        "zh" -> "已锁定${count}个应用"
+        "es" -> "$count apps bloqueadas"
+        else -> "$count apps locked"
+    }
+
+    fun fitnessConnection(): String = when (getLang()) {
+        "ko" -> "피트니스 연결"
+        "ja" -> "フィットネス連携"
+        "zh" -> "健身连接"
+        "es" -> "Conexión fitness"
+        else -> "Fitness Connection"
+    }
+
+    fun healthConnectConnection(): String = when (getLang()) {
+        "ko" -> "Health Connect 연결"
+        "ja" -> "Health Connect連携"
+        "zh" -> "Health Connect连接"
+        "es" -> "Conexión Health Connect"
+        else -> "Health Connect Connection"
+    }
+
+    fun stepDataSync(): String = when (getLang()) {
+        "ko" -> "걸음수 데이터 연동"
+        "ja" -> "歩数データ連携"
+        "zh" -> "步数数据同步"
+        "es" -> "Sincronización de pasos"
+        else -> "Step data sync"
+    }
+
+    fun notificationSettings(): String = when (getLang()) {
+        "ko" -> "알림 설정"
+        "ja" -> "通知設定"
+        "zh" -> "通知设置"
+        "es" -> "Configuración de notificaciones"
+        else -> "Notification Settings"
+    }
+
+    fun goalAchievementNotification(): String = when (getLang()) {
+        "ko" -> "목표 달성 알림"
+        "ja" -> "目標達成通知"
+        "zh" -> "目标达成通知"
+        "es" -> "Notificación de meta lograda"
+        else -> "Goal Achievement Notification"
+    }
+
+    fun dailyGoal100Percent(): String = when (getLang()) {
+        "ko" -> "일일 목표 100% 달성 시"
+        "ja" -> "1日の目標100%達成時"
+        "zh" -> "每日目标100%达成时"
+        "es" -> "Al lograr 100% de la meta diaria"
+        else -> "When daily goal 100% achieved"
+    }
+
+    fun petWorryNotification(): String = when (getLang()) {
+        "ko" -> "펫 걱정 알림"
+        "ja" -> "ペット心配通知"
+        "zh" -> "宠物担心通知"
+        "es" -> "Notificación de mascota preocupada"
+        else -> "Pet Worry Notification"
+    }
+
+    fun usualExerciseTimeNoMovement(): String = when (getLang()) {
+        "ko" -> "평소 운동 시간에 움직임 없을 때"
+        "ja" -> "いつもの運動時間に動きがないとき"
+        "zh" -> "平时运动时间无运动时"
+        "es" -> "Sin movimiento en hora habitual de ejercicio"
+        else -> "No movement during usual exercise time"
+    }
+
+    fun appBlockNotification(): String = when (getLang()) {
+        "ko" -> "앱 차단 알림"
+        "ja" -> "アプリブロック通知"
+        "zh" -> "应用阻止通知"
+        "es" -> "Notificación de bloqueo de app"
+        else -> "App Block Notification"
+    }
+
+    fun lockedAppAttempt(): String = when (getLang()) {
+        "ko" -> "잠긴 앱 실행 시도 시"
+        "ja" -> "ロックされたアプリ起動試行時"
+        "zh" -> "尝试启动锁定应用时"
+        "es" -> "Al intentar abrir app bloqueada"
+        else -> "When attempting to open locked app"
+    }
+}
 
 /**
  * 앱 제어 화면 (잠금 앱, 피트니스 연결, 접근성)
@@ -120,14 +270,14 @@ fun SettingsAppControlScreen(
                             Spacer(modifier = Modifier.width(12.dp))
                             Column {
                                 Text(
-                                    "rebon 비활성화됨",
+                                    SettingsAppControlStrings.rebonDisabled(),
                                     color = MockupColors.Red,
                                     fontWeight = FontWeight.Bold,
                                     fontSize = 16.sp,
                                     fontFamily = kenneyFont
                                 )
                                 Text(
-                                    "탭하여 설정에서 활성화하세요",
+                                    SettingsAppControlStrings.tapToEnable(),
                                     color = MockupColors.TextSecondary,
                                     fontSize = 13.sp
                                 )
@@ -148,14 +298,14 @@ fun SettingsAppControlScreen(
                             Spacer(modifier = Modifier.width(12.dp))
                             Column {
                                 Text(
-                                    "rebon 활성화됨",
+                                    SettingsAppControlStrings.rebonEnabled(),
                                     color = MockupColors.TextPrimary,
                                     fontWeight = FontWeight.Bold,
                                     fontSize = 16.sp,
                                     fontFamily = kenneyFont
                                 )
                                 Text(
-                                    "앱 잠금이 정상 작동합니다",
+                                    SettingsAppControlStrings.appLockWorking(),
                                     color = MockupColors.TextSecondary,
                                     fontSize = 13.sp
                                 )
@@ -165,7 +315,7 @@ fun SettingsAppControlScreen(
                 }
 
                 // ========== 잠금 앱 ==========
-                RetroSectionTitle("잠금 앱", kenneyFont)
+                RetroSectionTitle(SettingsAppControlStrings.lockedApps(), kenneyFont)
 
                 Box(
                     modifier = Modifier
@@ -185,13 +335,13 @@ fun SettingsAppControlScreen(
                     ) {
                         Column {
                             Text(
-                                text = "잠금 앱 관리",
+                                text = SettingsAppControlStrings.manageLockedApps(),
                                 fontSize = 16.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = MockupColors.TextPrimary
                             )
                             Text(
-                                text = if (lockedApps.isEmpty()) "잠금 앱 없음" else "${lockedApps.size}개 앱 잠금 중",
+                                text = if (lockedApps.isEmpty()) SettingsAppControlStrings.noLockedApps() else SettingsAppControlStrings.appsLocked(lockedApps.size),
                                 fontSize = 13.sp,
                                 color = MockupColors.TextSecondary
                             )
@@ -209,7 +359,7 @@ fun SettingsAppControlScreen(
                 Spacer(modifier = Modifier.height(16.dp))
 
                 // ========== 피트니스 앱 연결 ==========
-                RetroSectionTitle("피트니스 연결", kenneyFont)
+                RetroSectionTitle(SettingsAppControlStrings.fitnessConnection(), kenneyFont)
 
                 Box(
                     modifier = Modifier
@@ -229,13 +379,13 @@ fun SettingsAppControlScreen(
                     ) {
                         Column {
                             Text(
-                                text = "Health Connect 연결",
+                                text = SettingsAppControlStrings.healthConnectConnection(),
                                 fontSize = 16.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = MockupColors.TextPrimary
                             )
                             Text(
-                                text = "걸음수 데이터 연동",
+                                text = SettingsAppControlStrings.stepDataSync(),
                                 fontSize = 13.sp,
                                 color = MockupColors.TextSecondary
                             )
@@ -251,7 +401,7 @@ fun SettingsAppControlScreen(
                 }
 
                 // ========== 알림 설정 ==========
-                RetroSectionTitle("알림 설정", kenneyFont)
+                RetroSectionTitle(SettingsAppControlStrings.notificationSettings(), kenneyFont)
 
                 Box(
                     modifier = Modifier
@@ -263,8 +413,8 @@ fun SettingsAppControlScreen(
                     Column {
                         // 목표 달성 알림
                         NotificationToggleRow(
-                            title = "목표 달성 알림",
-                            description = "일일 목표 100% 달성 시",
+                            title = SettingsAppControlStrings.goalAchievementNotification(),
+                            description = SettingsAppControlStrings.dailyGoal100Percent(),
                             enabled = goalNotificationEnabled,
                             kenneyFont = kenneyFont,
                             onToggle = {
@@ -285,8 +435,8 @@ fun SettingsAppControlScreen(
 
                         // 펫 걱정 알림
                         NotificationToggleRow(
-                            title = "펫 걱정 알림",
-                            description = "평소 운동 시간에 움직임 없을 때",
+                            title = SettingsAppControlStrings.petWorryNotification(),
+                            description = SettingsAppControlStrings.usualExerciseTimeNoMovement(),
                             enabled = worryNotificationEnabled,
                             kenneyFont = kenneyFont,
                             onToggle = {
@@ -307,8 +457,8 @@ fun SettingsAppControlScreen(
 
                         // 앱 차단 알림
                         NotificationToggleRow(
-                            title = "앱 차단 알림",
-                            description = "잠긴 앱 실행 시도 시",
+                            title = SettingsAppControlStrings.appBlockNotification(),
+                            description = SettingsAppControlStrings.lockedAppAttempt(),
                             enabled = blockNotificationEnabled,
                             kenneyFont = kenneyFont,
                             onToggle = {

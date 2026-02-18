@@ -16,6 +16,18 @@ data class PetSkin(
     val blendMode: BlendMode,          // 블렌드 모드
     val unlockCondition: UnlockCondition
 ) {
+    /** 다국어 스킨 이름 */
+    fun getLocalizedDisplayName(): String {
+        val lang = java.util.Locale.getDefault().language
+        return SkinNameStrings.getName(id, lang) ?: displayName
+    }
+
+    /** 다국어 스킨 설명 */
+    fun getLocalizedDescription(): String {
+        val lang = java.util.Locale.getDefault().language
+        return SkinNameStrings.getDescription(id, lang) ?: description
+    }
+
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (javaClass != other?.javaClass) return false
@@ -364,4 +376,69 @@ object DefaultSkins {
      * 기본 스킨
      */
     fun getDefault(): PetSkin = ALL_SKINS.first()
+}
+
+/**
+ * 스킨 이름 다국어 지원
+ */
+object SkinNameStrings {
+    private val names = mapOf(
+        // 기본
+        "default" to mapOf("ko" to "기본", "ja" to "デフォルト", "zh" to "默认", "es" to "Defecto", "en" to "Default"),
+        // 세피아
+        "sepia" to mapOf("ko" to "세피아", "ja" to "セピア", "zh" to "复古", "es" to "Sepia", "en" to "Sepia"),
+        // 블루 틴트
+        "blue_tint" to mapOf("ko" to "블루 틴트", "ja" to "ブルーティント", "zh" to "蓝色调", "es" to "Tinte azul", "en" to "Blue Tint"),
+        // 골드 틴트
+        "gold_tint" to mapOf("ko" to "골드 틴트", "ja" to "ゴールドティント", "zh" to "金色调", "es" to "Tinte dorado", "en" to "Gold Tint"),
+        // 레드 필터
+        "red_filter" to mapOf("ko" to "레드 필터", "ja" to "レッドフィルター", "zh" to "红色滤镜", "es" to "Filtro rojo", "en" to "Red Filter"),
+        // 블루 필터
+        "blue_filter" to mapOf("ko" to "블루 필터", "ja" to "ブルーフィルター", "zh" to "蓝色滤镜", "es" to "Filtro azul", "en" to "Blue Filter"),
+        // 그린 틴트
+        "green_tint" to mapOf("ko" to "그린 틴트", "ja" to "グリーンティント", "zh" to "绿色调", "es" to "Tinte verde", "en" to "Green Tint"),
+        // 퍼플 틴트
+        "purple_tint" to mapOf("ko" to "퍼플 틴트", "ja" to "パープルティント", "zh" to "紫色调", "es" to "Tinte púrpura", "en" to "Purple Tint"),
+        // 오렌지 틴트
+        "orange_tint" to mapOf("ko" to "오렌지 틴트", "ja" to "オレンジティント", "zh" to "橙色调", "es" to "Tinte naranja", "en" to "Orange Tint"),
+        // 핑크 틴트
+        "pink_tint" to mapOf("ko" to "핑크 틴트", "ja" to "ピンクティント", "zh" to "粉色调", "es" to "Tinte rosa", "en" to "Pink Tint"),
+        // 시안 필터
+        "cyan_filter" to mapOf("ko" to "시안 필터", "ja" to "シアンフィルター", "zh" to "青色滤镜", "es" to "Filtro cian", "en" to "Cyan Filter"),
+        // 그린 필터
+        "green_filter" to mapOf("ko" to "그린 필터", "ja" to "グリーンフィルター", "zh" to "绿色滤镜", "es" to "Filtro verde", "en" to "Green Filter"),
+        // 퍼플 필터
+        "purple_filter" to mapOf("ko" to "퍼플 필터", "ja" to "パープルフィルター", "zh" to "紫色滤镜", "es" to "Filtro púrpura", "en" to "Purple Filter"),
+        // 오렌지 필터
+        "orange_filter" to mapOf("ko" to "오렌지 필터", "ja" to "オレンジフィルター", "zh" to "橙色滤镜", "es" to "Filtro naranja", "en" to "Orange Filter"),
+        // 핑크 필터
+        "pink_filter" to mapOf("ko" to "핑크 필터", "ja" to "ピンクフィルター", "zh" to "粉色滤镜", "es" to "Filtro rosa", "en" to "Pink Filter"),
+        // 골드 필터
+        "gold_filter" to mapOf("ko" to "골드 필터", "ja" to "ゴールドフィルター", "zh" to "金色滤镜", "es" to "Filtro dorado", "en" to "Gold Filter"),
+        // 실버 필터
+        "silver_filter" to mapOf("ko" to "실버 필터", "ja" to "シルバーフィルター", "zh" to "银色滤镜", "es" to "Filtro plata", "en" to "Silver Filter"),
+        // 브론즈 필터
+        "bronze_filter" to mapOf("ko" to "브론즈 필터", "ja" to "ブロンズフィルター", "zh" to "铜色滤镜", "es" to "Filtro bronce", "en" to "Bronze Filter"),
+        // 다크 레드 필터
+        "dark_red_filter" to mapOf("ko" to "다크 레드 필터", "ja" to "ダークレッドフィルター", "zh" to "深红滤镜", "es" to "Filtro rojo oscuro", "en" to "Dark Red Filter"),
+        // 다크 블루 필터
+        "dark_blue_filter" to mapOf("ko" to "다크 블루 필터", "ja" to "ダークブルーフィルター", "zh" to "深蓝滤镜", "es" to "Filtro azul oscuro", "en" to "Dark Blue Filter"),
+        // 다크 그린 필터
+        "dark_green_filter" to mapOf("ko" to "다크 그린 필터", "ja" to "ダークグリーンフィルター", "zh" to "深绿滤镜", "es" to "Filtro verde oscuro", "en" to "Dark Green Filter"),
+        // 화이트 필터
+        "white_filter" to mapOf("ko" to "화이트 필터", "ja" to "ホワイトフィルター", "zh" to "白色滤镜", "es" to "Filtro blanco", "en" to "White Filter"),
+        // 블랙 필터
+        "black_filter" to mapOf("ko" to "블랙 필터", "ja" to "ブラックフィルター", "zh" to "黑色滤镜", "es" to "Filtro negro", "en" to "Black Filter")
+    )
+
+    fun getName(skinId: String, lang: String): String? {
+        val langMap = names[skinId] ?: return null
+        return langMap[lang] ?: langMap["en"]
+    }
+
+    fun getDescription(skinId: String, lang: String): String? {
+        // Descriptions are generated dynamically based on unlock conditions
+        // This is a placeholder for potential future use
+        return null
+    }
 }

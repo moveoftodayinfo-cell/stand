@@ -55,6 +55,17 @@
     <string name="category_meditation">Meditation</string>
     <string name="category_study">Study</string>
 
+    <!-- App Categories -->
+    <string name="app_category_social">Social</string>
+    <string name="app_category_video">Video</string>
+    <string name="app_category_game">Game</string>
+    <string name="app_category_entertainment">Entertainment</string>
+    <string name="app_category_shopping">Shopping</string>
+    <string name="app_category_communication">Communication</string>
+    <string name="app_category_music_audio">Music</string>
+    <string name="app_category_productivity">Productivity</string>
+    <string name="app_category_other">Other</string>
+
     <!-- Days of Week -->
     <string name="day_mon">Mon</string>
     <string name="day_tue">Tue</string>
@@ -144,6 +155,17 @@
     <!-- Account -->
     <string name="auto_backup_in_progress">Auto backup in progress</string>
     <string name="connect_for_auto_backup">Connect for automatic data backup</string>
+
+    <!-- Language Settings -->
+    <string name="language_setting">Language</string>
+    <string name="language_system">System Default</string>
+    <string name="language_english">English</string>
+    <string name="language_korean">Korean</string>
+    <string name="language_japanese">Japanese</string>
+    <string name="language_chinese">Chinese (Simplified)</string>
+    <string name="language_spanish">Spanish</string>
+    <string name="language_change_restart">Language changed. Please restart the app for full effect.</string>
+    <string name="current_language">Current: %s</string>
 
     <!-- Data Sync -->
     <string name="restored_existing_data">Restored existing data!</string>
@@ -531,4 +553,17 @@
     <string name="speech_timid_widget">Please add a widget...</string>
     <string name="speech_clumsy_widget">Check at a glance with widgets!</string>
     <string name="seven_widgets">7 Widget Types</string>
+
+    <!-- Accessibility Consent Dialog (CRITICAL for Google Play compliance) -->
+    <string name="accessibility_consent_title">App Control Permission</string>
+    <string name="accessibility_consent_desc">rebon uses Accessibility Service to block selected apps when your daily step goal is not achieved.\n\nThis permission is used ONLY for the app blocking feature and does NOT collect or transmit personal data.\n\nYou can disable this permission anytime in device settings.</string>
+    <string name="accessibility_consent_feature_title">What this permission enables:</string>
+    <string name="accessibility_consent_feature_1">• Detect when blocked apps are launched</string>
+    <string name="accessibility_consent_feature_2">• Display blocking screen until goal is achieved</string>
+    <string name="accessibility_consent_feature_3">• Unlock apps automatically when goal is reached</string>
+    <string name="accessibility_consent_agree">I Agree</string>
+    <string name="accessibility_consent_decline">I Decline</string>
+    <string name="accessibility_declined_title">Cannot Use App</string>
+    <string name="accessibility_declined_message">Accessibility Service is required for rebon\'s core app blocking feature.\n\nWithout this permission, you cannot use the main features of the app.</string>
+    <string name="accessibility_declined_understand">OK</string>
 </resources>

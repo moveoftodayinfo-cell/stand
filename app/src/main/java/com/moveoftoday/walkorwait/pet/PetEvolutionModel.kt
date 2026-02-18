@@ -1,9 +1,14 @@
 package com.moveoftoday.walkorwait.pet
 
+import java.util.Locale
+
 /**
  * Pet Evolution System - Rebon
  * 새로운 펫 성장 시스템
  */
+
+// 다국어 지원
+private fun getLang(): String = Locale.getDefault().language
 
 /**
  * 펫 애니메이션 타입 (새로운 버전)
@@ -61,6 +66,40 @@ enum class PetGrowthStage(
                 level <= 20 -> TEEN
                 else -> ADULT
             }
+        }
+    }
+
+    /**
+     * 다국어 성장 단계 이름
+     */
+    fun getLocalizedName(): String = when (this) {
+        EGG -> when (getLang()) {
+            "ko" -> "알"
+            "ja" -> "たまご"
+            "zh" -> "蛋"
+            "es" -> "Huevo"
+            else -> "Egg"
+        }
+        BABY -> when (getLang()) {
+            "ko" -> "새싹"
+            "ja" -> "ベビー"
+            "zh" -> "幼崽"
+            "es" -> "Bebé"
+            else -> "Baby"
+        }
+        TEEN -> when (getLang()) {
+            "ko" -> "성장"
+            "ja" -> "成長"
+            "zh" -> "成长"
+            "es" -> "Joven"
+            else -> "Teen"
+        }
+        ADULT -> when (getLang()) {
+            "ko" -> "완성"
+            "ja" -> "成体"
+            "zh" -> "成年"
+            "es" -> "Adulto"
+            else -> "Adult"
         }
     }
 }

@@ -119,7 +119,7 @@ fun SkinUnlockDialog(
 
             // 스킨 이름
             Text(
-                text = skin.displayName,
+                text = skin.getLocalizedDisplayName(),
                 fontSize = 18.sp,
                 fontWeight = FontWeight.SemiBold,
                 color = Color(0xFF2196F3),

@@ -64,10 +64,10 @@ fun ChallengeScreen(
         }
     }
 
-    // 전체 선택 시 카테고리별로 그룹화
+    // 전체 선택 시 카테고리별로 그룹화 (로컬라이즈된 카테고리명 사용)
     val challengesByCategory = remember(filteredChallenges, selectedCategory, allCategory) {
         if (selectedCategory == allCategory) {
-            filteredChallenges.groupBy { it.category }
+            filteredChallenges.groupBy { it.type.getLocalizedCategory() }
         } else {
             emptyMap()
         }
@@ -340,7 +340,7 @@ private fun ChallengeBox(
         // 아이콘 (중앙 상단)
         Image(
             painter = painterResource(id = challenge.iconRes),
-            contentDescription = challenge.name,
+            contentDescription = challenge.type.getLocalizedDisplayName(),
             modifier = Modifier
                 .align(Alignment.Center)
                 .offset(y = (-16).dp)
@@ -350,7 +350,7 @@ private fun ChallengeBox(
 
         // 이름 (하단 고정 - 완료 횟수 유무와 관계없이 동일 위치)
         Text(
-            text = challenge.name,
+            text = challenge.type.getLocalizedDisplayName(),
             fontSize = 11.sp,
             fontWeight = FontWeight.SemiBold,
             color = Color.Black,

@@ -55,6 +55,7 @@
         android:fullBackupContent="@xml/backup_rules"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
+        android:localeConfig="@xml/locales_config"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.WalkorWait"
@@ -84,6 +85,13 @@
             <!-- Health Connect 권한 요청 결과 -->
             <intent-filter>
                 <action android:name="androidx.health.ACTION_SHOW_PERMISSIONS_RATIONALE" />
+            </intent-filter>
+            <!-- 친구 초대 딥링크 -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="walkorwait" android:host="invite" />
             </intent-filter>
         </activity>
 
@@ -213,6 +221,19 @@
             <meta-data
                 android:name="android.appwidget.provider"
                 android:resource="@xml/widget_travel_phrase_cn_info" />
+        </receiver>
+
+        <!-- 한국어 학습 위젯 (외국인용) -->
+        <receiver
+            android:name=".TravelPhraseKoreanWidgetProvider"
+            android:exported="true"
+            android:label="Learn Korean">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_travel_phrase_kr_info" />
         </receiver>
 
         <!-- 간헐적 단식 위젯 -->

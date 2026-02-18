@@ -12,6 +12,7 @@ import java.io.InputStreamReader
 import java.io.OutputStreamWriter
 import java.net.HttpURLConnection
 import java.net.URL
+import java.util.Locale
 
 /**
  * AI 명언 생성 매니저
@@ -35,8 +36,11 @@ object PetAIQuoteManager {
     private var apiKey: String = ""
     private var apiKeyLoaded = false
 
-    // 기본 명언 (AI 실패 시 폴백) - 원본 명언 그대로
-    private val originalQuotes = listOf(
+    // 언어 감지
+    private fun getLang(): String = Locale.getDefault().language
+
+    // 기본 명언 (AI 실패 시 폴백) - 다국어 지원
+    private val quotesKo = listOf(
         "시작이 반이다. -아리스토텔레스",
         "천 리 길도 한 걸음부터. -노자",
         "느려도 멈추지만 않으면 된다. -공자",
@@ -51,15 +55,83 @@ object PetAIQuoteManager {
         "몸이 움직이면 마음도 따라온다. -윌리엄 제임스"
     )
 
-    // 성격별 매핑 제거 - 모든 성격에 동일한 원본 명언 사용
-    private val defaultQuotes = mapOf(
-        PetPersonality.TOUGH to originalQuotes,
-        PetPersonality.CUTE to originalQuotes,
-        PetPersonality.TSUNDERE to originalQuotes,
-        PetPersonality.DIALECT to originalQuotes,
-        PetPersonality.TIMID to originalQuotes,
-        PetPersonality.POSITIVE to originalQuotes
+    private val quotesEn = listOf(
+        "Well begun is half done. -Aristotle",
+        "A journey of a thousand miles begins with a single step. -Lao Tzu",
+        "It does not matter how slowly you go as long as you do not stop. -Confucius",
+        "Walking is man's best medicine. -Hippocrates",
+        "Whether you think you can or think you can't, you're right. -Henry Ford",
+        "Never leave till tomorrow what you can do today. -Benjamin Franklin",
+        "Great things are done by a series of small things. -Vincent van Gogh",
+        "Action is the foundational key to all success. -Pablo Picasso",
+        "Consistency beats talent. -Proverb",
+        "The tree planted today is tomorrow's shade. -Proverb",
+        "Make each day your masterpiece. -John Wooden",
+        "Act as if what you do makes a difference. It does. -William James"
     )
+
+    private val quotesJa = listOf(
+        "始まりは半分終わったも同然。 -アリストテレス",
+        "千里の道も一歩から。 -老子",
+        "止まらなければ、どんなにゆっくりでも進める。 -孔子",
+        "歩くことは最高の薬である。 -ヒポクラテス",
+        "できると信じれば、半分は達成したも同然だ。 -ヘンリー・フォード",
+        "今日できることを明日に延ばすな。 -ベンジャミン・フランクリン",
+        "偉大なことは小さなことの積み重ね。 -フィンセント・ファン・ゴッホ",
+        "行動がすべての成功の鍵だ。 -パブロ・ピカソ",
+        "継続は才能に勝る。 -ことわざ",
+        "今日植えた木が明日の日陰になる。 -ことわざ",
+        "毎日少しずつ進めばいい。 -ジョン・ウッデン",
+        "体が動けば心もついてくる。 -ウィリアム・ジェームズ"
+    )
+
+    private val quotesZh = listOf(
+        "好的开始是成功的一半。 -亚里士多德",
+        "千里之行，始于足下。 -老子",
+        "不怕慢，只怕站。 -孔子",
+        "行走是最好的药。 -希波克拉底",
+        "相信自己能做到，就已经成功一半了。 -亨利·福特",
+        "今日事今日毕。 -本杰明·富兰克林",
+        "伟大的事业是由小事组成的。 -梵高",
+        "行动是成功的关键。 -毕加索",
+        "坚持胜于天赋。 -谚语",
+        "今天种的树，明天乘凉。 -谚语",
+        "每天进步一点点。 -约翰·伍登",
+        "身体动起来，心也会跟上。 -威廉·詹姆斯"
+    )
+
+    private val quotesEs = listOf(
+        "Bien empezado, medio acabado. -Aristóteles",
+        "Un viaje de mil millas comienza con un solo paso. -Lao Tzu",
+        "No importa lo lento que vayas mientras no te detengas. -Confucio",
+        "Caminar es la mejor medicina. -Hipócrates",
+        "Si crees que puedes, ya estás a medio camino. -Henry Ford",
+        "No dejes para mañana lo que puedes hacer hoy. -Benjamin Franklin",
+        "Las grandes cosas se hacen con pequeños pasos. -Vincent van Gogh",
+        "La acción es la clave del éxito. -Pablo Picasso",
+        "La constancia vence al talento. -Proverbio",
+        "El árbol plantado hoy es la sombra de mañana. -Proverbio",
+        "Haz de cada día tu obra maestra. -John Wooden",
+        "Actúa como si lo que haces marcara la diferencia. -William James"
+    )
+
+    // 언어별 기본 명언 반환
+    private fun getDefaultQuotesList(): List<String> = when (getLang()) {
+        "ko" -> quotesKo
+        "ja" -> quotesJa
+        "zh" -> quotesZh
+        "es" -> quotesEs
+        else -> quotesEn
+    }
+
+    // 언어별 폴백 메시지
+    private fun getFallbackMessage(): String = when (getLang()) {
+        "ko" -> "오늘도 힘내자!"
+        "ja" -> "今日も頑張ろう!"
+        "zh" -> "今天也加油!"
+        "es" -> "Hoy también, ¡ánimo!"
+        else -> "Let's do our best today!"
+    }
 
     /**
      * API 키 로드
@@ -87,15 +159,20 @@ object PetAIQuoteManager {
      * 명언 가져오기 (캐시에서)
      */
     fun getQuote(personality: PetPersonality): String {
-        val quotes = cachedQuotes[personality] ?: defaultQuotes[personality] ?: listOf("오늘도 힘내자!")
-        return quotes.random()
+        val quotes = cachedQuotes[personality]
+        if (quotes != null && quotes.isNotEmpty()) {
+            return quotes.random()
+        }
+        // 캐시 없으면 언어별 기본 명언 사용
+        val defaultList = getDefaultQuotesList()
+        return if (defaultList.isNotEmpty()) defaultList.random() else getFallbackMessage()
     }
 
     /**
      * 모든 명언 가져오기
      */
     fun getAllQuotes(personality: PetPersonality): List<String> {
-        return cachedQuotes[personality] ?: defaultQuotes[personality] ?: listOf("오늘도 힘내자!")
+        return cachedQuotes[personality] ?: getDefaultQuotesList()
     }
 
     /**
@@ -117,7 +194,7 @@ object PetAIQuoteManager {
 
             if (apiKey.isEmpty()) {
                 Log.w(TAG, "API key empty, using default quotes")
-                cachedQuotes[personality] = defaultQuotes[personality] ?: listOf()
+                cachedQuotes[personality] = getDefaultQuotesList()
                 return
             }
 
@@ -128,11 +205,11 @@ object PetAIQuoteManager {
                 cachedQuotes[personality] = quotes
                 Log.d(TAG, "Generated ${quotes.size} quotes for $personality")
             } else {
-                cachedQuotes[personality] = defaultQuotes[personality] ?: listOf()
+                cachedQuotes[personality] = getDefaultQuotesList()
             }
         } catch (e: Exception) {
             Log.e(TAG, "Failed to generate quotes: ${e.message}")
-            cachedQuotes[personality] = defaultQuotes[personality] ?: listOf()
+            cachedQuotes[personality] = getDefaultQuotesList()
         } finally {
             isLoading = false
         }
@@ -190,28 +267,113 @@ object PetAIQuoteManager {
     }
 
     /**
-     * 명언 생성 프롬프트 (원본 그대로)
+     * 명언 생성 프롬프트 (언어별)
      */
     private fun getQuotePrompt(personality: PetPersonality, petName: String): Pair<String, String> {
-        val systemPrompt = """
-            실제 유명인의 명언을 원본 그대로 전달해줘.
+        val lang = getLang()
 
-            규칙:
-            - 실제 존재하는 유명인(철학자, 작가, 운동선수, 기업인 등)의 명언만 사용
-            - 형식: 명언 원문. -인물이름
-            - 명언은 20자 이내로 짧게
-            - 걷기, 운동, 도전, 성공, 인생, 노력, 꾸준함 관련 명언
-            - 이모지 사용 금지
-            - 말투 변형 없이 원본 그대로
-            - 줄바꿈으로 구분해서 5개 출력
-            - 번호 없이 명언만 출력
-        """.trimIndent()
+        val (systemPrompt, userMessage) = when (lang) {
+            "ko" -> Pair(
+                """
+                실제 유명인의 명언을 원본 그대로 전달해줘.
 
-        val userMessage = """
-            걷기/운동/도전/성공/꾸준함 관련 실제 유명인 명언 5개.
-            형식: 명언 원문. -인물이름
-            줄바꿈으로 구분, 따옴표 없이, 말투 변형 없이 원본 그대로.
-        """.trimIndent()
+                규칙:
+                - 실제 존재하는 유명인(철학자, 작가, 운동선수, 기업인 등)의 명언만 사용
+                - 형식: 명언 원문. -인물이름
+                - 명언은 20자 이내로 짧게
+                - 걷기, 운동, 도전, 성공, 인생, 노력, 꾸준함 관련 명언
+                - 이모지 사용 금지
+                - 말투 변형 없이 원본 그대로
+                - 줄바꿈으로 구분해서 5개 출력
+                - 번호 없이 명언만 출력
+                """.trimIndent(),
+                """
+                걷기/운동/도전/성공/꾸준함 관련 실제 유명인 명언 5개.
+                형식: 명언 원문. -인물이름
+                줄바꿈으로 구분, 따옴표 없이, 말투 변형 없이 원본 그대로.
+                """.trimIndent()
+            )
+            "ja" -> Pair(
+                """
+                有名人の名言をそのまま伝えてください。
+
+                ルール:
+                - 実在の有名人（哲学者、作家、アスリート、企業家など）の名言のみ使用
+                - 形式: 名言原文。 -人物名
+                - 名言は20文字以内で短く
+                - ウォーキング、運動、挑戦、成功、人生、努力、継続に関する名言
+                - 絵文字禁止
+                - 口調変更なしで原文そのまま
+                - 改行で区切って5つ出力
+                - 番号なしで名言のみ出力
+                """.trimIndent(),
+                """
+                ウォーキング/運動/挑戦/成功/継続に関する実在有名人の名言5つ。
+                形式: 名言原文。 -人物名
+                改行で区切り、引用符なし、口調変更なしで原文そのまま。
+                """.trimIndent()
+            )
+            "zh" -> Pair(
+                """
+                请提供真实名人的原话。
+
+                规则:
+                - 只使用真实存在的名人（哲学家、作家、运动员、企业家等）的名言
+                - 格式: 名言原文。 -人物名
+                - 名言20字以内
+                - 关于步行、运动、挑战、成功、人生、努力、坚持的名言
+                - 禁止使用表情符号
+                - 不改变语气，保持原文
+                - 用换行分隔，输出5条
+                - 不要编号，只输出名言
+                """.trimIndent(),
+                """
+                关于步行/运动/挑战/成功/坚持的真实名人名言5条。
+                格式: 名言原文。 -人物名
+                用换行分隔，不加引号，不改变语气，保持原文。
+                """.trimIndent()
+            )
+            "es" -> Pair(
+                """
+                Proporciona citas de personas famosas reales tal como son.
+
+                Reglas:
+                - Solo citas de personas famosas reales (filósofos, escritores, atletas, empresarios, etc.)
+                - Formato: Cita original. -Nombre de la persona
+                - Citas de 20 caracteres o menos
+                - Citas sobre caminar, ejercicio, desafío, éxito, vida, esfuerzo, perseverancia
+                - Sin emojis
+                - Sin cambio de tono, original tal cual
+                - Separadas por saltos de línea, 5 citas
+                - Sin números, solo citas
+                """.trimIndent(),
+                """
+                5 citas de personas famosas reales sobre caminar/ejercicio/desafío/éxito/perseverancia.
+                Formato: Cita original. -Nombre de la persona
+                Separadas por saltos de línea, sin comillas, sin cambio de tono, original tal cual.
+                """.trimIndent()
+            )
+            else -> Pair(
+                """
+                Provide real famous people's quotes as they are.
+
+                Rules:
+                - Only use quotes from real existing famous people (philosophers, writers, athletes, entrepreneurs, etc.)
+                - Format: Original quote. -Person's name
+                - Quotes should be 20 characters or less
+                - Quotes about walking, exercise, challenge, success, life, effort, perseverance
+                - No emojis
+                - No tone changes, keep original as is
+                - Separate by line breaks, output 5
+                - No numbers, only quotes
+                """.trimIndent(),
+                """
+                5 quotes from real famous people about walking/exercise/challenge/success/perseverance.
+                Format: Original quote. -Person's name
+                Separated by line breaks, no quotation marks, no tone changes, original as is.
+                """.trimIndent()
+            )
+        }
 
         return Pair(systemPrompt, userMessage)
     }

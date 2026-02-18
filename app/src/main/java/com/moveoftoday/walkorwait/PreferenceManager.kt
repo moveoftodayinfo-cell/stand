@@ -2490,4 +2490,22 @@ class PreferenceManager(context: Context) {
     fun clearAwaitingAccessibilityReturn() {
         prefs.edit().remove("awaiting_accessibility_return").apply()
     }
+
+    // ============ 언어 설정 ============
+
+    /**
+     * 앱 언어 설정 저장
+     * @param languageCode 언어 코드 (예: "en", "ko", "ja", "zh", "es") 또는 "system" (시스템 기본값)
+     */
+    fun saveAppLanguage(languageCode: String) {
+        prefs.edit().putString("app_language", languageCode).apply()
+    }
+
+    /**
+     * 저장된 앱 언어 설정 반환
+     * @return 언어 코드 또는 "system" (기본값)
+     */
+    fun getAppLanguage(): String {
+        return prefs.getString("app_language", "system") ?: "system"
+    }
 }

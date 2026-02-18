@@ -143,6 +143,23 @@ private object SettingsStrings {
         else -> "Send failed: $error"
     }
 
+    // Debug 메시지
+    fun debugSetComplete(): String = when (getLang()) {
+        "ko" -> "96% 달성률 설정 완료! 화면을 새로고침하세요"
+        "ja" -> "96%達成率設定完了！画面を更新してください"
+        "zh" -> "96%达成率设置完成！请刷新页面"
+        "es" -> "96% completado. Actualiza la pantalla"
+        else -> "96% achievement set! Refresh the screen"
+    }
+
+    fun errorMsg(msg: String?): String = when (getLang()) {
+        "ko" -> "오류: $msg"
+        "ja" -> "エラー: $msg"
+        "zh" -> "错误: $msg"
+        "es" -> "Error: $msg"
+        else -> "Error: $msg"
+    }
+
     // 금액 포맷
     fun formatAmount(amount: Int): String {
         return when (getLang()) {
@@ -1523,7 +1540,6 @@ fun SettingsScreen(
                             .border(3.dp, MockupColors.Border, RoundedCornerShape(12.dp))
                             .background(MockupColors.CardBackground, RoundedCornerShape(12.dp))
                             .clickable {
-                                android.widget.Toast.makeText(context, "펫 변경 클릭!", android.widget.Toast.LENGTH_SHORT).show()
                                 hapticManager.click()
                                 showPetChangeDialog = true
                             }
@@ -1961,9 +1977,9 @@ fun SettingsScreen(
                                                 "totalDays" to totalDays
                                             )).await()
 
-                                        Toast.makeText(context, "✅ 96% 달성률 설정 완료! 화면을 새로고침하세요", Toast.LENGTH_LONG).show()
+                                        Toast.makeText(context, SettingsStrings.debugSetComplete(), Toast.LENGTH_LONG).show()
                                     } catch (e: Exception) {
-                                        Toast.makeText(context, "❌ 오류: ${e.message}", Toast.LENGTH_SHORT).show()
+                                        Toast.makeText(context, SettingsStrings.errorMsg(e.message), Toast.LENGTH_SHORT).show()
                                     }
                                 }
                             },

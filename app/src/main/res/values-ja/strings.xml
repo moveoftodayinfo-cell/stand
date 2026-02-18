@@ -55,6 +55,17 @@
     <string name="category_meditation">瞑想</string>
     <string name="category_study">勉強</string>
 
+    <!-- App Categories -->
+    <string name="app_category_social">ソーシャル</string>
+    <string name="app_category_video">動画</string>
+    <string name="app_category_game">ゲーム</string>
+    <string name="app_category_entertainment">エンタメ</string>
+    <string name="app_category_shopping">ショッピング</string>
+    <string name="app_category_communication">通信</string>
+    <string name="app_category_music_audio">音楽</string>
+    <string name="app_category_productivity">仕事効率化</string>
+    <string name="app_category_other">その他</string>
+
     <!-- Days of Week -->
     <string name="day_mon">月</string>
     <string name="day_tue">火</string>
@@ -144,6 +155,17 @@
     <!-- Account -->
     <string name="auto_backup_in_progress">自動バックアップ中</string>
     <string name="connect_for_auto_backup">連携するとデータが自動バックアップされます</string>
+
+    <!-- Language Settings -->
+    <string name="language_setting">言語</string>
+    <string name="language_system">システムデフォルト</string>
+    <string name="language_english">英語</string>
+    <string name="language_korean">韓国語</string>
+    <string name="language_japanese">日本語</string>
+    <string name="language_chinese">中国語 (簡体字)</string>
+    <string name="language_spanish">スペイン語</string>
+    <string name="language_change_restart">言語が変更されました。完全に適用するにはアプリを再起動してください。</string>
+    <string name="current_language">現在: %s</string>
 
     <!-- Data Sync -->
     <string name="restored_existing_data">既存データを復元しました！</string>
@@ -531,4 +553,17 @@
     <string name="speech_timid_widget">ウィジェットを追加してください...</string>
     <string name="speech_clumsy_widget">ウィジェットで一目で確認！</string>
     <string name="seven_widgets">7種類のウィジェット</string>
+
+    <!-- Accessibility Consent Dialog (CRITICAL for Google Play compliance) -->
+    <string name="accessibility_consent_title">アプリ制御権限について</string>
+    <string name="accessibility_consent_desc">rebonは、1日の歩数目標が達成されていない時に選択したアプリをブロックするためにアクセシビリティサービスを使用します。\n\nこの権限はアプリブロック機能にのみ使用され、個人情報の収集や送信は行いません。\n\nいつでも端末の設定からこの権限を無効にできます。</string>
+    <string name="accessibility_consent_feature_title">この権限で可能な機能：</string>
+    <string name="accessibility_consent_feature_1">• ブロックされたアプリの起動を検出</string>
+    <string name="accessibility_consent_feature_2">• 目標達成まで画面をブロック表示</string>
+    <string name="accessibility_consent_feature_3">• 目標達成時に自動でアプリのロック解除</string>
+    <string name="accessibility_consent_agree">同意する</string>
+    <string name="accessibility_consent_decline">同意しない</string>
+    <string name="accessibility_declined_title">アプリを使用できません</string>
+    <string name="accessibility_declined_message">rebonのコア機能であるアプリブロックには、アクセシビリティサービスが必要です。\n\nこの権限がないと、アプリの主要機能を使用できません。</string>
+    <string name="accessibility_declined_understand">確認</string>
 </resources>

@@ -893,7 +893,7 @@ class ChallengeManager private constructor(private val context: Context) {
     // 칭호가 적용된 펫 이름 반환
     fun getPetNameWithTitle(petName: String): String {
         val equipped = _equippedTitle.value ?: return petName
-        return "${equipped.title} $petName"
+        return "${equipped.getLocalizedTitle()} $petName"
     }
 
     // 칭호 획득 여부

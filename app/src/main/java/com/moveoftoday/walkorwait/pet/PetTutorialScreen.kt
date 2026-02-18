@@ -238,6 +238,55 @@ private object PetTutorialStrings {
         else -> "No fitness app found\nUsing basic sensor"
     }
 
+    // ========== AccessibilityConsentStep ==========
+    fun speechConsentLoyal(): String = when (getLang()) {
+        "ko" -> "앱 차단 권한 설정이야."
+        "ja" -> "アプリブロック権限の設定だよ。"
+        "zh" -> "这是应用阻止权限设置。"
+        "es" -> "Es la configuración de bloqueo."
+        else -> "This is the app blocking permission."
+    }
+
+    fun speechConsentTsundere(): String = when (getLang()) {
+        "ko" -> "권한 설명... 읽어봐."
+        "ja" -> "権限の説明... 読んで。"
+        "zh" -> "权限说明... 看看吧。"
+        "es" -> "Explicación del permiso... léelo."
+        else -> "Permission explanation... read it."
+    }
+
+    fun speechConsentFoodie(): String = when (getLang()) {
+        "ko" -> "권한 동의해주면 차단 기능 쓸 수 있어!"
+        "ja" -> "同意してくれたらブロック機能使えるよ！"
+        "zh" -> "同意的话就能用阻止功能啦！"
+        "es" -> "¡Si aceptas podrás usar el bloqueo!"
+        else -> "Accept to use the blocking feature!"
+    }
+
+    fun speechConsentPlayful(): String = when (getLang()) {
+        "ko" -> "권한 동의해줘!"
+        "ja" -> "権限に同意して！"
+        "zh" -> "请同意权限！"
+        "es" -> "¡Acepta el permiso!"
+        else -> "Accept the permission!"
+    }
+
+    fun speechConsentTimid(): String = when (getLang()) {
+        "ko" -> "권한 동의... 부탁드려요..."
+        "ja" -> "権限同意... お願いします..."
+        "zh" -> "权限同意... 拜托了..."
+        "es" -> "Permiso... por favor..."
+        else -> "Permission... please..."
+    }
+
+    fun speechConsentClumsy(): String = when (getLang()) {
+        "ko" -> "이 권한으로 앱 차단할 수 있어!"
+        "ja" -> "この権限でアプリをブロックできる！"
+        "zh" -> "有了这个权限就能阻止应用了！"
+        "es" -> "¡Con este permiso puedes bloquear apps!"
+        else -> "With this permission you can block apps!"
+    }
+
     // ========== PermissionCard ==========
     fun allow(): String = when (getLang()) {
         "ko" -> "허용"
@@ -403,51 +452,51 @@ private object PetTutorialStrings {
     }
 
     fun paidLoyalSpeech(): String = when (getLang()) {
-        "ko" -> "하루 100원으로\n꿈을 이뤄봐."
-        "ja" -> "1日100ウォンで\n夢を叶えよう。"
-        "zh" -> "每天100韩元\n实现梦想吧。"
-        "es" -> "Por 100 wones al día\nlogra tus sueños."
-        else -> "For just 100 won/day\nachieve your dreams."
+        "ko" -> "하루 8센트로\n꿈을 이뤄봐."
+        "ja" -> "1日8セントで\n夢を叶えよう。"
+        "zh" -> "每天8美分\n实现梦想吧。"
+        "es" -> "Por 8¢ al día\nlogra tus sueños."
+        else -> "For just 8¢/day\nachieve your dreams."
     }
 
     fun paidTsundereSpeech(): String = when (getLang()) {
-        "ko" -> "하루 100원이면 돼...\n꿈 이뤄볼래?"
-        "ja" -> "1日100ウォンでいいの...\n夢叶えてみる?"
-        "zh" -> "每天100韩元就行...\n要实现梦想吗?"
-        "es" -> "Solo 100 wones/día...\n¿Quieres lograr tus sueños?"
-        else -> "Just 100 won/day...\nWant to achieve your dreams?"
+        "ko" -> "하루 8센트면 돼...\n꿈 이뤄볼래?"
+        "ja" -> "1日8セントでいいの...\n夢叶えてみる?"
+        "zh" -> "每天8美分就行...\n要实现梦想吗?"
+        "es" -> "Solo 8¢/día...\n¿Quieres lograr tus sueños?"
+        else -> "Just 8¢/day...\nWant to achieve your dreams?"
     }
 
     fun paidFoodieSpeech(): String = when (getLang()) {
-        "ko" -> "하루 100원으로\n꿈을 이뤄보자~!"
-        "ja" -> "1日100ウォンで\n夢を叶えよう~!"
-        "zh" -> "每天100韩元\n实现梦想吧~!"
-        "es" -> "¡Por 100 wones/día\nlogra tus sueños~!"
-        else -> "For 100 won/day\nlet's achieve dreams~!"
+        "ko" -> "하루 8센트로\n꿈을 이뤄보자~!"
+        "ja" -> "1日8セントで\n夢を叶えよう~!"
+        "zh" -> "每天8美分\n实现梦想吧~!"
+        "es" -> "¡Por 8¢/día\nlogra tus sueños~!"
+        else -> "For 8¢/day\nlet's achieve dreams~!"
     }
 
     fun paidPlayfulSpeech(): String = when (getLang()) {
-        "ko" -> "하루 100원이면\n꿈 이룰 수 있다이~"
-        "ja" -> "1日100ウォンで\n夢叶えられるよ~"
-        "zh" -> "每天100韩元\n就能实现梦想~"
-        "es" -> "¡Con 100 wones/día\npuedes lograr sueños~"
-        else -> "For 100 won/day\nyou can achieve dreams~"
+        "ko" -> "하루 8센트면\n꿈 이룰 수 있다이~"
+        "ja" -> "1日8セントで\n夢叶えられるよ~"
+        "zh" -> "每天8美分\n就能实现梦想~"
+        "es" -> "¡Con 8¢/día\npuedes lograr sueños~"
+        else -> "For 8¢/day\nyou can achieve dreams~"
     }
 
     fun paidTimidSpeech(): String = when (getLang()) {
-        "ko" -> "하, 하루 100원으로...\n꿈을 이뤄봐요...!"
-        "ja" -> "い、1日100ウォンで...\n夢を叶えてね...!"
-        "zh" -> "每、每天100韩元...\n实现梦想吧...!"
-        "es" -> "P-Por 100 wones/día...\n¡logra tus sueños...!"
-        else -> "F-For 100 won/day...\nachieve your dreams...!"
+        "ko" -> "하, 하루 8센트로...\n꿈을 이뤄봐요...!"
+        "ja" -> "い、1日8セントで...\n夢を叶えてね...!"
+        "zh" -> "每、每天8美分...\n实现梦想吧...!"
+        "es" -> "P-Por 8¢/día...\n¡logra tus sueños...!"
+        else -> "F-For 8¢/day...\nachieve your dreams...!"
     }
 
     fun paidClumsySpeech(): String = when (getLang()) {
-        "ko" -> "하루 100원으로 꿈 이루기!\n완전 좋아!"
-        "ja" -> "1日100ウォンで夢を叶える！\n最高！"
-        "zh" -> "每天100韩元实现梦想！\n太棒了！"
-        "es" -> "¡Logra sueños por 100 wones/día!\n¡Genial!"
-        else -> "Achieve dreams for 100 won/day!\nAwesome!"
+        "ko" -> "하루 8센트로 꿈 이루기!\n완전 좋아!"
+        "ja" -> "1日8セントで夢を叶える！\n最高！"
+        "zh" -> "每天8美分实现梦想！\n太棒了！"
+        "es" -> "¡Logra sueños por 8¢/día!\n¡Genial!"
+        else -> "Achieve dreams for 8¢/day!\nAwesome!"
     }
 
     fun processing(): String = when (getLang()) {
@@ -466,15 +515,15 @@ private object PetTutorialStrings {
         else -> "Start 3-Day Free Trial"
     }
 
-    fun trialSubtitle(isYearly: Boolean): String {
-        val monthlyPrice = "3,900"
-        val yearlyPrice = "39,000"
+    fun trialSubtitle(isYearly: Boolean, yearlyPriceStr: String?, monthlyPriceStr: String?): String {
+        val yearly = yearlyPriceStr ?: "$26.99"
+        val monthly = monthlyPriceStr ?: "$2.49"
         return when (getLang()) {
-            "ko" -> if (isYearly) "3일 후 연 ${yearlyPrice}원" else "3일 후 월 ${monthlyPrice}원"
-            "ja" -> if (isYearly) "3日後に年額¥${yearlyPrice}" else "3日後に月額¥${monthlyPrice}"
-            "zh" -> if (isYearly) "3天后年费¥${yearlyPrice}" else "3天后月费¥${monthlyPrice}"
-            "es" -> if (isYearly) "Después €${yearlyPrice}/año" else "Después €${monthlyPrice}/mes"
-            else -> if (isYearly) "Then \$${yearlyPrice}/year" else "Then \$${monthlyPrice}/month"
+            "ko" -> if (isYearly) "3일 후 연 $yearly" else "3일 후 월 $monthly"
+            "ja" -> if (isYearly) "3日後に年額$yearly" else "3日後に月額$monthly"
+            "zh" -> if (isYearly) "3天后年费$yearly" else "3天后月费$monthly"
+            "es" -> if (isYearly) "Después $yearly/año" else "Después $monthly/mes"
+            else -> if (isYearly) "Then $yearly/year" else "Then $monthly/month"
         }
     }
 
@@ -542,28 +591,40 @@ private object PetTutorialStrings {
         else -> "You can also invite 1 friend for free!"
     }
 
-    fun wonPerYear(): String = when (getLang()) {
-        "ko" -> "원/년"
-        "ja" -> "ウォン/年"
-        "zh" -> "韩元/年"
+    fun perYear(): String = when (getLang()) {
+        "ko" -> "/년"
+        "ja" -> "/年"
+        "zh" -> "/年"
         "es" -> "won/año"
-        else -> "won/year"
+        else -> "/year"
     }
 
-    fun wonPerMonth(): String = when (getLang()) {
-        "ko" -> "원/월"
-        "ja" -> "ウォン/月"
-        "zh" -> "韩元/月"
+    fun perMonth(): String = when (getLang()) {
+        "ko" -> "/월"
+        "ja" -> "/月"
+        "zh" -> "/月"
         "es" -> "won/mes"
-        else -> "won/month"
+        else -> "/month"
     }
 
-    fun dailyPrice(price: Int): String = when (getLang()) {
-        "ko" -> "하루 ${price}원"
-        "ja" -> "1日${price}ウォン"
-        "zh" -> "每天${price}韩元"
-        "es" -> "${price} won/día"
-        else -> "${price} won/day"
+    fun dailyPriceCents(dailyPriceStr: String?): String {
+        val price = dailyPriceStr ?: "~8¢"
+        return when (getLang()) {
+            "ko" -> "하루 약 $price"
+            "ja" -> "1日約$price"
+            "zh" -> "每天约$price"
+            "es" -> "$price/día"
+            else -> "$price/day"
+        }
+    }
+
+    // 10센트로 인생을 바꿔보세요 슬로건
+    fun changYourLifeSlogan(): String = when (getLang()) {
+        "ko" -> "10센트로 인생을 바꿔보세요"
+        "ja" -> "10セントで人生を変えよう"
+        "zh" -> "10美分改变你的人生"
+        "es" -> "Cambia tu vida por 10 centavos"
+        else -> "Change your life for 10 cents"
     }
 
     fun benefitAiPetCare(): String = when (getLang()) {
@@ -900,11 +961,25 @@ fun PetOnboardingScreen(
                 hapticManager = hapticManager,
                 onNext = {
                     hapticManager?.click()
-                    currentStep = 6  // FitnessConnectionStep(5) 스킵 - 기본 센서 사용
+                    currentStep = 5  // AccessibilityConsentStep로 이동
                 }
             )
-            // Step 5 (FitnessConnectionStep) 제거됨 - 기본 센서를 디폴트로 사용
-            // 피트니스 앱 연결은 설정 > 앱 제어에서 선택적으로 가능
+            // Step 5: 접근성 권한 동의 (Google Play 정책 준수 - 명시적 동의 필수)
+            5 -> if (currentSelectedPetType != null) AccessibilityConsentStep(
+                petType = currentSelectedPetType,
+                petName = petName,
+                dotStep = dotStep,
+                totalDots = totalDots,
+                hapticManager = hapticManager,
+                onAgree = {
+                    hapticManager?.click()
+                    currentStep = 6  // 접근성 설정 화면으로
+                },
+                onDecline = {
+                    hapticManager?.click()
+                    currentStep = 7  // 앱 선택 단계로 스킵 (차단 기능 없이)
+                }
+            )
             6 -> if (currentSelectedPetType != null) AccessibilityStep(
                 petType = currentSelectedPetType,
                 petName = petName,
@@ -2852,6 +2927,228 @@ private fun FitnessConnectionStep(
 }
 
 // =====================================================
+// STEP 5: Accessibility Consent (접근성 권한 동의 - Google Play 정책 준수)
+// =====================================================
+@Composable
+private fun AccessibilityConsentStep(
+    petType: PetTypeV2,
+    petName: String,
+    dotStep: Int,
+    totalDots: Int,
+    hapticManager: HapticManager?,
+    onAgree: () -> Unit,
+    onDecline: () -> Unit
+) {
+    val kenneyFont = rememberKenneyFont()
+    var showDeclineDialog by remember { mutableStateOf(false) }
+
+    // 펫 대사 - 권한 동의 요청
+    val speechText = when (petType.personality) {
+        PetPersonalityV2.LOYAL -> PetTutorialStrings.speechConsentLoyal()
+        PetPersonalityV2.TSUNDERE -> PetTutorialStrings.speechConsentTsundere()
+        PetPersonalityV2.FOODIE -> PetTutorialStrings.speechConsentFoodie()
+        PetPersonalityV2.PLAYFUL -> PetTutorialStrings.speechConsentPlayful()
+        PetPersonalityV2.TIMID -> PetTutorialStrings.speechConsentTimid()
+        PetPersonalityV2.CLUMSY -> PetTutorialStrings.speechConsentClumsy()
+    }
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MockupColors.Background)
+            .padding(horizontal = 20.dp)
+            .padding(bottom = 72.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Spacer(modifier = Modifier.height(40.dp))
+
+        // Title
+        Text(
+            text = "rebon",
+            fontSize = 32.sp,
+            fontFamily = kenneyFont,
+            fontWeight = FontWeight.Bold,
+            color = MockupColors.TextPrimary
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // 펫 + 말풍선
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(140.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                SpeechBubble(text = speechText, fontSize = 13.sp)
+                Spacer(modifier = Modifier.height(4.dp))
+                PetSpriteV2WithGlow(
+                    petType = petType,
+                    stage = PetGrowthStage.BABY,
+                    animationType = PetAnimationTypeV2.IDLE,
+                    size = 80.dp,
+                    monochrome = true
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        // 제목
+        Text(
+            text = stringResource(R.string.accessibility_consent_title),
+            fontSize = 20.sp,
+            fontWeight = FontWeight.Bold,
+            color = MockupColors.TextPrimary,
+            textAlign = TextAlign.Center
+        )
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        // 권한 설명 박스 (스크롤 가능)
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(1f)
+                .verticalScroll(rememberScrollState())
+                .background(Color.White, RoundedCornerShape(12.dp))
+                .border(2.dp, MockupColors.Border, RoundedCornerShape(12.dp))
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            // 설명 텍스트
+            Text(
+                text = stringResource(R.string.accessibility_consent_desc),
+                fontSize = 13.sp,
+                color = MockupColors.TextSecondary,
+                lineHeight = 18.sp
+            )
+
+            Spacer(modifier = Modifier.height(4.dp))
+
+            // 기능 목록 제목
+            Text(
+                text = stringResource(R.string.accessibility_consent_feature_title),
+                fontSize = 13.sp,
+                fontWeight = FontWeight.Bold,
+                color = MockupColors.TextPrimary
+            )
+
+            // 기능 1, 2, 3
+            Text(
+                text = stringResource(R.string.accessibility_consent_feature_1),
+                fontSize = 12.sp,
+                color = MockupColors.TextSecondary
+            )
+            Text(
+                text = stringResource(R.string.accessibility_consent_feature_2),
+                fontSize = 12.sp,
+                color = MockupColors.TextSecondary
+            )
+            Text(
+                text = stringResource(R.string.accessibility_consent_feature_3),
+                fontSize = 12.sp,
+                color = MockupColors.TextSecondary
+            )
+        }
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        // 네비게이션 닷
+        TutorialNavigationDots(currentStep = dotStep, totalSteps = totalDots)
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        // === 두 개 버튼 좌우 배치 (Google Play 정책 준수) ===
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            // 왼쪽: 동의 버튼
+            Button(
+                onClick = {
+                    hapticManager?.success()
+                    onAgree()
+                },
+                modifier = Modifier
+                    .weight(1f)
+                    .height(56.dp),
+                shape = RoundedCornerShape(16.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MockupColors.TextPrimary
+                )
+            ) {
+                Text(
+                    text = stringResource(R.string.accessibility_consent_agree),
+                    fontSize = 15.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White
+                )
+            }
+
+            // 오른쪽: 동의하지 않음 버튼
+            OutlinedButton(
+                onClick = {
+                    hapticManager?.click()
+                    showDeclineDialog = true
+                },
+                modifier = Modifier
+                    .weight(1f)
+                    .height(56.dp),
+                shape = RoundedCornerShape(16.dp),
+                border = androidx.compose.foundation.BorderStroke(2.dp, MockupColors.TextMuted)
+            ) {
+                Text(
+                    text = stringResource(R.string.accessibility_consent_decline),
+                    fontSize = 15.sp,
+                    color = MockupColors.TextMuted
+                )
+            }
+        }
+    }
+
+    // 동의 거부 시 표시되는 다이얼로그
+    if (showDeclineDialog) {
+        AlertDialog(
+            onDismissRequest = { showDeclineDialog = false },
+            title = {
+                Text(
+                    text = stringResource(R.string.accessibility_declined_title),
+                    fontWeight = FontWeight.Bold
+                )
+            },
+            text = {
+                Text(
+                    text = stringResource(R.string.accessibility_declined_message),
+                    fontSize = 14.sp,
+                    lineHeight = 20.sp
+                )
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        showDeclineDialog = false
+                        onDecline()  // 앱 선택 단계로 스킵
+                    }
+                ) {
+                    Text(stringResource(R.string.accessibility_declined_understand))
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = { showDeclineDialog = false }
+                ) {
+                    Text(stringResource(R.string.cancel))
+                }
+            }
+        )
+    }
+}
+
+// =====================================================
 // STEP 6: Accessibility (접근성 권한)
 // =====================================================
 @Composable
@@ -3034,7 +3331,7 @@ private fun AppSelectionStep(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Text(
-                                text = category.displayName,
+                                text = stringResource(category.displayNameRes),
                                 fontSize = 14.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = MockupColors.TextPrimary
@@ -4462,6 +4759,21 @@ fun PaymentScreen(
     // 구독 플랜 선택 (월간/연간) - 연간이 기본 선택 (더 이득이므로)
     var selectedPlan by remember { mutableStateOf(BillingManager.SubscriptionType.YEARLY) }
 
+    // 구독 가격 (Google Play에서 조회)
+    var monthlyPrice by remember { mutableStateOf<String?>(null) }
+    var yearlyPrice by remember { mutableStateOf<String?>(null) }
+    var dailyPrice by remember { mutableStateOf<String?>(null) }
+
+    // 가격 조회
+    LaunchedEffect(billingManager) {
+        billingManager?.let { billing ->
+            val prices = billing.getSubscriptionPrices()
+            monthlyPrice = prices.monthlyPrice
+            yearlyPrice = prices.yearlyPrice
+            dailyPrice = prices.dailyPrice
+        }
+    }
+
     // 입장 애니메이션 상태
     var isVisible by remember { mutableStateOf(false) }
     LaunchedEffect(Unit) {
@@ -4560,7 +4872,7 @@ fun PaymentScreen(
     // 3일 무료 체험 후 가격 안내 (isYearly 체크)
     val isYearlyPlan = selectedPlan == BillingManager.SubscriptionType.YEARLY
     val trialSubtitle = if (!isPromoFree && !isReturningUser) {
-        PetTutorialStrings.trialSubtitle(isYearlyPlan)
+        PetTutorialStrings.trialSubtitle(isYearlyPlan, yearlyPrice, monthlyPrice)
     } else null
 
     // 결제 처리 함수
@@ -4815,8 +5127,6 @@ fun PaymentScreen(
             ) { page ->
                 val isYearly = page == 0
                 val isSelected = pagerState.currentPage == page
-                // 1일 가격 계산: 연간 39000/365 ≈ 107원, 월간 3900/30 = 130원
-                val dailyPrice = if (isYearly) 107 else 130
 
                 // 카드 선택 애니메이션
                 val cardScale by animateFloatAsState(
@@ -4888,21 +5198,21 @@ fun PaymentScreen(
                             verticalAlignment = Alignment.Bottom
                         ) {
                             Text(
-                                text = if (isYearly) "39,000" else "3,900",
+                                text = if (isYearly) (yearlyPrice ?: "$26.99") else (monthlyPrice ?: "$2.49"),
                                 fontSize = 24.sp,
                                 fontFamily = kenneyFont,
                                 fontWeight = FontWeight.Bold,
                                 color = MockupColors.TextPrimary
                             )
                             Text(
-                                text = if (isYearly) PetTutorialStrings.wonPerYear() else PetTutorialStrings.wonPerMonth(),
+                                text = if (isYearly) PetTutorialStrings.perYear() else PetTutorialStrings.perMonth(),
                                 fontSize = 11.sp,
                                 color = MockupColors.TextMuted,
                                 modifier = Modifier.padding(bottom = 3.dp)
                             )
                         }
                         Text(
-                            text = PetTutorialStrings.dailyPrice(dailyPrice),
+                            text = PetTutorialStrings.dailyPriceCents(dailyPrice),
                             fontSize = 12.sp,
                             fontWeight = FontWeight.Medium,
                             color = MockupColors.TextSecondary
@@ -5167,6 +5477,14 @@ fun PaymentScreen(
                 text = trialSubtitle,
                 fontSize = 12.sp,
                 color = MockupColors.TextSecondary,
+                textAlign = TextAlign.Center
+            )
+            // 슬로건: 10센트로 인생을 바꿔보세요
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                text = PetTutorialStrings.changYourLifeSlogan(),
+                fontSize = 11.sp,
+                color = MockupColors.TextMuted,
                 textAlign = TextAlign.Center
             )
         }

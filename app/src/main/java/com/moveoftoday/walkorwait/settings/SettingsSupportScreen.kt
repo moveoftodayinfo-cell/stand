@@ -23,6 +23,156 @@ import androidx.compose.ui.unit.sp
 import com.moveoftoday.walkorwait.*
 import com.moveoftoday.walkorwait.pet.*
 import kotlinx.coroutines.launch
+import java.util.Locale
+
+// ============ 다국어 지원 헬퍼 객체 ============
+private object SettingsSupportStrings {
+    private fun getLang(): String = Locale.getDefault().language
+
+    fun submitFeedback(): String = when (getLang()) {
+        "ko" -> "불편사항 접수"
+        "ja" -> "フィードバック送信"
+        "zh" -> "提交反馈"
+        "es" -> "Enviar feedback"
+        else -> "Submit Feedback"
+    }
+
+    fun sendFeedback(): String = when (getLang()) {
+        "ko" -> "피드백 보내기"
+        "ja" -> "フィードバックを送信"
+        "zh" -> "发送反馈"
+        "es" -> "Enviar feedback"
+        else -> "Send Feedback"
+    }
+
+    fun feedbackDescription(): String = when (getLang()) {
+        "ko" -> "불편사항이나 개선 의견을 알려주세요"
+        "ja" -> "ご不便な点や改善のご意見をお聞かせください"
+        "zh" -> "请告诉我们您的问题或改进建议"
+        "es" -> "Cuéntanos tus problemas o sugerencias"
+        else -> "Let us know your issues or suggestions"
+    }
+
+    fun appInfo(): String = when (getLang()) {
+        "ko" -> "앱 정보"
+        "ja" -> "アプリ情報"
+        "zh" -> "应用信息"
+        "es" -> "Información de la app"
+        else -> "App Info"
+    }
+
+    fun appName(): String = when (getLang()) {
+        "ko" -> "앱 이름"
+        "ja" -> "アプリ名"
+        "zh" -> "应用名称"
+        "es" -> "Nombre de la app"
+        else -> "App Name"
+    }
+
+    fun version(): String = when (getLang()) {
+        "ko" -> "버전"
+        "ja" -> "バージョン"
+        "zh" -> "版本"
+        "es" -> "Versión"
+        else -> "Version"
+    }
+
+    fun build(): String = when (getLang()) {
+        "ko" -> "빌드"
+        "ja" -> "ビルド"
+        "zh" -> "构建"
+        "es" -> "Build"
+        else -> "Build"
+    }
+
+    fun links(): String = when (getLang()) {
+        "ko" -> "링크"
+        "ja" -> "リンク"
+        "zh" -> "链接"
+        "es" -> "Enlaces"
+        else -> "Links"
+    }
+
+    fun privacyPolicy(): String = when (getLang()) {
+        "ko" -> "개인정보 처리방침"
+        "ja" -> "プライバシーポリシー"
+        "zh" -> "隐私政策"
+        "es" -> "Política de privacidad"
+        else -> "Privacy Policy"
+    }
+
+    fun termsOfService(): String = when (getLang()) {
+        "ko" -> "이용약관"
+        "ja" -> "利用規約"
+        "zh" -> "服务条款"
+        "es" -> "Términos de servicio"
+        else -> "Terms of Service"
+    }
+
+    fun openSourceLicenses(): String = when (getLang()) {
+        "ko" -> "오픈소스 라이선스"
+        "ja" -> "オープンソースライセンス"
+        "zh" -> "开源许可"
+        "es" -> "Licencias de código abierto"
+        else -> "Open Source Licenses"
+    }
+
+    fun feedbackDialogTitle(): String = when (getLang()) {
+        "ko" -> "피드백 보내기"
+        "ja" -> "フィードバックを送信"
+        "zh" -> "发送反馈"
+        "es" -> "Enviar feedback"
+        else -> "Send Feedback"
+    }
+
+    fun feedbackDialogDescription(): String = when (getLang()) {
+        "ko" -> "불편사항이나 개선 의견을 자유롭게 작성해주세요."
+        "ja" -> "ご不便な点や改善のご意見を自由にお書きください。"
+        "zh" -> "请自由填写您的问题或改进建议。"
+        "es" -> "Escribe libremente tus problemas o sugerencias."
+        else -> "Please freely write your issues or suggestions."
+    }
+
+    fun contentPlaceholder(): String = when (getLang()) {
+        "ko" -> "내용을 입력하세요..."
+        "ja" -> "内容を入力してください..."
+        "zh" -> "请输入内容..."
+        "es" -> "Ingresa el contenido..."
+        else -> "Enter content..."
+    }
+
+    fun cancel(): String = when (getLang()) {
+        "ko" -> "취소"
+        "ja" -> "キャンセル"
+        "zh" -> "取消"
+        "es" -> "Cancelar"
+        else -> "Cancel"
+    }
+
+    fun send(): String = when (getLang()) {
+        "ko" -> "보내기"
+        "ja" -> "送信"
+        "zh" -> "发送"
+        "es" -> "Enviar"
+        else -> "Send"
+    }
+
+    fun userFeedback(): String = when (getLang()) {
+        "ko" -> "사용자 피드백"
+        "ja" -> "ユーザーフィードバック"
+        "zh" -> "用户反馈"
+        "es" -> "Feedback de usuario"
+        else -> "User Feedback"
+    }
+
+    fun feedbackSent(): String = when (getLang()) {
+        "ko" -> "피드백이 전송되었습니다!"
+        "ja" -> "フィードバックを送信しました！"
+        "zh" -> "反馈已发送！"
+        "es" -> "¡Feedback enviado!"
+        else -> "Feedback sent!"
+    }
+}
 
 /**
  * 고객 지원 화면 (불편사항, 버전 정보)
@@ -65,7 +215,7 @@ fun SettingsSupportScreen(
                     .navigationBarsPadding()
             ) {
                 // ========== 불편사항 접수 ==========
-                RetroSectionTitle("불편사항 접수", kenneyFont)
+                RetroSectionTitle(SettingsSupportStrings.submitFeedback(), kenneyFont)
 
                 Box(
                     modifier = Modifier
@@ -85,13 +235,13 @@ fun SettingsSupportScreen(
                     ) {
                         Column {
                             Text(
-                                text = "피드백 보내기",
+                                text = SettingsSupportStrings.sendFeedback(),
                                 fontSize = 16.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = MockupColors.TextPrimary
                             )
                             Text(
-                                text = "불편사항이나 개선 의견을 알려주세요",
+                                text = SettingsSupportStrings.feedbackDescription(),
                                 fontSize = 13.sp,
                                 color = MockupColors.TextSecondary
                             )
@@ -107,7 +257,7 @@ fun SettingsSupportScreen(
                 Spacer(modifier = Modifier.height(16.dp))
 
                 // ========== 앱 정보 ==========
-                RetroSectionTitle("앱 정보", kenneyFont)
+                RetroSectionTitle(SettingsSupportStrings.appInfo(), kenneyFont)
 
                 Box(
                     modifier = Modifier
@@ -117,22 +267,22 @@ fun SettingsSupportScreen(
                         .padding(16.dp)
                 ) {
                     Column {
-                        InfoRow("앱 이름", "rebon", kenneyFont)
+                        InfoRow(SettingsSupportStrings.appName(), "rebon", kenneyFont)
                         Spacer(modifier = Modifier.height(8.dp))
-                        InfoRow("버전", BuildConfig.VERSION_NAME, kenneyFont)
+                        InfoRow(SettingsSupportStrings.version(), BuildConfig.VERSION_NAME, kenneyFont)
                         Spacer(modifier = Modifier.height(8.dp))
-                        InfoRow("빌드", BuildConfig.VERSION_CODE.toString(), kenneyFont)
+                        InfoRow(SettingsSupportStrings.build(), BuildConfig.VERSION_CODE.toString(), kenneyFont)
                     }
                 }
 
                 Spacer(modifier = Modifier.height(16.dp))
 
                 // ========== 링크 ==========
-                RetroSectionTitle("링크", kenneyFont)
+                RetroSectionTitle(SettingsSupportStrings.links(), kenneyFont)
 
                 // 개인정보 처리방침
                 LinkCard(
-                    title = "개인정보 처리방침",
+                    title = SettingsSupportStrings.privacyPolicy(),
                     onClick = {
                         hapticManager.click()
                         val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://stand-64c11.web.app/privacy.html"))
@@ -145,7 +295,7 @@ fun SettingsSupportScreen(
 
                 // 이용약관
                 LinkCard(
-                    title = "이용약관",
+                    title = SettingsSupportStrings.termsOfService(),
                     onClick = {
                         hapticManager.click()
                         val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://stand-64c11.web.app/terms.html"))
@@ -158,10 +308,10 @@ fun SettingsSupportScreen(
 
                 // 오픈소스 라이선스
                 LinkCard(
-                    title = "오픈소스 라이선스",
+                    title = SettingsSupportStrings.openSourceLicenses(),
                     onClick = {
                         hapticManager.click()
-                        Toast.makeText(context, "오픈소스 라이선스", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(context, SettingsSupportStrings.openSourceLicenses(), Toast.LENGTH_SHORT).show()
                     },
                     kenneyFont = kenneyFont
                 )
@@ -191,13 +341,13 @@ fun SettingsSupportScreen(
                         FeedbackManager.submitFeedback(
                             context = context,
                             category = FeedbackManager.Category.OTHER,
-                            title = "사용자 피드백",
+                            title = SettingsSupportStrings.userFeedback(),
                             content = feedback
                         )
                     }
                     showFeedbackDialog = false
                     hapticManager.success()
-                    Toast.makeText(context, "피드백이 전송되었습니다!", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, SettingsSupportStrings.feedbackSent(), Toast.LENGTH_SHORT).show()
                 },
                 hapticManager = hapticManager
             )
@@ -294,7 +444,7 @@ private fun FeedbackDialog(
         ) {
             Column {
                 Text(
-                    text = "피드백 보내기",
+                    text = SettingsSupportStrings.feedbackDialogTitle(),
                     fontSize = 22.sp,
                     fontWeight = FontWeight.Bold,
                     color = MockupColors.TextPrimary,
@@ -304,7 +454,7 @@ private fun FeedbackDialog(
                 Spacer(modifier = Modifier.height(12.dp))
 
                 Text(
-                    text = "불편사항이나 개선 의견을 자유롭게 작성해주세요.",
+                    text = SettingsSupportStrings.feedbackDialogDescription(),
                     fontSize = 14.sp,
                     color = MockupColors.TextSecondary
                 )
@@ -314,7 +464,7 @@ private fun FeedbackDialog(
                 OutlinedTextField(
                     value = feedbackText,
                     onValueChange = { feedbackText = it },
-                    placeholder = { Text("내용을 입력하세요...") },
+                    placeholder = { Text(SettingsSupportStrings.contentPlaceholder()) },
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(150.dp),
@@ -339,7 +489,7 @@ private fun FeedbackDialog(
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
-                            text = "취소",
+                            text = SettingsSupportStrings.cancel(),
                             fontSize = 14.sp,
                             fontWeight = FontWeight.Bold,
                             color = MockupColors.TextSecondary
@@ -359,7 +509,7 @@ private fun FeedbackDialog(
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
-                            text = "보내기",
+                            text = SettingsSupportStrings.send(),
                             fontSize = 14.sp,
                             fontWeight = FontWeight.Bold,
                             color = Color.White

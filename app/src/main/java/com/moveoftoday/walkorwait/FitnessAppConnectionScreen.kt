@@ -22,6 +22,20 @@ import kotlinx.coroutines.launch
 import com.moveoftoday.walkorwait.pet.MockupColors
 import com.moveoftoday.walkorwait.pet.PixelIcon
 import com.moveoftoday.walkorwait.pet.rememberKenneyFont
+import java.util.Locale
+
+// 다국어 헬퍼
+private object FitnessConnectionStrings {
+    private fun getLang(): String = Locale.getDefault().language
+
+    fun disconnected(): String = when (getLang()) {
+        "ko" -> "연결이 해제되었습니다. 기본 센서를 사용합니다."
+        "ja" -> "接続が解除されました。基本センサーを使用します。"
+        "zh" -> "连接已断开。使用默认传感器。"
+        "es" -> "Desconectado. Usando sensor predeterminado."
+        else -> "Disconnected. Using default sensor."
+    }
+}
 
 @Composable
 fun FitnessAppConnectionScreen(
@@ -370,7 +384,7 @@ fun FitnessAppConnectionScreen(
 
                                             android.widget.Toast.makeText(
                                                 context,
-                                                "연결이 해제되었습니다. 기본 센서를 사용합니다.",
+                                                FitnessConnectionStrings.disconnected(),
                                                 android.widget.Toast.LENGTH_SHORT
                                             ).show()
                                         }

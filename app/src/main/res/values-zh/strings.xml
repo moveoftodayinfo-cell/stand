@@ -55,6 +55,17 @@
     <string name="category_meditation">冥想</string>
     <string name="category_study">学习</string>
 
+    <!-- App Categories -->
+    <string name="app_category_social">社交</string>
+    <string name="app_category_video">视频</string>
+    <string name="app_category_game">游戏</string>
+    <string name="app_category_entertainment">娱乐</string>
+    <string name="app_category_shopping">购物</string>
+    <string name="app_category_communication">通讯</string>
+    <string name="app_category_music_audio">音乐</string>
+    <string name="app_category_productivity">效率工具</string>
+    <string name="app_category_other">其他</string>
+
     <!-- Days of Week -->
     <string name="day_mon">一</string>
     <string name="day_tue">二</string>
@@ -144,6 +155,17 @@
     <!-- Account -->
     <string name="auto_backup_in_progress">自动备份中</string>
     <string name="connect_for_auto_backup">连接后数据将自动备份</string>
+
+    <!-- Language Settings -->
+    <string name="language_setting">语言</string>
+    <string name="language_system">系统默认</string>
+    <string name="language_english">英语</string>
+    <string name="language_korean">韩语</string>
+    <string name="language_japanese">日语</string>
+    <string name="language_chinese">中文 (简体)</string>
+    <string name="language_spanish">西班牙语</string>
+    <string name="language_change_restart">语言已更改。请重启应用以完全生效。</string>
+    <string name="current_language">当前: %s</string>
 
     <!-- Data Sync -->
     <string name="restored_existing_data">已恢复现有数据！</string>
@@ -531,4 +553,17 @@
     <string name="speech_timid_widget">请添加小组件...</string>
     <string name="speech_clumsy_widget">用小组件一目了然！</string>
     <string name="seven_widgets">7种小组件</string>
+
+    <!-- Accessibility Consent Dialog (CRITICAL for Google Play compliance) -->
+    <string name="accessibility_consent_title">应用控制权限说明</string>
+    <string name="accessibility_consent_desc">rebon使用无障碍服务在每日步数目标未达成时阻止选定的应用。\n\n此权限仅用于应用阻止功能，不会收集或传输个人数据。\n\n您可以随时在设备设置中禁用此权限。</string>
+    <string name="accessibility_consent_feature_title">此权限可实现的功能：</string>
+    <string name="accessibility_consent_feature_1">• 检测被阻止应用的启动</string>
+    <string name="accessibility_consent_feature_2">• 在目标达成前显示阻止界面</string>
+    <string name="accessibility_consent_feature_3">• 目标达成时自动解锁应用</string>
+    <string name="accessibility_consent_agree">我同意</string>
+    <string name="accessibility_consent_decline">我不同意</string>
+    <string name="accessibility_declined_title">无法使用应用</string>
+    <string name="accessibility_declined_message">rebon的核心功能应用阻止需要无障碍服务。\n\n没有此权限，您无法使用应用的主要功能。</string>
+    <string name="accessibility_declined_understand">确认</string>
 </resources>
