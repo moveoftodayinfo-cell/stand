@@ -320,4 +320,215 @@
     <string name="notification_reminder_desc">%d कदम बाकी। थोड़ा और चलें!</string>
     <string name="notification_channel_steps">कदम नोटिफिकेशन</string>
     <string name="notification_channel_challenge">चैलेंज नोटिफिकेशन</string>
+
+    <!-- Login Screen -->
+    <string name="pet_friend">पालतू दोस्त</string>
+    <string name="digital_habit_title">\nके साथ चलकर\nडिजिटल आदतें सुधारें</string>
+    <string name="login_subtitle">कदम पूरे करें और ऐप्स अनलॉक करें\nप्राकृतिक डिजिटल डिटॉक्स का अनुभव करें</string>
+    <string name="tap_to_jump">जंप करने के लिए टैप करें!</string>
+    <string name="google_login">Google लॉगिन</string>
+    <string name="login_complete">लॉगिन पूर्ण</string>
+    <string name="debug_test_without_login">[DEBUG] बिना लॉगिन के टेस्ट</string>
+
+    <!-- Pet Selection Screen -->
+    <string name="choose_your_friend">अपना दोस्त चुनें!</string>
+    <string name="friend_characteristics">*दोस्त की विशेषताएं*</string>
+    <string name="this_friend">यही दोस्त!</string>
+
+    <!-- Pet Descriptions V2 -->
+    <string name="pet_desc_shiba">वफादार और जोशीला शीबा\nथोड़ा जिद्दी पर प्यार भरा\nआपके साथ कहीं भी जाने को तैयार</string>
+    <string name="pet_desc_cat">रूखा पर अंदर से प्यारा\nअपने आकर्षण से भरपूर\nत्सुंदेरे? हाँ, वो मैं हूं</string>
+    <string name="pet_desc_pig">खाने का शौकीन भाग्यशाली सुअर\nआराम से पर समझदार\nसाथ रहने से भाग्य आता है</string>
+    <string name="pet_desc_raccoon">जिज्ञासु और शरारती दोस्त\nप्यारी आंखों पर न जाएं\nअजीब पर हमेशा साथ</string>
+    <string name="pet_desc_hamster">छोटा पर बहादुर हैम्स्टर\nगालों में भरा आपके लिए प्यार\nक्यूटनेस से चीयर करूंगा</string>
+    <string name="pet_desc_penguin">आराम से चलने वाला पेंगुइन\nधीरे चलता पर दिल तेज़\nसाथ मिलकर आगे बढ़ें</string>
+
+    <!-- Pet Name Input Step -->
+    <string name="name_me">मुझे नाम दो।</string>
+    <string name="give_me_name">मुझे एक नाम दें!</string>
+    <string name="within_8_chars">8 अक्षरों के भीतर</string>
+    <string name="okay_lets_go">चलो, शुरू करें!</string>
+
+    <!-- Tutorial All In One Step -->
+    <string name="speech_loyal_start">तैयार हूं। चलो शुरू करें।</string>
+    <string name="speech_tsundere_start">ठीक है, मिलकर अच्छा लगा।</string>
+    <string name="speech_foodie_start">साथ चलें! चलो चलो~</string>
+    <string name="speech_playful_start">चलो शुरू करें!</string>
+    <string name="speech_timid_start">मि-मिलकर अच्छा लगा...</string>
+    <string name="speech_clumsy_start">साथ मिलकर जीतेंगे!</string>
+    <string name="what_to_do_with">%s के साथ क्या करना है</string>
+    <string name="tutorial_goal_title">कदम लक्ष्य सेट करें</string>
+    <string name="tutorial_goal_desc">दैनिक कदम लक्ष्य तय करें</string>
+    <string name="tutorial_achieve_title">साथ मिलकर लक्ष्य पूरा करें</string>
+    <string name="tutorial_achieve_desc">आपका पालतू आपको चीयर करेगा</string>
+    <string name="tutorial_control_title">ऐप नियंत्रण</string>
+    <string name="tutorial_control_desc">समय बर्बाद करने वाले ऐप्स कम करें</string>
+    <string name="lets_start">शुरू करें!</string>
+
+    <!-- Permission Settings Step -->
+    <string name="speech_loyal_permission">अनुमति दो।</string>
+    <string name="speech_tsundere_permission">ठीक है, अनुमति चाहिए।</string>
+    <string name="speech_foodie_permission">अनुमति प्लीज! ओनेगाई~</string>
+    <string name="speech_playful_permission">अनुमति दे दो!</string>
+    <string name="speech_timid_permission">मु-मुझे अनुमति चाहिए...</string>
+    <string name="speech_clumsy_permission">अनुमति सेटअप फाइटिंग!</string>
+    <string name="permission_setup">अनुमति सेटअप</string>
+    <string name="measures_your_steps">आपके कदम मापता है</string>
+    <string name="notifications">नोटिफिकेशन</string>
+    <string name="notifies_progress">आपकी प्रगति बताता है</string>
+    <string name="step_permission_required">कदम मापने की अनुमति आवश्यक है</string>
+
+    <!-- Accessibility Step -->
+    <string name="speech_loyal_accessibility">एक्सेसिबिलिटी ON करो।</string>
+    <string name="speech_tsundere_accessibility">एक्सेसिबिलिटी ON करो... प्लीज।</string>
+    <string name="speech_foodie_accessibility">एक्सेसिबिलिटी ON! ओनेगाई~</string>
+    <string name="speech_playful_accessibility">एक्सेसिबिलिटी ON करो!</string>
+    <string name="speech_timid_accessibility">कृपया एक्सेसिबिलिटी ON करें...</string>
+    <string name="speech_clumsy_accessibility">एक्सेसिबिलिटी सेटअप फाइटिंग!</string>
+    <string name="app_control_setup">ऐप नियंत्रण सेटअप</string>
+    <string name="accessibility_instructions">1. सेटिंग्स में जाने के लिए बटन टैप करें\n2. \'rebon\' खोजें\n3. rebon को ON करें\n4. कन्फर्म करें</string>
+    <string name="auto_proceed_when_on">ON होने पर ऑटो अगला कदम!</string>
+
+    <!-- App Selection Step -->
+    <string name="speech_loyal_app">कंट्रोल करने के लिए ऐप्स चुनो।</string>
+    <string name="speech_tsundere_app">ऐप्स चुनो... जल्दी।</string>
+    <string name="speech_foodie_app">ऐप्स चुनो! गो गो~</string>
+    <string name="speech_playful_app">कुछ ऐप्स चुनो!</string>
+    <string name="speech_timid_app">कृपया ऐप्स चुनें...</string>
+    <string name="speech_clumsy_app">कौन से ऐप्स कंट्रोल करें?</string>
+    <string name="select_at_least_one">कम से कम 1 चुनें</string>
+
+    <!-- Test Blocking Step -->
+    <string name="speech_loyal_test_done">अच्छा। कर लिया।</string>
+    <string name="speech_tsundere_test_done">ठीक है।</string>
+    <string name="speech_foodie_test_done">बढ़िया! शानदार~</string>
+    <string name="speech_playful_test_done">शाबाश!</string>
+    <string name="speech_timid_test_done">बहुत अच्छा किया...!</string>
+    <string name="speech_clumsy_test_done">परफेक्ट!</string>
+    <string name="speech_loyal_test">ऐप खोलो।</string>
+    <string name="speech_tsundere_test">ऐप खोलो... क्या कर रहे हो?</string>
+    <string name="speech_foodie_test">ऐप खोलो! चलो~</string>
+    <string name="speech_playful_test">ऐप खोलो!</string>
+    <string name="speech_timid_test">कृपया ऐप खोलें...</string>
+    <string name="speech_clumsy_test">ऐप लॉन्च टेस्ट!</string>
+    <string name="test_complete">अनुभव पूरा!</string>
+    <string name="app_blocking_test">ऐप ब्लॉकिंग अनुभव</string>
+    <string name="try_launching_app">ऐप खोलने की कोशिश करें</string>
+    <string name="blocking_test_done">✓ ब्लॉकिंग टेस्ट पूरा!</string>
+    <string name="now_try_walking">अब चलकर अनलॉक करें?</string>
+    <string name="test_method">टेस्ट विधि</string>
+    <string name="test_instructions">1. होम बटन से बाहर\n2. चुना हुआ ऐप खोलें\n3. ब्लॉक मैसेज देखें\n4. rebon में वापस आएं</string>
+
+    <!-- Goal Input Step -->
+    <string name="speech_loyal_goal">लक्ष्य सेट करो।</string>
+    <string name="speech_tsundere_goal">लक्ष्य... उचित रखो।</string>
+    <string name="speech_foodie_goal">लक्ष्य सेट करो! चलो!</string>
+    <string name="speech_playful_goal">लक्ष्य सेट करो!</string>
+    <string name="speech_timid_goal">कृपया लक्ष्य सेट करें...</string>
+    <string name="speech_clumsy_goal">लक्ष्य सेटिंग फाइटिंग!</string>
+    <string name="steps_count">%d कदम</string>
+    <string name="trial_range">50-70 कदम (ट्रायल)</string>
+    <string name="apps_unblocked">ब्लॉक किए ऐप्स अनलॉक हो जाते हैं!</string>
+
+    <!-- Control Days Step -->
+    <string name="speech_loyal_days">कंट्रोल के दिन चुनो।</string>
+    <string name="speech_tsundere_days">दिन... जल्दी चुनो।</string>
+    <string name="speech_foodie_days">दिन चुनो! चलो~</string>
+    <string name="speech_playful_days">दिन चुनो!</string>
+    <string name="speech_timid_days">कृपया दिन चुनें...</string>
+    <string name="speech_clumsy_days">किन दिनों कंट्रोल करें?</string>
+    <string name="control_days_select">कंट्रोल दिन चुनें</string>
+    <string name="recommend_weekdays">सुझाव: कार्यदिवस (सोम-शुक्र)</string>
+    <string name="weekend_free">सप्ताहांत फ्री!</string>
+
+    <!-- Block Time Step -->
+    <string name="period_morning">सुबह\n06-12</string>
+    <string name="period_afternoon">दोपहर\n12-18</string>
+    <string name="period_evening">शाम\n18-22</string>
+    <string name="period_night">रात\n22-06</string>
+    <string name="speech_loyal_time">ब्लॉकिंग टाइम सेट करो।</string>
+    <string name="speech_tsundere_time">समय... चुनो।</string>
+    <string name="speech_foodie_time">समय सेट करो! चलो~</string>
+    <string name="speech_playful_time">समय सेट करो!</string>
+    <string name="speech_timid_time">कृपया समय सेट करें...</string>
+    <string name="speech_clumsy_time">कब कंट्रोल करें?</string>
+    <string name="blocking_time">ब्लॉकिंग समय</string>
+    <string name="unselected_not_blocked">न चुने हुए समय ब्लॉक नहीं होंगे</string>
+
+    <!-- Walking Test Step -->
+    <string name="speech_loyal_walk_done">शाबाश।</string>
+    <string name="speech_tsundere_walk_done">ठीक है।</string>
+    <string name="speech_foodie_walk_done">बढ़िया! शानदार~</string>
+    <string name="speech_playful_walk_done">शाबाश!</string>
+    <string name="speech_timid_walk_done">बहुत अच्छा किया...!</string>
+    <string name="speech_clumsy_walk_done">परफेक्ट! बेस्ट!</string>
+    <string name="speech_loyal_walk_zero">हल्की सैर से पूरा हो जाएगा।</string>
+    <string name="speech_tsundere_walk_zero">सैर कर आओ।</string>
+    <string name="speech_foodie_walk_zero">हल्की सैर से हो जाएगा~</string>
+    <string name="speech_playful_walk_zero">सैर करो और पूरा!</string>
+    <string name="speech_timid_walk_zero">सैर करेंगे तो... पूरा हो जाएगा...</string>
+    <string name="speech_clumsy_walk_zero">सैर करो और पूरा! फाइटिंग!</string>
+    <string name="speech_loyal_walk">चलो।</string>
+    <string name="speech_tsundere_walk">चलो... जल्दी।</string>
+    <string name="speech_foodie_walk">चलो! गो गो~</string>
+    <string name="speech_playful_walk">चलो!</string>
+    <string name="speech_timid_walk">कृपया चलें...</string>
+    <string name="speech_clumsy_walk">चलना फाइटिंग!</string>
+    <string name="goal_achieved_exclaim">लक्ष्य पूरा!</string>
+    <string name="walk_steps_format">%d कदम चलें!</string>
+    <string name="steps_needed">कदम पूरे करने होंगे</string>
+    <string name="out_of_steps">/ %d कदम</string>
+    <string name="health_sync_delay">हेल्थ ऐप सिंक में कुछ सेकंड लग सकते हैं</string>
+    <string name="steps_not_increasing">कदम नहीं बढ़ रहे तो Samsung Health/Health Connect चेक करें</string>
+    <string name="sync_30_seconds">कदम सिंक में लगभग 30 सेकंड लगते हैं</string>
+    <string name="notification_when_done">पूरा होने पर नोटिफिकेशन मिलेगी</string>
+    <string name="take_light_walk">हल्की सैर करके वापस आएं!</string>
+    <string name="cant_walk_now">अभी चल नहीं सकता।</string>
+
+    <!-- How It Works Step -->
+    <string name="speech_loyal_howto">ऐसे इस्तेमाल करो।</string>
+    <string name="speech_tsundere_howto">समझाता हूँ... तुम्हें।</string>
+    <string name="speech_foodie_howto">ऐसे करो! सिंपल~</string>
+    <string name="speech_playful_howto">आसान है, देखो!</string>
+    <string name="speech_timid_howto">ऐसे इस्तेमाल करें...</string>
+    <string name="speech_clumsy_howto">तरीका बताता हूँ!</string>
+    <string name="rebon_usage">rebon का उपयोग</string>
+    <string name="core_rule">मुख्य नियम</string>
+    <string name="goal_rule_text">लक्ष्य पूरा → ऐप्स फ्री\nअधूरा → ऐप्स ब्लॉक</string>
+    <string name="break_mode_15min">15 मिनट ब्रेक मोड</string>
+    <string name="break_mode_desc">जरूरी होने पर 15 मिनट ऐप इस्तेमाल (दिन में 1 बार)</string>
+
+    <!-- Emergency Button Step -->
+    <string name="speech_loyal_emergency">जरूरी हो तो आराम करो।</string>
+    <string name="speech_tsundere_emergency">जरूरी हो तो... आराम करो।</string>
+    <string name="speech_foodie_emergency">जरूरी हो तो आराम! ठीक है~</string>
+    <string name="speech_playful_emergency">जरूरी हो तो आराम!</string>
+    <string name="speech_timid_emergency">अगर जरूरी है तो आराम करें...</string>
+    <string name="speech_clumsy_emergency">कभी-कभी आराम भी ठीक है!</string>
+    <string name="break_mode_details">• जरूरी होने पर 15 मिनट ऐप इस्तेमाल\n• दिन में सिर्फ 1 बार\n• 15 मिनट बाद फिर से ब्लॉक</string>
+
+    <!-- Widget Setup Step -->
+    <string name="widget_steps">कदम</string>
+    <string name="widget_steps_desc">आज के कदम और पेट एक नजर में</string>
+    <string name="widget_pet">पेट</string>
+    <string name="widget_pet_desc">पेट से चैट</string>
+    <string name="widget_weather">मौसम</string>
+    <string name="widget_weather_desc">समय के अनुसार मौसम और पेट</string>
+    <string name="widget_quote">कथन</string>
+    <string name="widget_quote_desc">रोज नया कथन</string>
+    <string name="widget_fasting">उपवास टाइमर</string>
+    <string name="widget_fasting_desc">इंटरमिटेंट फास्टिंग टाइमर</string>
+    <string name="widget_vocab">आज का शब्द</string>
+    <string name="widget_vocab_desc">अंग्रेजी/जापानी/चीनी सीखें</string>
+    <string name="widget_sudoku">सुडोकू</string>
+    <string name="widget_sudoku_desc">ब्रेन ट्रेनिंग मिनी गेम</string>
+    <string name="widget_korean">कोरियाई सीखें</string>
+    <string name="widget_korean_desc">रोज कोरियाई वाक्य सीखें</string>
+    <string name="speech_loyal_widget">विजेट जोड़ो।</string>
+    <string name="speech_tsundere_widget">विजेट... जोड़ दो।</string>
+    <string name="speech_foodie_widget">विजेट जोड़ो! चलो~</string>
+    <string name="speech_playful_widget">विजेट जोड़ो!</string>
+    <string name="speech_timid_widget">कृपया विजेट जोड़ें...</string>
+    <string name="speech_clumsy_widget">विजेट से एक नजर में देखो!</string>
+    <string name="seven_widgets">7 प्रकार के विजेट</string>
 </resources>

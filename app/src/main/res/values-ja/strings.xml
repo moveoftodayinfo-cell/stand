@@ -320,4 +320,215 @@
     <string name="notification_reminder_desc">あと%d歩です。もう少し歩きましょう！</string>
     <string name="notification_channel_steps">歩数通知</string>
     <string name="notification_channel_challenge">チャレンジ通知</string>
+
+    <!-- Login Screen -->
+    <string name="pet_friend">ペットの友達</string>
+    <string name="digital_habit_title">\nと一緒に歩いて\nデジタル習慣を改善</string>
+    <string name="login_subtitle">歩数を達成するとアプリが開きます\n自然なデジタルデトックスを体験</string>
+    <string name="tap_to_jump">タップでジャンプ！</string>
+    <string name="google_login">Googleログイン</string>
+    <string name="login_complete">ログイン完了</string>
+    <string name="debug_test_without_login">[DEBUG] ログインなしでテスト</string>
+
+    <!-- Pet Selection Screen -->
+    <string name="choose_your_friend">友達を選んでね！</string>
+    <string name="friend_characteristics">*友達の特徴*</string>
+    <string name="this_friend">この子にする！</string>
+
+    <!-- Pet Descriptions V2 -->
+    <string name="pet_desc_shiba">忠実で元気な柴犬\nちょっと頑固だけど愛情深い\nあなたとならどこへでも行くよ</string>
+    <string name="pet_desc_cat">クールだけど実は甘えん坊\n自分だけの魅力があふれてる\nツンデレ？うん、それ私のこと</string>
+    <string name="pet_desc_pig">食べるの大好きな福豚\nのんびりだけど意外と賢い\n一緒にいると幸運が来るよ</string>
+    <string name="pet_desc_raccoon">好奇心旺盛でいたずら好き\n可愛い目に騙されないで\n変わり者だけどそばにいるよ</string>
+    <string name="pet_desc_hamster">小さいけど勇敢なハムスター\nほっぺに詰めた愛情いっぱい\nキュートさで応援するね</string>
+    <string name="pet_desc_penguin">のんびりマイペースなペンギン\nよちよち歩きでも心は速い\n一緒に頑張ろうね</string>
+
+    <!-- Pet Name Input Step -->
+    <string name="name_me">名前つけて。</string>
+    <string name="give_me_name">名前をつけてね！</string>
+    <string name="within_8_chars">8文字以内</string>
+    <string name="okay_lets_go">よし、行こう！</string>
+
+    <!-- Tutorial All In One Step -->
+    <string name="speech_loyal_start">準備OK。行こう。</string>
+    <string name="speech_tsundere_start">まあ、よろしく。</string>
+    <string name="speech_foodie_start">一緒に行こう！レッツゴー</string>
+    <string name="speech_playful_start">さあ始めよう！</string>
+    <string name="speech_timid_start">よ、よろしくお願いします...</string>
+    <string name="speech_clumsy_start">一緒に頑張ろう！</string>
+    <string name="what_to_do_with">%sと一緒にやること</string>
+    <string name="tutorial_goal_title">歩数目標を設定</string>
+    <string name="tutorial_goal_desc">毎日の歩数目標を決めよう</string>
+    <string name="tutorial_achieve_title">一緒に目標達成</string>
+    <string name="tutorial_achieve_desc">ペットがあなたを応援するよ</string>
+    <string name="tutorial_control_title">アプリ制御</string>
+    <string name="tutorial_control_desc">時間を無駄にするアプリを制限</string>
+    <string name="lets_start">スタート！</string>
+
+    <!-- Permission Settings Step -->
+    <string name="speech_loyal_permission">権限をちょうだい。</string>
+    <string name="speech_tsundere_permission">まあ、権限が必要なの。</string>
+    <string name="speech_foodie_permission">権限お願い！オネガイ~</string>
+    <string name="speech_playful_permission">権限ちょうだい！</string>
+    <string name="speech_timid_permission">あの、権限が必要です...</string>
+    <string name="speech_clumsy_permission">権限設定ファイト！</string>
+    <string name="permission_setup">権限設定</string>
+    <string name="measures_your_steps">歩数を測定します</string>
+    <string name="notifications">通知</string>
+    <string name="notifies_progress">進行状況をお知らせします</string>
+    <string name="step_permission_required">歩数測定の権限は必須です</string>
+
+    <!-- Accessibility Step -->
+    <string name="speech_loyal_accessibility">アクセシビリティをONにして。</string>
+    <string name="speech_tsundere_accessibility">アクセシビリティONにして... お願い。</string>
+    <string name="speech_foodie_accessibility">アクセシビリティON! オネガイ~</string>
+    <string name="speech_playful_accessibility">アクセシビリティONにして！</string>
+    <string name="speech_timid_accessibility">アクセシビリティをONにしてください...</string>
+    <string name="speech_clumsy_accessibility">アクセシビリティ設定ファイト！</string>
+    <string name="app_control_setup">アプリ制御設定</string>
+    <string name="accessibility_instructions">1. ボタンをタップして設定へ\n2. \'rebon\'を探す\n3. rebonをONに\n4. 確認をタップ</string>
+    <string name="auto_proceed_when_on">ONが確認されると自動で次へ！</string>
+
+    <!-- App Selection Step -->
+    <string name="speech_loyal_app">制御するアプリを選んで。</string>
+    <string name="speech_tsundere_app">アプリ選んで... 早く。</string>
+    <string name="speech_foodie_app">アプリ選択! ゴーゴー~</string>
+    <string name="speech_playful_app">アプリ選んで！</string>
+    <string name="speech_timid_app">アプリを選んでください...</string>
+    <string name="speech_clumsy_app">どのアプリを制御する？</string>
+    <string name="select_at_least_one">1つ以上選択</string>
+
+    <!-- Test Blocking Step -->
+    <string name="speech_loyal_test_done">よし。やったな。</string>
+    <string name="speech_tsundere_test_done">まあ、悪くないね。</string>
+    <string name="speech_foodie_test_done">ナイス! 最高~</string>
+    <string name="speech_playful_test_done">よくやった！</string>
+    <string name="speech_timid_test_done">上手でした...！</string>
+    <string name="speech_clumsy_test_done">完璧！</string>
+    <string name="speech_loyal_test">アプリを起動して。</string>
+    <string name="speech_tsundere_test">アプリ起動して... 何してるの？</string>
+    <string name="speech_foodie_test">アプリ起動！ ゴーゴー~</string>
+    <string name="speech_playful_test">アプリ起動して！</string>
+    <string name="speech_timid_test">アプリを起動してください...</string>
+    <string name="speech_clumsy_test">アプリ起動テスト！</string>
+    <string name="test_complete">体験完了！</string>
+    <string name="app_blocking_test">アプリブロック体験</string>
+    <string name="try_launching_app">アプリを起動してみて</string>
+    <string name="blocking_test_done">✓ ブロック体験完了！</string>
+    <string name="now_try_walking">歩いて解除してみましょうか？</string>
+    <string name="test_method">テスト方法</string>
+    <string name="test_instructions">1. ホームボタンで出る\n2. 選択したアプリを起動\n3. ブロックメッセージを確認\n4. rebonに戻る</string>
+
+    <!-- Goal Input Step -->
+    <string name="speech_loyal_goal">目標を決めて。</string>
+    <string name="speech_tsundere_goal">目標... 適当に。</string>
+    <string name="speech_foodie_goal">目標決めよう! ゴー!</string>
+    <string name="speech_playful_goal">目標決めて！</string>
+    <string name="speech_timid_goal">目標を決めてください...</string>
+    <string name="speech_clumsy_goal">目標設定ファイト！</string>
+    <string name="steps_count">%d歩</string>
+    <string name="trial_range">50-70歩 (体験用)</string>
+    <string name="apps_unblocked">ブロックされたアプリが解除されます！</string>
+
+    <!-- Control Days Step -->
+    <string name="speech_loyal_days">制御する曜日を選んで。</string>
+    <string name="speech_tsundere_days">曜日... 早く選んで。</string>
+    <string name="speech_foodie_days">曜日選択! ゴーゴー~</string>
+    <string name="speech_playful_days">曜日選んで！</string>
+    <string name="speech_timid_days">曜日を選んでください...</string>
+    <string name="speech_clumsy_days">いつ制御する？</string>
+    <string name="control_days_select">制御曜日を選択</string>
+    <string name="recommend_weekdays">おすすめ: 平日(月~金)</string>
+    <string name="weekend_free">週末は自由に！</string>
+
+    <!-- Block Time Step -->
+    <string name="period_morning">朝\n06-12時</string>
+    <string name="period_afternoon">昼\n12-18時</string>
+    <string name="period_evening">夕方\n18-22時</string>
+    <string name="period_night">夜\n22-06時</string>
+    <string name="speech_loyal_time">ブロック時間を決めて。</string>
+    <string name="speech_tsundere_time">時間... 選んで。</string>
+    <string name="speech_foodie_time">時間決めよう! レッツゴー~</string>
+    <string name="speech_playful_time">時間決めて！</string>
+    <string name="speech_timid_time">時間を決めてください...</string>
+    <string name="speech_clumsy_time">いつ制御する？</string>
+    <string name="blocking_time">ブロック時間帯</string>
+    <string name="unselected_not_blocked">選択しないとブロックされません</string>
+
+    <!-- Walking Test Step -->
+    <string name="speech_loyal_walk_done">よくやった。</string>
+    <string name="speech_tsundere_walk_done">まあ、悪くないね。</string>
+    <string name="speech_foodie_walk_done">すごい! 最高~</string>
+    <string name="speech_playful_walk_done">よくやった！</string>
+    <string name="speech_timid_walk_done">本当によくできました...！</string>
+    <string name="speech_clumsy_walk_done">完璧! 最高！</string>
+    <string name="speech_loyal_walk_zero">軽く散歩すれば埋まるよ。</string>
+    <string name="speech_tsundere_walk_zero">散歩でもしてきて。</string>
+    <string name="speech_foodie_walk_zero">軽く散歩すればOK~</string>
+    <string name="speech_playful_walk_zero">散歩すれば完成！</string>
+    <string name="speech_timid_walk_zero">散歩すれば... 埋まりますよ...</string>
+    <string name="speech_clumsy_walk_zero">散歩して完成! ファイト！</string>
+    <string name="speech_loyal_walk">歩いて。</string>
+    <string name="speech_tsundere_walk">歩いて... 早く。</string>
+    <string name="speech_foodie_walk">歩こう! ゴーゴー~</string>
+    <string name="speech_playful_walk">歩いて！</string>
+    <string name="speech_timid_walk">歩いてください...</string>
+    <string name="speech_clumsy_walk">歩きファイト！</string>
+    <string name="goal_achieved_exclaim">目標達成！</string>
+    <string name="walk_steps_format">%d歩歩いてみて！</string>
+    <string name="steps_needed">歩数が必要</string>
+    <string name="out_of_steps">/ %d 歩</string>
+    <string name="health_sync_delay">ヘルスアプリとの同期に数秒かかることがあります</string>
+    <string name="steps_not_increasing">歩数が増えない場合は、Samsung Health/Health Connectを確認してください</string>
+    <string name="sync_30_seconds">歩数同期には約30秒かかります</string>
+    <string name="notification_when_done">完了したら通知でお知らせします</string>
+    <string name="take_light_walk">軽く散歩してきてください！</string>
+    <string name="cant_walk_now">今は歩けません。</string>
+
+    <!-- How It Works Step -->
+    <string name="speech_loyal_howto">こうやって使うんだ。</string>
+    <string name="speech_tsundere_howto">説明... してあげる。</string>
+    <string name="speech_foodie_howto">こうすればOK! シンプル~</string>
+    <string name="speech_playful_howto">簡単だよ、見て！</string>
+    <string name="speech_timid_howto">こうやって使います...</string>
+    <string name="speech_clumsy_howto">使い方教えるね！</string>
+    <string name="rebon_usage">rebonの使い方</string>
+    <string name="core_rule">コアルール</string>
+    <string name="goal_rule_text">目標達成 → アプリ自由\n未達成 → アプリブロック</string>
+    <string name="break_mode_15min">15分休憩モード</string>
+    <string name="break_mode_desc">急ぎの時は15分間アプリ使用可能 (1日1回)</string>
+
+    <!-- Emergency Button Step -->
+    <string name="speech_loyal_emergency">急ぎの時は休んで。</string>
+    <string name="speech_tsundere_emergency">急ぎなら... 休んで。</string>
+    <string name="speech_foodie_emergency">急ぎなら休んで! 大丈夫~</string>
+    <string name="speech_playful_emergency">急ぎなら休んで！</string>
+    <string name="speech_timid_emergency">急ぎでしたら休んでください...</string>
+    <string name="speech_clumsy_emergency">たまには休んでもいいよ！</string>
+    <string name="break_mode_details">• 急ぎの時は15分間アプリ使用可能\n• 1日1回のみ使用可能\n• 15分後に自動的に再ブロック</string>
+
+    <!-- Widget Setup Step -->
+    <string name="widget_steps">歩数</string>
+    <string name="widget_steps_desc">今日の歩数とペットを一目で</string>
+    <string name="widget_pet">ペット</string>
+    <string name="widget_pet_desc">ペットとチャット</string>
+    <string name="widget_weather">天気予報</string>
+    <string name="widget_weather_desc">時間帯別の天気とペット</string>
+    <string name="widget_quote">名言</string>
+    <string name="widget_quote_desc">毎日新しい名言</string>
+    <string name="widget_fasting">断食タイマー</string>
+    <string name="widget_fasting_desc">断続的断食タイマー</string>
+    <string name="widget_vocab">今日の単語</string>
+    <string name="widget_vocab_desc">英語/日本語/中国語学習</string>
+    <string name="widget_sudoku">数独</string>
+    <string name="widget_sudoku_desc">脳トレミニゲーム</string>
+    <string name="widget_korean">韓国語学習</string>
+    <string name="widget_korean_desc">毎日韓国語会話を学ぶ</string>
+    <string name="speech_loyal_widget">ウィジェットを追加して。</string>
+    <string name="speech_tsundere_widget">ウィジェット... 追加して。</string>
+    <string name="speech_foodie_widget">ウィジェット追加! ゴーゴー~</string>
+    <string name="speech_playful_widget">ウィジェット追加して！</string>
+    <string name="speech_timid_widget">ウィジェットを追加してください...</string>
+    <string name="speech_clumsy_widget">ウィジェットで一目で確認！</string>
+    <string name="seven_widgets">7種類のウィジェット</string>
 </resources>

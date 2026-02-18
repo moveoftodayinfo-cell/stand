@@ -66,6 +66,199 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.lifecycleScope
 
+/**
+ * Localization helper object for MainActivity strings
+ */
+private object MainActivityStrings {
+    private fun getLang(): String = java.util.Locale.getDefault().language
+
+    // Default pet names
+    fun defaultPetName(): String = when (getLang()) {
+        "ko" -> "펫"
+        "ja" -> "ペット"
+        "zh" -> "宠物"
+        "es" -> "Mascota"
+        else -> "Pet"
+    }
+
+    fun defaultDogName(): String = when (getLang()) {
+        "ko" -> "멍이"
+        "ja" -> "ワンちゃん"
+        "zh" -> "汪汪"
+        "es" -> "Guau"
+        else -> "Buddy"
+    }
+
+    fun defaultAnimalName(): String = when (getLang()) {
+        "ko" -> "반려동물"
+        "ja" -> "ペット"
+        "zh" -> "宠物"
+        "es" -> "Mascota"
+        else -> "Pet"
+    }
+
+    fun defaultShibaName(): String = when (getLang()) {
+        "ko" -> "시바"
+        "ja" -> "シバ"
+        "zh" -> "柴柴"
+        "es" -> "Shiba"
+        else -> "Shiba"
+    }
+
+    // Loading messages
+    fun loadingData(): String = when (getLang()) {
+        "ko" -> "데이터 불러오는 중..."
+        "ja" -> "データを読み込み中..."
+        "zh" -> "正在加载数据..."
+        "es" -> "Cargando datos..."
+        else -> "Loading data..."
+    }
+
+    fun checkingUpdate(): String = when (getLang()) {
+        "ko" -> "업데이트 확인 중..."
+        "ja" -> "アップデートを確認中..."
+        "zh" -> "正在检查更新..."
+        "es" -> "Comprobando actualizaciones..."
+        else -> "Checking for updates..."
+    }
+
+    // Challenge messages
+    fun challengeEnded(): String = when (getLang()) {
+        "ko" -> "챌린지가 종료되었어요"
+        "ja" -> "チャレンジが終了しました"
+        "zh" -> "挑战已结束"
+        "es" -> "El desafío ha terminado"
+        else -> "Challenge ended"
+    }
+
+    fun challengePaused(exitCount: Int): String = when (getLang()) {
+        "ko" -> "챌린지가 일시정지됐어요! (${exitCount}/2)"
+        "ja" -> "チャレンジが一時停止しました！(${exitCount}/2)"
+        "zh" -> "挑战已暂停！(${exitCount}/2)"
+        "es" -> "¡Desafío pausado! (${exitCount}/2)"
+        else -> "Challenge paused! (${exitCount}/2)"
+    }
+
+    // Amount formatting
+    fun formatAmount(amount: Int): String = when (getLang()) {
+        "ko" -> when {
+            amount >= 10000 -> "${amount / 10000}만원"
+            amount >= 1000 -> "${amount / 1000}천원"
+            else -> "${amount}원"
+        }
+        "ja" -> when {
+            amount >= 10000 -> "${amount / 10000}万円"
+            amount >= 1000 -> "${amount / 1000}千円"
+            else -> "${amount}円"
+        }
+        "zh" -> when {
+            amount >= 10000 -> "${amount / 10000}万元"
+            amount >= 1000 -> "${amount / 1000}千元"
+            else -> "${amount}元"
+        }
+        "es" -> when {
+            amount >= 1000 -> "${amount / 1000}K€"
+            else -> "${amount}€"
+        }
+        else -> when {
+            amount >= 1000 -> "$${amount / 1000}K"
+            else -> "$${amount}"
+        }
+    }
+
+    // Unit text
+    fun stepsUnit(): String = when (getLang()) {
+        "ko" -> "걸음"
+        "ja" -> "歩"
+        "zh" -> "步"
+        "es" -> "pasos"
+        else -> "steps"
+    }
+
+    // Challenge dialog
+    fun runningChallengeTitle(): String = when (getLang()) {
+        "ko" -> "진행 중인 챌린지가 있어요"
+        "ja" -> "進行中のチャレンジがあります"
+        "zh" -> "有正在进行的挑战"
+        "es" -> "Hay un desafío en progreso"
+        else -> "Challenge in progress"
+    }
+
+    fun runningChallengeMessage(challengeName: String): String = when (getLang()) {
+        "ko" -> "현재 \"${challengeName}\"이(가) 진행 중입니다."
+        "ja" -> "現在「${challengeName}」が進行中です。"
+        "zh" -> "\"${challengeName}\"正在进行中。"
+        "es" -> "\"${challengeName}\" está en progreso."
+        else -> "\"${challengeName}\" is currently in progress."
+    }
+
+    fun cancelRunningChallengeHint(): String = when (getLang()) {
+        "ko" -> "새로운 챌린지를 시작하려면 먼저 진행 중인 챌린지를 취소해주세요."
+        "ja" -> "新しいチャレンジを始めるには、まず進行中のチャレンジをキャンセルしてください。"
+        "zh" -> "要开始新挑战，请先取消正在进行的挑战。"
+        "es" -> "Para iniciar un nuevo desafío, primero cancela el desafío en curso."
+        else -> "To start a new challenge, please cancel the current challenge first."
+    }
+
+    fun checkRunningChallenge(): String = when (getLang()) {
+        "ko" -> "진행 중인 챌린지 확인"
+        "ja" -> "進行中のチャレンジを確認"
+        "zh" -> "查看进行中的挑战"
+        "es" -> "Ver desafío en curso"
+        else -> "Check current challenge"
+    }
+
+    fun cancel(): String = when (getLang()) {
+        "ko" -> "취소"
+        "ja" -> "キャンセル"
+        "zh" -> "取消"
+        "es" -> "Cancelar"
+        else -> "Cancel"
+    }
+
+    // Skin equipped toast
+    fun skinEquipped(): String = when (getLang()) {
+        "ko" -> "스킨을 장착했어요!"
+        "ja" -> "スキンを装着しました！"
+        "zh" -> "已装备皮肤！"
+        "es" -> "¡Skin equipado!"
+        else -> "Skin equipped!"
+    }
+
+    // Update dialog
+    fun updateRequired(): String = when (getLang()) {
+        "ko" -> "업데이트 필요"
+        "ja" -> "アップデートが必要です"
+        "zh" -> "需要更新"
+        "es" -> "Actualización requerida"
+        else -> "Update required"
+    }
+
+    fun newVersionAvailable(): String = when (getLang()) {
+        "ko" -> "새 버전이 있어요"
+        "ja" -> "新しいバージョンがあります"
+        "zh" -> "有新版本"
+        "es" -> "Nueva versión disponible"
+        else -> "New version available"
+    }
+
+    fun update(): String = when (getLang()) {
+        "ko" -> "업데이트"
+        "ja" -> "アップデート"
+        "zh" -> "更新"
+        "es" -> "Actualizar"
+        else -> "Update"
+    }
+
+    fun later(): String = when (getLang()) {
+        "ko" -> "나중에"
+        "ja" -> "後で"
+        "zh" -> "稍后"
+        "es" -> "Más tarde"
+        else -> "Later"
+    }
+}
+
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     private val TAG = "MainActivity"
@@ -220,7 +413,7 @@ class MainActivity : ComponentActivity() {
 
         if (preferenceManager.shouldShowWorryNotification() &&
             !preferenceManager.hasShownWorryNotificationToday()) {
-            val petName = preferenceManager.getPetName() ?: "펫"
+            val petName = preferenceManager.getPetName() ?: MainActivityStrings.defaultPetName()
             notificationHelper.showWorryNotification(petName)
             preferenceManager.setWorryNotificationShown()
         }
@@ -546,7 +739,7 @@ fun WalkOrWaitScreen(
             userSettings?.petName
             ?: preferenceManager?.getPetNameV2()?.takeIf { it.isNotBlank() }
             ?: preferenceManager?.getPetName()
-            ?: "멍이"
+            ?: MainActivityStrings.defaultDogName()
         )
     }
 
@@ -633,7 +826,7 @@ fun WalkOrWaitScreen(
                 )
                 Spacer(modifier = Modifier.height(16.dp))
                 Text(
-                    text = "데이터 불러오는 중...",
+                    text = MainActivityStrings.loadingData(),
                     color = MockupColors.TextSecondary,
                     fontSize = 14.sp
                 )
@@ -661,7 +854,7 @@ fun WalkOrWaitScreen(
                     )
                     Spacer(modifier = Modifier.height(16.dp))
                     Text(
-                        text = "업데이트 확인 중...",
+                        text = MainActivityStrings.checkingUpdate(),
                         color = MockupColors.TextSecondary,
                         fontSize = 14.sp
                     )
@@ -740,7 +933,7 @@ fun WalkOrWaitScreen(
                 } else {
                     // V1 데이터로 폴백 + V2로 마이그레이션
                     val restoredPetTypeName = preferenceManager?.getPetType()
-                    val restoredPetName = preferenceManager?.getPetName() ?: "반려동물"
+                    val restoredPetName = preferenceManager?.getPetName() ?: MainActivityStrings.defaultAnimalName()
                     petTypeName = restoredPetTypeName ?: "DOG1"
                     petName = restoredPetName
 
@@ -958,9 +1151,9 @@ fun WalkOrWaitScreen(
                                 kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
                                     val exitCount = challengeManager.currentProgress.value?.exitCount ?: 0
                                     val message = if (exitCount >= 2) {
-                                        "챌린지가 종료되었어요"
+                                        MainActivityStrings.challengeEnded()
                                     } else {
-                                        "챌린지가 일시정지됐어요! (${exitCount}/2)"
+                                        MainActivityStrings.challengePaused(exitCount)
                                     }
                                     android.widget.Toast.makeText(context, message, android.widget.Toast.LENGTH_SHORT).show()
                                 }
@@ -1042,11 +1235,7 @@ fun WalkOrWaitScreen(
     val achievementRate = if (totalDays > 0) (successDays.toFloat() / totalDays * 100) else 0f
 
     fun formatAmount(amount: Int): String {
-        return when {
-            amount >= 10000 -> "${amount / 10000}만원"
-            amount >= 1000 -> "${amount / 1000}천원"
-            else -> "${amount}원"
-        }
+        return MainActivityStrings.formatAmount(amount)
     }
 
     // 1초마다 진행 상황 업데이트 + 목표 달성 체크 + 접근성 체크
@@ -1161,7 +1350,7 @@ fun WalkOrWaitScreen(
     val isGoalAchieved = currentProgress >= goal
 
     // 단위에 맞게 텍스트 생성
-    val unitText = if (goalUnit == "km") "km" else "걸음"
+    val unitText = if (goalUnit == "km") "km" else MainActivityStrings.stepsUnit()
     val currentText = if (goalUnit == "km") String.format("%.2f", currentProgressDisplay) else currentProgressDisplay.toInt().toString()
     val goalText = if (goalUnit == "km") String.format("%.2f", goalDisplay) else goal.toString()
 
@@ -1282,19 +1471,19 @@ fun WalkOrWaitScreen(
             },
             title = {
                 Text(
-                    text = "진행 중인 챌린지가 있어요",
+                    text = MainActivityStrings.runningChallengeTitle(),
                     fontWeight = FontWeight.Bold
                 )
             },
             text = {
                 Column {
                     Text(
-                        text = "현재 \"${runningProgress.challenge.name}\"이(가) 진행 중입니다.",
+                        text = MainActivityStrings.runningChallengeMessage(runningProgress.challenge.name),
                         fontSize = 14.sp
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
-                        text = "새로운 챌린지를 시작하려면 먼저 진행 중인 챌린지를 취소해주세요.",
+                        text = MainActivityStrings.cancelRunningChallengeHint(),
                         fontSize = 14.sp,
                         color = Color(0xFF666666)
                     )
@@ -1309,7 +1498,7 @@ fun WalkOrWaitScreen(
                         showChallengeTimer = true
                     }
                 ) {
-                    Text("진행 중인 챌린지 확인", fontWeight = FontWeight.Bold)
+                    Text(MainActivityStrings.checkRunningChallenge(), fontWeight = FontWeight.Bold)
                 }
             },
             dismissButton = {
@@ -1319,7 +1508,7 @@ fun WalkOrWaitScreen(
                         pendingChallenge = null
                     }
                 ) {
-                    Text("취소")
+                    Text(MainActivityStrings.cancel())
                 }
             }
         )
@@ -1442,7 +1631,7 @@ fun WalkOrWaitScreen(
                 // V2 펫 테스트 초기화 (초기화 안 되어있으면 SHIBA BABY, 레벨업 직전으로 시작)
                 if (preferenceManager?.isPetV2Initialized() != true) {
                     preferenceManager?.savePetTypeV2(com.moveoftoday.walkorwait.pet.PetTypeV2.SHIBA)
-                    preferenceManager?.savePetNameV2("시바")
+                    preferenceManager?.savePetNameV2(MainActivityStrings.defaultShibaName())
                     preferenceManager?.savePetLevelV2(
                         com.moveoftoday.walkorwait.pet.PetLevel(level = 1, currentExp = 295, totalExp = 295)
                     )
@@ -1574,7 +1763,7 @@ fun WalkOrWaitScreen(
                 challengeManager.clearJustUnlockedSkin()
                 showSkinUnlockDialog = false
                 skinToShow = null
-                android.widget.Toast.makeText(context, "스킨을 장착했어요!", android.widget.Toast.LENGTH_SHORT).show()
+                android.widget.Toast.makeText(context, MainActivityStrings.skinEquipped(), android.widget.Toast.LENGTH_SHORT).show()
             },
             onLater = {
                 // 나중에
@@ -1672,7 +1861,7 @@ fun AppUpdateDialog(
 
                 // 제목
                 Text(
-                    text = if (updateInfo.isForceUpdate) "업데이트 필요" else "새 버전이 있어요",
+                    text = if (updateInfo.isForceUpdate) MainActivityStrings.updateRequired() else MainActivityStrings.newVersionAvailable(),
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold,
                     color = com.moveoftoday.walkorwait.pet.MockupColors.TextPrimary,
@@ -1730,7 +1919,7 @@ fun AppUpdateDialog(
                     )
                 ) {
                     Text(
-                        text = "업데이트",
+                        text = MainActivityStrings.update(),
                         fontSize = 14.sp,
                         fontWeight = FontWeight.Bold
                     )
@@ -1744,7 +1933,7 @@ fun AppUpdateDialog(
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         Text(
-                            text = "나중에",
+                            text = MainActivityStrings.later(),
                             fontSize = 14.sp,
                             color = com.moveoftoday.walkorwait.pet.MockupColors.TextMuted
                         )

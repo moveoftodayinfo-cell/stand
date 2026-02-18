@@ -320,4 +320,215 @@
     <string name="notification_reminder_desc">%d steps to go. Let\'s walk a bit more!</string>
     <string name="notification_channel_steps">Step Notifications</string>
     <string name="notification_channel_challenge">Challenge Notifications</string>
+
+    <!-- Login Screen -->
+    <string name="pet_friend">Pet Friend</string>
+    <string name="digital_habit_title">\nFix your digital habits\nwhile walking with a</string>
+    <string name="login_subtitle">Fill your steps to unlock apps\nExperience natural digital detox</string>
+    <string name="tap_to_jump">Tap to jump!</string>
+    <string name="google_login">Google Login</string>
+    <string name="login_complete">Login Complete</string>
+    <string name="debug_test_without_login">[DEBUG] Test without login</string>
+
+    <!-- Pet Selection Screen -->
+    <string name="choose_your_friend">Choose your friend!</string>
+    <string name="friend_characteristics">*Friend Traits*</string>
+    <string name="this_friend">This one!</string>
+
+    <!-- Pet Descriptions V2 -->
+    <string name="pet_desc_shiba">Loyal and spirited Shiba\nA bit stubborn but full of love\nReady to go anywhere with you</string>
+    <string name="pet_desc_cat">Aloof but secretly affectionate\nOverflowing with unique charm\nTsundere? Yes, that\'s me</string>
+    <string name="pet_desc_pig">A lucky pig who loves to eat\nRelaxed but surprisingly clever\nGood fortune follows when we\'re together</string>
+    <string name="pet_desc_raccoon">Curious and playful friend\nDon\'t be fooled by those cute eyes\nQuirky but always by your side</string>
+    <string name="pet_desc_hamster">Small but brave hamster\nCheeks full of love for you\nI\'ll cheer you on with cuteness</string>
+    <string name="pet_desc_penguin">Easy-going and chill penguin\nWaddling slow but heart beats fast\nLet\'s power through together</string>
+
+    <!-- Pet Name Input Step -->
+    <string name="name_me">Name me.</string>
+    <string name="give_me_name">Give me a name!</string>
+    <string name="within_8_chars">Within 8 characters</string>
+    <string name="okay_lets_go">Okay, let\'s go!</string>
+
+    <!-- Tutorial All In One Step -->
+    <string name="speech_loyal_start">Ready. Let\'s go.</string>
+    <string name="speech_tsundere_start">Well, nice to meet you.</string>
+    <string name="speech_foodie_start">Let\'s go together! Go go~</string>
+    <string name="speech_playful_start">Let\'s start!</string>
+    <string name="speech_timid_start">N-nice to meet you...</string>
+    <string name="speech_clumsy_start">Let\'s do our best together!</string>
+    <string name="what_to_do_with">What to do with %s</string>
+    <string name="tutorial_goal_title">Set Step Goal</string>
+    <string name="tutorial_goal_desc">Set your daily step goal</string>
+    <string name="tutorial_achieve_title">Achieve Together</string>
+    <string name="tutorial_achieve_desc">Your pet cheers you on</string>
+    <string name="tutorial_control_title">App Control</string>
+    <string name="tutorial_control_desc">Reduce time-wasting app usage</string>
+    <string name="lets_start">Let\'s Start!</string>
+
+    <!-- Permission Settings Step -->
+    <string name="speech_loyal_permission">Give me permission.</string>
+    <string name="speech_tsundere_permission">Well, I need permission.</string>
+    <string name="speech_foodie_permission">Permission please! Onegai~</string>
+    <string name="speech_playful_permission">Gimme permission!</string>
+    <string name="speech_timid_permission">I-I need permission...</string>
+    <string name="speech_clumsy_permission">Permission setup fighting!</string>
+    <string name="permission_setup">Permission Setup</string>
+    <string name="measures_your_steps">Measures your steps</string>
+    <string name="notifications">Notifications</string>
+    <string name="notifies_progress">Notifies your progress</string>
+    <string name="step_permission_required">Step measurement permission is required</string>
+
+    <!-- Accessibility Step -->
+    <string name="speech_loyal_accessibility">Turn on accessibility.</string>
+    <string name="speech_tsundere_accessibility">Turn on accessibility... please.</string>
+    <string name="speech_foodie_accessibility">Turn on accessibility! Onegai~</string>
+    <string name="speech_playful_accessibility">Turn on accessibility!</string>
+    <string name="speech_timid_accessibility">Please turn on accessibility...</string>
+    <string name="speech_clumsy_accessibility">Accessibility setup, fighting!</string>
+    <string name="app_control_setup">App Control Setup</string>
+    <string name="accessibility_instructions">1. Tap button to go to settings\n2. Find \'rebon\'\n3. Turn rebon ON\n4. Tap confirm</string>
+    <string name="auto_proceed_when_on">Auto-proceeds when ON is confirmed!</string>
+
+    <!-- App Selection Step -->
+    <string name="speech_loyal_app">Pick apps to control.</string>
+    <string name="speech_tsundere_app">Pick apps... fast.</string>
+    <string name="speech_foodie_app">App selection! Go go~</string>
+    <string name="speech_playful_app">Pick some apps!</string>
+    <string name="speech_timid_app">Please select apps...</string>
+    <string name="speech_clumsy_app">Which apps to control?</string>
+    <string name="select_at_least_one">Select at least 1</string>
+
+    <!-- Test Blocking Step -->
+    <string name="speech_loyal_test_done">Good. You tried it.</string>
+    <string name="speech_tsundere_test_done">Well, not bad.</string>
+    <string name="speech_foodie_test_done">Nice! Awesome~</string>
+    <string name="speech_playful_test_done">Good job!</string>
+    <string name="speech_timid_test_done">You did well...!</string>
+    <string name="speech_clumsy_test_done">Perfect!</string>
+    <string name="speech_loyal_test">Launch the app.</string>
+    <string name="speech_tsundere_test">Launch the app... what\'re you doing?</string>
+    <string name="speech_foodie_test">Launch the app! Go go~</string>
+    <string name="speech_playful_test">Launch the app!</string>
+    <string name="speech_timid_test">Please launch the app...</string>
+    <string name="speech_clumsy_test">App launch test!</string>
+    <string name="test_complete">Experience Complete!</string>
+    <string name="app_blocking_test">App Blocking Experience</string>
+    <string name="try_launching_app">Try launching an app</string>
+    <string name="blocking_test_done">✓ Blocking test complete!</string>
+    <string name="now_try_walking">Now let\'s try unlocking by walking?</string>
+    <string name="test_method">Test Method</string>
+    <string name="test_instructions">1. Press Home to exit\n2. Launch a selected app\n3. See blocking message\n4. Return to rebon</string>
+
+    <!-- Goal Input Step -->
+    <string name="speech_loyal_goal">Set your goal.</string>
+    <string name="speech_tsundere_goal">Goal... keep it reasonable.</string>
+    <string name="speech_foodie_goal">Set a goal! Let\'s go!</string>
+    <string name="speech_playful_goal">Set your goal!</string>
+    <string name="speech_timid_goal">Please set your goal...</string>
+    <string name="speech_clumsy_goal">Goal setting, fighting!</string>
+    <string name="steps_count">%d steps</string>
+    <string name="trial_range">50-70 steps (trial)</string>
+    <string name="apps_unblocked">Blocked apps are unlocked!</string>
+
+    <!-- Control Days Step -->
+    <string name="speech_loyal_days">Pick control days.</string>
+    <string name="speech_tsundere_days">Days... pick fast.</string>
+    <string name="speech_foodie_days">Day selection! Go go~</string>
+    <string name="speech_playful_days">Pick the days!</string>
+    <string name="speech_timid_days">Please select days...</string>
+    <string name="speech_clumsy_days">Which days to control?</string>
+    <string name="control_days_select">Select Control Days</string>
+    <string name="recommend_weekdays">Recommend: Weekdays (Mon-Fri)</string>
+    <string name="weekend_free">Weekends are free!</string>
+
+    <!-- Block Time Step -->
+    <string name="period_morning">Morning\n06-12</string>
+    <string name="period_afternoon">Afternoon\n12-18</string>
+    <string name="period_evening">Evening\n18-22</string>
+    <string name="period_night">Night\n22-06</string>
+    <string name="speech_loyal_time">Set blocking time.</string>
+    <string name="speech_tsundere_time">Time... pick.</string>
+    <string name="speech_foodie_time">Set time! Let\'s go~</string>
+    <string name="speech_playful_time">Set the time!</string>
+    <string name="speech_timid_time">Please set the time...</string>
+    <string name="speech_clumsy_time">When to control?</string>
+    <string name="blocking_time">Blocking Time</string>
+    <string name="unselected_not_blocked">Unselected times are not blocked</string>
+
+    <!-- Walking Test Step -->
+    <string name="speech_loyal_walk_done">Well done.</string>
+    <string name="speech_tsundere_walk_done">Well, not bad.</string>
+    <string name="speech_foodie_walk_done">Amazing! Great job lol</string>
+    <string name="speech_playful_walk_done">Good job!</string>
+    <string name="speech_timid_walk_done">You did really well...!</string>
+    <string name="speech_clumsy_walk_done">Perfect! The best!</string>
+    <string name="speech_loyal_walk_zero">A light walk will fill it up.</string>
+    <string name="speech_tsundere_walk_zero">Just take a walk. Then check.</string>
+    <string name="speech_foodie_walk_zero">A light walk will do~</string>
+    <string name="speech_playful_walk_zero">Take a walk and done!</string>
+    <string name="speech_timid_walk_zero">A walk will... fill it up...</string>
+    <string name="speech_clumsy_walk_zero">Walk and done! Fighting!</string>
+    <string name="speech_loyal_walk">Walk.</string>
+    <string name="speech_tsundere_walk">Walk... fast.</string>
+    <string name="speech_foodie_walk">Let\'s walk! Go go~</string>
+    <string name="speech_playful_walk">Walk around!</string>
+    <string name="speech_timid_walk">Please walk...</string>
+    <string name="speech_clumsy_walk">Walking fighting!</string>
+    <string name="goal_achieved_exclaim">Goal Achieved!</string>
+    <string name="walk_steps_format">Walk %d steps!</string>
+    <string name="steps_needed">Steps needed</string>
+    <string name="out_of_steps">/ %d steps</string>
+    <string name="health_sync_delay">Health app sync may take a few seconds</string>
+    <string name="steps_not_increasing">If steps don\'t increase, check Samsung Health/Health Connect</string>
+    <string name="sync_30_seconds">Step sync takes about 30 seconds</string>
+    <string name="notification_when_done">We\'ll notify you when done</string>
+    <string name="take_light_walk">Take a light walk and come back!</string>
+    <string name="cant_walk_now">Can\'t walk right now.</string>
+
+    <!-- How It Works Step -->
+    <string name="speech_loyal_howto">This is how you use it.</string>
+    <string name="speech_tsundere_howto">I\'ll explain... for you.</string>
+    <string name="speech_foodie_howto">This is how! Simple~</string>
+    <string name="speech_playful_howto">It\'s simple, look!</string>
+    <string name="speech_timid_howto">This is how to use it...</string>
+    <string name="speech_clumsy_howto">I\'ll show you how!</string>
+    <string name="rebon_usage">How to Use rebon</string>
+    <string name="core_rule">Core Rule</string>
+    <string name="goal_rule_text">Goal achieved → Apps free\nNot achieved → Apps blocked</string>
+    <string name="break_mode_15min">15-Min Break Mode</string>
+    <string name="break_mode_desc">Use apps for 15 min when urgent (once daily)</string>
+
+    <!-- Emergency Button Step -->
+    <string name="speech_loyal_emergency">Take a break when urgent.</string>
+    <string name="speech_tsundere_emergency">If urgent... take a break.</string>
+    <string name="speech_foodie_emergency">Take a break if urgent! No worries~</string>
+    <string name="speech_playful_emergency">Take a break if urgent!</string>
+    <string name="speech_timid_emergency">Take a break if you\'re busy...</string>
+    <string name="speech_clumsy_emergency">It\'s OK to rest sometimes!</string>
+    <string name="break_mode_details">• Use apps for 15 min when urgent\n• Once per day only\n• Auto-blocks again after 15 min</string>
+
+    <!-- Widget Setup Step -->
+    <string name="widget_steps">Steps</string>
+    <string name="widget_steps_desc">See today\'s steps and pet at a glance</string>
+    <string name="widget_pet">Pet</string>
+    <string name="widget_pet_desc">Chat with my pet</string>
+    <string name="widget_weather">Weather</string>
+    <string name="widget_weather_desc">Hourly weather with pet</string>
+    <string name="widget_quote">Quote</string>
+    <string name="widget_quote_desc">New quote every day</string>
+    <string name="widget_fasting">Fasting Timer</string>
+    <string name="widget_fasting_desc">Intermittent fasting timer</string>
+    <string name="widget_vocab">Word of Day</string>
+    <string name="widget_vocab_desc">English/Japanese/Chinese learning</string>
+    <string name="widget_sudoku">Sudoku</string>
+    <string name="widget_sudoku_desc">Brain training mini-game</string>
+    <string name="widget_korean">Learn Korean</string>
+    <string name="widget_korean_desc">Learn Korean phrases daily</string>
+    <string name="speech_loyal_widget">Add the widget.</string>
+    <string name="speech_tsundere_widget">Widget... please add it.</string>
+    <string name="speech_foodie_widget">Add widget! Go go~</string>
+    <string name="speech_playful_widget">Add a widget!</string>
+    <string name="speech_timid_widget">Please add a widget...</string>
+    <string name="speech_clumsy_widget">Check at a glance with widgets!</string>
+    <string name="seven_widgets">7 Widget Types</string>
 </resources>

@@ -64,6 +64,753 @@ import com.moveoftoday.walkorwait.ui.theme.StandTypography
 import com.moveoftoday.walkorwait.ui.theme.StandSpacing
 import com.moveoftoday.walkorwait.ui.theme.StandSize
 import com.moveoftoday.walkorwait.ui.components.*
+import java.util.Locale
+
+// ============ 다국어 지원 헬퍼 객체 ============
+private object SettingsStrings {
+    private fun getLang(): String = Locale.getDefault().language
+
+    // Toast 메시지
+    fun dataRestored(): String = when (getLang()) {
+        "ko" -> "기존 데이터를 복원했어요!"
+        "ja" -> "既存データを復元しました!"
+        "zh" -> "已恢复现有数据!"
+        "es" -> "¡Datos restaurados!"
+        else -> "Data restored!"
+    }
+
+    fun dataSaved(): String = when (getLang()) {
+        "ko" -> "현재 데이터를 저장했어요!"
+        "ja" -> "現在のデータを保存しました!"
+        "zh" -> "已保存当前数据!"
+        "es" -> "¡Datos guardados!"
+        else -> "Data saved!"
+    }
+
+    fun googleConnected(): String = when (getLang()) {
+        "ko" -> "Google 계정 연결 완료!"
+        "ja" -> "Googleアカウント連携完了!"
+        "zh" -> "Google账号连接成功!"
+        "es" -> "¡Cuenta Google conectada!"
+        else -> "Google account connected!"
+    }
+
+    fun loginFailed(): String = when (getLang()) {
+        "ko" -> "로그인 실패"
+        "ja" -> "ログイン失敗"
+        "zh" -> "登录失败"
+        "es" -> "Error de inicio de sesión"
+        else -> "Login failed"
+    }
+
+    fun firebaseLoginFailed(): String = when (getLang()) {
+        "ko" -> "Firebase 로그인 실패"
+        "ja" -> "Firebaseログイン失敗"
+        "zh" -> "Firebase登录失败"
+        "es" -> "Error de inicio de sesión en Firebase"
+        else -> "Firebase login failed"
+    }
+
+    fun petChanged(): String = when (getLang()) {
+        "ko" -> "펫이 변경되었습니다!"
+        "ja" -> "ペットが変更されました!"
+        "zh" -> "宠物已更改!"
+        "es" -> "¡Mascota cambiada!"
+        else -> "Pet changed!"
+    }
+
+    fun copied(): String = when (getLang()) {
+        "ko" -> "복사 완료!"
+        "ja" -> "コピー完了!"
+        "zh" -> "复制成功!"
+        "es" -> "¡Copiado!"
+        else -> "Copied!"
+    }
+
+    fun feedbackSent(): String = when (getLang()) {
+        "ko" -> "피드백이 전송되었습니다!"
+        "ja" -> "フィードバックを送信しました!"
+        "zh" -> "反馈已发送!"
+        "es" -> "¡Feedback enviado!"
+        else -> "Feedback sent!"
+    }
+
+    fun sendFailed(error: String?): String = when (getLang()) {
+        "ko" -> "전송 실패: $error"
+        "ja" -> "送信失敗: $error"
+        "zh" -> "发送失败: $error"
+        "es" -> "Error de envío: $error"
+        else -> "Send failed: $error"
+    }
+
+    // 금액 포맷
+    fun formatAmount(amount: Int): String {
+        return when (getLang()) {
+            "ko" -> when {
+                amount >= 10000 -> "${amount / 10000}만원"
+                amount >= 1000 -> "${amount / 1000}천원"
+                else -> "${amount}원"
+            }
+            "ja" -> when {
+                amount >= 10000 -> "${amount / 10000}万円"
+                amount >= 1000 -> "${amount / 1000}千円"
+                else -> "${amount}円"
+            }
+            "zh" -> when {
+                amount >= 10000 -> "${amount / 10000}万元"
+                amount >= 1000 -> "${amount / 1000}千元"
+                else -> "${amount}元"
+            }
+            else -> when {
+                amount >= 10000 -> "$${amount / 10000}0K"
+                amount >= 1000 -> "$${amount / 1000}K"
+                else -> "$$amount"
+            }
+        }
+    }
+
+    // UI 텍스트
+    fun friend(): String = when (getLang()) {
+        "ko" -> "친구"
+        "ja" -> "フレンド"
+        "zh" -> "朋友"
+        "es" -> "Amigo"
+        else -> "Friend"
+    }
+
+    fun accessibilityDisabled(): String = when (getLang()) {
+        "ko" -> "rebon 비활성화됨"
+        "ja" -> "rebon無効化中"
+        "zh" -> "rebon已禁用"
+        "es" -> "rebon desactivado"
+        else -> "rebon disabled"
+    }
+
+    fun successDaysFormat(success: Int, total: Int): String = when (getLang()) {
+        "ko" -> "${success}/${total}일 성공"
+        "ja" -> "${success}/${total}日成功"
+        "zh" -> "${success}/${total}天成功"
+        "es" -> "${success}/${total} días exitosos"
+        else -> "${success}/${total} days success"
+    }
+
+    fun currentPet(name: String): String = when (getLang()) {
+        "ko" -> "현재: $name"
+        "ja" -> "現在: $name"
+        "zh" -> "当前: $name"
+        "es" -> "Actual: $name"
+        else -> "Current: $name"
+    }
+
+    fun usingByUser(email: String?): String = when (getLang()) {
+        "ko" -> "${email?.substringBefore("@")}님이 사용 중"
+        "ja" -> "${email?.substringBefore("@")}さんが使用中"
+        "zh" -> "${email?.substringBefore("@")}正在使用"
+        "es" -> "${email?.substringBefore("@")} está usando"
+        else -> "${email?.substringBefore("@")} is using"
+    }
+
+    fun shareToFriend(): String = when (getLang()) {
+        "ko" -> "친구에게 공유하기"
+        "ja" -> "友達にシェア"
+        "zh" -> "分享给朋友"
+        "es" -> "Compartir con amigo"
+        else -> "Share with friend"
+    }
+
+    fun goalDecreaseAvailable(date: String): String = when (getLang()) {
+        "ko" -> "목표 감소 가능: $date"
+        "ja" -> "目標減少可能: $date"
+        "zh" -> "目标可减少: $date"
+        "es" -> "Reducción de meta disponible: $date"
+        else -> "Goal decrease available: $date"
+    }
+
+    fun appRemoveAvailable(date: String): String = when (getLang()) {
+        "ko" -> "앱 제거 가능: $date"
+        "ja" -> "アプリ削除可能: $date"
+        "zh" -> "可删除应用: $date"
+        "es" -> "Eliminación de app disponible: $date"
+        else -> "App removal available: $date"
+    }
+
+    fun none(): String = when (getLang()) {
+        "ko" -> "없음"
+        "ja" -> "なし"
+        "zh" -> "无"
+        "es" -> "Ninguno"
+        else -> "None"
+    }
+
+    fun allDay(): String = when (getLang()) {
+        "ko" -> "24시간"
+        "ja" -> "24時間"
+        "zh" -> "24小时"
+        "es" -> "24 horas"
+        else -> "24 hours"
+    }
+
+    fun periodChangeAvailable(date: String): String = when (getLang()) {
+        "ko" -> "시간대 변경 가능: $date"
+        "ja" -> "時間帯変更可能: $date"
+        "zh" -> "可更改时段: $date"
+        "es" -> "Cambio de horario disponible: $date"
+        else -> "Period change available: $date"
+    }
+
+    fun dayChangeAvailable(date: String): String = when (getLang()) {
+        "ko" -> "요일 변경 가능: $date"
+        "ja" -> "曜日変更可能: $date"
+        "zh" -> "可更改星期: $date"
+        "es" -> "Cambio de día disponible: $date"
+        else -> "Day change available: $date"
+    }
+
+    fun healthConnectRequired(): String = when (getLang()) {
+        "ko" -> "Health Connect 연결 필요"
+        "ja" -> "Health Connect連携必要"
+        "zh" -> "需要连接Health Connect"
+        "es" -> "Se requiere Health Connect"
+        else -> "Health Connect required"
+    }
+
+    fun usingAppData(appName: String?): String = when (getLang()) {
+        "ko" -> if (appName != null) "$appName 데이터 사용 중" else "Health Connect 데이터 사용 중"
+        "ja" -> if (appName != null) "${appName}データ使用中" else "Health Connectデータ使用中"
+        "zh" -> if (appName != null) "正在使用${appName}数据" else "正在使用Health Connect数据"
+        "es" -> if (appName != null) "Usando datos de $appName" else "Usando datos de Health Connect"
+        else -> if (appName != null) "Using $appName data" else "Using Health Connect data"
+    }
+
+    fun batterySaverMode(): String = when (getLang()) {
+        "ko" -> "🔋 배터리 절약 모드"
+        "ja" -> "🔋 バッテリー節約モード"
+        "zh" -> "🔋 省电模式"
+        "es" -> "🔋 Modo ahorro de batería"
+        else -> "🔋 Battery saver mode"
+    }
+
+    fun connected(): String = when (getLang()) {
+        "ko" -> "연결됨"
+        "ja" -> "連携済み"
+        "zh" -> "已连接"
+        "es" -> "Conectado"
+        else -> "Connected"
+    }
+
+    fun googleAccount(): String = when (getLang()) {
+        "ko" -> "Google 계정"
+        "ja" -> "Googleアカウント"
+        "zh" -> "Google账号"
+        "es" -> "Cuenta Google"
+        else -> "Google Account"
+    }
+
+    fun googleLogin(): String = when (getLang()) {
+        "ko" -> "Google 로그인"
+        "ja" -> "Googleログイン"
+        "zh" -> "Google登录"
+        "es" -> "Iniciar sesión con Google"
+        else -> "Google Sign-In"
+    }
+
+    // 다이얼로그 텍스트
+    fun achieve95Percent(): String = when (getLang()) {
+        "ko" -> "95% 달성하면"
+        "ja" -> "95%達成すると"
+        "zh" -> "达成95%后"
+        "es" -> "Al lograr 95%"
+        else -> "Achieve 95%"
+    }
+
+    fun couponBenefitDescription(): String = when (getLang()) {
+        "ko" -> "• 친구에게 쿠폰을 선물하면\n• 친구가 1달 무료로 사용!\n• 매달 95% 달성하면 매달 쿠폰 획득"
+        "ja" -> "• 友達にクーポンをプレゼント\n• 友達は1ヶ月無料！\n• 毎月95%達成で毎月クーポン獲得"
+        "zh" -> "• 将优惠券送给朋友\n• 朋友可免费使用1个月!\n• 每月达成95%即可获得优惠券"
+        "es" -> "• Regala un cupón a un amigo\n• ¡Tu amigo usa 1 mes gratis!\n• Logra 95% mensual para obtener cupones"
+        else -> "• Give coupon to friend\n• Friend uses 1 month free!\n• Achieve 95% monthly for coupons"
+    }
+
+    fun howToUse(): String = when (getLang()) {
+        "ko" -> "1. 내 초대 코드 복사하기\n2. 친구에게 카톡으로 공유\n3. 친구가 코드 입력하면 끝!"
+        "ja" -> "1. 招待コードをコピー\n2. 友達にLINEでシェア\n3. 友達がコード入力で完了！"
+        "zh" -> "1. 复制我的邀请码\n2. 分享给朋友\n3. 朋友输入代码即可!"
+        "es" -> "1. Copia tu código de invitación\n2. Comparte por mensaje\n3. ¡Tu amigo ingresa el código!"
+        else -> "1. Copy my invite code\n2. Share with friend\n3. Friend enters code - done!"
+    }
+
+    fun removeAvailableDate(date: String): String = when (getLang()) {
+        "ko" -> "제거 가능일: $date"
+        "ja" -> "削除可能日: $date"
+        "zh" -> "可删除日期: $date"
+        "es" -> "Fecha de eliminación disponible: $date"
+        else -> "Removal available: $date"
+    }
+
+    fun changeAvailableDate(date: String): String = when (getLang()) {
+        "ko" -> "변경 가능일: $date"
+        "ja" -> "変更可能日: $date"
+        "zh" -> "可更改日期: $date"
+        "es" -> "Fecha de cambio disponible: $date"
+        else -> "Change available: $date"
+    }
+
+    fun cancel(): String = when (getLang()) {
+        "ko" -> "취소"
+        "ja" -> "キャンセル"
+        "zh" -> "取消"
+        "es" -> "Cancelar"
+        else -> "Cancel"
+    }
+
+    fun apply(): String = when (getLang()) {
+        "ko" -> "적용"
+        "ja" -> "適用"
+        "zh" -> "应用"
+        "es" -> "Aplicar"
+        else -> "Apply"
+    }
+
+    fun controlDays(): String = when (getLang()) {
+        "ko" -> "제어 요일"
+        "ja" -> "制御曜日"
+        "zh" -> "控制星期"
+        "es" -> "Días de control"
+        else -> "Control Days"
+    }
+
+    fun selectControlDays(): String = when (getLang()) {
+        "ko" -> "제어할 요일을 선택하세요"
+        "ja" -> "制御する曜日を選択してください"
+        "zh" -> "请选择控制的星期"
+        "es" -> "Selecciona los días de control"
+        else -> "Select days to control"
+    }
+
+    fun weekdays(): String = when (getLang()) {
+        "ko" -> "평일"
+        "ja" -> "平日"
+        "zh" -> "工作日"
+        "es" -> "Entre semana"
+        else -> "Weekdays"
+    }
+
+    fun weekends(): String = when (getLang()) {
+        "ko" -> "주말"
+        "ja" -> "週末"
+        "zh" -> "周末"
+        "es" -> "Fin de semana"
+        else -> "Weekends"
+    }
+
+    fun everyday(): String = when (getLang()) {
+        "ko" -> "매일"
+        "ja" -> "毎日"
+        "zh" -> "每天"
+        "es" -> "Todos los días"
+        else -> "Everyday"
+    }
+
+    fun removalRestricted(): String = when (getLang()) {
+        "ko" -> "제거 제한 중"
+        "ja" -> "削除制限中"
+        "zh" -> "删除限制中"
+        "es" -> "Eliminación restringida"
+        else -> "Removal restricted"
+    }
+
+    fun addOnlyAvailable(date: String): String = when (getLang()) {
+        "ko" -> "추가만 가능 · 제거 가능일: $date"
+        "ja" -> "追加のみ可能 · 削除可能日: $date"
+        "zh" -> "仅可添加 · 可删除日期: $date"
+        "es" -> "Solo agregar · Eliminación disponible: $date"
+        else -> "Add only · Removal available: $date"
+    }
+
+    fun recommendWeekdays(): String = when (getLang()) {
+        "ko" -> "추천: 평일(월~금)"
+        "ja" -> "おすすめ: 平日(月〜金)"
+        "zh" -> "推荐: 工作日(周一至周五)"
+        "es" -> "Recomendado: Entre semana (Lun-Vie)"
+        else -> "Recommended: Weekdays (Mon-Fri)"
+    }
+
+    fun freeWeekends(): String = when (getLang()) {
+        "ko" -> "주말은 자유롭게!"
+        "ja" -> "週末は自由に！"
+        "zh" -> "周末自由!"
+        "es" -> "¡Fines de semana libres!"
+        else -> "Weekends free!"
+    }
+
+    fun noBlockingSelected(): String = when (getLang()) {
+        "ko" -> "선택하지 않으면 차단되지 않습니다"
+        "ja" -> "選択しないとブロックされません"
+        "zh" -> "不选择则不会被阻止"
+        "es" -> "Sin selección no hay bloqueo"
+        else -> "No selection means no blocking"
+    }
+
+    // 펫 변경 다이얼로그
+    fun changePet(): String = when (getLang()) {
+        "ko" -> "펫 변경"
+        "ja" -> "ペット変更"
+        "zh" -> "更换宠物"
+        "es" -> "Cambiar mascota"
+        else -> "Change Pet"
+    }
+
+    fun selectNewFriend(): String = when (getLang()) {
+        "ko" -> "새로운 친구를 선택하세요"
+        "ja" -> "新しい友達を選んでください"
+        "zh" -> "选择新朋友"
+        "es" -> "Selecciona un nuevo amigo"
+        else -> "Select a new friend"
+    }
+
+    fun petName(): String = when (getLang()) {
+        "ko" -> "펫 이름"
+        "ja" -> "ペット名"
+        "zh" -> "宠物名字"
+        "es" -> "Nombre de mascota"
+        else -> "Pet Name"
+    }
+
+    fun petChangeCost(): String = when (getLang()) {
+        "ko" -> "펫 변경 비용: "
+        "ja" -> "ペット変更費用: "
+        "zh" -> "更换宠物费用: "
+        "es" -> "Costo de cambio: "
+        else -> "Pet change cost: "
+    }
+
+    fun checkout(): String = when (getLang()) {
+        "ko" -> "결제하기"
+        "ja" -> "購入する"
+        "zh" -> "支付"
+        "es" -> "Pagar"
+        else -> "Checkout"
+    }
+
+    // 불편사항 다이얼로그
+    fun submitFeedback(): String = when (getLang()) {
+        "ko" -> "불편사항 접수"
+        "ja" -> "フィードバック送信"
+        "zh" -> "提交反馈"
+        "es" -> "Enviar feedback"
+        else -> "Submit Feedback"
+    }
+
+    fun category(): String = when (getLang()) {
+        "ko" -> "분류"
+        "ja" -> "カテゴリー"
+        "zh" -> "分类"
+        "es" -> "Categoría"
+        else -> "Category"
+    }
+
+    fun title(): String = when (getLang()) {
+        "ko" -> "제목"
+        "ja" -> "タイトル"
+        "zh" -> "标题"
+        "es" -> "Título"
+        else -> "Title"
+    }
+
+    fun titlePlaceholder(): String = when (getLang()) {
+        "ko" -> "간단한 제목을 입력하세요"
+        "ja" -> "簡単なタイトルを入力してください"
+        "zh" -> "请输入简短标题"
+        "es" -> "Ingresa un título breve"
+        else -> "Enter a brief title"
+    }
+
+    fun content(): String = when (getLang()) {
+        "ko" -> "내용"
+        "ja" -> "内容"
+        "zh" -> "内容"
+        "es" -> "Contenido"
+        else -> "Content"
+    }
+
+    fun contentPlaceholder(): String = when (getLang()) {
+        "ko" -> "자세한 내용을 입력하세요\n\n어떤 상황에서 문제가 발생했는지,\n기대했던 동작은 무엇인지 알려주세요."
+        "ja" -> "詳細を入力してください\n\nどのような状況で問題が発生したか、\n期待していた動作を教えてください。"
+        "zh" -> "请输入详细内容\n\n请告诉我们在什么情况下出现问题，\n以及您期望的结果。"
+        "es" -> "Ingresa los detalles\n\nDescribe en qué situación ocurrió el problema\ny cuál era el comportamiento esperado."
+        else -> "Enter details\n\nDescribe the situation when the problem occurred\nand what behavior you expected."
+    }
+
+    fun screenshotOptional(): String = when (getLang()) {
+        "ko" -> "스크린샷 (선택)"
+        "ja" -> "スクリーンショット (任意)"
+        "zh" -> "截图 (可选)"
+        "es" -> "Captura de pantalla (opcional)"
+        else -> "Screenshot (optional)"
+    }
+
+    fun imageAttached(): String = when (getLang()) {
+        "ko" -> "이미지 첨부됨"
+        "ja" -> "画像添付済み"
+        "zh" -> "已附加图片"
+        "es" -> "Imagen adjunta"
+        else -> "Image attached"
+    }
+
+    fun tapToChange(): String = when (getLang()) {
+        "ko" -> "탭하여 변경"
+        "ja" -> "タップして変更"
+        "zh" -> "点击更改"
+        "es" -> "Toca para cambiar"
+        else -> "Tap to change"
+    }
+
+    fun tapToSelectImage(): String = when (getLang()) {
+        "ko" -> "탭하여 이미지 선택"
+        "ja" -> "タップして画像選択"
+        "zh" -> "点击选择图片"
+        "es" -> "Toca para seleccionar imagen"
+        else -> "Tap to select image"
+    }
+
+    fun submit(): String = when (getLang()) {
+        "ko" -> "접수하기"
+        "ja" -> "送信する"
+        "zh" -> "提交"
+        "es" -> "Enviar"
+        else -> "Submit"
+    }
+
+    fun notice(): String = when (getLang()) {
+        "ko" -> "안내"
+        "ja" -> "お知らせ"
+        "zh" -> "提示"
+        "es" -> "Aviso"
+        else -> "Notice"
+    }
+
+    fun feedbackNotice(): String = when (getLang()) {
+        "ko" -> "접수된 내용은 빠른 시일 내에 검토하겠습니다.\n개인정보는 문의 처리 목적으로만 사용됩니다."
+        "ja" -> "いただいた内容は早急に確認いたします。\n個人情報はお問い合わせ対応目的でのみ使用されます。"
+        "zh" -> "我们将尽快审核您的反馈。\n个人信息仅用于处理咨询。"
+        "es" -> "Revisaremos tu feedback lo antes posible.\nLos datos personales solo se usan para procesar la consulta."
+        else -> "We will review your feedback promptly.\nPersonal information is only used for inquiry processing."
+    }
+
+    // 데이터 충돌 다이얼로그
+    fun dataSelection(): String = when (getLang()) {
+        "ko" -> "⚠️ 데이터 선택"
+        "ja" -> "⚠️ データ選択"
+        "zh" -> "⚠️ 数据选择"
+        "es" -> "⚠️ Selección de datos"
+        else -> "⚠️ Data Selection"
+    }
+
+    fun dataConflictMessage(): String = when (getLang()) {
+        "ko" -> "기존 Google 계정에 저장된 데이터가 있어요.\n어떤 데이터를 사용할까요?"
+        "ja" -> "既存のGoogleアカウントに保存されたデータがあります。\nどのデータを使用しますか？"
+        "zh" -> "您的Google账号中已有保存的数据。\n您想使用哪个数据？"
+        "es" -> "Hay datos guardados en tu cuenta de Google.\n¿Qué datos quieres usar?"
+        else -> "There is saved data in your Google account.\nWhich data do you want to use?"
+    }
+
+    fun restoreExistingData(): String = when (getLang()) {
+        "ko" -> "기존 데이터 복원"
+        "ja" -> "既存データを復元"
+        "zh" -> "恢复现有数据"
+        "es" -> "Restaurar datos existentes"
+        else -> "Restore existing data"
+    }
+
+    fun keepCurrentData(): String = when (getLang()) {
+        "ko" -> "현재 데이터 유지"
+        "ja" -> "現在のデータを維持"
+        "zh" -> "保留当前数据"
+        "es" -> "Mantener datos actuales"
+        else -> "Keep current data"
+    }
+
+    fun petInfo(name: String?, typeName: String): String = when (getLang()) {
+        "ko" -> "펫: ${name ?: "이름없음"} ($typeName)"
+        "ja" -> "ペット: ${name ?: "名前なし"} ($typeName)"
+        "zh" -> "宠物: ${name ?: "无名"} ($typeName)"
+        "es" -> "Mascota: ${name ?: "Sin nombre"} ($typeName)"
+        else -> "Pet: ${name ?: "Unnamed"} ($typeName)"
+    }
+
+    fun streakAndSteps(streak: Int, steps: Long): String = when (getLang()) {
+        "ko" -> "연속 달성: ${streak}일 | 총 걸음: ${String.format("%,d", steps)}보"
+        "ja" -> "連続達成: ${streak}日 | 総歩数: ${String.format("%,d", steps)}歩"
+        "zh" -> "连续达成: ${streak}天 | 总步数: ${String.format("%,d", steps)}步"
+        "es" -> "Racha: ${streak} días | Pasos totales: ${String.format("%,d", steps)}"
+        else -> "Streak: ${streak} days | Total steps: ${String.format("%,d", steps)}"
+    }
+
+    fun getPetDisplayName(petType: String?): String = when (getLang()) {
+        "ko" -> when (petType) {
+            "DOG1" -> "강아지"
+            "CAT" -> "고양이"
+            "HAMSTER" -> "햄스터"
+            "RABBIT" -> "토끼"
+            else -> petType ?: "기본"
+        }
+        "ja" -> when (petType) {
+            "DOG1" -> "犬"
+            "CAT" -> "猫"
+            "HAMSTER" -> "ハムスター"
+            "RABBIT" -> "うさぎ"
+            else -> petType ?: "デフォルト"
+        }
+        "zh" -> when (petType) {
+            "DOG1" -> "狗狗"
+            "CAT" -> "猫咪"
+            "HAMSTER" -> "仓鼠"
+            "RABBIT" -> "兔子"
+            else -> petType ?: "默认"
+        }
+        "es" -> when (petType) {
+            "DOG1" -> "Perro"
+            "CAT" -> "Gato"
+            "HAMSTER" -> "Hámster"
+            "RABBIT" -> "Conejo"
+            else -> petType ?: "Predeterminado"
+        }
+        else -> when (petType) {
+            "DOG1" -> "Dog"
+            "CAT" -> "Cat"
+            "HAMSTER" -> "Hamster"
+            "RABBIT" -> "Rabbit"
+            else -> petType ?: "Default"
+        }
+    }
+
+    // 요일 이름
+    fun getDayNames(): List<String> = when (getLang()) {
+        "ko" -> listOf("일", "월", "화", "수", "목", "금", "토")
+        "ja" -> listOf("日", "月", "火", "水", "木", "金", "土")
+        "zh" -> listOf("日", "一", "二", "三", "四", "五", "六")
+        "es" -> listOf("Do", "Lu", "Ma", "Mi", "Ju", "Vi", "Sá")
+        else -> listOf("Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat")
+    }
+
+    // 공유 메시지
+    fun shareMessage(inviteCode: String): String = when (getLang()) {
+        "ko" -> """
+🏃 rebon - 걸어서 앱을 해제하세요!
+
+친구가 rebon 앱을 추천했어요.
+목표 걸음수를 달성하면 앱이 해제되는 신개념 건강 앱!
+
+📱 앱 다운로드: https://play.google.com/store/apps/details?id=com.moveoftoday.walkorwait
+
+🎁 초대 코드: $inviteCode
+위 코드를 입력하면 1달 무료!
+""".trimIndent()
+        "ja" -> """
+🏃 rebon - 歩いてアプリをアンロック！
+
+友達がrebonアプリをおすすめしています。
+目標歩数達成でアプリがアンロックされる新感覚健康アプリ！
+
+📱 ダウンロード: https://play.google.com/store/apps/details?id=com.moveoftoday.walkorwait
+
+🎁 招待コード: $inviteCode
+このコードで1ヶ月無料！
+""".trimIndent()
+        "zh" -> """
+🏃 rebon - 走路解锁应用！
+
+朋友推荐了rebon应用。
+达成目标步数即可解锁应用的创新健康应用！
+
+📱 下载: https://play.google.com/store/apps/details?id=com.moveoftoday.walkorwait
+
+🎁 邀请码: $inviteCode
+输入此代码免费使用1个月！
+""".trimIndent()
+        "es" -> """
+🏃 rebon - ¡Desbloquea apps caminando!
+
+Tu amigo te recomienda rebon.
+¡Una app de salud que desbloquea al lograr tu meta de pasos!
+
+📱 Descargar: https://play.google.com/store/apps/details?id=com.moveoftoday.walkorwait
+
+🎁 Código de invitación: $inviteCode
+¡Ingresa este código y obtén 1 mes gratis!
+""".trimIndent()
+        else -> """
+🏃 rebon - Unlock apps by walking!
+
+Your friend recommends rebon.
+A health app that unlocks when you reach your step goal!
+
+📱 Download: https://play.google.com/store/apps/details?id=com.moveoftoday.walkorwait
+
+🎁 Invite code: $inviteCode
+Enter this code for 1 month free!
+""".trimIndent()
+    }
+
+    fun shareMessageSimple(): String = when (getLang()) {
+        "ko" -> """
+🏃 rebon - 걸어서 앱을 해제하세요!
+
+친구가 rebon 앱을 추천했어요.
+목표 걸음수를 달성하면 앱이 해제되는 신개념 건강 앱!
+
+📱 앱 다운로드: https://play.google.com/store/apps/details?id=com.moveoftoday.walkorwait
+""".trimIndent()
+        "ja" -> """
+🏃 rebon - 歩いてアプリをアンロック！
+
+友達がrebonアプリをおすすめしています。
+目標歩数達成でアプリがアンロックされる新感覚健康アプリ！
+
+📱 ダウンロード: https://play.google.com/store/apps/details?id=com.moveoftoday.walkorwait
+""".trimIndent()
+        "zh" -> """
+🏃 rebon - 走路解锁应用！
+
+朋友推荐了rebon应用。
+达成目标步数即可解锁应用的创新健康应用！
+
+📱 下载: https://play.google.com/store/apps/details?id=com.moveoftoday.walkorwait
+""".trimIndent()
+        "es" -> """
+🏃 rebon - ¡Desbloquea apps caminando!
+
+Tu amigo te recomienda rebon.
+¡Una app de salud que desbloquea al lograr tu meta de pasos!
+
+📱 Descargar: https://play.google.com/store/apps/details?id=com.moveoftoday.walkorwait
+""".trimIndent()
+        else -> """
+🏃 rebon - Unlock apps by walking!
+
+Your friend recommends rebon.
+A health app that unlocks when you reach your step goal!
+
+📱 Download: https://play.google.com/store/apps/details?id=com.moveoftoday.walkorwait
+""".trimIndent()
+    }
+
+    fun currentAchievement(rate: Float): String = when (getLang()) {
+        "ko" -> "현재 달성률: ${String.format("%.0f", rate)}% → 95% 필요"
+        "ja" -> "現在の達成率: ${String.format("%.0f", rate)}% → 95%必要"
+        "zh" -> "当前达成率: ${String.format("%.0f", rate)}% → 需要95%"
+        "es" -> "Logro actual: ${String.format("%.0f", rate)}% → 95% requerido"
+        else -> "Current achievement: ${String.format("%.0f", rate)}% → 95% needed"
+    }
+
+    fun icon(): String = when (getLang()) {
+        "ko" -> "아이콘"
+        "ja" -> "アイコン"
+        "zh" -> "图标"
+        "es" -> "Icono"
+        else -> "Icon"
+    }
+}
 
 // 데이터 충돌 정보 클래스
 data class RemoteDataInfo(
@@ -162,11 +909,11 @@ fun SettingsScreen(
             if (useRemoteData) {
                 // 원격 데이터로 복원 (기존 동기화 로직)
                 repository.startSync()
-                Toast.makeText(context, "기존 데이터를 복원했어요!", Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, SettingsStrings.dataRestored(), Toast.LENGTH_SHORT).show()
             } else {
                 // 현재 로컬 데이터를 Firebase에 덮어쓰기
                 repository.forceUploadLocalData()
-                Toast.makeText(context, "현재 데이터를 저장했어요!", Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, SettingsStrings.dataSaved(), Toast.LENGTH_SHORT).show()
             }
             showDataConflictDialog = false
             isGoogleSignedIn = true
@@ -245,14 +992,14 @@ fun SettingsScreen(
                                     isGoogleSignedIn = true
                                     googleEmail = auth.currentUser?.email ?: ""
                                     hapticManager.success()
-                                    Toast.makeText(context, "기존 데이터를 복원했어요!", Toast.LENGTH_SHORT).show()
+                                    Toast.makeText(context, SettingsStrings.dataRestored(), Toast.LENGTH_SHORT).show()
                                 } else {
                                     // 로컬에만 데이터 있거나 양쪽 다 없으면 로컬 업로드
                                     repository.forceUploadLocalData()
                                     isGoogleSignedIn = true
                                     googleEmail = auth.currentUser?.email ?: ""
                                     hapticManager.success()
-                                    Toast.makeText(context, "Google 계정 연결 완료!", Toast.LENGTH_SHORT).show()
+                                    Toast.makeText(context, SettingsStrings.googleConnected(), Toast.LENGTH_SHORT).show()
                                 }
                             } catch (e: Exception) {
                                 android.util.Log.e("SettingsScreen", "❌ Firebase check failed: ${e.message}")
@@ -262,15 +1009,15 @@ fun SettingsScreen(
                                 isGoogleSignedIn = true
                                 googleEmail = auth.currentUser?.email ?: ""
                                 hapticManager.success()
-                                Toast.makeText(context, "Google 계정 연결 완료!", Toast.LENGTH_SHORT).show()
+                                Toast.makeText(context, SettingsStrings.googleConnected(), Toast.LENGTH_SHORT).show()
                             }
                         } else {
                             isGoogleLoading = false
-                            Toast.makeText(context, "로그인 실패", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(context, SettingsStrings.loginFailed(), Toast.LENGTH_SHORT).show()
                         }
                     } else {
                         isGoogleLoading = false
-                        Toast.makeText(context, "Firebase 로그인 실패", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(context, SettingsStrings.firebaseLoginFailed(), Toast.LENGTH_SHORT).show()
                     }
                 }
                 is GoogleSignInHelper.SignInResult.Error -> {
@@ -342,7 +1089,7 @@ fun SettingsScreen(
                                 AnalyticsManager.trackPurchaseCompleted("pet_change", 2500.0)
 
                                 StepWidgetProvider.updateAllWidgets(appContext)
-                                Toast.makeText(appContext, "펫이 변경되었습니다!", Toast.LENGTH_SHORT).show()
+                                Toast.makeText(appContext, SettingsStrings.petChanged(), Toast.LENGTH_SHORT).show()
                             } catch (e: Exception) {
                                 android.util.Log.e("SettingsScreen", "Pet change failed: ${e.message}")
                             }
@@ -428,7 +1175,7 @@ fun SettingsScreen(
     } else if (showPaymentScreen && preferenceManager != null) {
         val prefs = preferenceManager
         val savedPetType = prefs.getPetTypeV2() ?: PetTypeV2.SHIBA
-        val savedPetName = prefs.getPetName() ?: "친구"
+        val savedPetName = prefs.getPetName() ?: SettingsStrings.friend()
 
         PaymentScreen(
             petType = savedPetType,
@@ -583,7 +1330,7 @@ fun SettingsScreen(
                                 Spacer(modifier = Modifier.width(12.dp))
                                 Column {
                                     Text(
-                                        "rebon 비활성화됨",
+                                        SettingsStrings.accessibilityDisabled(),
                                         color = MockupColors.Red,
                                         fontWeight = FontWeight.Bold,
                                         fontSize = 16.sp,
@@ -677,7 +1424,7 @@ fun SettingsScreen(
                                 horizontalArrangement = Arrangement.SpaceBetween
                             ) {
                                 Text(
-                                    text = "${successDays}/${totalDays}일 성공",
+                                    text = SettingsStrings.successDaysFormat(successDays, totalDays),
                                     fontSize = 13.sp,
                                     color = MockupColors.TextSecondary
                                 )
@@ -767,7 +1514,7 @@ fun SettingsScreen(
 
                     // 펫 변경 카드
                     val currentPetType = preferenceManager?.getPetType()
-                    val currentPetName = preferenceManager?.getPetName() ?: "친구"
+                    val currentPetName = preferenceManager?.getPetName() ?: SettingsStrings.friend()
 
                     Box(
                         modifier = Modifier
@@ -797,7 +1544,7 @@ fun SettingsScreen(
                                 )
                                 Spacer(modifier = Modifier.height(4.dp))
                                 Text(
-                                    text = "현재: $currentPetName",
+                                    text = SettingsStrings.currentPet(currentPetName),
                                     fontSize = 13.sp,
                                     color = MockupColors.TextSecondary
                                 )
@@ -951,7 +1698,7 @@ fun SettingsScreen(
                                                 )
                                                 Spacer(modifier = Modifier.width(4.dp))
                                                 Text(
-                                                    text = "${basicGuestEmail?.substringBefore("@")}님이 사용 중",
+                                                    text = SettingsStrings.usingByUser(basicGuestEmail),
                                                     fontSize = 14.sp,
                                                     fontWeight = FontWeight.Bold,
                                                     color = MockupColors.Green
@@ -990,7 +1737,7 @@ fun SettingsScreen(
                                                         val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
                                                         val clip = ClipData.newPlainText("invite_code", basicInviteCode)
                                                         clipboard.setPrimaryClip(clip)
-                                                        Toast.makeText(context, "복사 완료!", Toast.LENGTH_SHORT).show()
+                                                        Toast.makeText(context, SettingsStrings.copied(), Toast.LENGTH_SHORT).show()
                                                     }
                                                     .padding(horizontal = 12.dp, vertical = 6.dp)
                                             ) {
@@ -1052,7 +1799,7 @@ fun SettingsScreen(
                                                     )
                                                     Spacer(modifier = Modifier.width(4.dp))
                                                     Text(
-                                                        text = "${bonusGuestEmail?.substringBefore("@")}님이 사용 중",
+                                                        text = SettingsStrings.usingByUser(bonusGuestEmail),
                                                         fontSize = 14.sp,
                                                         fontWeight = FontWeight.Bold,
                                                         color = MockupColors.TextPrimary
@@ -1116,7 +1863,7 @@ fun SettingsScreen(
                                             putExtra(Intent.EXTRA_TEXT, shareText)
                                             type = "text/plain"
                                         }
-                                        val shareIntent = Intent.createChooser(sendIntent, "친구에게 공유하기")
+                                        val shareIntent = Intent.createChooser(sendIntent, SettingsStrings.shareToFriend())
                                         context.startActivity(shareIntent)
                                     },
                                     backgroundColor = MockupColors.Blue,
@@ -1164,7 +1911,7 @@ fun SettingsScreen(
                                             putExtra(Intent.EXTRA_TEXT, shareText)
                                             type = "text/plain"
                                         }
-                                        val shareIntent = Intent.createChooser(sendIntent, "친구에게 공유하기")
+                                        val shareIntent = Intent.createChooser(sendIntent, SettingsStrings.shareToFriend())
                                         context.startActivity(shareIntent)
                                     },
                                     backgroundColor = MockupColors.Blue,
@@ -1289,7 +2036,7 @@ fun SettingsScreen(
                     if (preferenceManager?.canDecreaseGoal() == false) {
                         Spacer(modifier = Modifier.height(8.dp))
                         Text(
-                            text = "목표 감소 가능: ${preferenceManager.getNextGoalDecreaseDate()}",
+                            text = SettingsStrings.goalDecreaseAvailable(preferenceManager.getNextGoalDecreaseDate()),
                             fontSize = 13.sp,
                             color = MockupColors.Red,
                             modifier = Modifier.padding(start = 16.dp)
@@ -1404,7 +2151,7 @@ fun SettingsScreen(
                     if (preferenceManager?.canRemoveLockedApp() == false) {
                         Spacer(modifier = Modifier.height(8.dp))
                         Text(
-                            text = "앱 제거 가능: ${preferenceManager.getNextAppRemoveDate()}",
+                            text = SettingsStrings.appRemoveAvailable(preferenceManager.getNextAppRemoveDate()),
                             fontSize = 13.sp,
                             color = MockupColors.Red,
                             modifier = Modifier.padding(start = 16.dp)
@@ -1431,9 +2178,9 @@ fun SettingsScreen(
                     val selectedPeriodNames =
                         blockingPeriods.mapNotNull { periodNames[it] }.joinToString(", ")
                     val displayValue = if (blockingPeriods.isEmpty()) {
-                        "없음"
+                        SettingsStrings.none()
                     } else if (blockingPeriods.size == 4) {
-                        "24시간"
+                        SettingsStrings.allDay()
                     } else {
                         selectedPeriodNames
                     }
@@ -1451,7 +2198,7 @@ fun SettingsScreen(
                     if (preferenceManager?.canChangeBlockingPeriods() == false) {
                         Spacer(modifier = Modifier.height(8.dp))
                         Text(
-                            text = "시간대 변경 가능: ${preferenceManager.getNextBlockingPeriodsChangeDate()}",
+                            text = SettingsStrings.periodChangeAvailable(preferenceManager.getNextBlockingPeriodsChangeDate()),
                             fontSize = 13.sp,
                             color = MockupColors.Red,
                             modifier = Modifier.padding(start = 16.dp)
@@ -1498,7 +2245,7 @@ fun SettingsScreen(
                     val controlDays = controlDaysState
                     val dayNames2 = listOf(stringResource(R.string.day_sun), stringResource(R.string.day_mon), stringResource(R.string.day_tue), stringResource(R.string.day_wed), stringResource(R.string.day_thu), stringResource(R.string.day_fri), stringResource(R.string.day_sat))
                     val selectedDayNames = controlDays.sorted().map { dayNames2[it] }.joinToString(", ")
-                    val displayDays = if (controlDays.isEmpty()) "없음" else selectedDayNames
+                    val displayDays = if (controlDays.isEmpty()) SettingsStrings.none() else selectedDayNames
 
                     RetroSettingsItem(
                         title = stringResource(R.string.day_setting),
@@ -1513,7 +2260,7 @@ fun SettingsScreen(
                             if (preferenceManager?.canChangeControlDays() == false) {
                                 Spacer(modifier = Modifier.height(8.dp))
                                 Text(
-                                    text = "요일 변경 가능: ${preferenceManager.getNextControlDaysChangeDate()}",
+                                    text = SettingsStrings.dayChangeAvailable(preferenceManager.getNextControlDaysChangeDate()),
                                     fontSize = 13.sp,
                                     color = MockupColors.Red,
                                     modifier = Modifier.padding(start = 16.dp)
@@ -1561,7 +2308,7 @@ fun SettingsScreen(
                                 Spacer(modifier = Modifier.width(8.dp))
                                 Column(modifier = Modifier.weight(1f)) {
                                     Text(
-                                        text = "Health Connect 연결 필요",
+                                        text = SettingsStrings.healthConnectRequired(),
                                         fontSize = 14.sp,
                                         fontWeight = FontWeight.Bold,
                                         color = Color(0xFFE65100)
@@ -1611,13 +2358,13 @@ fun SettingsScreen(
                                             text = if (connectedAppName.isNotEmpty())
                                                 "$connectedAppName 데이터 사용 중"
                                             else
-                                                "Health Connect 데이터 사용 중",
+                                                SettingsStrings.usingAppData(null),
                                             fontSize = 13.sp,
                                             color = MockupColors.TextSecondary
                                         )
                                         Spacer(modifier = Modifier.height(2.dp))
                                         Text(
-                                            text = "🔋 배터리 절약 모드",
+                                            text = SettingsStrings.batterySaverMode(),
                                             fontSize = 13.sp,
                                             color = MockupColors.Blue
                                         )
@@ -1634,7 +2381,7 @@ fun SettingsScreen(
                                             text = if (isHealthConnectAvailable)
                                                 "                                                stringResource(R.string.connect_samsung_health_google_fit)"
                                             else
-                                                "Health Connect 필요",
+                                                SettingsStrings.healthConnectRequired(),
                                             fontSize = 13.sp,
                                             color = MockupColors.TextSecondary
                                         )
@@ -1698,7 +2445,7 @@ fun SettingsScreen(
                             Column(modifier = Modifier.weight(1f)) {
                                 if (isGoogleSignedIn) {
                                     Text(
-                                        text = "연결됨",
+                                        text = SettingsStrings.connected(),
                                         fontSize = 16.sp,
                                         fontWeight = FontWeight.Bold,
                                         color = MockupColors.Blue,
@@ -1718,7 +2465,7 @@ fun SettingsScreen(
                                     )
                                 } else {
                                     Text(
-                                        text = "Google 계정",
+                                        text = SettingsStrings.googleAccount(),
                                         fontSize = 16.sp,
                                         fontWeight = FontWeight.Bold,
                                         color = MockupColors.TextPrimary,
@@ -1751,7 +2498,7 @@ fun SettingsScreen(
 
                     if (!isGoogleSignedIn) {
                         RetroButton(
-                            text = "Google 로그인",
+                            text = SettingsStrings.googleLogin(),
                             onClick = {
                                 hapticManager.click()
                                 performGoogleSignIn()
@@ -1882,7 +2629,7 @@ fun SettingsScreen(
                                 PixelIcon(iconName = "icon_trophy", size = 20.dp)
                                 Spacer(modifier = Modifier.width(8.dp))
                                 Text(
-                                    text = "95% 달성하면",
+                                    text = SettingsStrings.achieve95Percent(),
                                     fontSize = StandTypography.bodyLarge,
                                     fontWeight = FontWeight.Bold,
                                     color = MockupColors.Blue
@@ -1897,7 +2644,7 @@ fun SettingsScreen(
                             )
                             Spacer(modifier = Modifier.height(8.dp))
                             Text(
-                                text = "• 친구에게 쿠폰을 선물하면\n• 친구가 1달 무료로 사용!\n• 매달 95% 달성하면 매달 쿠폰 획득",
+                                text = SettingsStrings.couponBenefitDescription(),
                                 fontSize = StandTypography.bodyMedium,
                                 lineHeight = 22.sp,
                                 color = MockupColors.TextPrimary
@@ -1917,7 +2664,7 @@ fun SettingsScreen(
                             }
                             Spacer(modifier = Modifier.height(8.dp))
                             Text(
-                                text = "1. 내 초대 코드 복사하기\n2. 친구에게 카톡으로 공유\n3. 친구가 코드 입력하면 끝!",
+                                text = SettingsStrings.howToUse(),
                                 fontSize = StandTypography.bodyMedium,
                                 lineHeight = 22.sp,
                                 color = MockupColors.TextPrimary
@@ -2134,7 +2881,7 @@ fun SettingsScreen(
                 FeedbackDialog(
                     onDismiss = { showFeedbackDialog = false },
                     onSubmitted = {
-                        Toast.makeText(context, "피드백이 전송되었습니다!", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(context, SettingsStrings.feedbackSent(), Toast.LENGTH_SHORT).show()
                         showFeedbackDialog = false
                     },
                     hapticManager = hapticManager
@@ -2361,7 +3108,7 @@ fun BlockingPeriodsDialog(
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text = "취소",
+                        text = SettingsStrings.cancel(),
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Bold,
                         color = MockupColors.TextPrimary,
@@ -2380,7 +3127,7 @@ fun BlockingPeriodsDialog(
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text = "적용",
+                        text = SettingsStrings.apply(),
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Bold,
                         color = Color.White,
@@ -2425,7 +3172,7 @@ fun ControlDaysDialog(
 
             // 타이틀
             Text(
-                text = "제어 요일",
+                text = SettingsStrings.controlDays(),
                 fontSize = 28.sp,
                 fontFamily = kenneyFont,
                 fontWeight = FontWeight.Bold,
@@ -2500,9 +3247,9 @@ fun ControlDaysDialog(
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 listOf(
-                    "평일" to setOf(1, 2, 3, 4, 5),
-                    "주말" to setOf(0, 6),
-                    "매일" to setOf(0, 1, 2, 3, 4, 5, 6)
+                    SettingsStrings.weekdays() to setOf(1, 2, 3, 4, 5),
+                    SettingsStrings.weekends() to setOf(0, 6),
+                    SettingsStrings.everyday() to setOf(0, 1, 2, 3, 4, 5, 6)
                 ).forEach { (label, days) ->
                     Box(
                         modifier = Modifier
@@ -2563,14 +3310,14 @@ fun ControlDaysDialog(
                         )
                     } else {
                         Text(
-                            text = "추천: 평일(월~금)",
+                            text = SettingsStrings.recommendWeekdays(),
                             fontSize = 16.sp,
                             fontWeight = FontWeight.Bold,
                             color = MockupColors.TextPrimary
                         )
                         Spacer(modifier = Modifier.height(4.dp))
                         Text(
-                            text = "주말은 자유롭게!",
+                            text = SettingsStrings.freeWeekends(),
                             fontSize = 14.sp,
                             color = MockupColors.TextSecondary
                         )
@@ -2596,7 +3343,7 @@ fun ControlDaysDialog(
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text = "취소",
+                        text = SettingsStrings.cancel(),
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Bold,
                         color = MockupColors.TextPrimary,
@@ -2615,7 +3362,7 @@ fun ControlDaysDialog(
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text = "적용",
+                        text = SettingsStrings.apply(),
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Bold,
                         color = Color.White,
@@ -2845,7 +3592,7 @@ private fun PetChangeDialog(
             ) {
                 // 타이틀
                 Text(
-                    text = "펫 변경",
+                    text = SettingsStrings.changePet(),
                     fontSize = 24.sp,
                     fontWeight = FontWeight.Bold,
                     fontFamily = kenneyFont,
@@ -2855,7 +3602,7 @@ private fun PetChangeDialog(
                 Spacer(modifier = Modifier.height(8.dp))
 
                 Text(
-                    text = "새로운 친구를 선택하세요",
+                    text = SettingsStrings.selectNewFriend(),
                     fontSize = 14.sp,
                     color = MockupColors.TextSecondary
                 )
@@ -2954,7 +3701,7 @@ private fun PetChangeDialog(
                 OutlinedTextField(
                     value = petName,
                     onValueChange = { if (it.length <= 10) petName = it },
-                    label = { Text("펫 이름") },
+                    label = { Text(SettingsStrings.petName()) },
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth(),
                     colors = OutlinedTextFieldDefaults.colors(
@@ -2979,7 +3726,7 @@ private fun PetChangeDialog(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
-                            text = "펫 변경 비용: ",
+                            text = SettingsStrings.petChangeCost(),
                             fontSize = 14.sp,
                             color = MockupColors.TextSecondary
                         )
@@ -3014,7 +3761,7 @@ private fun PetChangeDialog(
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
-                            text = "취소",
+                            text = SettingsStrings.cancel(),
                             fontSize = 16.sp,
                             fontWeight = FontWeight.Bold,
                             color = MockupColors.TextPrimary,
@@ -3042,7 +3789,7 @@ private fun PetChangeDialog(
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
-                            text = "결제하기",
+                            text = SettingsStrings.checkout(),
                             fontSize = 16.sp,
                             fontWeight = FontWeight.Bold,
                             color = Color.White,
@@ -3123,7 +3870,7 @@ private fun FeedbackDialog(
                 }
                 Spacer(modifier = Modifier.width(16.dp))
                 Text(
-                    text = "불편사항 접수",
+                    text = SettingsStrings.submitFeedback(),
                     fontSize = 24.sp,
                     fontWeight = FontWeight.Bold,
                     color = MockupColors.TextPrimary,
@@ -3468,7 +4215,7 @@ private fun DataConflictDialog(
         ) {
             // 제목
             Text(
-                text = "⚠️ 데이터 선택",
+                text = SettingsStrings.dataSelection(),
                 fontSize = 24.sp,
                 fontWeight = FontWeight.Bold,
                 fontFamily = kenneyFont,
@@ -3478,7 +4225,7 @@ private fun DataConflictDialog(
             Spacer(modifier = Modifier.height(16.dp))
 
             Text(
-                text = "기존 Google 계정에 저장된 데이터가 있어요.\n어떤 데이터를 사용할까요?",
+                text = SettingsStrings.dataConflictMessage(),
                 fontSize = 14.sp,
                 color = MockupColors.TextSecondary,
                 textAlign = TextAlign.Center,
@@ -3506,7 +4253,7 @@ private fun DataConflictDialog(
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
-                            text = "기존 데이터 복원",
+                            text = SettingsStrings.restoreExistingData(),
                             fontSize = 18.sp,
                             fontWeight = FontWeight.Bold,
                             fontFamily = kenneyFont,
@@ -3515,12 +4262,12 @@ private fun DataConflictDialog(
                     }
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
-                        text = "펫: ${remoteInfo.petName ?: "이름없음"} (${getPetDisplayName(remoteInfo.petType)})",
+                        text = SettingsStrings.petInfo(remoteInfo.petName, SettingsStrings.getPetDisplayName(remoteInfo.petType)),
                         fontSize = 14.sp,
                         color = MockupColors.TextPrimary
                     )
                     Text(
-                        text = "연속 달성: ${remoteInfo.streak}일 | 총 걸음: ${String.format("%,d", remoteInfo.petTotalSteps)}보",
+                        text = SettingsStrings.streakAndSteps(remoteInfo.streak, remoteInfo.petTotalSteps),
                         fontSize = 13.sp,
                         color = MockupColors.TextSecondary
                     )
@@ -3558,7 +4305,7 @@ private fun DataConflictDialog(
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
-                            text = "현재 데이터 유지",
+                            text = SettingsStrings.keepCurrentData(),
                             fontSize = 18.sp,
                             fontWeight = FontWeight.Bold,
                             fontFamily = kenneyFont,
@@ -3567,12 +4314,12 @@ private fun DataConflictDialog(
                     }
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
-                        text = "펫: ${localInfo.petName ?: "이름없음"} (${getPetDisplayName(localInfo.petType)})",
+                        text = SettingsStrings.petInfo(localInfo.petName, SettingsStrings.getPetDisplayName(localInfo.petType)),
                         fontSize = 14.sp,
                         color = MockupColors.TextPrimary
                     )
                     Text(
-                        text = "연속 달성: ${localInfo.streak}일 | 총 걸음: ${String.format("%,d", localInfo.petTotalSteps)}보",
+                        text = SettingsStrings.streakAndSteps(localInfo.streak, localInfo.petTotalSteps),
                         fontSize = 13.sp,
                         color = MockupColors.TextSecondary
                     )
@@ -3586,7 +4333,7 @@ private fun DataConflictDialog(
                 onClick = onDismiss
             ) {
                 Text(
-                    text = "취소",
+                    text = SettingsStrings.cancel(),
                     fontSize = 14.sp,
                     color = MockupColors.TextMuted
                 )

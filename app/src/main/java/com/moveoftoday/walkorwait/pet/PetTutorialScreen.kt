@@ -1,6 +1,5 @@
 package com.moveoftoday.walkorwait.pet
 
-import com.moveoftoday.walkorwait.UnicodeSymbols
 import android.Manifest
 import android.content.Intent
 import android.os.Build
@@ -79,12 +78,651 @@ import com.moveoftoday.walkorwait.AnalyticsManager
 import com.moveoftoday.walkorwait.WalkorWaitApp
 import com.moveoftoday.walkorwait.StepCounterService
 import com.moveoftoday.walkorwait.GoogleSignInHelper
+import com.moveoftoday.walkorwait.UnicodeSymbols
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import android.app.Activity
 import android.util.Log
+
+/**
+ * Localization helper for PetTutorialScreen
+ */
+private object PetTutorialStrings {
+    private fun getLang(): String = java.util.Locale.getDefault().language
+
+    // ========== GoogleSignInStep ==========
+    fun loggingIn(): String = when (getLang()) {
+        "ko" -> "로그인 중..."
+        "ja" -> "ログイン中..."
+        "zh" -> "登录中..."
+        "es" -> "Iniciando sesión..."
+        else -> "Signing in..."
+    }
+
+    fun checkingData(): String = when (getLang()) {
+        "ko" -> "데이터 확인 중..."
+        "ja" -> "データ確認中..."
+        "zh" -> "正在检查数据..."
+        "es" -> "Verificando datos..."
+        else -> "Checking data..."
+    }
+
+    fun dataRestoreComplete(): String = when (getLang()) {
+        "ko" -> "데이터 복원 완료!"
+        "ja" -> "データ復元完了!"
+        "zh" -> "数据恢复完成!"
+        "es" -> "¡Datos restaurados!"
+        else -> "Data restored!"
+    }
+
+    fun loginComplete(): String = when (getLang()) {
+        "ko" -> "로그인 완료!"
+        "ja" -> "ログイン完了!"
+        "zh" -> "登录成功!"
+        "es" -> "¡Inicio de sesión exitoso!"
+        else -> "Login complete!"
+    }
+
+    fun firebaseLoginFailed(): String = when (getLang()) {
+        "ko" -> "Firebase 로그인 실패"
+        "ja" -> "Firebaseログイン失敗"
+        "zh" -> "Firebase登录失败"
+        "es" -> "Error de inicio de sesión de Firebase"
+        else -> "Firebase login failed"
+    }
+
+    // ========== FitnessConnectionStep ==========
+    fun fitnessLoyalSpeech(): String = when (getLang()) {
+        "ko" -> "피트니스 앱 연결해."
+        "ja" -> "フィットネスアプリを接続して。"
+        "zh" -> "连接健身应用。"
+        "es" -> "Conecta la app de fitness."
+        else -> "Connect fitness app."
+    }
+
+    fun fitnessTsundereSpeech(): String = when (getLang()) {
+        "ko" -> "연결 안 해도 되긴 해..."
+        "ja" -> "接続しなくてもいいけど..."
+        "zh" -> "不连接也可以..."
+        "es" -> "No tienes que conectar..."
+        else -> "You don't have to connect..."
+    }
+
+    fun fitnessFoodieSpeech(): String = when (getLang()) {
+        "ko" -> "피트니스 연결! 가보자고~"
+        "ja" -> "フィットネス接続！行こう~"
+        "zh" -> "连接健身！走起~"
+        "es" -> "¡Conecta fitness! ¡Vamos~"
+        else -> "Connect fitness! Let's go~"
+    }
+
+    fun fitnessPlayfulSpeech(): String = when (getLang()) {
+        "ko" -> "피트니스 연결해봐"
+        "ja" -> "フィットネス接続してみて"
+        "zh" -> "试试连接健身吧"
+        "es" -> "Prueba conectar fitness"
+        else -> "Try connecting fitness"
+    }
+
+    fun fitnessTimidSpeech(): String = when (getLang()) {
+        "ko" -> "연결하면 좋을 것 같아요..."
+        "ja" -> "接続したら良いと思います..."
+        "zh" -> "连接的话会更好..."
+        "es" -> "Sería bueno conectar..."
+        else -> "It would be good to connect..."
+    }
+
+    fun fitnessClumsySpeech(): String = when (getLang()) {
+        "ko" -> "연결하면 더 정확해!"
+        "ja" -> "接続するともっと正確！"
+        "zh" -> "连接后更准确!"
+        "es" -> "¡Más preciso si conectas!"
+        else -> "More accurate if connected!"
+    }
+
+    fun fitnessAppConnection(): String = when (getLang()) {
+        "ko" -> "피트니스 앱 연결"
+        "ja" -> "フィットネスアプリ接続"
+        "zh" -> "连接健身应用"
+        "es" -> "Conectar app de fitness"
+        else -> "Fitness App Connection"
+    }
+
+    fun doLater(): String = when (getLang()) {
+        "ko" -> "나중에 하기"
+        "ja" -> "後でする"
+        "zh" -> "稍后再说"
+        "es" -> "Más tarde"
+        else -> "Do Later"
+    }
+
+    fun foundFitnessApps(): String = when (getLang()) {
+        "ko" -> "발견된 피트니스 앱"
+        "ja" -> "見つかったフィットネスアプリ"
+        "zh" -> "发现的健身应用"
+        "es" -> "Apps de fitness encontradas"
+        else -> "Found Fitness Apps"
+    }
+
+    fun installed(): String = when (getLang()) {
+        "ko" -> "설치됨 ✓"
+        "ja" -> "インストール済み ✓"
+        "zh" -> "已安装 ✓"
+        "es" -> "Instalado ✓"
+        else -> "Installed ✓"
+    }
+
+    fun connecting(): String = when (getLang()) {
+        "ko" -> "연결 중..."
+        "ja" -> "接続中..."
+        "zh" -> "连接中..."
+        "es" -> "Conectando..."
+        else -> "Connecting..."
+    }
+
+    fun connect(): String = when (getLang()) {
+        "ko" -> "연결하기"
+        "ja" -> "接続する"
+        "zh" -> "连接"
+        "es" -> "Conectar"
+        else -> "Connect"
+    }
+
+    fun noFitnessAppFound(): String = when (getLang()) {
+        "ko" -> "피트니스 앱을 찾을 수 없습니다\n기본 센서를 사용합니다"
+        "ja" -> "フィットネスアプリが見つかりません\n基本センサーを使用します"
+        "zh" -> "未找到健身应用\n将使用基本传感器"
+        "es" -> "No se encontró app de fitness\nUsando sensor básico"
+        else -> "No fitness app found\nUsing basic sensor"
+    }
+
+    // ========== PermissionCard ==========
+    fun allow(): String = when (getLang()) {
+        "ko" -> "허용"
+        "ja" -> "許可"
+        "zh" -> "允许"
+        "es" -> "Permitir"
+        else -> "Allow"
+    }
+
+    // ========== Widget Mockups ==========
+    fun steps(): String = when (getLang()) {
+        "ko" -> "걸음"
+        "ja" -> "歩"
+        "zh" -> "步"
+        "es" -> "pasos"
+        else -> "steps"
+    }
+
+    fun petWidgetGreeting(): String = when (getLang()) {
+        "ko" -> "안녕!"
+        "ja" -> "やあ!"
+        "zh" -> "嗨!"
+        "es" -> "¡Hola!"
+        else -> "Hi!"
+    }
+
+    fun quoteMockupText(): String = when (getLang()) {
+        "ko" -> "오늘 하루도\n힘내세요"
+        "ja" -> "今日も\n頑張って"
+        "zh" -> "今天也\n加油"
+        "es" -> "¡Ánimo\nhoy también!"
+        else -> "Have a\ngreat day"
+    }
+
+    fun fasting(): String = when (getLang()) {
+        "ko" -> "단식 중"
+        "ja" -> "断食中"
+        "zh" -> "断食中"
+        "es" -> "Ayunando"
+        else -> "Fasting"
+    }
+
+    fun thankYouKorean(): String = when (getLang()) {
+        "ko" -> "감사합니다"
+        "ja" -> "감사합니다"
+        "zh" -> "감사합니다"
+        "es" -> "감사합니다"
+        else -> "Thank you"
+    }
+
+    fun tapToSolve(): String = when (getLang()) {
+        "ko" -> "탭해서 풀기"
+        "ja" -> "タップして解く"
+        "zh" -> "点击解决"
+        "es" -> "Toca para resolver"
+        else -> "Tap to solve"
+    }
+
+    // ========== WidgetMockup name matching ==========
+    fun widgetNameSteps(): String = when (getLang()) {
+        "ko" -> "걸음 수"
+        "ja" -> "歩数"
+        "zh" -> "步数"
+        "es" -> "Pasos"
+        else -> "Steps"
+    }
+
+    fun widgetNamePet(): String = when (getLang()) {
+        "ko" -> "펫"
+        "ja" -> "ペット"
+        "zh" -> "宠物"
+        "es" -> "Mascota"
+        else -> "Pet"
+    }
+
+    fun widgetNameWeather(): String = when (getLang()) {
+        "ko" -> "날씨 예보"
+        "ja" -> "天気予報"
+        "zh" -> "天气预报"
+        "es" -> "Pronóstico"
+        else -> "Weather"
+    }
+
+    fun widgetNameQuote(): String = when (getLang()) {
+        "ko" -> "명언"
+        "ja" -> "名言"
+        "zh" -> "名言"
+        "es" -> "Citas"
+        else -> "Quotes"
+    }
+
+    fun widgetNameFasting(): String = when (getLang()) {
+        "ko" -> "단식 타이머"
+        "ja" -> "断食タイマー"
+        "zh" -> "断食计时器"
+        "es" -> "Timer de ayuno"
+        else -> "Fasting Timer"
+    }
+
+    fun widgetNameVocab(): String = when (getLang()) {
+        "ko" -> "오늘의 단어"
+        "ja" -> "今日の単語"
+        "zh" -> "今日单词"
+        "es" -> "Palabra del día"
+        else -> "Daily Word"
+    }
+
+    fun widgetNameSudoku(): String = when (getLang()) {
+        "ko" -> "스도쿠"
+        "ja" -> "数独"
+        "zh" -> "数独"
+        "es" -> "Sudoku"
+        else -> "Sudoku"
+    }
+
+    // ========== PaymentScreen ==========
+    fun promoFreeLoyalSpeech(): String = when (getLang()) {
+        "ko" -> "공짜로 가는 거야. 준비해."
+        "ja" -> "無料だよ。準備して。"
+        "zh" -> "免费的。准备好。"
+        "es" -> "Es gratis. Prepárate."
+        else -> "It's free. Get ready."
+    }
+
+    fun promoFreeTsundereSpeech(): String = when (getLang()) {
+        "ko" -> "뭐, 운 좋네. 공짜래."
+        "ja" -> "まあ、ラッキーね。無料だって。"
+        "zh" -> "嗯，运气不错。免费的。"
+        "es" -> "Bueno, suerte. Es gratis."
+        else -> "Well, lucky you. It's free."
+    }
+
+    fun promoFreeFoodieSpeech(): String = when (getLang()) {
+        "ko" -> "우와 공짜야! 야타~!"
+        "ja" -> "わー無料だ！やった~!"
+        "zh" -> "哇免费的！耶~!"
+        "es" -> "¡Guau, es gratis! ¡Sí~!"
+        else -> "Wow it's free! Yay~!"
+    }
+
+    fun promoFreePlayfulSpeech(): String = when (getLang()) {
+        "ko" -> "공짜라카네! 좋다 아이가!"
+        "ja" -> "無料だって！いいね!"
+        "zh" -> "免费的！太好了!"
+        "es" -> "¡Es gratis! ¡Genial!"
+        else -> "It's free! Great!"
+    }
+
+    fun promoFreeTimidSpeech(): String = when (getLang()) {
+        "ko" -> "무, 무료래요...! 다행이에요..."
+        "ja" -> "む、無料だって...！よかった..."
+        "zh" -> "是、是免费的...！太好了..."
+        "es" -> "Es... ¡es gratis...! Qué alivio..."
+        else -> "I-It's free...! What a relief..."
+    }
+
+    fun promoFreeClumsySpeech(): String = when (getLang()) {
+        "ko" -> "공짜라니! 최고의 시작이야!"
+        "ja" -> "無料だなんて！最高のスタートだ!"
+        "zh" -> "免费的！最好的开始!"
+        "es" -> "¡Es gratis! ¡El mejor comienzo!"
+        else -> "It's free! Best start ever!"
+    }
+
+    fun paidLoyalSpeech(): String = when (getLang()) {
+        "ko" -> "하루 100원으로\n꿈을 이뤄봐."
+        "ja" -> "1日100ウォンで\n夢を叶えよう。"
+        "zh" -> "每天100韩元\n实现梦想吧。"
+        "es" -> "Por 100 wones al día\nlogra tus sueños."
+        else -> "For just 100 won/day\nachieve your dreams."
+    }
+
+    fun paidTsundereSpeech(): String = when (getLang()) {
+        "ko" -> "하루 100원이면 돼...\n꿈 이뤄볼래?"
+        "ja" -> "1日100ウォンでいいの...\n夢叶えてみる?"
+        "zh" -> "每天100韩元就行...\n要实现梦想吗?"
+        "es" -> "Solo 100 wones/día...\n¿Quieres lograr tus sueños?"
+        else -> "Just 100 won/day...\nWant to achieve your dreams?"
+    }
+
+    fun paidFoodieSpeech(): String = when (getLang()) {
+        "ko" -> "하루 100원으로\n꿈을 이뤄보자~!"
+        "ja" -> "1日100ウォンで\n夢を叶えよう~!"
+        "zh" -> "每天100韩元\n实现梦想吧~!"
+        "es" -> "¡Por 100 wones/día\nlogra tus sueños~!"
+        else -> "For 100 won/day\nlet's achieve dreams~!"
+    }
+
+    fun paidPlayfulSpeech(): String = when (getLang()) {
+        "ko" -> "하루 100원이면\n꿈 이룰 수 있다이~"
+        "ja" -> "1日100ウォンで\n夢叶えられるよ~"
+        "zh" -> "每天100韩元\n就能实现梦想~"
+        "es" -> "¡Con 100 wones/día\npuedes lograr sueños~"
+        else -> "For 100 won/day\nyou can achieve dreams~"
+    }
+
+    fun paidTimidSpeech(): String = when (getLang()) {
+        "ko" -> "하, 하루 100원으로...\n꿈을 이뤄봐요...!"
+        "ja" -> "い、1日100ウォンで...\n夢を叶えてね...!"
+        "zh" -> "每、每天100韩元...\n实现梦想吧...!"
+        "es" -> "P-Por 100 wones/día...\n¡logra tus sueños...!"
+        else -> "F-For 100 won/day...\nachieve your dreams...!"
+    }
+
+    fun paidClumsySpeech(): String = when (getLang()) {
+        "ko" -> "하루 100원으로 꿈 이루기!\n완전 좋아!"
+        "ja" -> "1日100ウォンで夢を叶える！\n最高！"
+        "zh" -> "每天100韩元实现梦想！\n太棒了！"
+        "es" -> "¡Logra sueños por 100 wones/día!\n¡Genial!"
+        else -> "Achieve dreams for 100 won/day!\nAwesome!"
+    }
+
+    fun processing(): String = when (getLang()) {
+        "ko" -> "결제 중..."
+        "ja" -> "決済中..."
+        "zh" -> "支付中..."
+        "es" -> "Procesando..."
+        else -> "Processing..."
+    }
+
+    fun startForFree(): String = when (getLang()) {
+        "ko" -> "무료로 시작하기"
+        "ja" -> "無料で始める"
+        "zh" -> "免费开始"
+        "es" -> "Empezar gratis"
+        else -> "Start for Free"
+    }
+
+    fun restartAgain(): String = when (getLang()) {
+        "ko" -> "다시 시작하기"
+        "ja" -> "もう一度始める"
+        "zh" -> "重新开始"
+        "es" -> "Empezar de nuevo"
+        else -> "Start Again"
+    }
+
+    fun activityNotFound(): String = when (getLang()) {
+        "ko" -> "Activity를 찾을 수 없습니다"
+        "ja" -> "Activityが見つかりません"
+        "zh" -> "找不到Activity"
+        "es" -> "No se encontró la Activity"
+        else -> "Activity not found"
+    }
+
+    fun subscriptionSaveFailed(): String = when (getLang()) {
+        "ko" -> "구독 정보 저장 실패"
+        "ja" -> "サブスクリプション情報の保存に失敗"
+        "zh" -> "保存订阅信息失败"
+        "es" -> "Error al guardar suscripción"
+        else -> "Failed to save subscription"
+    }
+
+    fun errorPrefix(): String = when (getLang()) {
+        "ko" -> "오류:"
+        "ja" -> "エラー:"
+        "zh" -> "错误:"
+        "es" -> "Error:"
+        else -> "Error:"
+    }
+
+    fun monthAfterChanged(): String = when (getLang()) {
+        "ko" -> "한 달 뒤, 달라진 나"
+        "ja" -> "1ヶ月後、変わった私"
+        "zh" -> "一个月后，改变的我"
+        "es" -> "Un mes después, un nuevo yo"
+        else -> "A month later, a changed me"
+    }
+
+    fun freeStart(): String = when (getLang()) {
+        "ko" -> "무료로 시작!"
+        "ja" -> "無料でスタート!"
+        "zh" -> "免费开始!"
+        "es" -> "¡Empieza gratis!"
+        else -> "Start for Free!"
+    }
+
+    fun oneMonthAllFeaturesFree(): String = when (getLang()) {
+        "ko" -> "1달간 모든 기능 무료!"
+        "ja" -> "1ヶ月間すべての機能が無料!"
+        "zh" -> "一个月所有功能免费!"
+        "es" -> "¡Todas las funciones gratis por 1 mes!"
+        else -> "All features free for 1 month!"
+    }
+
+    fun canInviteOneFriendFree(): String = when (getLang()) {
+        "ko" -> "친구 1명도 무료 초대 가능!"
+        "ja" -> "友達1人も無料招待可能!"
+        "zh" -> "还可以免费邀请1位朋友!"
+        "es" -> "¡También puedes invitar 1 amigo gratis!"
+        else -> "You can also invite 1 friend for free!"
+    }
+
+    fun wonPerYear(): String = when (getLang()) {
+        "ko" -> "원/년"
+        "ja" -> "ウォン/年"
+        "zh" -> "韩元/年"
+        "es" -> "won/año"
+        else -> "won/year"
+    }
+
+    fun wonPerMonth(): String = when (getLang()) {
+        "ko" -> "원/월"
+        "ja" -> "ウォン/月"
+        "zh" -> "韩元/月"
+        "es" -> "won/mes"
+        else -> "won/month"
+    }
+
+    fun dailyPrice(price: Int): String = when (getLang()) {
+        "ko" -> "하루 ${price}원"
+        "ja" -> "1日${price}ウォン"
+        "zh" -> "每天${price}韩元"
+        "es" -> "${price} won/día"
+        else -> "${price} won/day"
+    }
+
+    fun benefitAiPetCare(): String = when (getLang()) {
+        "ko" -> "AI 펫 케어"
+        "ja" -> "AIペットケア"
+        "zh" -> "AI宠物照顾"
+        "es" -> "Cuidado de mascota IA"
+        else -> "AI Pet Care"
+    }
+
+    fun benefitAiPetCareDesc(): String = when (getLang()) {
+        "ko" -> "매일 대화하며 함께 성장해요"
+        "ja" -> "毎日会話しながら一緒に成長"
+        "zh" -> "每天对话，共同成长"
+        "es" -> "Crece juntos conversando cada día"
+        else -> "Grow together with daily chats"
+    }
+
+    fun benefitSmartBlock(): String = when (getLang()) {
+        "ko" -> "스마트 앱 차단"
+        "ja" -> "スマートアプリブロック"
+        "zh" -> "智能应用屏蔽"
+        "es" -> "Bloqueo inteligente de apps"
+        else -> "Smart App Blocking"
+    }
+
+    fun benefitSmartBlockDesc(): String = when (getLang()) {
+        "ko" -> "목표 달성 전까지 유혹 차단"
+        "ja" -> "目標達成まで誘惑をブロック"
+        "zh" -> "在达成目标前屏蔽诱惑"
+        "es" -> "Bloquea tentaciones hasta lograr metas"
+        else -> "Block temptations until goal achieved"
+    }
+
+    fun benefitHomeWidget(): String = when (getLang()) {
+        "ko" -> "홈 위젯"
+        "ja" -> "ホームウィジェット"
+        "zh" -> "主屏幕小组件"
+        "es" -> "Widget de inicio"
+        else -> "Home Widget"
+    }
+
+    fun benefitHomeWidgetDesc(): String = when (getLang()) {
+        "ko" -> "홈 화면에서 바로 확인"
+        "ja" -> "ホーム画面ですぐ確認"
+        "zh" -> "在主屏幕直接查看"
+        "es" -> "Verifica desde la pantalla de inicio"
+        else -> "Check directly from home screen"
+    }
+
+    fun benefitInvite12Friends(): String = when (getLang()) {
+        "ko" -> "친구 12명 초대"
+        "ja" -> "友達12人招待"
+        "zh" -> "邀请12位朋友"
+        "es" -> "Invitar 12 amigos"
+        else -> "Invite 12 friends"
+    }
+
+    fun benefitInvite1Friend(): String = when (getLang()) {
+        "ko" -> "친구 1명 초대"
+        "ja" -> "友達1人招待"
+        "zh" -> "邀请1位朋友"
+        "es" -> "Invitar 1 amigo"
+        else -> "Invite 1 friend"
+    }
+
+    fun benefitInviteDesc(): String = when (getLang()) {
+        "ko" -> "친구도 무료로 시작 가능"
+        "ja" -> "友達も無料でスタート可能"
+        "zh" -> "朋友也可以免费开始"
+        "es" -> "Amigos también empiezan gratis"
+        else -> "Friends can also start for free"
+    }
+
+    fun socialProof(): String = when (getLang()) {
+        "ko" -> "1,000+ 사용자와 함께하고 있어요"
+        "ja" -> "1,000人以上のユーザーと一緒に"
+        "zh" -> "已有1,000+用户加入"
+        "es" -> "Únete a más de 1,000 usuarios"
+        else -> "Join 1,000+ users"
+    }
+
+    fun applied(): String = when (getLang()) {
+        "ko" -> "적용 완료"
+        "ja" -> "適用完了"
+        "zh" -> "已应用"
+        "es" -> "Aplicado"
+        else -> "Applied"
+    }
+
+    fun inviteCode(): String = when (getLang()) {
+        "ko" -> "초대 코드"
+        "ja" -> "招待コード"
+        "zh" -> "邀请码"
+        "es" -> "Código de invitación"
+        else -> "Invite Code"
+    }
+
+    fun enterCode(): String = when (getLang()) {
+        "ko" -> "코드 입력"
+        "ja" -> "コード入力"
+        "zh" -> "输入代码"
+        "es" -> "Ingresa código"
+        else -> "Enter code"
+    }
+
+    fun verifying(): String = when (getLang()) {
+        "ko" -> "확인 중..."
+        "ja" -> "確認中..."
+        "zh" -> "验证中..."
+        "es" -> "Verificando..."
+        else -> "Verifying..."
+    }
+
+    fun apply(): String = when (getLang()) {
+        "ko" -> "적용"
+        "ja" -> "適用"
+        "zh" -> "应用"
+        "es" -> "Aplicar"
+        else -> "Apply"
+    }
+
+    // ========== getPetDescription (V1 Legacy) ==========
+    fun descDog1(): String = when (getLang()) {
+        "ko" -> "듬직하고 멋있는 상남자 스타일\n말수는 적지만 행동으로 보여주는 타입\n묵묵히 당신 곁을 지켜줄 거예요"
+        "ja" -> "頼もしくてかっこいい男らしいスタイル\n口数は少ないけど行動で示すタイプ\n黙々とあなたのそばを守ります"
+        "zh" -> "稳重帅气的硬汉风格\n话不多但用行动证明\n会默默守护在你身边"
+        "es" -> "Estilo varonil y confiable\nPocas palabras, muchas acciones\nTe protegerá en silencio"
+        else -> "Reliable and cool manly style\nFew words but shows through actions\nWill silently protect you"
+    }
+
+    fun descDog2(): String = when (getLang()) {
+        "ko" -> "갓생러 지망 강아지\nㄹㅇ 응원이 특기ㅋㅋ\n같이 있으면 텐션 업 보장"
+        "ja" -> "意識高い系を目指す犬\nマジで応援が特技ww\n一緒にいるとテンションアップ保証"
+        "zh" -> "立志成为优秀狗狗\n超会加油打气\n跟它在一起保证心情好"
+        "es" -> "Perrito aspirante a mejor vida\nExperto en animarte jaja\nTe sube el ánimo garantizado"
+        else -> "Aspiring best-life puppy\nCheering is their specialty lol\nGuaranteed mood boost"
+    }
+
+    fun descCat1(): String = when (getLang()) {
+        "ko" -> "겉은 차갑지만 속은 따뜻한 츤데레\n관심 없는 척하지만 사실 다 챙겨요\n은근히 당신 걱정을 많이 해요"
+        "ja" -> "外は冷たいけど中は温かいツンデレ\n興味ないふりしてるけど実は全部気にしてる\nこっそりあなたのこと心配してます"
+        "zh" -> "外冷内热的傲娇\n装作不在乎其实都记着\n其实很担心你"
+        "es" -> "Tsundere frío por fuera, cálido por dentro\nFinge no importarle pero te cuida\nSecretamente se preocupa mucho"
+        else -> "Cold outside, warm inside tsundere\nPretends not to care but watches over you\nSecretly worries about you a lot"
+    }
+
+    fun descCat2(): String = when (getLang()) {
+        "ko" -> "쿨한 부산 고양이\n담백하고 솔직한 말투가 매력\n옆에서 든든하게 챙겨줄 거예요"
+        "ja" -> "クールな釜山の猫\nあっさり正直な話し方が魅力\nそばでしっかり面倒見てくれます"
+        "zh" -> "酷酷的釜山猫\n简洁直率的说话方式很有魅力\n会在旁边可靠地照顾你"
+        "es" -> "Gato cool de Busan\nHabla directo y sincero\nTe cuidará con firmeza"
+        else -> "Cool Busan cat\nDirect and honest way of speaking\nWill reliably take care of you"
+    }
+
+    fun descRat(): String = when (getLang()) {
+        "ko" -> "소심하지만 마음은 따뜻해요\n조심스럽게 당신에게 다가가요\n천천히 친해지면 든든한 친구가 돼요"
+        "ja" -> "臆病だけど心は温かい\n慎重にあなたに近づきます\nゆっくり仲良くなれば頼もしい友達に"
+        "zh" -> "虽然胆小但内心温暖\n小心翼翼地接近你\n慢慢熟悉后会成为可靠的朋友"
+        "es" -> "Tímido pero de corazón cálido\nSe acerca con cuidado\nSe vuelve un amigo confiable poco a poco"
+        else -> "Shy but warm-hearted\nApproaches you carefully\nBecomes a reliable friend slowly"
+    }
+
+    fun descBird(): String = when (getLang()) {
+        "ko" -> "언제나 밝고 긍정적인 에너지\n힘들 때 용기를 북돋아 줘요\n함께라면 매일이 즐거워요"
+        "ja" -> "いつも明るくポジティブなエネルギー\n辛い時に勇気をくれます\n一緒なら毎日が楽しい"
+        "zh" -> "永远阳光积极的能量\n困难时给你勇气\n在一起每天都很开心"
+        "es" -> "Siempre brillante y positivo\nTe anima cuando estás mal\nCada día es divertido juntos"
+        else -> "Always bright and positive energy\nEncourages you when times are hard\nEvery day is fun together"
+    }
+}
 
 /**
  * Complete Pet Onboarding Flow - 17 Steps:
@@ -599,12 +1237,12 @@ private fun PetSelectionStep(
  */
 private fun getPetDescription(petType: PetType): String {
     return when (petType) {
-        PetType.DOG1 -> "듬직하고 멋있는 상남자 스타일\n말수는 적지만 행동으로 보여주는 타입\n묵묵히 당신 곁을 지켜줄 거예요"
-        PetType.DOG2 -> "갓생러 지망 강아지\nㄹㅇ 응원이 특기ㅋㅋ\n같이 있으면 텐션 업 보장"
-        PetType.CAT1 -> "겉은 차갑지만 속은 따뜻한 츤데레\n관심 없는 척하지만 사실 다 챙겨요\n은근히 당신 걱정을 많이 해요"
-        PetType.CAT2 -> "쿨한 부산 고양이\n담백하고 솔직한 말투가 매력\n옆에서 든든하게 챙겨줄 거예요"
-        PetType.RAT -> "소심하지만 마음은 따뜻해요\n조심스럽게 당신에게 다가가요\n천천히 친해지면 든든한 친구가 돼요"
-        PetType.BIRD -> "언제나 밝고 긍정적인 에너지\n힘들 때 용기를 북돋아 줘요\n함께라면 매일이 즐거워요"
+        PetType.DOG1 -> PetTutorialStrings.descDog1()
+        PetType.DOG2 -> PetTutorialStrings.descDog2()
+        PetType.CAT1 -> PetTutorialStrings.descCat1()
+        PetType.CAT2 -> PetTutorialStrings.descCat2()
+        PetType.RAT -> PetTutorialStrings.descRat()
+        PetType.BIRD -> PetTutorialStrings.descBird()
     }
 }
 
@@ -1063,7 +1701,7 @@ private fun GoogleSignInStep(
     // Google Sign-In 함수 (Credential Manager 사용)
     fun performGoogleSignIn() {
         isLoading = true
-        statusMessage = "로그인 중..."
+        statusMessage = PetTutorialStrings.loggingIn()
         scope.launch {
             val result = GoogleSignInHelper.signIn(context)
             when (result) {
@@ -1077,7 +1715,7 @@ private fun GoogleSignInStep(
                         prefManager.saveTutorialCurrentStep(1)
                         Log.d("GoogleSignIn", "✅ Saved step 1 immediately after sign-in")
 
-                        statusMessage = "데이터 확인 중..."
+                        statusMessage = PetTutorialStrings.checkingData()
 
                         // Repository 동기화 및 데이터 확인
                         val app = context.applicationContext as WalkorWaitApp
@@ -1198,17 +1836,17 @@ private fun GoogleSignInStep(
                                 Log.d("GoogleSignIn", "Fixed tutorialCompleted to true")
                             }
                             // 기존 데이터가 있으면 바로 메인으로
-                            statusMessage = "데이터 복원 완료!"
+                            statusMessage = PetTutorialStrings.dataRestoreComplete()
                             delay(1000)
                             onDataRestored()
                         } else {
                             // 기존 데이터 없으면 펫 선택으로
-                            statusMessage = "로그인 완료!"
+                            statusMessage = PetTutorialStrings.loginComplete()
                             delay(500)
                             onNext()
                         }
                     } else {
-                        errorMessage = "Firebase 로그인 실패"
+                        errorMessage = PetTutorialStrings.firebaseLoginFailed()
                         statusMessage = null
                         isLoading = false
                     }
@@ -2050,7 +2688,7 @@ private fun PermissionCard(
                 colors = ButtonDefaults.buttonColors(containerColor = MockupColors.Border),
                 contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
             ) {
-                Text("허용", fontSize = 14.sp, color = Color.White)
+                Text(PetTutorialStrings.allow(), fontSize = 14.sp, color = Color.White)
             }
         }
     }
@@ -2114,19 +2752,19 @@ private fun FitnessConnectionStep(
     }
 
     val speechText = when (petType.personality) {
-        PetPersonalityV2.LOYAL -> "피트니스 앱 연결해."
-        PetPersonalityV2.TSUNDERE -> "연결 안 해도 되긴 해..."
-        PetPersonalityV2.FOODIE -> "피트니스 연결! 가보자고~"
-        PetPersonalityV2.PLAYFUL -> "피트니스 연결해봐"
-        PetPersonalityV2.TIMID -> "연결하면 좋을 것 같아요..."
-        PetPersonalityV2.CLUMSY -> "연결하면 더 정확해!"
+        PetPersonalityV2.LOYAL -> PetTutorialStrings.fitnessLoyalSpeech()
+        PetPersonalityV2.TSUNDERE -> PetTutorialStrings.fitnessTsundereSpeech()
+        PetPersonalityV2.FOODIE -> PetTutorialStrings.fitnessFoodieSpeech()
+        PetPersonalityV2.PLAYFUL -> PetTutorialStrings.fitnessPlayfulSpeech()
+        PetPersonalityV2.TIMID -> PetTutorialStrings.fitnessTimidSpeech()
+        PetPersonalityV2.CLUMSY -> PetTutorialStrings.fitnessClumsySpeech()
     }
 
     TutorialStepLayout(
         petType = petType,
         speechText = speechText,
-        instructionText = "피트니스 앱 연결",
-        buttonText = "나중에 하기",
+        instructionText = PetTutorialStrings.fitnessAppConnection(),
+        buttonText = PetTutorialStrings.doLater(),
         onButtonClick = {
             hapticManager?.click()
             onNext()
@@ -2139,7 +2777,7 @@ private fun FitnessConnectionStep(
         if (installedApps.isNotEmpty()) {
             // 발견된 앱 표시
             Text(
-                text = "발견된 피트니스 앱",
+                text = PetTutorialStrings.foundFitnessApps(),
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Bold,
                 color = MockupColors.TextSecondary,
@@ -2163,7 +2801,7 @@ private fun FitnessConnectionStep(
                         Spacer(modifier = Modifier.width(8.dp))
                         Column {
                             Text(app.appName, fontSize = 14.sp, fontWeight = FontWeight.Bold, color = MockupColors.TextPrimary)
-                            Text("설치됨 ✓", fontSize = 12.sp, color = MockupColors.Blue)
+                            Text(PetTutorialStrings.installed(), fontSize = 12.sp, color = MockupColors.Blue)
                         }
                     }
                 }
@@ -2182,7 +2820,7 @@ private fun FitnessConnectionStep(
                     colors = ButtonDefaults.buttonColors(containerColor = MockupColors.Blue)
                 ) {
                     Text(
-                        text = if (isConnecting) "연결 중..." else "연결하기",
+                        text = if (isConnecting) PetTutorialStrings.connecting() else PetTutorialStrings.connect(),
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Bold
                     )
@@ -2191,7 +2829,7 @@ private fun FitnessConnectionStep(
         } else {
             // 앱이 없을 때
             Text(
-                text = "피트니스 앱을 찾을 수 없습니다\n기본 센서를 사용합니다",
+                text = PetTutorialStrings.noFitnessAppFound(),
                 fontSize = 14.sp,
                 color = MockupColors.TextMuted,
                 textAlign = TextAlign.Center,
@@ -3505,14 +4143,24 @@ private fun WidgetMockup(
     widget: WidgetInfo,
     petType: PetTypeV2
 ) {
+    // Widget names come from stringResource, match by checking contains
+    val stepsName = stringResource(R.string.widget_steps)
+    val petName = stringResource(R.string.widget_pet)
+    val weatherName = stringResource(R.string.widget_weather)
+    val quoteName = stringResource(R.string.widget_quote)
+    val fastingName = stringResource(R.string.widget_fasting)
+    val vocabName = stringResource(R.string.widget_vocab)
+    val koreanName = stringResource(R.string.widget_korean)
+    val sudokuName = stringResource(R.string.widget_sudoku)
+
     when (widget.name) {
-        "걸음 수" -> StepWidgetMockup(petType)
-        "펫" -> PetWidgetMockup(petType)
-        "날씨 예보" -> WeatherWidgetMockup(petType)
-        "명언" -> QuoteWidgetMockup()
-        "단식 타이머" -> FastingWidgetMockup()
-        "오늘의 단어" -> TravelPhraseWidgetMockup()
-        "스도쿠" -> SudokuWidgetMockup()
+        stepsName -> StepWidgetMockup(petType)
+        petName -> PetWidgetMockup(petType)
+        weatherName -> WeatherWidgetMockup(petType)
+        quoteName -> QuoteWidgetMockup()
+        fastingName -> FastingWidgetMockup()
+        vocabName, koreanName -> TravelPhraseWidgetMockup()
+        sudokuName -> SudokuWidgetMockup()
     }
 }
 
@@ -3537,7 +4185,7 @@ private fun StepWidgetMockup(petType: PetTypeV2) {
                 color = MockupColors.TextPrimary
             )
             Text(
-                text = "걸음",
+                text = PetTutorialStrings.steps(),
                 fontSize = 11.sp,
                 color = MockupColors.TextMuted
             )
@@ -3567,7 +4215,7 @@ private fun PetWidgetMockup(petType: PetTypeV2) {
         verticalArrangement = Arrangement.Center
     ) {
         Text(
-            text = "안녕!",
+            text = PetTutorialStrings.petWidgetGreeting(),
             fontSize = 10.sp,
             color = MockupColors.TextSecondary,
             modifier = Modifier
@@ -3641,7 +4289,7 @@ private fun QuoteWidgetMockup() {
             color = Color(0xFFCCCCCC)
         )
         Text(
-            text = "오늘 하루도\n힘내세요",
+            text = PetTutorialStrings.quoteMockupText(),
             fontSize = 10.sp,
             color = MockupColors.TextPrimary,
             textAlign = TextAlign.Center,
@@ -3665,7 +4313,7 @@ private fun FastingWidgetMockup() {
     ) {
         Column {
             Text(
-                text = "단식 중",
+                text = PetTutorialStrings.fasting(),
                 fontSize = 11.sp,
                 color = MockupColors.TextMuted
             )
@@ -3699,7 +4347,7 @@ private fun TravelPhraseWidgetMockup() {
     ) {
         Column {
             Text(
-                text = "감사합니다",
+                text = PetTutorialStrings.thankYouKorean(),
                 fontSize = 11.sp,
                 color = MockupColors.TextMuted
             )
@@ -3764,7 +4412,7 @@ private fun SudokuWidgetMockup() {
         }
         Spacer(modifier = Modifier.height(4.dp))
         Text(
-            text = "탭해서 풀기",
+            text = PetTutorialStrings.tapToSolve(),
             fontSize = 8.sp,
             color = MockupColors.TextMuted
         )
@@ -3870,20 +4518,20 @@ fun PaymentScreen(
 
     val speechText = when {
         isPromoFree -> when (petType.personality) {
-            PetPersonalityV2.LOYAL -> "공짜로 가는 거야. 준비해."
-            PetPersonalityV2.TSUNDERE -> "뭐, 운 좋네. 공짜래."
-            PetPersonalityV2.FOODIE -> "우와 공짜야! 야타~!"
-            PetPersonalityV2.PLAYFUL -> "공짜라카네! 좋다 아이가!"
-            PetPersonalityV2.TIMID -> "무, 무료래요...! 다행이에요..."
-            PetPersonalityV2.CLUMSY -> "공짜라니! 최고의 시작이야!"
+            PetPersonalityV2.LOYAL -> PetTutorialStrings.promoFreeLoyalSpeech()
+            PetPersonalityV2.TSUNDERE -> PetTutorialStrings.promoFreeTsundereSpeech()
+            PetPersonalityV2.FOODIE -> PetTutorialStrings.promoFreeFoodieSpeech()
+            PetPersonalityV2.PLAYFUL -> PetTutorialStrings.promoFreePlayfulSpeech()
+            PetPersonalityV2.TIMID -> PetTutorialStrings.promoFreeTimidSpeech()
+            PetPersonalityV2.CLUMSY -> PetTutorialStrings.promoFreeClumsySpeech()
         }
         else -> when (petType.personality) {
-            PetPersonalityV2.LOYAL -> "하루 100원으로\n꿈을 이뤄봐."
-            PetPersonalityV2.TSUNDERE -> "하루 100원이면 돼...\n꿈 이뤄볼래?"
-            PetPersonalityV2.FOODIE -> "하루 100원으로\n꿈을 이뤄보자~!"
-            PetPersonalityV2.PLAYFUL -> "하루 100원이면\n꿈 이룰 수 있다이~"
-            PetPersonalityV2.TIMID -> "하, 하루 100원으로...\n꿈을 이뤄봐요...!"
-            PetPersonalityV2.CLUMSY -> "하루 100원으로 꿈 이루기!\n완전 좋아!"
+            PetPersonalityV2.LOYAL -> PetTutorialStrings.paidLoyalSpeech()
+            PetPersonalityV2.TSUNDERE -> PetTutorialStrings.paidTsundereSpeech()
+            PetPersonalityV2.FOODIE -> PetTutorialStrings.paidFoodieSpeech()
+            PetPersonalityV2.PLAYFUL -> PetTutorialStrings.paidPlayfulSpeech()
+            PetPersonalityV2.TIMID -> PetTutorialStrings.paidTimidSpeech()
+            PetPersonalityV2.CLUMSY -> PetTutorialStrings.paidClumsySpeech()
         }
     }
 
@@ -3891,10 +4539,10 @@ fun PaymentScreen(
     val isReturningUser = preferenceManager.isPaidDeposit()
 
     val buttonText = when {
-        isProcessing -> "결제 중..."
-        isPromoFree -> "무료로 시작하기"
-        isReturningUser -> "다시 시작하기"
-        else -> "무료로 시작하기"
+        isProcessing -> PetTutorialStrings.processing()
+        isPromoFree -> PetTutorialStrings.startForFree()
+        isReturningUser -> PetTutorialStrings.restartAgain()
+        else -> PetTutorialStrings.startForFree()
     }
 
     // 결제 처리 함수
@@ -3936,7 +4584,7 @@ fun PaymentScreen(
 
                 val activity = context as? android.app.Activity
                 if (activity == null) {
-                    errorMessage = "Activity를 찾을 수 없습니다"
+                    errorMessage = PetTutorialStrings.activityNotFound()
                     isProcessing = false
                     return@launch
                 }
@@ -3973,11 +4621,11 @@ fun PaymentScreen(
                                     hapticManager?.success()
                                     onComplete()
                                 } else {
-                                    errorMessage = "구독 정보 저장 실패"
+                                    errorMessage = PetTutorialStrings.subscriptionSaveFailed()
                                     isProcessing = false
                                 }
                             } catch (e: Exception) {
-                                errorMessage = "오류: ${e.message}"
+                                errorMessage = "${PetTutorialStrings.errorPrefix()} ${e.message}"
                                 isProcessing = false
                             }
                         }
@@ -3990,7 +4638,7 @@ fun PaymentScreen(
                 billingManager?.startSubscription(activity, selectedPlan)
 
             } catch (e: Exception) {
-                errorMessage = "오류: ${e.message}"
+                errorMessage = "${PetTutorialStrings.errorPrefix()} ${e.message}"
                 isProcessing = false
             }
         }
@@ -4052,7 +4700,7 @@ fun PaymentScreen(
 
         // 헤드라인 - 변화 강조
         Text(
-            text = "한 달 뒤, 달라진 나",
+            text = PetTutorialStrings.monthAfterChanged(),
             fontSize = 22.sp,
             fontWeight = FontWeight.Bold,
             color = MockupColors.TextPrimary
@@ -4114,7 +4762,7 @@ fun PaymentScreen(
         if (isPromoFree) {
             // 프로모션 무료 상태
             Text(
-                text = "무료로 시작!",
+                text = PetTutorialStrings.freeStart(),
                 fontSize = 22.sp,
                 fontFamily = kenneyFont,
                 fontWeight = FontWeight.Bold,
@@ -4122,7 +4770,7 @@ fun PaymentScreen(
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
-                text = if (isPromoGuest) "1달간 모든 기능 무료!" else "친구 1명도 무료 초대 가능!",
+                text = if (isPromoGuest) PetTutorialStrings.oneMonthAllFeaturesFree() else PetTutorialStrings.canInviteOneFriendFree(),
                 fontSize = 16.sp,
                 color = MockupColors.TextSecondary,
                 textAlign = TextAlign.Center
@@ -4150,7 +4798,7 @@ fun PaymentScreen(
                 val isYearly = page == 0
                 val isSelected = pagerState.currentPage == page
                 // 1일 가격 계산: 연간 39000/365 ≈ 107원, 월간 3900/30 = 130원
-                val dailyPrice = if (isYearly) "107" else "130"
+                val dailyPrice = if (isYearly) 107 else 130
 
                 // 카드 선택 애니메이션
                 val cardScale by animateFloatAsState(
@@ -4229,14 +4877,14 @@ fun PaymentScreen(
                                 color = MockupColors.TextPrimary
                             )
                             Text(
-                                text = if (isYearly) "원/년" else "원/월",
+                                text = if (isYearly) PetTutorialStrings.wonPerYear() else PetTutorialStrings.wonPerMonth(),
                                 fontSize = 11.sp,
                                 color = MockupColors.TextMuted,
                                 modifier = Modifier.padding(bottom = 3.dp)
                             )
                         }
                         Text(
-                            text = "하루 ${dailyPrice}원",
+                            text = PetTutorialStrings.dailyPrice(dailyPrice),
                             fontSize = 12.sp,
                             fontWeight = FontWeight.Medium,
                             color = MockupColors.TextSecondary
@@ -4281,12 +4929,12 @@ fun PaymentScreen(
 
         // 혜택 리스트 (순차 fade in 애니메이션)
         val benefits = listOf(
-            Triple("icon_heart", "AI 펫 케어", "매일 대화하며 함께 성장해요"),
-            Triple("icon_lock", "스마트 앱 차단", "목표 달성 전까지 유혹 차단"),
-            Triple("icon_target", "홈 위젯", "홈 화면에서 바로 확인"),
+            Triple("icon_heart", PetTutorialStrings.benefitAiPetCare(), PetTutorialStrings.benefitAiPetCareDesc()),
+            Triple("icon_lock", PetTutorialStrings.benefitSmartBlock(), PetTutorialStrings.benefitSmartBlockDesc()),
+            Triple("icon_target", PetTutorialStrings.benefitHomeWidget(), PetTutorialStrings.benefitHomeWidgetDesc()),
             Triple("icon_trophy",
-                if (selectedPlan == BillingManager.SubscriptionType.YEARLY) "친구 12명 초대" else "친구 1명 초대",
-                "친구도 무료로 시작 가능")
+                if (selectedPlan == BillingManager.SubscriptionType.YEARLY) PetTutorialStrings.benefitInvite12Friends() else PetTutorialStrings.benefitInvite1Friend(),
+                PetTutorialStrings.benefitInviteDesc())
         )
 
         Column(
@@ -4328,7 +4976,7 @@ fun PaymentScreen(
         // 소셜 프루프
         Spacer(modifier = Modifier.height(8.dp))
         Text(
-            text = "1,000+ 사용자와 함께하고 있어요",
+            text = PetTutorialStrings.socialProof(),
             fontSize = 11.sp,
             color = MockupColors.TextMuted
         )
@@ -4374,7 +5022,7 @@ fun PaymentScreen(
                 }
                 Spacer(modifier = Modifier.width(6.dp))
                 Text(
-                    text = if (isPromoApplied) "적용 완료" else "초대 코드",
+                    text = if (isPromoApplied) PetTutorialStrings.applied() else PetTutorialStrings.inviteCode(),
                     fontSize = 14.sp,
                     color = if (isPromoApplied) MockupColors.TextPrimary else MockupColors.TextMuted
                 )
@@ -4396,7 +5044,7 @@ fun PaymentScreen(
                     OutlinedTextField(
                         value = promoCode,
                         onValueChange = { promoCode = it.uppercase(); promoMessage = null },
-                        placeholder = { Text("코드 입력", fontSize = 14.sp) },
+                        placeholder = { Text(PetTutorialStrings.enterCode(), fontSize = 14.sp) },
                         singleLine = true,
                         modifier = Modifier.weight(1f),
                         colors = OutlinedTextFieldDefaults.colors(
@@ -4407,7 +5055,7 @@ fun PaymentScreen(
                     Button(
                         onClick = {
                             if (promoCode.isNotEmpty()) {
-                                promoMessage = "확인 중..."
+                                promoMessage = PetTutorialStrings.verifying()
                                 scope.launch {
                                     when (val result = promoCodeManager.validateAndApply(promoCode)) {
                                         is PromoCodeManager.PromoResult.Success -> {
@@ -4444,7 +5092,7 @@ fun PaymentScreen(
                         enabled = promoCode.isNotEmpty(),
                         colors = ButtonDefaults.buttonColors(containerColor = MockupColors.Border)
                     ) {
-                        Text("적용", fontWeight = FontWeight.Bold)
+                        Text(PetTutorialStrings.apply(), fontWeight = FontWeight.Bold)
                     }
                 }
                 if (promoMessage != null) {

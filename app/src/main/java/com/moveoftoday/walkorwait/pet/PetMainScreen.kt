@@ -1,5 +1,6 @@
 package com.moveoftoday.walkorwait.pet
 
+import java.util.Locale
 import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
@@ -46,6 +47,82 @@ import kotlinx.coroutines.launch
 import java.util.Calendar
 
 /**
+ * 다국어 문자열 헬퍼 객체
+ * 지원 언어: ko(한국어), en(영어 기본), ja(일본어), zh(중국어), es(스페인어)
+ */
+private object PetMainStrings {
+    private fun getLang(): String = Locale.getDefault().language
+
+    // 시간 표시 관련
+    fun hoursMinutes(hours: Int, minutes: Int): String = when (getLang()) {
+        "ko" -> "${hours}시간 ${minutes}분째"
+        "ja" -> "${hours}時間${minutes}分目"
+        "zh" -> "${hours}小时${minutes}分钟"
+        "es" -> "${hours}h ${minutes}min"
+        else -> "${hours}h ${minutes}min"
+    }
+
+    fun minutesOnly(minutes: Int): String = when (getLang()) {
+        "ko" -> "${minutes}분째"
+        "ja" -> "${minutes}分目"
+        "zh" -> "${minutes}分钟"
+        "es" -> "${minutes} min"
+        else -> "${minutes} min"
+    }
+
+    fun start(): String = when (getLang()) {
+        "ko" -> "시작"
+        "ja" -> "開始"
+        "zh" -> "开始"
+        "es" -> "Inicio"
+        else -> "Start"
+    }
+
+    // 목표 표시 관련
+    fun goalKm(goalKm: Double): String = when (getLang()) {
+        "ko" -> "/ %.2f km".format(goalKm)
+        "ja" -> "/ %.2f km".format(goalKm)
+        "zh" -> "/ %.2f 公里".format(goalKm)
+        "es" -> "/ %.2f km".format(goalKm)
+        else -> "/ %.2f km".format(goalKm)
+    }
+
+    fun goalSteps(steps: Int): String = when (getLang()) {
+        "ko" -> "/ %,d 보".format(steps)
+        "ja" -> "/ %,d 歩".format(steps)
+        "zh" -> "/ %,d 步".format(steps)
+        "es" -> "/ %,d pasos".format(steps)
+        else -> "/ %,d steps".format(steps)
+    }
+
+    // 챌린지 완료
+    fun challengeComplete(displayName: String): String = when (getLang()) {
+        "ko" -> "${displayName} 완료!"
+        "ja" -> "${displayName} 完了!"
+        "zh" -> "${displayName} 完成!"
+        "es" -> "${displayName} completado!"
+        else -> "${displayName} completed!"
+    }
+
+    // 챌린지 카테고리 매핑 (내부 비교용)
+    fun getCategoryKey(koreanCategory: String): String = when (koreanCategory) {
+        "독서" -> "reading"
+        "명상" -> "meditation"
+        "공부" -> "study"
+        else -> koreanCategory
+    }
+
+    // 접근성: 달성 상태
+    fun achieved(): String = when (getLang()) {
+        "ko" -> "달성"
+        "ja" -> "達成"
+        "zh" -> "达成"
+        "es" -> "Logrado"
+        else -> "Achieved"
+    }
+}
+
+/**
  * 오늘 자정부터 현재까지의 시간을 계산하여 텍스트로 반환
  */
 @Composable
@@ -67,9 +144,9 @@ private fun getBlockedTimeText(): String {
             val minutes = ((diffMs / (1000 * 60)) % 60).toInt()
 
             timeText = when {
-                hours > 0 -> "${hours}시간 ${minutes}분째"
-                minutes > 0 -> "${minutes}분째"
-                else -> "시작"
+                hours > 0 -> PetMainStrings.hoursMinutes(hours, minutes)
+                minutes > 0 -> PetMainStrings.minutesOnly(minutes)
+                else -> PetMainStrings.start()
             }
 
             delay(60000) // 1분마다 업데이트
@@ -1228,7 +1305,7 @@ fun PetMainContent(
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        text = if (isKmMode) "/ %.2f km".format(displayGoal) else "/ %,d 보".format(goalSteps),
+                        text = if (isKmMode) PetMainStrings.goalKm(displayGoal) else PetMainStrings.goalSteps(goalSteps),
                         fontSize = 18.sp,
                         color = MockupColors.TextMuted,
                         modifier = Modifier.padding(bottom = 8.dp)
@@ -1392,7 +1469,7 @@ fun TitleUnlockedDialog(
 
             // 챌린지 설명
             Text(
-                text = "${titleType.displayName} 완료!",
+                text = PetMainStrings.challengeComplete(titleType.displayName),
                 fontSize = 14.sp,
                 color = Color(0xFF666666)
             )
@@ -1654,10 +1731,10 @@ private fun ChallengeIconItem(
     isRecommended: Boolean = false,
     onClick: () -> Unit
 ) {
-    val iconRes = when (challengeType.category) {
-        "독서" -> R.drawable.challenge_reading
-        "명상" -> R.drawable.challenge_meditation
-        "공부" -> R.drawable.challenge_study
+    val iconRes = when (PetMainStrings.getCategoryKey(challengeType.category)) {
+        "reading" -> R.drawable.challenge_reading
+        "meditation" -> R.drawable.challenge_meditation
+        "study" -> R.drawable.challenge_study
         else -> R.drawable.challenge_reading
     }
 
@@ -1869,7 +1946,7 @@ private fun WeeklyMiniGraph(
                         if (showStar) {
                             Image(
                                 painter = painterResource(id = R.drawable.icon_star),
-                                contentDescription = "달성",
+                                contentDescription = PetMainStrings.achieved(),
                                 modifier = Modifier
                                     .size(14.dp)
                                     .align(Alignment.BottomCenter)

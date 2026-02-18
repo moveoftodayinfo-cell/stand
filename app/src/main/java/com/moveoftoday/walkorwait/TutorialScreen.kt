@@ -45,6 +45,128 @@ import com.moveoftoday.walkorwait.ui.components.*
 import com.moveoftoday.walkorwait.pet.PixelIcon
 import com.moveoftoday.walkorwait.pet.MockupColors
 
+/**
+ * TutorialScreen internationalization helper
+ */
+private object TutorialStrings {
+    private fun getLang(): String = java.util.Locale.getDefault().language
+
+    // Subscription Step
+    fun subscriptionPlan(): String = when (getLang()) {
+        "ko" -> "구독 플랜"
+        "ja" -> "サブスクリプションプラン"
+        "zh" -> "订阅计划"
+        "es" -> "Plan de suscripcion"
+        else -> "Subscription Plan"
+    }
+
+    fun autoPaymentAfterTrial(): String = when (getLang()) {
+        "ko" -> "무료 체험 후 자동 결제"
+        "ja" -> "無料体験後に自動課金"
+        "zh" -> "免费试用后自动付款"
+        "es" -> "Pago automatico despues de la prueba"
+        else -> "Auto payment after free trial"
+    }
+
+    fun monthlySubscription(): String = when (getLang()) {
+        "ko" -> "월간 구독"
+        "ja" -> "月額プラン"
+        "zh" -> "月度订阅"
+        "es" -> "Suscripcion mensual"
+        else -> "Monthly"
+    }
+
+    fun yearlySubscription(): String = when (getLang()) {
+        "ko" -> "연간 구독"
+        "ja" -> "年間プラン"
+        "zh" -> "年度订阅"
+        "es" -> "Suscripcion anual"
+        else -> "Yearly"
+    }
+
+    fun twoMonthsFree(): String = when (getLang()) {
+        "ko" -> "2개월 무료"
+        "ja" -> "2ヶ月無料"
+        "zh" -> "免费2个月"
+        "es" -> "2 meses gratis"
+        else -> "2 months free"
+    }
+
+    fun streakProtectionTicket(): String = when (getLang()) {
+        "ko" -> "streak 방어 티켓"
+        "ja" -> "ストリーク保護チケット"
+        "zh" -> "连续记录保护票"
+        "es" -> "Ticket de proteccion de racha"
+        else -> "Streak Protection Ticket"
+    }
+
+    fun awardedByGoalRate(): String = when (getLang()) {
+        "ko" -> "매달 목표 달성률에 따라 지급"
+        "ja" -> "毎月の目標達成率に応じて付与"
+        "zh" -> "根据每月目标完成率发放"
+        "es" -> "Otorgado segun la tasa de logro mensual"
+        else -> "Awarded based on monthly goal rate"
+    }
+
+    fun subscriptionNote(): String = when (getLang()) {
+        "ko" -> "* 무료 체험 후 자동 결제\n* 언제든 구독 취소 가능"
+        "ja" -> "* 無料体験後に自動課金\n* いつでも解約可能"
+        "zh" -> "* 免费试用后自动付款\n* 随时可取消订阅"
+        "es" -> "* Pago automatico despues de la prueba\n* Cancela en cualquier momento"
+        else -> "* Auto payment after free trial\n* Cancel anytime"
+    }
+
+    fun getStarted(): String = when (getLang()) {
+        "ko" -> "시작하기"
+        "ja" -> "始める"
+        "zh" -> "开始"
+        "es" -> "Comenzar"
+        else -> "Get Started"
+    }
+
+    fun monthlyPrice(): String = when (getLang()) {
+        "ko" -> "월 3,900원"
+        "ja" -> "月額 ¥390"
+        "zh" -> "每月 ¥25"
+        "es" -> "$3.99/mes"
+        else -> "$3.99/mo"
+    }
+
+    fun yearlyPrice(): String = when (getLang()) {
+        "ko" -> "연 39,000원"
+        "ja" -> "年額 ¥3,900"
+        "zh" -> "每年 ¥250"
+        "es" -> "$39.99/ano"
+        else -> "$39.99/yr"
+    }
+
+    // Step unit
+    fun stepsUnit(): String = when (getLang()) {
+        "ko" -> "보"
+        "ja" -> "歩"
+        "zh" -> "步"
+        "es" -> "pasos"
+        else -> "steps"
+    }
+
+    fun formatStepsTarget(steps: Int): String {
+        val unit = stepsUnit()
+        return when (getLang()) {
+            "ko", "ja", "zh" -> "$steps$unit"
+            else -> "$steps $unit"
+        }
+    }
+
+    // Ticket count unit
+    fun ticketCount(count: Int): String = when (getLang()) {
+        "ko" -> "${count}개"
+        "ja" -> "${count}枚"
+        "zh" -> "${count}张"
+        "es" -> "$count"
+        else -> "$count"
+    }
+}
+
 @Composable
 fun TutorialScreen(
     preferenceManager: PreferenceManager?,
@@ -1894,7 +2016,7 @@ fun WalkingStep(
                 val targetDisplay = if (isKmMode) {
                     String.format("%.2fkm", targetSteps / 1300.0)
                 } else {
-                    "${targetSteps}보"
+                    TutorialStrings.formatStepsTarget(targetSteps)
                 }
 
                 Text(
@@ -1986,7 +2108,7 @@ fun WalkingStep(
                         val targetDisplaySmall = if (isKmMode) {
                             String.format("%.2f km", targetSteps / 1300.0)
                         } else {
-                            "$targetSteps 보"
+                            TutorialStrings.formatStepsTarget(targetSteps)
                         }
 
                         Text(
@@ -2567,7 +2689,7 @@ fun SubscriptionStep(
                 Spacer(modifier = Modifier.height(16.dp))
 
                 Text(
-                    text = "구독 플랜",
+                    text = TutorialStrings.subscriptionPlan(),
                     fontSize = StandTypography.headlineMedium,
                     fontWeight = FontWeight.Bold,
                     color = StandColors.WarmLightBright
@@ -2576,7 +2698,7 @@ fun SubscriptionStep(
                 Spacer(modifier = Modifier.height(8.dp))
 
                 Text(
-                    text = "무료 체험 후 자동 결제",
+                    text = TutorialStrings.autoPaymentAfterTrial(),
                     fontSize = StandTypography.titleMedium,
                     color = Color.White.copy(alpha = 0.6f)
                 )
@@ -2604,10 +2726,10 @@ fun SubscriptionStep(
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 Text("${UnicodeSymbols.CIRCLE_FILLED}", fontSize = StandTypography.titleMedium, color = StandColors.WarmLightBright)
                                 Spacer(modifier = Modifier.width(8.dp))
-                                Text("월간 구독", fontSize = StandTypography.bodyLarge, color = Color.White)
+                                Text(TutorialStrings.monthlySubscription(), fontSize = StandTypography.bodyLarge, color = Color.White)
                             }
                             Text(
-                                text = "월 3,900원",
+                                text = TutorialStrings.monthlyPrice(),
                                 fontSize = StandTypography.titleMedium,
                                 fontWeight = FontWeight.Bold,
                                 color = StandColors.WarmLightBright
@@ -2631,12 +2753,12 @@ fun SubscriptionStep(
                                 Text("${UnicodeSymbols.STAR}", fontSize = StandTypography.titleMedium, color = StandColors.WarmLightBright)
                                 Spacer(modifier = Modifier.width(8.dp))
                                 Column {
-                                    Text("연간 구독", fontSize = StandTypography.bodyLarge, color = Color.White)
-                                    Text("2개월 무료", fontSize = StandTypography.bodySmall, color = StandColors.WarmLight)
+                                    Text(TutorialStrings.yearlySubscription(), fontSize = StandTypography.bodyLarge, color = Color.White)
+                                    Text(TutorialStrings.twoMonthsFree(), fontSize = StandTypography.bodySmall, color = StandColors.WarmLight)
                                 }
                             }
                             Text(
-                                text = "연 39,000원",
+                                text = TutorialStrings.yearlyPrice(),
                                 fontSize = StandTypography.titleMedium,
                                 fontWeight = FontWeight.Bold,
                                 color = StandColors.WarmLightBright
@@ -2661,7 +2783,7 @@ fun SubscriptionStep(
                             Text("${UnicodeSymbols.SHIELD}", fontSize = StandTypography.headlineSmall)
                             Spacer(modifier = Modifier.width(12.dp))
                             Text(
-                                text = "streak 방어 티켓",
+                                text = TutorialStrings.streakProtectionTicket(),
                                 fontSize = StandTypography.bodyLarge,
                                 fontWeight = FontWeight.Bold,
                                 color = StandColors.WarmLightBright
@@ -2669,7 +2791,7 @@ fun SubscriptionStep(
                         }
                         Spacer(modifier = Modifier.height(8.dp))
                         Text(
-                            text = "매달 목표 달성률에 따라 지급",
+                            text = TutorialStrings.awardedByGoalRate(),
                             fontSize = StandTypography.bodyMedium,
                             color = StandColors.WarmLight
                         )
@@ -2680,15 +2802,15 @@ fun SubscriptionStep(
                         ) {
                             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                                 Text("90%", fontSize = StandTypography.bodySmall, color = Color.White.copy(alpha = 0.7f))
-                                Text("1개", fontSize = StandTypography.bodyMedium, fontWeight = FontWeight.Bold, color = StandColors.WarmLight)
+                                Text(TutorialStrings.ticketCount(1), fontSize = StandTypography.bodyMedium, fontWeight = FontWeight.Bold, color = StandColors.WarmLight)
                             }
                             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                                 Text("95%", fontSize = StandTypography.bodySmall, color = Color.White.copy(alpha = 0.7f))
-                                Text("2개", fontSize = StandTypography.bodyMedium, fontWeight = FontWeight.Bold, color = StandColors.WarmLight)
+                                Text(TutorialStrings.ticketCount(2), fontSize = StandTypography.bodyMedium, fontWeight = FontWeight.Bold, color = StandColors.WarmLight)
                             }
                             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                                 Text("100%", fontSize = StandTypography.bodySmall, color = Color.White.copy(alpha = 0.7f))
-                                Text("3개", fontSize = StandTypography.bodyMedium, fontWeight = FontWeight.Bold, color = StandColors.WarmLightBright)
+                                Text(TutorialStrings.ticketCount(3), fontSize = StandTypography.bodyMedium, fontWeight = FontWeight.Bold, color = StandColors.WarmLightBright)
                             }
                         }
                     }
@@ -2697,7 +2819,7 @@ fun SubscriptionStep(
                 Spacer(modifier = Modifier.height(12.dp))
 
                 Text(
-                    text = "* 무료 체험 후 자동 결제\n* 언제든 구독 취소 가능",
+                    text = TutorialStrings.subscriptionNote(),
                     fontSize = StandTypography.bodySmall,
                     color = Color.White.copy(alpha = 0.5f),
                     textAlign = TextAlign.Center,
@@ -2718,7 +2840,7 @@ fun SubscriptionStep(
                         containerColor = StandColors.WarmLight
                     )
                 ) {
-                    Text("시작하기", fontSize = StandTypography.titleSmall, fontWeight = FontWeight.Bold, color = StandColors.DarkBackground)
+                    Text(TutorialStrings.getStarted(), fontSize = StandTypography.titleSmall, fontWeight = FontWeight.Bold, color = StandColors.DarkBackground)
                 }
             }
         }

@@ -320,4 +320,215 @@
     <string name="notification_reminder_desc">还差%d步。再走走吧！</string>
     <string name="notification_channel_steps">步数通知</string>
     <string name="notification_channel_challenge">挑战通知</string>
+
+    <!-- Login Screen -->
+    <string name="pet_friend">宠物伙伴</string>
+    <string name="digital_habit_title">\n一起走路\n改善数字习惯</string>
+    <string name="login_subtitle">达成步数目标即可解锁应用\n体验自然的数字排毒</string>
+    <string name="tap_to_jump">点击跳跃！</string>
+    <string name="google_login">Google 登录</string>
+    <string name="login_complete">登录完成</string>
+    <string name="debug_test_without_login">[DEBUG] 无需登录测试</string>
+
+    <!-- Pet Selection Screen -->
+    <string name="choose_your_friend">选择你的朋友！</string>
+    <string name="friend_characteristics">*朋友特征*</string>
+    <string name="this_friend">就是这位！</string>
+
+    <!-- Pet Descriptions V2 -->
+    <string name="pet_desc_shiba">忠诚又勇敢的柴犬\n有点固执但充满爱\n和你一起去任何地方</string>
+    <string name="pet_desc_cat">高冷但暗中撒娇\n独特魅力满满\n傲娇？没错就是我</string>
+    <string name="pet_desc_pig">爱吃的幸运小猪\n悠闲但意外聪明\n在一起好运自来</string>
+    <string name="pet_desc_raccoon">好奇心旺盛的捣蛋鬼\n别被可爱的眼睛骗了\n古怪但永远陪伴你</string>
+    <string name="pet_desc_hamster">虽小但勇敢的仓鼠\n脸颊里装满对你的爱\n用可爱为你加油</string>
+    <string name="pet_desc_penguin">悠闲自在的企鹅\n摇摇晃晃心却飞快\n一起加油吧</string>
+
+    <!-- Pet Name Input Step -->
+    <string name="name_me">给我起个名字。</string>
+    <string name="give_me_name">请给我起个名字！</string>
+    <string name="within_8_chars">8个字以内</string>
+    <string name="okay_lets_go">好，走吧！</string>
+
+    <!-- Tutorial All In One Step -->
+    <string name="speech_loyal_start">准备好了。开始吧。</string>
+    <string name="speech_tsundere_start">嗯，请多关照。</string>
+    <string name="speech_foodie_start">一起出发吧！走起~</string>
+    <string name="speech_playful_start">开始吧！</string>
+    <string name="speech_timid_start">请、请多关照...</string>
+    <string name="speech_clumsy_start">一起加油！</string>
+    <string name="what_to_do_with">和%s一起做的事</string>
+    <string name="tutorial_goal_title">设置步数目标</string>
+    <string name="tutorial_goal_desc">设定每天的步数目标</string>
+    <string name="tutorial_achieve_title">一起达成目标</string>
+    <string name="tutorial_achieve_desc">宠物为你加油</string>
+    <string name="tutorial_control_title">应用控制</string>
+    <string name="tutorial_control_desc">减少浪费时间的应用使用</string>
+    <string name="lets_start">开始！</string>
+
+    <!-- Permission Settings Step -->
+    <string name="speech_loyal_permission">给我权限。</string>
+    <string name="speech_tsundere_permission">嗯，需要权限。</string>
+    <string name="speech_foodie_permission">请给权限！拜托~</string>
+    <string name="speech_playful_permission">给我权限！</string>
+    <string name="speech_timid_permission">我、我需要权限...</string>
+    <string name="speech_clumsy_permission">权限设置加油！</string>
+    <string name="permission_setup">权限设置</string>
+    <string name="measures_your_steps">测量你的步数</string>
+    <string name="notifications">通知</string>
+    <string name="notifies_progress">通知你的进度</string>
+    <string name="step_permission_required">步数测量权限是必须的</string>
+
+    <!-- Accessibility Step -->
+    <string name="speech_loyal_accessibility">打开无障碍。</string>
+    <string name="speech_tsundere_accessibility">打开无障碍... 拜托了。</string>
+    <string name="speech_foodie_accessibility">打开无障碍！拜托~</string>
+    <string name="speech_playful_accessibility">打开无障碍！</string>
+    <string name="speech_timid_accessibility">请打开无障碍...</string>
+    <string name="speech_clumsy_accessibility">无障碍设置加油！</string>
+    <string name="app_control_setup">应用控制设置</string>
+    <string name="accessibility_instructions">1. 点击按钮进入设置\n2. 找到\'rebon\'\n3. 打开rebon\n4. 点击确认</string>
+    <string name="auto_proceed_when_on">确认打开后自动进入下一步！</string>
+
+    <!-- App Selection Step -->
+    <string name="speech_loyal_app">选择要控制的应用。</string>
+    <string name="speech_tsundere_app">选应用... 快点。</string>
+    <string name="speech_foodie_app">选应用！走起~</string>
+    <string name="speech_playful_app">选应用！</string>
+    <string name="speech_timid_app">请选择应用...</string>
+    <string name="speech_clumsy_app">要控制哪些应用？</string>
+    <string name="select_at_least_one">至少选择1个</string>
+
+    <!-- Test Blocking Step -->
+    <string name="speech_loyal_test_done">好。做到了。</string>
+    <string name="speech_tsundere_test_done">还行吧。</string>
+    <string name="speech_foodie_test_done">太棒了！超赞~</string>
+    <string name="speech_playful_test_done">做得好！</string>
+    <string name="speech_timid_test_done">做得很好...！</string>
+    <string name="speech_clumsy_test_done">完美！</string>
+    <string name="speech_loyal_test">打开应用试试。</string>
+    <string name="speech_tsundere_test">打开应用... 在干嘛？</string>
+    <string name="speech_foodie_test">打开应用！走起~</string>
+    <string name="speech_playful_test">打开应用！</string>
+    <string name="speech_timid_test">请打开应用...</string>
+    <string name="speech_clumsy_test">应用启动测试！</string>
+    <string name="test_complete">体验完成！</string>
+    <string name="app_blocking_test">应用阻止体验</string>
+    <string name="try_launching_app">试着打开应用</string>
+    <string name="blocking_test_done">✓ 阻止体验完成！</string>
+    <string name="now_try_walking">现在试试走路解锁？</string>
+    <string name="test_method">测试方法</string>
+    <string name="test_instructions">1. 按Home键退出\n2. 打开选择的应用\n3. 查看阻止消息\n4. 返回rebon</string>
+
+    <!-- Goal Input Step -->
+    <string name="speech_loyal_goal">设定目标。</string>
+    <string name="speech_tsundere_goal">目标... 适当点。</string>
+    <string name="speech_foodie_goal">设定目标！走起!</string>
+    <string name="speech_playful_goal">设定目标！</string>
+    <string name="speech_timid_goal">请设定目标...</string>
+    <string name="speech_clumsy_goal">目标设定加油！</string>
+    <string name="steps_count">%d步</string>
+    <string name="trial_range">50-70步 (试用)</string>
+    <string name="apps_unblocked">被阻止的应用会解锁！</string>
+
+    <!-- Control Days Step -->
+    <string name="speech_loyal_days">选择控制日。</string>
+    <string name="speech_tsundere_days">日期... 快选。</string>
+    <string name="speech_foodie_days">选日期！走起~</string>
+    <string name="speech_playful_days">选日期！</string>
+    <string name="speech_timid_days">请选择日期...</string>
+    <string name="speech_clumsy_days">哪几天控制？</string>
+    <string name="control_days_select">选择控制日</string>
+    <string name="recommend_weekdays">推荐: 工作日(周一~五)</string>
+    <string name="weekend_free">周末自由！</string>
+
+    <!-- Block Time Step -->
+    <string name="period_morning">早上\n06-12点</string>
+    <string name="period_afternoon">下午\n12-18点</string>
+    <string name="period_evening">傍晚\n18-22点</string>
+    <string name="period_night">晚上\n22-06点</string>
+    <string name="speech_loyal_time">设定阻止时间。</string>
+    <string name="speech_tsundere_time">时间... 选吧。</string>
+    <string name="speech_foodie_time">设定时间！走起~</string>
+    <string name="speech_playful_time">设定时间！</string>
+    <string name="speech_timid_time">请设定时间...</string>
+    <string name="speech_clumsy_time">什么时候控制？</string>
+    <string name="blocking_time">阻止时间段</string>
+    <string name="unselected_not_blocked">未选择的时间不会被阻止</string>
+
+    <!-- Walking Test Step -->
+    <string name="speech_loyal_walk_done">做得好。</string>
+    <string name="speech_tsundere_walk_done">还行吧。</string>
+    <string name="speech_foodie_walk_done">太棒了！厉害~</string>
+    <string name="speech_playful_walk_done">做得好！</string>
+    <string name="speech_timid_walk_done">真的做得很好...！</string>
+    <string name="speech_clumsy_walk_done">完美！最棒！</string>
+    <string name="speech_loyal_walk_zero">轻松散步就能完成。</string>
+    <string name="speech_tsundere_walk_zero">去散个步吧。</string>
+    <string name="speech_foodie_walk_zero">轻松散步就行~</string>
+    <string name="speech_playful_walk_zero">散步就完成了！</string>
+    <string name="speech_timid_walk_zero">散步就会... 完成的...</string>
+    <string name="speech_clumsy_walk_zero">散步完成！加油！</string>
+    <string name="speech_loyal_walk">走。</string>
+    <string name="speech_tsundere_walk">走... 快点。</string>
+    <string name="speech_foodie_walk">走起来！走~</string>
+    <string name="speech_playful_walk">走走！</string>
+    <string name="speech_timid_walk">请走路...</string>
+    <string name="speech_clumsy_walk">走路加油！</string>
+    <string name="goal_achieved_exclaim">目标达成！</string>
+    <string name="walk_steps_format">走%d步试试！</string>
+    <string name="steps_needed">需要达成步数</string>
+    <string name="out_of_steps">/ %d 步</string>
+    <string name="health_sync_delay">与健康应用同步可能需要几秒钟</string>
+    <string name="steps_not_increasing">如果步数不增加，请检查三星健康/Health Connect</string>
+    <string name="sync_30_seconds">步数同步大约需要30秒</string>
+    <string name="notification_when_done">完成后会通知您</string>
+    <string name="take_light_walk">轻松散步后回来！</string>
+    <string name="cant_walk_now">现在不能走路。</string>
+
+    <!-- How It Works Step -->
+    <string name="speech_loyal_howto">这样使用。</string>
+    <string name="speech_tsundere_howto">解释... 给你。</string>
+    <string name="speech_foodie_howto">这样就行！简单~</string>
+    <string name="speech_playful_howto">很简单，看！</string>
+    <string name="speech_timid_howto">这样使用...</string>
+    <string name="speech_clumsy_howto">教你怎么用！</string>
+    <string name="rebon_usage">rebon使用方法</string>
+    <string name="core_rule">核心规则</string>
+    <string name="goal_rule_text">目标达成 → 应用自由\n未达成 → 应用阻止</string>
+    <string name="break_mode_15min">15分钟休息模式</string>
+    <string name="break_mode_desc">紧急时可用15分钟应用 (每天1次)</string>
+
+    <!-- Emergency Button Step -->
+    <string name="speech_loyal_emergency">紧急时休息下。</string>
+    <string name="speech_tsundere_emergency">急的话... 休息下。</string>
+    <string name="speech_foodie_emergency">急就休息！没关系~</string>
+    <string name="speech_playful_emergency">急就休息！</string>
+    <string name="speech_timid_emergency">如果急的话请休息...</string>
+    <string name="speech_clumsy_emergency">偶尔休息也可以！</string>
+    <string name="break_mode_details">• 紧急时可使用15分钟应用\n• 每天仅限1次\n• 15分钟后自动重新阻止</string>
+
+    <!-- Widget Setup Step -->
+    <string name="widget_steps">步数</string>
+    <string name="widget_steps_desc">一目了然今天的步数和宠物</string>
+    <string name="widget_pet">宠物</string>
+    <string name="widget_pet_desc">和宠物聊天</string>
+    <string name="widget_weather">天气预报</string>
+    <string name="widget_weather_desc">按时间段的天气和宠物</string>
+    <string name="widget_quote">名言</string>
+    <string name="widget_quote_desc">每天新名言</string>
+    <string name="widget_fasting">断食计时器</string>
+    <string name="widget_fasting_desc">间歇性断食管理</string>
+    <string name="widget_vocab">今日单词</string>
+    <string name="widget_vocab_desc">英语/日语/中文学习</string>
+    <string name="widget_sudoku">数独</string>
+    <string name="widget_sudoku_desc">脑力训练迷你游戏</string>
+    <string name="widget_korean">学韩语</string>
+    <string name="widget_korean_desc">每天学韩语会话</string>
+    <string name="speech_loyal_widget">添加小组件。</string>
+    <string name="speech_tsundere_widget">小组件... 请添加。</string>
+    <string name="speech_foodie_widget">添加小组件！走起~</string>
+    <string name="speech_playful_widget">添加小组件！</string>
+    <string name="speech_timid_widget">请添加小组件...</string>
+    <string name="speech_clumsy_widget">用小组件一目了然！</string>
+    <string name="seven_widgets">7种小组件</string>
 </resources>

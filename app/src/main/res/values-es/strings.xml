@@ -320,4 +320,215 @@
     <string name="notification_reminder_desc">Faltan %d pasos. ¡Caminemos un poco más!</string>
     <string name="notification_channel_steps">Notificaciones de Pasos</string>
     <string name="notification_channel_challenge">Notificaciones de Desafíos</string>
+
+    <!-- Login Screen -->
+    <string name="pet_friend">Amigo Mascota</string>
+    <string name="digital_habit_title">\nMejora tus hábitos digitales\ncaminando con tu</string>
+    <string name="login_subtitle">Completa tus pasos para desbloquear apps\nExperimenta un detox digital natural</string>
+    <string name="tap_to_jump">¡Toca para saltar!</string>
+    <string name="google_login">Iniciar sesión con Google</string>
+    <string name="login_complete">Inicio de sesión completado</string>
+    <string name="debug_test_without_login">[DEBUG] Probar sin iniciar sesión</string>
+
+    <!-- Pet Selection Screen -->
+    <string name="choose_your_friend">¡Elige a tu amigo!</string>
+    <string name="friend_characteristics">*Características*</string>
+    <string name="this_friend">¡Este amigo!</string>
+
+    <!-- Pet Descriptions V2 -->
+    <string name="pet_desc_shiba">Shiba leal y valiente\nUn poco terco pero lleno de amor\nListo para ir a cualquier lugar contigo</string>
+    <string name="pet_desc_cat">Distante pero secretamente cariñoso\nRebosante de encanto único\n¿Tsundere? Sí, ese soy yo</string>
+    <string name="pet_desc_pig">Cerdito de la suerte que ama comer\nRelajado pero sorprendentemente listo\nLa buena suerte viene cuando estamos juntos</string>
+    <string name="pet_desc_raccoon">Amigo curioso y juguetón\nNo te dejes engañar por esos ojos\nRaro pero siempre a tu lado</string>
+    <string name="pet_desc_hamster">Hámster pequeño pero valiente\nMejillas llenas de amor por ti\nTe animaré con ternura</string>
+    <string name="pet_desc_penguin">Pingüino tranquilo y relajado\nCamina lento pero corazón rápido\nVamos juntos a por todas</string>
+
+    <!-- Pet Name Input Step -->
+    <string name="name_me">Dame un nombre.</string>
+    <string name="give_me_name">¡Ponme un nombre!</string>
+    <string name="within_8_chars">Máximo 8 caracteres</string>
+    <string name="okay_lets_go">¡Vamos!</string>
+
+    <!-- Tutorial All In One Step -->
+    <string name="speech_loyal_start">Listo. Empecemos.</string>
+    <string name="speech_tsundere_start">Bueno, un placer.</string>
+    <string name="speech_foodie_start">¡Vamos juntos! ¡Adelante~</string>
+    <string name="speech_playful_start">¡Empecemos!</string>
+    <string name="speech_timid_start">Mu-mucho gusto...</string>
+    <string name="speech_clumsy_start">¡Juntos lo lograremos!</string>
+    <string name="what_to_do_with">Qué hacer con %s</string>
+    <string name="tutorial_goal_title">Establecer meta de pasos</string>
+    <string name="tutorial_goal_desc">Define tu meta diaria de pasos</string>
+    <string name="tutorial_achieve_title">Lograr juntos</string>
+    <string name="tutorial_achieve_desc">Tu mascota te anima</string>
+    <string name="tutorial_control_title">Control de apps</string>
+    <string name="tutorial_control_desc">Reduce el uso de apps que pierden tiempo</string>
+    <string name="lets_start">¡Empezar!</string>
+
+    <!-- Permission Settings Step -->
+    <string name="speech_loyal_permission">Dame permiso.</string>
+    <string name="speech_tsundere_permission">Bueno, necesito permiso.</string>
+    <string name="speech_foodie_permission">¡Permiso por favor! Onegai~</string>
+    <string name="speech_playful_permission">¡Dame permiso!</string>
+    <string name="speech_timid_permission">Ne-necesito permiso...</string>
+    <string name="speech_clumsy_permission">¡Permisos, vamos!</string>
+    <string name="permission_setup">Configurar permisos</string>
+    <string name="measures_your_steps">Mide tus pasos</string>
+    <string name="notifications">Notificaciones</string>
+    <string name="notifies_progress">Te notifica tu progreso</string>
+    <string name="step_permission_required">El permiso de pasos es obligatorio</string>
+
+    <!-- Accessibility Step -->
+    <string name="speech_loyal_accessibility">Activa accesibilidad.</string>
+    <string name="speech_tsundere_accessibility">Activa accesibilidad... por favor.</string>
+    <string name="speech_foodie_accessibility">¡Activa accesibilidad! Onegai~</string>
+    <string name="speech_playful_accessibility">¡Activa accesibilidad!</string>
+    <string name="speech_timid_accessibility">Por favor activa accesibilidad...</string>
+    <string name="speech_clumsy_accessibility">¡Configuración de accesibilidad!</string>
+    <string name="app_control_setup">Configurar control de apps</string>
+    <string name="accessibility_instructions">1. Toca el botón para ir a ajustes\n2. Busca \'rebon\'\n3. Activa rebon\n4. Toca confirmar</string>
+    <string name="auto_proceed_when_on">¡Avanza automático cuando está ON!</string>
+
+    <!-- App Selection Step -->
+    <string name="speech_loyal_app">Elige apps a controlar.</string>
+    <string name="speech_tsundere_app">Selecciona apps... rápido.</string>
+    <string name="speech_foodie_app">¡Selecciona apps! ¡Vamos~</string>
+    <string name="speech_playful_app">¡Elige algunas apps!</string>
+    <string name="speech_timid_app">Por favor selecciona apps...</string>
+    <string name="speech_clumsy_app">¿Qué apps controlar?</string>
+    <string name="select_at_least_one">Selecciona al menos 1</string>
+
+    <!-- Test Blocking Step -->
+    <string name="speech_loyal_test_done">Bien. Lo intentaste.</string>
+    <string name="speech_tsundere_test_done">Bueno, no está mal.</string>
+    <string name="speech_foodie_test_done">¡Genial! Increíble~</string>
+    <string name="speech_playful_test_done">¡Bien hecho!</string>
+    <string name="speech_timid_test_done">¡Lo hiciste bien...!</string>
+    <string name="speech_clumsy_test_done">¡Perfecto!</string>
+    <string name="speech_loyal_test">Abre la app.</string>
+    <string name="speech_tsundere_test">Abre la app... ¿qué haces?</string>
+    <string name="speech_foodie_test">¡Abre la app! ¡Vamos~</string>
+    <string name="speech_playful_test">¡Abre la app!</string>
+    <string name="speech_timid_test">Por favor abre la app...</string>
+    <string name="speech_clumsy_test">¡Prueba de apertura!</string>
+    <string name="test_complete">¡Experiencia completa!</string>
+    <string name="app_blocking_test">Experiencia de bloqueo</string>
+    <string name="try_launching_app">Intenta abrir una app</string>
+    <string name="blocking_test_done">✓ ¡Prueba de bloqueo completa!</string>
+    <string name="now_try_walking">¿Ahora desbloqueamos caminando?</string>
+    <string name="test_method">Método de prueba</string>
+    <string name="test_instructions">1. Presiona Home para salir\n2. Abre una app seleccionada\n3. Ve el mensaje de bloqueo\n4. Vuelve a rebon</string>
+
+    <!-- Goal Input Step -->
+    <string name="speech_loyal_goal">Establece tu meta.</string>
+    <string name="speech_tsundere_goal">Meta... sé razonable.</string>
+    <string name="speech_foodie_goal">¡Establece meta! ¡Vamos!</string>
+    <string name="speech_playful_goal">¡Establece tu meta!</string>
+    <string name="speech_timid_goal">Por favor establece tu meta...</string>
+    <string name="speech_clumsy_goal">¡Configurar meta, ánimo!</string>
+    <string name="steps_count">%d pasos</string>
+    <string name="trial_range">50-70 pasos (prueba)</string>
+    <string name="apps_unblocked">¡Las apps bloqueadas se desbloquean!</string>
+
+    <!-- Control Days Step -->
+    <string name="speech_loyal_days">Elige días de control.</string>
+    <string name="speech_tsundere_days">Días... elige rápido.</string>
+    <string name="speech_foodie_days">¡Seleccionar días! ¡Vamos~</string>
+    <string name="speech_playful_days">¡Elige los días!</string>
+    <string name="speech_timid_days">Por favor selecciona días...</string>
+    <string name="speech_clumsy_days">¿Qué días controlar?</string>
+    <string name="control_days_select">Seleccionar días</string>
+    <string name="recommend_weekdays">Recomendado: Días hábiles (Lun-Vie)</string>
+    <string name="weekend_free">¡Fines de semana libres!</string>
+
+    <!-- Block Time Step -->
+    <string name="period_morning">Mañana\n06-12</string>
+    <string name="period_afternoon">Tarde\n12-18</string>
+    <string name="period_evening">Noche\n18-22</string>
+    <string name="period_night">Madrugada\n22-06</string>
+    <string name="speech_loyal_time">Establece horario de bloqueo.</string>
+    <string name="speech_tsundere_time">Tiempo... elige.</string>
+    <string name="speech_foodie_time">¡Establece horario! ¡Vamos~</string>
+    <string name="speech_playful_time">¡Establece el horario!</string>
+    <string name="speech_timid_time">Por favor establece el horario...</string>
+    <string name="speech_clumsy_time">¿Cuándo controlar?</string>
+    <string name="blocking_time">Horario de bloqueo</string>
+    <string name="unselected_not_blocked">Los no seleccionados no se bloquean</string>
+
+    <!-- Walking Test Step -->
+    <string name="speech_loyal_walk_done">Bien hecho.</string>
+    <string name="speech_tsundere_walk_done">Bueno, no está mal.</string>
+    <string name="speech_foodie_walk_done">¡Increíble! Genial~</string>
+    <string name="speech_playful_walk_done">¡Bien hecho!</string>
+    <string name="speech_timid_walk_done">¡Lo hiciste muy bien...!</string>
+    <string name="speech_clumsy_walk_done">¡Perfecto! ¡El mejor!</string>
+    <string name="speech_loyal_walk_zero">Un paseo ligero lo completará.</string>
+    <string name="speech_tsundere_walk_zero">Ve a caminar.</string>
+    <string name="speech_foodie_walk_zero">Un paseo ligero y listo~</string>
+    <string name="speech_playful_walk_zero">¡Camina y completo!</string>
+    <string name="speech_timid_walk_zero">Si caminas... se completará...</string>
+    <string name="speech_clumsy_walk_zero">¡Camina y listo! ¡Ánimo!</string>
+    <string name="speech_loyal_walk">Camina.</string>
+    <string name="speech_tsundere_walk">Camina... rápido.</string>
+    <string name="speech_foodie_walk">¡Caminemos! ¡Vamos~</string>
+    <string name="speech_playful_walk">¡Camina!</string>
+    <string name="speech_timid_walk">Por favor camina...</string>
+    <string name="speech_clumsy_walk">¡Caminar, ánimo!</string>
+    <string name="goal_achieved_exclaim">¡Meta lograda!</string>
+    <string name="walk_steps_format">¡Camina %d pasos!</string>
+    <string name="steps_needed">Pasos necesarios</string>
+    <string name="out_of_steps">/ %d pasos</string>
+    <string name="health_sync_delay">La sincronización puede tardar unos segundos</string>
+    <string name="steps_not_increasing">Si los pasos no aumentan, revisa Samsung Health/Health Connect</string>
+    <string name="sync_30_seconds">La sincronización tarda unos 30 segundos</string>
+    <string name="notification_when_done">Te notificaremos cuando termine</string>
+    <string name="take_light_walk">¡Da un paseo ligero y vuelve!</string>
+    <string name="cant_walk_now">No puedo caminar ahora.</string>
+
+    <!-- How It Works Step -->
+    <string name="speech_loyal_howto">Así se usa.</string>
+    <string name="speech_tsundere_howto">Te explico... por ti.</string>
+    <string name="speech_foodie_howto">¡Así se hace! Simple~</string>
+    <string name="speech_playful_howto">Es simple, ¡mira!</string>
+    <string name="speech_timid_howto">Así se usa...</string>
+    <string name="speech_clumsy_howto">¡Te enseño cómo!</string>
+    <string name="rebon_usage">Cómo usar rebon</string>
+    <string name="core_rule">Regla principal</string>
+    <string name="goal_rule_text">Meta lograda → Apps libres\nNo lograda → Apps bloqueadas</string>
+    <string name="break_mode_15min">Modo descanso 15 min</string>
+    <string name="break_mode_desc">Usa apps 15 min cuando sea urgente (1 vez al día)</string>
+
+    <!-- Emergency Button Step -->
+    <string name="speech_loyal_emergency">Descansa si es urgente.</string>
+    <string name="speech_tsundere_emergency">Si es urgente... descansa.</string>
+    <string name="speech_foodie_emergency">¡Descansa si es urgente! No pasa nada~</string>
+    <string name="speech_playful_emergency">¡Descansa si es urgente!</string>
+    <string name="speech_timid_emergency">Si estás ocupado, descansa...</string>
+    <string name="speech_clumsy_emergency">¡A veces descansar está bien!</string>
+    <string name="break_mode_details">• Usa apps 15 min cuando sea urgente\n• Solo 1 vez al día\n• Auto-bloquea después de 15 min</string>
+
+    <!-- Widget Setup Step -->
+    <string name="widget_steps">Pasos</string>
+    <string name="widget_steps_desc">Ve tus pasos y mascota de un vistazo</string>
+    <string name="widget_pet">Mascota</string>
+    <string name="widget_pet_desc">Chatea con tu mascota</string>
+    <string name="widget_weather">Clima</string>
+    <string name="widget_weather_desc">Clima por hora con mascota</string>
+    <string name="widget_quote">Cita</string>
+    <string name="widget_quote_desc">Nueva cita cada día</string>
+    <string name="widget_fasting">Ayuno</string>
+    <string name="widget_fasting_desc">Timer de ayuno intermitente</string>
+    <string name="widget_vocab">Palabra del día</string>
+    <string name="widget_vocab_desc">Aprende inglés/japonés/chino</string>
+    <string name="widget_sudoku">Sudoku</string>
+    <string name="widget_sudoku_desc">Mini juego mental</string>
+    <string name="widget_korean">Aprende coreano</string>
+    <string name="widget_korean_desc">Aprende frases coreanas diarias</string>
+    <string name="speech_loyal_widget">Agrega el widget.</string>
+    <string name="speech_tsundere_widget">Widget... agrégalo por favor.</string>
+    <string name="speech_foodie_widget">¡Agrega widget! ¡Vamos~</string>
+    <string name="speech_playful_widget">¡Agrega un widget!</string>
+    <string name="speech_timid_widget">Por favor agrega un widget...</string>
+    <string name="speech_clumsy_widget">¡Ve todo de un vistazo con widgets!</string>
+    <string name="seven_widgets">7 tipos de widgets</string>
 </resources>
