@@ -172,9 +172,6 @@ class StepSensorManager(private val context: Context) : SensorEventListener {
         else if (stepSensor != null) {
             sensorType = SensorType.STEP_COUNTER
             Log.d(TAG, "Using STEP_COUNTER sensor")
-            if (!useHealthConnect) {
-                Toast.makeText(context, StepSensorStrings.defaultSensor(), Toast.LENGTH_SHORT).show()
-            }
         }
         // 3. STEP_DETECTOR 센서
         else if (sensorManager.getDefaultSensor(Sensor.TYPE_STEP_DETECTOR).also {
@@ -183,7 +180,6 @@ class StepSensorManager(private val context: Context) : SensorEventListener {
             sensorType = SensorType.STEP_DETECTOR
             currentSteps = prefs.getTodaySteps()
             Log.d(TAG, "Using STEP_DETECTOR sensor")
-            Toast.makeText(context, StepSensorStrings.stepDetector(), Toast.LENGTH_SHORT).show()
         }
         // 4. ACCELEROMETER (최후 수단)
         else if (sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER).also {
@@ -192,9 +188,8 @@ class StepSensorManager(private val context: Context) : SensorEventListener {
             sensorType = SensorType.ACCELEROMETER
             currentSteps = prefs.getTodaySteps()
             Log.d(TAG, "Using ACCELEROMETER sensor")
-            Toast.makeText(context, StepSensorStrings.accelerometerNoSensor(), Toast.LENGTH_LONG).show()
         }
-        // 5. 사용 가능한 것이 없음
+        // 5. 사용 가능한 것이 없음 - 에러 알림 유지
         else {
             sensorType = SensorType.NONE
             Log.e(TAG, "No sensors available")
@@ -208,7 +203,6 @@ class StepSensorManager(private val context: Context) : SensorEventListener {
             stepSensor != null -> {
                 sensorType = SensorType.STEP_COUNTER
                 Log.d(TAG, "Fallback to STEP_COUNTER")
-                Toast.makeText(context, StepSensorStrings.stepSensor(), Toast.LENGTH_SHORT).show()
             }
             sensorManager.getDefaultSensor(Sensor.TYPE_STEP_DETECTOR).also {
                 stepDetectorSensor = it
@@ -216,7 +210,6 @@ class StepSensorManager(private val context: Context) : SensorEventListener {
                 sensorType = SensorType.STEP_DETECTOR
                 currentSteps = prefs.getTodaySteps()
                 Log.d(TAG, "Fallback to STEP_DETECTOR")
-                Toast.makeText(context, StepSensorStrings.stepDetector(), Toast.LENGTH_SHORT).show()
             }
             sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER).also {
                 accelerometerSensor = it
@@ -224,7 +217,6 @@ class StepSensorManager(private val context: Context) : SensorEventListener {
                 sensorType = SensorType.ACCELEROMETER
                 currentSteps = prefs.getTodaySteps()
                 Log.d(TAG, "Fallback to ACCELEROMETER")
-                Toast.makeText(context, StepSensorStrings.accelerometer(), Toast.LENGTH_SHORT).show()
             }
             else -> {
                 sensorType = SensorType.NONE
@@ -255,7 +247,6 @@ class StepSensorManager(private val context: Context) : SensorEventListener {
                         if (hasPermissions) {
                             val connectedAppName = prefs.getConnectedFitnessAppName()
                             Log.d(TAG, "Using HEALTH_CONNECT - $connectedAppName")
-                            Toast.makeText(context, StepSensorStrings.fitnessConnected(connectedAppName), Toast.LENGTH_SHORT).show()
 
                             // 즉시 첫 데이터 로드
                             val initialSteps = healthConnectManager.getTodaySteps()
@@ -567,7 +558,5 @@ class StepSensorManager(private val context: Context) : SensorEventListener {
             }
             SensorType.NONE -> {}
         }
-
-        Toast.makeText(context, StepSensorStrings.stepsReset(), Toast.LENGTH_SHORT).show()
     }
 }

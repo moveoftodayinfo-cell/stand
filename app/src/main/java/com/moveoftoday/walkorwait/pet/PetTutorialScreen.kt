@@ -974,11 +974,8 @@ fun PetOnboardingScreen(
                 onAgree = {
                     hapticManager?.click()
                     currentStep = 6  // 접근성 설정 화면으로
-                },
-                onDecline = {
-                    hapticManager?.click()
-                    currentStep = 7  // 앱 선택 단계로 스킵 (차단 기능 없이)
                 }
+                // 거부 시: 다이얼로그만 표시하고 현재 스텝에 머무름 (앱 사용 불가)
             )
             6 -> if (currentSelectedPetType != null) AccessibilityStep(
                 petType = currentSelectedPetType,
@@ -2936,8 +2933,7 @@ private fun AccessibilityConsentStep(
     dotStep: Int,
     totalDots: Int,
     hapticManager: HapticManager?,
-    onAgree: () -> Unit,
-    onDecline: () -> Unit
+    onAgree: () -> Unit
 ) {
     val kenneyFont = rememberKenneyFont()
     var showDeclineDialog by remember { mutableStateOf(false) }
@@ -3131,17 +3127,10 @@ private fun AccessibilityConsentStep(
                 TextButton(
                     onClick = {
                         showDeclineDialog = false
-                        onDecline()  // 앱 선택 단계로 스킵
+                        // 다이얼로그만 닫고 현재 스텝에 머무름 (앱 사용 불가 안내)
                     }
                 ) {
                     Text(stringResource(R.string.accessibility_declined_understand))
-                }
-            },
-            dismissButton = {
-                TextButton(
-                    onClick = { showDeclineDialog = false }
-                ) {
-                    Text(stringResource(R.string.cancel))
                 }
             }
         )
@@ -4111,6 +4100,10 @@ private fun WalkingTestStep(
                 Button(
                     onClick = {
                         manualOffset += 10  // Health Connect 모드에서도 작동
+                        // PreferenceManager에도 저장해서 AppBlockService가 목표 달성 인식하도록
+                        val newTotal = currentSteps + 10
+                        preferenceManager.saveTodaySteps(baselineSteps + newTotal)
+                        android.util.Log.d("WalkingTest", "📝 Manual +10 steps saved: total=${baselineSteps + newTotal}")
                         hapticManager?.lightClick()
                     },
                     colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF666666)),

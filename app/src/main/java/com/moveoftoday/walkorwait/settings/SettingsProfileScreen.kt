@@ -883,13 +883,7 @@ private fun LanguageSettingBox(
                                         LocaleListCompat.forLanguageTags(code)
                                     }
                                     AppCompatDelegate.setApplicationLocales(localeList)
-
                                     showLanguageDialog = false
-                                    Toast.makeText(
-                                        context,
-                                        SettingsProfileStrings.languageChangeRestart(),
-                                        Toast.LENGTH_LONG
-                                    ).show()
                                 }
                                 .padding(12.dp)
                         ) {

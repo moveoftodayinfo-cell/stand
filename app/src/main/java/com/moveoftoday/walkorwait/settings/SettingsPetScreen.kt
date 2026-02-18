@@ -629,7 +629,6 @@ fun SettingsPetScreen(
                                     val newLevel = currentLevel.addExp(1000)
                                     preferenceManager?.savePetLevelV2(newLevel)
                                     petLevel = newLevel
-                                    android.widget.Toast.makeText(context, "DEBUG: +1000 EXP → Lv.${newLevel.level}", android.widget.Toast.LENGTH_SHORT).show()
                                 }
                             }
                         )
