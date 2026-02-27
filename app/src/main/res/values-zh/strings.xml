@@ -8,6 +8,14 @@
     <string name="widget_sudoku_description">享受简单的数独游戏</string>
     <string name="widget_fasting_description">显示间歇性禁食计时器</string>
 
+    <!-- Travel Phrase Widget Names -->
+    <string name="widget_travel_english">旅行英语</string>
+    <string name="widget_travel_japanese">旅行日语</string>
+    <string name="widget_travel_chinese">旅行中文</string>
+    <string name="widget_travel_korean">学韩语</string>
+    <string name="widget_travel_spanish">旅行西班牙语</string>
+    <string name="widget_travel_hindi">旅行印地语</string>
+
     <!-- Common -->
     <string name="start">开始</string>
     <string name="confirm">确认</string>
@@ -555,15 +563,16 @@
     <string name="seven_widgets">7种小组件</string>
 
     <!-- Accessibility Consent Dialog (CRITICAL for Google Play compliance) -->
-    <string name="accessibility_consent_title">应用控制权限说明</string>
-    <string name="accessibility_consent_desc">rebon使用无障碍服务在每日步数目标未达成时阻止选定的应用。\n\n此权限仅用于应用阻止功能，不会收集或传输个人数据。\n\n您可以随时在设备设置中禁用此权限。</string>
-    <string name="accessibility_consent_feature_title">此权限可实现的功能：</string>
-    <string name="accessibility_consent_feature_1">• 检测被阻止应用的启动</string>
-    <string name="accessibility_consent_feature_2">• 在目标达成前显示阻止界面</string>
-    <string name="accessibility_consent_feature_3">• 目标达成时自动解锁应用</string>
+    <string name="accessibility_consent_title">应用控制权限同意</string>
+    <string name="accessibility_consent_desc">rebon需要无障碍服务权限来提供应用阻止功能。\n\n[为什么需要此权限？]\nAndroid不提供其他API来检测当前正在运行的应用。无障碍服务是实现此核心功能的唯一方式。\n\n[此权限如何使用？]\nrebon仅检查当前屏幕上显示的应用。当您打开设置为阻止的应用时，如果每日步数目标尚未达成，rebon会显示阻止界面。\n\n[隐私保护]\n• 不收集个人信息\n• 不在外部服务器存储数据\n• 不与第三方共享数据\n• 所有数据仅存储在设备上\n\n您可以随时在设置 > 无障碍 > rebon中禁用此权限。</string>
+    <string name="accessibility_consent_feature_title">技术详情：</string>
+    <string name="accessibility_consent_feature_1">• 仅检查当前运行应用的包名</string>
+    <string name="accessibility_consent_feature_2">• 与用户设置的阻止应用列表比较</string>
+    <string name="accessibility_consent_feature_3">• 目标未达成时显示阻止界面</string>
+    <string name="accessibility_consent_feature_4">• 目标达成时自动解锁</string>
     <string name="accessibility_consent_agree">我同意</string>
     <string name="accessibility_consent_decline">我不同意</string>
     <string name="accessibility_declined_title">无法使用应用</string>
-    <string name="accessibility_declined_message">rebon的核心功能应用阻止需要无障碍服务。\n\n没有此权限，您无法使用应用的主要功能。</string>
+    <string name="accessibility_declined_message">rebon的核心功能应用阻止需要无障碍服务。\n\n这是Android检测前台应用的唯一方式。没有此权限，应用阻止功能无法工作。\n\n如果您担心隐私问题，请注意rebon不会收集、存储或传输任何个人数据。</string>
     <string name="accessibility_declined_understand">确认</string>
 </resources>

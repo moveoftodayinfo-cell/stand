@@ -8,6 +8,14 @@
     <string name="widget_sudoku_description">Enjoy a simple sudoku puzzle</string>
     <string name="widget_fasting_description">Displays intermittent fasting timer</string>
 
+    <!-- Travel Phrase Widget Names -->
+    <string name="widget_travel_english">Travel English</string>
+    <string name="widget_travel_japanese">Travel Japanese</string>
+    <string name="widget_travel_chinese">Travel Chinese</string>
+    <string name="widget_travel_korean">Learn Korean</string>
+    <string name="widget_travel_spanish">Travel Spanish</string>
+    <string name="widget_travel_hindi">Travel Hindi</string>
+
     <!-- Common -->
     <string name="start">Start</string>
     <string name="confirm">OK</string>
@@ -555,15 +563,16 @@
     <string name="seven_widgets">7 Widget Types</string>
 
     <!-- Accessibility Consent Dialog (CRITICAL for Google Play compliance) -->
-    <string name="accessibility_consent_title">App Control Permission</string>
-    <string name="accessibility_consent_desc">rebon uses Accessibility Service to block selected apps when your daily step goal is not achieved.\n\nThis permission is used ONLY for the app blocking feature and does NOT collect or transmit personal data.\n\nYou can disable this permission anytime in device settings.</string>
-    <string name="accessibility_consent_feature_title">What this permission enables:</string>
-    <string name="accessibility_consent_feature_1">• Detect when blocked apps are launched</string>
-    <string name="accessibility_consent_feature_2">• Display blocking screen until goal is achieved</string>
-    <string name="accessibility_consent_feature_3">• Unlock apps automatically when goal is reached</string>
+    <string name="accessibility_consent_title">App Control Permission Required</string>
+    <string name="accessibility_consent_desc">rebon requires Accessibility Service permission to provide the app blocking feature.\n\n[Why is this permission necessary?]\nAndroid does not provide any other API that allows apps to detect which app is currently running in the foreground. Accessibility Service is the ONLY way to implement this core functionality.\n\n[How is this permission used?]\nrebon ONLY monitors which app is currently displayed on screen. When you open an app that you selected to block, and your daily step goal is not yet achieved, rebon displays a blocking screen.\n\n[Data Privacy]\n• NO personal data is collected\n• NO data is stored on external servers\n• NO data is shared with third parties\n• All data remains on your device only\n\nYou can disable this permission anytime in Settings > Accessibility > rebon.</string>
+    <string name="accessibility_consent_feature_title">Technical Details:</string>
+    <string name="accessibility_consent_feature_1">• Monitors foreground app package name only</string>
+    <string name="accessibility_consent_feature_2">• Compares with your blocked app list</string>
+    <string name="accessibility_consent_feature_3">• Shows blocking screen if goal not achieved</string>
+    <string name="accessibility_consent_feature_4">• Automatically unlocks when goal is reached</string>
     <string name="accessibility_consent_agree">I Agree</string>
     <string name="accessibility_consent_decline">I Decline</string>
     <string name="accessibility_declined_title">Cannot Use App</string>
-    <string name="accessibility_declined_message">Accessibility Service is required for rebon\'s core app blocking feature.\n\nWithout this permission, you cannot use the main features of the app.</string>
+    <string name="accessibility_declined_message">Accessibility Service is required for rebon\'s core app blocking feature.\n\nThis is the only way Android allows apps to detect foreground apps. Without this permission, the app blocking feature cannot work.\n\nIf you have privacy concerns, please note that rebon does NOT collect, store, or transmit any personal data.</string>
     <string name="accessibility_declined_understand">OK</string>
 </resources>

@@ -25,6 +25,15 @@ class PreferenceManager(context: Context) {
         return prefs.getInt("daily_goal", 8000)
     }
 
+    // 튜토리얼 목표 달성 플래그 (걸음수 리셋되어도 유지)
+    fun saveTutorialGoalAchieved(achieved: Boolean) {
+        prefs.edit().putBoolean("tutorial_goal_achieved", achieved).apply()
+    }
+
+    fun isTutorialGoalAchieved(): Boolean {
+        return prefs.getBoolean("tutorial_goal_achieved", false)
+    }
+
     // 목표 단위 (steps 또는 km)
     fun saveGoalUnit(unit: String) {
         prefs.edit().putString("goal_unit", unit).apply()
@@ -36,6 +45,10 @@ class PreferenceManager(context: Context) {
 
     fun saveTodaySteps(steps: Int) {
         prefs.edit().putInt("today_steps", steps).apply()
+        // km 모드에서도 getCurrentProgress()가 올바르게 동작하도록 거리도 자동 계산
+        // 1km = 1300보 기준
+        val distanceKm = steps / 1300.0
+        saveTodayDistance(distanceKm)
     }
 
     fun getTodaySteps(): Int {

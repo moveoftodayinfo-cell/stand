@@ -151,7 +151,8 @@ enum class SettingsDestination {
     PET,
     GOAL,
     APP_CONTROL,
-    SUPPORT
+    SUPPORT,
+    ADMIN
 }
 
 /**
@@ -259,6 +260,18 @@ fun SettingsMainScreen(
         ) {
             SettingsSupportScreen(
                 preferenceManager = preferenceManager,
+                hapticManager = hapticManager,
+                onBack = handleBack
+            )
+        }
+
+        // 관리자 대시보드 화면
+        AnimatedVisibility(
+            visible = currentDestination == SettingsDestination.ADMIN,
+            enter = slideInHorizontally { it },
+            exit = slideOutHorizontally { it }
+        ) {
+            SettingsAdminDashboard(
                 hapticManager = hapticManager,
                 onBack = handleBack
             )
@@ -396,7 +409,8 @@ private fun SettingsMainContent(
                 SettingsFooter(
                     kenneyFont = kenneyFont,
                     hapticManager = hapticManager,
-                    onNavigateSupport = { onNavigate(SettingsDestination.SUPPORT) }
+                    onNavigateSupport = { onNavigate(SettingsDestination.SUPPORT) },
+                    onNavigateAdmin = { onNavigate(SettingsDestination.ADMIN) }
                 )
 
                 Spacer(modifier = Modifier.height(8.dp))
@@ -585,7 +599,7 @@ private fun SettingsPetPreview(
         )
 
         // 레벨 + 성장 단계
-        val stageName = stage.displayName
+        val stageName = stage.getLocalizedName()
         Text(
             text = "Lv.${petLevel.level} · $stageName",
             fontSize = 13.sp,
@@ -601,9 +615,11 @@ private fun SettingsPetPreview(
 private fun SettingsFooter(
     kenneyFont: androidx.compose.ui.text.font.FontFamily,
     hapticManager: HapticManager,
-    onNavigateSupport: () -> Unit
+    onNavigateSupport: () -> Unit,
+    onNavigateAdmin: () -> Unit = {}
 ) {
     val context = LocalContext.current
+    var brandingTapCount by remember { mutableIntStateOf(0) }
 
     Column(
         modifier = Modifier.fillMaxWidth(),
@@ -656,13 +672,20 @@ private fun SettingsFooter(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // 브랜딩
+        // 브랜딩 (7회 탭 시 관리자 대시보드 진입)
         Text(
             text = "rebon",
             fontSize = 24.sp,
             fontWeight = FontWeight.Bold,
             color = MockupColors.Border,
-            fontFamily = kenneyFont
+            fontFamily = kenneyFont,
+            modifier = Modifier.clickable {
+                brandingTapCount++
+                if (brandingTapCount >= 7) {
+                    brandingTapCount = 0
+                    onNavigateAdmin()
+                }
+            }
         )
 
         Spacer(modifier = Modifier.height(4.dp))

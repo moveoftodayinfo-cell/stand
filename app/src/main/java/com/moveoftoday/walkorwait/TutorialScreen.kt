@@ -10,12 +10,15 @@ import androidx.compose.animation.core.*
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -167,6 +170,272 @@ private object TutorialStrings {
     }
 }
 
+/**
+ * 접근성 권한 동의 다국어 문자열 (Google Play 정책 준수)
+ * - Google 권장 형식: "[앱]은 [기능]을 위해 [데이터]를 수집합니다"
+ * - AccessibilityService API 명칭 명시
+ * - TYPE_WINDOW_STATE_CHANGED 이벤트 명시
+ * - 4개 체크박스로 명시적 동의
+ * - 동의 철회 방법 안내
+ */
+private object TutorialAccessibilityStrings {
+    private fun getLang(): String = java.util.Locale.getDefault().language
+
+    // 제목
+    fun title(): String = when (getLang()) {
+        "ko" -> "AccessibilityService API 사용에 대한 명시적 공개"
+        "ja" -> "AccessibilityService API使用に関する明示的な開示"
+        "zh" -> "AccessibilityService API使用的明确披露"
+        "es" -> "Divulgacion Explicita del Uso de AccessibilityService API"
+        else -> "Explicit Disclosure of AccessibilityService API Usage"
+    }
+
+    // Google 권장 형식 공개 문구
+    fun prominentDisclosure(): String = when (getLang()) {
+        "ko" -> "rebon은 앱 차단 기능을 사용 설정하기 위해 " +
+                "현재 실행 중인 앱의 패키지명(TYPE_WINDOW_STATE_CHANGED 이벤트)을 수집합니다. " +
+                "이 데이터는 기기 내에서만 처리되며 외부 서버로 전송되지 않습니다."
+        "ja" -> "rebonは、アプリブロック機能を有効にするために、" +
+                "現在実行中のアプリのパッケージ名(TYPE_WINDOW_STATE_CHANGEDイベント)を収集します。" +
+                "このデータはデバイス内でのみ処理され、外部サーバーには送信されません。"
+        "zh" -> "rebon为了启用应用阻止功能，会收集当前运行应用的包名" +
+                "(TYPE_WINDOW_STATE_CHANGED事件)。" +
+                "此数据仅在设备内处理，不会传输到外部服务器。"
+        "es" -> "rebon recopila el nombre del paquete de la aplicacion en ejecucion " +
+                "(evento TYPE_WINDOW_STATE_CHANGED) para habilitar la funcion de bloqueo de apps. " +
+                "Estos datos se procesan solo en el dispositivo y no se envian a servidores externos."
+        else -> "rebon collects the package name of the currently running app " +
+                "(TYPE_WINDOW_STATE_CHANGED event) to enable the app blocking feature. " +
+                "This data is processed only on the device and is not transmitted to external servers."
+    }
+
+    // 섹션 1: 수집하는 데이터
+    fun sectionDataCollected(): String = when (getLang()) {
+        "ko" -> "1. 수집하는 데이터"
+        "ja" -> "1. 収集するデータ"
+        "zh" -> "1. 收集的数据"
+        "es" -> "1. Datos recopilados"
+        else -> "1. Data collected"
+    }
+
+    fun dataCollectedContent(): String = when (getLang()) {
+        "ko" -> "- 현재 화면에 표시된 앱의 패키지명\n" +
+                "- TYPE_WINDOW_STATE_CHANGED 이벤트를 통해 수집\n" +
+                "- 앱 차단 여부 판단에만 사용"
+        "ja" -> "- 現在表示中のアプリのパッケージ名\n" +
+                "- TYPE_WINDOW_STATE_CHANGEDイベントで収集\n" +
+                "- アプリブロック判定にのみ使用"
+        "zh" -> "- 当前显示应用的包名\n" +
+                "- 通过TYPE_WINDOW_STATE_CHANGED事件收集\n" +
+                "- 仅用于判断应用阻止"
+        "es" -> "- Nombre del paquete de la app actual\n" +
+                "- Recopilado via evento TYPE_WINDOW_STATE_CHANGED\n" +
+                "- Usado solo para determinar bloqueo"
+        else -> "- Package name of the currently displayed app\n" +
+                "- Collected via TYPE_WINDOW_STATE_CHANGED event\n" +
+                "- Used only to determine app blocking"
+    }
+
+    // 섹션 2: 데이터 사용 방법
+    fun sectionDataUsage(): String = when (getLang()) {
+        "ko" -> "2. 데이터 사용 방법"
+        "ja" -> "2. データの使用方法"
+        "zh" -> "2. 数据使用方式"
+        "es" -> "2. Como se usan los datos"
+        else -> "2. How data is used"
+    }
+
+    fun dataUsageContent(): String = when (getLang()) {
+        "ko" -> "- 사용자가 차단 설정한 앱인지 확인\n" +
+                "- 차단 앱 실행 시 목표 미달성이면 홈으로 이동\n" +
+                "- 모든 처리는 기기 내에서만 수행\n" +
+                "- 외부 서버 전송 없음"
+        "ja" -> "- ユーザーがブロック設定したアプリか確認\n" +
+                "- ブロックアプリ起動時、目標未達成ならホームへ\n" +
+                "- 全処理はデバイス内のみ\n" +
+                "- 外部サーバー送信なし"
+        "zh" -> "- 确认是否为用户设置阻止的应用\n" +
+                "- 打开阻止应用时若目标未达成则返回主屏\n" +
+                "- 所有处理仅在设备内进行\n" +
+                "- 不传输到外部服务器"
+        "es" -> "- Verificar si es una app bloqueada\n" +
+                "- Si se abre app bloqueada sin meta, ir a inicio\n" +
+                "- Todo el procesamiento es local\n" +
+                "- Sin envio a servidores externos"
+        else -> "- Check if it is an app blocked by user\n" +
+                "- If blocked app opens without goal met, go to home\n" +
+                "- All processing is on-device only\n" +
+                "- No transmission to external servers"
+    }
+
+    // 섹션 3: 수집하지 않는 데이터
+    fun sectionDataNotCollected(): String = when (getLang()) {
+        "ko" -> "3. 수집하지 않는 데이터"
+        "ja" -> "3. 収集しないデータ"
+        "zh" -> "3. 不收集的数据"
+        "es" -> "3. Datos NO recopilados"
+        else -> "3. Data NOT collected"
+    }
+
+    fun dataNotCollectedContent(): String = when (getLang()) {
+        "ko" -> "- 화면 내용, 입력 텍스트, 비밀번호\n" +
+                "- 앱 사용 기록, 브라우징 기록\n" +
+                "- 개인정보, 위치정보\n" +
+                "- 제3자 공유 없음"
+        "ja" -> "- 画面内容、入力テキスト、パスワード\n" +
+                "- アプリ使用履歴、ブラウジング履歴\n" +
+                "- 個人情報、位置情報\n" +
+                "- 第三者共有なし"
+        "zh" -> "- 屏幕内容、输入文字、密码\n" +
+                "- 应用使用记录、浏览记录\n" +
+                "- 个人信息、位置信息\n" +
+                "- 不与第三方共享"
+        "es" -> "- Contenido de pantalla, texto, contrasenas\n" +
+                "- Historial de uso, historial de navegacion\n" +
+                "- Informacion personal, ubicacion\n" +
+                "- Sin compartir con terceros"
+        else -> "- Screen content, input text, passwords\n" +
+                "- App usage history, browsing history\n" +
+                "- Personal information, location\n" +
+                "- No third-party sharing"
+    }
+
+    // 섹션 4: 동의 철회 방법
+    fun sectionWithdrawal(): String = when (getLang()) {
+        "ko" -> "4. 동의 철회 방법"
+        "ja" -> "4. 同意撤回方法"
+        "zh" -> "4. 撤回同意的方法"
+        "es" -> "4. Como revocar el consentimiento"
+        else -> "4. How to withdraw consent"
+    }
+
+    fun withdrawalContent(): String = when (getLang()) {
+        "ko" -> "설정 > 접근성 > 설치된 서비스 > rebon > 사용 안 함\n\n" +
+                "언제든지 위 경로에서 접근성 서비스를 비활성화할 수 있습니다."
+        "ja" -> "設定 > ユーザー補助 > インストール済みサービス > rebon > オフ\n\n" +
+                "いつでも上記の経路でサービスを無効化できます。"
+        "zh" -> "设置 > 无障碍 > 已安装的服务 > rebon > 关闭\n\n" +
+                "您可以随时通过上述路径禁用无障碍服务。"
+        "es" -> "Ajustes > Accesibilidad > Servicios instalados > rebon > Desactivar\n\n" +
+                "Puede desactivar el servicio en cualquier momento."
+        else -> "Settings > Accessibility > Installed services > rebon > Turn off\n\n" +
+                "You can disable the service at any time through the above path."
+    }
+
+    // 체크박스 1: 데이터 수집 이해
+    fun checkbox1DataCollection(): String = when (getLang()) {
+        "ko" -> "위 '수집하는 데이터' 내용을 읽고 이해했습니다."
+        "ja" -> "上記の'収集するデータ'の内容を読んで理解しました。"
+        "zh" -> "我已阅读并理解上述'收集的数据'内容。"
+        "es" -> "He leido y comprendido 'Datos recopilados'."
+        else -> "I have read and understood 'Data collected' above."
+    }
+
+    // 체크박스 2: 데이터 사용 이해
+    fun checkbox2DataUsage(): String = when (getLang()) {
+        "ko" -> "위 '데이터 사용 방법' 내용을 읽고 이해했습니다."
+        "ja" -> "上記の'データの使用方法'の内容を読んで理解しました。"
+        "zh" -> "我已阅读并理解上述'数据使用方式'内容。"
+        "es" -> "He leido y comprendido 'Como se usan los datos'."
+        else -> "I have read and understood 'How data is used' above."
+    }
+
+    // 체크박스 3: 동의 철회 이해
+    fun checkbox3Withdrawal(): String = when (getLang()) {
+        "ko" -> "위 '동의 철회 방법'을 읽고 이해했습니다."
+        "ja" -> "上記の'同意撤回方法'を読んで理解しました。"
+        "zh" -> "我已阅读并理解上述'撤回同意的方法'。"
+        "es" -> "He leido y comprendido 'Como revocar el consentimiento'."
+        else -> "I have read and understood 'How to withdraw consent' above."
+    }
+
+    // 체크박스 4: 최종 동의
+    fun checkbox4FinalConsent(): String = when (getLang()) {
+        "ko" -> "AccessibilityService API 사용에 동의합니다."
+        "ja" -> "AccessibilityService APIの使用に同意します。"
+        "zh" -> "我同意使用AccessibilityService API。"
+        "es" -> "Acepto el uso de AccessibilityService API."
+        else -> "I agree to the use of AccessibilityService API."
+    }
+
+    // 버튼 - 동의하고 설정으로 이동
+    fun agreeButton(): String = when (getLang()) {
+        "ko" -> "동의하고 설정으로 이동"
+        "ja" -> "同意して設定へ移動"
+        "zh" -> "同意并前往设置"
+        "es" -> "Aceptar e ir a Ajustes"
+        else -> "Agree and Go to Settings"
+    }
+
+    fun declineButton(): String = when (getLang()) {
+        "ko" -> "동의하지 않습니다"
+        "ja" -> "同意しません"
+        "zh" -> "我不同意"
+        "es" -> "No acepto"
+        else -> "I Decline"
+    }
+
+    fun declinedTitle(): String = when (getLang()) {
+        "ko" -> "앱을 사용할 수 없습니다"
+        "ja" -> "アプリを使用できません"
+        "zh" -> "无法使用应用"
+        "es" -> "No se puede usar la app"
+        else -> "Cannot Use App"
+    }
+
+    fun declinedMessage(): String = when (getLang()) {
+        "ko" -> "접근성 서비스 권한은 rebon의 핵심 앱 차단 기능에 필수입니다.\n\n" +
+                "Android에서 현재 실행 중인 앱을 감지할 수 있는 유일한 방법이기 때문입니다.\n\n" +
+                "이 권한 없이는 앱 차단 기능이 작동하지 않습니다."
+        "ja" -> "アクセシビリティサービス権限は、rebonの核心的なアプリブロック機能に必須です。\n\n" +
+                "Androidで現在実行中のアプリを検出する唯一の方法だからです。\n\n" +
+                "この権限なしではアプリブロック機能が動作しません。"
+        "zh" -> "无障碍服务权限是rebon核心应用阻止功能的必需条件。\n\n" +
+                "因为这是Android中检测当前运行应用的唯一方法。\n\n" +
+                "没有此权限，应用阻止功能将无法工作。"
+        "es" -> "El permiso del Servicio de Accesibilidad es esencial para la funcion de bloqueo de apps de rebon.\n\n" +
+                "Es el unico metodo en Android para detectar la app en ejecucion.\n\n" +
+                "Sin este permiso, la funcion de bloqueo de apps no funcionara."
+        else -> "Accessibility Service permission is essential for rebon's core app blocking feature.\n\n" +
+                "It is the only method in Android to detect the currently running app.\n\n" +
+                "Without this permission, the app blocking feature will not work."
+    }
+
+    fun understand(): String = when (getLang()) {
+        "ko" -> "확인"
+        "ja" -> "了解"
+        "zh" -> "确定"
+        "es" -> "Entendido"
+        else -> "OK"
+    }
+
+    // ===== Compact versions (for fitting on one page) =====
+
+    fun whyNeededCompact(): String = when (getLang()) {
+        "ko" -> "왜 필요한가요?\nrebon은 설정한 앱 사용을 제한합니다. Android에서 실행 중인 앱 감지는 접근성 서비스만 가능합니다."
+        "ja" -> "なぜ必要?\nrebonは設定アプリの使用を制限します。Androidでアプリ検出はアクセシビリティのみ可能です。"
+        "zh" -> "为什么需要?\nrebon限制设置的应用使用。Android中只有无障碍服务可检测运行应用。"
+        "es" -> "Por que?\nrebon restringe apps configuradas. Solo Accesibilidad detecta apps en Android."
+        else -> "Why needed?\nrebon restricts configured apps. Only Accessibility Service can detect running apps on Android."
+    }
+
+    fun featuresCompact(): String = when (getLang()) {
+        "ko" -> "기능: 현재 앱 패키지명 감지 - 차단 앱이면 홈으로 이동"
+        "ja" -> "機能: アプリ名検出 - ブロック対象ならホームへ"
+        "zh" -> "功能: 检测应用包名 - 被阻止则返回主屏"
+        "es" -> "Funcion: Detecta app - Si bloqueada, va a inicio"
+        else -> "Function: Detect app name - If blocked, go to home"
+    }
+
+    fun notCollectCompact(): String = when (getLang()) {
+        "ko" -> "수집 안함: 화면 내용, 비밀번호, 사용 기록 없음. 외부 전송/공유 없음. 기기 내 처리만."
+        "ja" -> "収集なし: 画面内容、パスワード、履歴なし。外部送信/共有なし。デバイス内処理のみ。"
+        "zh" -> "不收集: 屏幕内容、密码、记录。不外传/共享。仅设备处理。"
+        "es" -> "No recopila: contenido, contraseñas, historial. Sin envío externo. Solo local."
+        else -> "No collection: screen content, passwords, history. No external transfer. Device-only processing."
+    }
+}
+
 @Composable
 fun TutorialScreen(
     preferenceManager: PreferenceManager?,
@@ -201,20 +470,15 @@ fun TutorialScreen(
                 onNext = { currentStep = 3 }
             )
             // Step 3: 접근성 권한 동의 (Google Play 정책 준수)
+            // 4개 체크박스 + 동의 후 바로 설정 이동 + 권한 확인
             3 -> AccessibilityConsentStep(
                 hapticManager = hapticManager,
                 currentStep = currentStep,
                 totalSteps = totalSteps,
-                onAgree = { currentStep = 31 },  // 접근성 설정으로
-                onDecline = { currentStep = 4 }  // 앱 선택으로 스킵
+                onAgree = { currentStep = 4 },  // 권한 확인 완료 후 앱 선택으로 바로 이동
+                onDecline = { }  // 거부 시 다이얼로그만 표시 (진행 안함)
             )
-            // Step 31: 실제 접근성 설정 (동의 후)
-            31 -> AccessibilityStep(
-                hapticManager = hapticManager,
-                currentStep = 3,  // 표시용 단계는 3으로 유지
-                totalSteps = totalSteps,
-                onNext = { currentStep = 4 }
-            )
+            // Step 31: 제거됨 - AccessibilityConsentStep에서 동의+설정+확인 모두 처리
             4 -> AppSelectionStep(
                 preferenceManager = preferenceManager,
                 hapticManager = hapticManager,
@@ -649,7 +913,8 @@ fun PermissionCard(
                 Text(
                     text = "✓",
                     fontSize = StandTypography.headlineSmall,
-                    color = MockupColors.Blue
+                    fontWeight = FontWeight.Bold,
+                    color = MockupColors.TextPrimary
                 )
             } else {
                 Button(onClick = onRequest) {
@@ -800,7 +1065,7 @@ fun FitnessAppConnectionTutorialStep(
                             Spacer(modifier = Modifier.width(12.dp))
                             Column {
                                 Text(text = app.appName, fontSize = StandTypography.bodyMedium, fontWeight = FontWeight.Bold, color = Color.White)
-                                Text(text = stringResource(R.string.installed), fontSize = StandTypography.labelMedium, color = MockupColors.Blue)
+                                Text(text = stringResource(R.string.installed), fontSize = StandTypography.labelMedium, color = MockupColors.TextSecondary, fontWeight = FontWeight.Bold)
                             }
                         }
                     }
@@ -965,7 +1230,12 @@ fun FitnessAppConnectionTutorialStep(
     }
 }
 
-// 3.5 접근성 권한 동의 (Google Play 정책 준수 - 명시적 동의 필수)
+// 3.5 접근성 권한 동의 (Google Play 정책 준수 - 체크박스 4개 명시적 동의 필수)
+// Google Play 정책 요구사항:
+// 1. 체크박스 4개로 명시적 동의 (버튼만으로는 불충분)
+// 2. 접근성 API 사용 목적 상세 설명 (Google 권장 형식)
+// 3. 뒤로가기로 우회 불가
+// 4. 동의 후 바로 설정으로 이동 + 권한 확인
 @Composable
 fun AccessibilityConsentStep(
     hapticManager: HapticManager? = null,
@@ -974,7 +1244,37 @@ fun AccessibilityConsentStep(
     onAgree: () -> Unit,
     onDecline: () -> Unit
 ) {
+    val context = LocalContext.current
     var showDeclineDialog by remember { mutableStateOf(false) }
+
+    // 4개의 체크박스 상태
+    var check1DataCollection by remember { mutableStateOf(false) }
+    var check2DataUsage by remember { mutableStateOf(false) }
+    var check3Withdrawal by remember { mutableStateOf(false) }
+    var check4FinalConsent by remember { mutableStateOf(false) }
+    val allChecked = check1DataCollection && check2DataUsage && check3Withdrawal && check4FinalConsent
+
+    // 접근성 서비스 활성화 확인 (설정에서 돌아왔을 때)
+    LaunchedEffect(Unit) {
+        while (true) {
+            val enabledServices = android.provider.Settings.Secure.getString(
+                context.contentResolver,
+                android.provider.Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES
+            )
+            if (enabledServices?.contains("com.moveoftoday.walkorwait") == true) {
+                hapticManager?.success()
+                kotlinx.coroutines.delay(500)
+                onAgree()
+                break
+            }
+            kotlinx.coroutines.delay(1000)
+        }
+    }
+
+    // Google Play 정책: 뒤로가기로 동의 화면을 우회할 수 없음
+    androidx.activity.compose.BackHandler(enabled = true) {
+        showDeclineDialog = true
+    }
 
     Box(
         modifier = Modifier
@@ -987,130 +1287,193 @@ fun AccessibilityConsentStep(
         ) {
             TutorialProgressBar(currentStep = currentStep, totalSteps = totalSteps)
 
+            // 스크롤 가능한 컨텐츠 영역
             Column(
                 modifier = Modifier
-                    .fillMaxSize()
-                    .padding(start = 32.dp, end = 32.dp, bottom = 80.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
+                    .weight(1f)
+                    .verticalScroll(rememberScrollState())
+                    .padding(horizontal = 20.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
+                Spacer(modifier = Modifier.height(8.dp))
+
+                // 제목
                 Text(
-                    text = stringResource(R.string.accessibility_consent_title),
-                    fontSize = StandTypography.headlineMedium,
+                    text = TutorialAccessibilityStrings.title(),
+                    fontSize = 16.sp,
                     fontWeight = FontWeight.Bold,
-                    color = Color.White
+                    color = Color.White,
+                    textAlign = TextAlign.Center
                 )
 
-                Spacer(modifier = Modifier.height(24.dp))
+                Spacer(modifier = Modifier.height(8.dp))
 
-                // 설명 카드
+                // Google 권장 형식 공개 문구 (노란색 강조)
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     colors = CardDefaults.cardColors(
-                        containerColor = MockupColors.TextMuted.copy(alpha = 0.15f)
-                    )
-                ) {
-                    Column(
-                        modifier = Modifier.padding(16.dp),
-                        verticalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
-                        Text(
-                            text = stringResource(R.string.accessibility_consent_desc),
-                            fontSize = StandTypography.bodyMedium,
-                            color = Color.White.copy(alpha = 0.8f),
-                            lineHeight = 20.sp
-                        )
-
-                        Spacer(modifier = Modifier.height(4.dp))
-
-                        Text(
-                            text = stringResource(R.string.accessibility_consent_feature_title),
-                            fontSize = StandTypography.bodyMedium,
-                            fontWeight = FontWeight.Bold,
-                            color = Color.White
-                        )
-
-                        Text(
-                            text = stringResource(R.string.accessibility_consent_feature_1),
-                            fontSize = StandTypography.bodySmall,
-                            color = Color.White.copy(alpha = 0.7f)
-                        )
-
-                        Text(
-                            text = stringResource(R.string.accessibility_consent_feature_2),
-                            fontSize = StandTypography.bodySmall,
-                            color = Color.White.copy(alpha = 0.7f)
-                        )
-
-                        Text(
-                            text = stringResource(R.string.accessibility_consent_feature_3),
-                            fontSize = StandTypography.bodySmall,
-                            color = Color.White.copy(alpha = 0.7f)
-                        )
-                    }
-                }
-
-                Spacer(modifier = Modifier.weight(1f))
-
-                // 동의 버튼 (메인)
-                Button(
-                    onClick = {
-                        hapticManager?.click()
-                        onAgree()
-                    },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(56.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MockupColors.TextMuted
-                    )
+                        containerColor = Color(0xFFFFF3CD)
+                    ),
+                    shape = RoundedCornerShape(8.dp)
                 ) {
                     Text(
-                        text = stringResource(R.string.accessibility_consent_agree),
-                        fontSize = StandTypography.titleSmall,
-                        fontWeight = FontWeight.Bold
+                        text = TutorialAccessibilityStrings.prominentDisclosure(),
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Medium,
+                        color = MockupColors.TextPrimary,
+                        modifier = Modifier.padding(12.dp),
+                        lineHeight = 16.sp
                     )
                 }
 
                 Spacer(modifier = Modifier.height(12.dp))
 
-                // 동의하지 않음 버튼 (두 번째 버튼 - Google Play 정책 준수)
+                // 4개 섹션 설명
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(
+                        containerColor = Color.White.copy(alpha = 0.1f)
+                    )
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(12.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        // 섹션 1: 수집하는 데이터
+                        TutorialDisclosureSection(
+                            title = TutorialAccessibilityStrings.sectionDataCollected(),
+                            content = TutorialAccessibilityStrings.dataCollectedContent()
+                        )
+
+                        // 섹션 2: 데이터 사용 방법
+                        TutorialDisclosureSection(
+                            title = TutorialAccessibilityStrings.sectionDataUsage(),
+                            content = TutorialAccessibilityStrings.dataUsageContent()
+                        )
+
+                        // 섹션 3: 수집하지 않는 데이터
+                        TutorialDisclosureSection(
+                            title = TutorialAccessibilityStrings.sectionDataNotCollected(),
+                            content = TutorialAccessibilityStrings.dataNotCollectedContent()
+                        )
+
+                        // 섹션 4: 동의 철회 방법
+                        TutorialDisclosureSection(
+                            title = TutorialAccessibilityStrings.sectionWithdrawal(),
+                            content = TutorialAccessibilityStrings.withdrawalContent()
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                // 4개 체크박스 (Google Play 정책: 명시적 동의)
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
+                    TutorialConsentCheckbox(
+                        checked = check1DataCollection,
+                        onCheckedChange = { check1DataCollection = it },
+                        label = TutorialAccessibilityStrings.checkbox1DataCollection()
+                    )
+                    TutorialConsentCheckbox(
+                        checked = check2DataUsage,
+                        onCheckedChange = { check2DataUsage = it },
+                        label = TutorialAccessibilityStrings.checkbox2DataUsage()
+                    )
+                    TutorialConsentCheckbox(
+                        checked = check3Withdrawal,
+                        onCheckedChange = { check3Withdrawal = it },
+                        label = TutorialAccessibilityStrings.checkbox3Withdrawal()
+                    )
+                    TutorialConsentCheckbox(
+                        checked = check4FinalConsent,
+                        onCheckedChange = { check4FinalConsent = it },
+                        label = TutorialAccessibilityStrings.checkbox4FinalConsent()
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+            }
+
+            // 하단 고정 버튼 - Google Play 정책: 두 개 버튼 필수 (동의/거부)
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 20.dp)
+                    .padding(bottom = 24.dp),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                // 동의 안함 버튼
                 OutlinedButton(
                     onClick = {
                         hapticManager?.click()
                         showDeclineDialog = true
                     },
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .height(48.dp),
-                    border = androidx.compose.foundation.BorderStroke(
-                        1.dp,
-                        Color.White.copy(alpha = 0.5f)
+                        .weight(1f)
+                        .height(56.dp),
+                    shape = RoundedCornerShape(12.dp),
+                    border = androidx.compose.foundation.BorderStroke(2.dp, Color.White.copy(alpha = 0.5f))
+                ) {
+                    Text(
+                        text = TutorialAccessibilityStrings.declineButton(),
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White.copy(alpha = 0.7f)
+                    )
+                }
+
+                // 동의하고 설정으로 이동 버튼 (모든 체크박스 선택 시에만 활성화)
+                Button(
+                    onClick = {
+                        if (allChecked) {
+                            hapticManager?.success()
+                            // 접근성 설정 복귀 플래그 설정
+                            PreferenceManager(context).setAwaitingAccessibilityReturn(true)
+                            // 접근성 설정으로 바로 이동
+                            val intent = Intent(android.provider.Settings.ACTION_ACCESSIBILITY_SETTINGS)
+                            intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                            context.startActivity(intent)
+                        }
+                    },
+                    enabled = allChecked,
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(56.dp),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color.White,
+                        disabledContainerColor = Color.White.copy(alpha = 0.2f)
                     )
                 ) {
                     Text(
-                        text = stringResource(R.string.accessibility_consent_decline),
-                        fontSize = StandTypography.bodyMedium,
-                        color = Color.White.copy(alpha = 0.7f)
+                        text = TutorialAccessibilityStrings.agreeButton(),
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = if (allChecked) Color.Black else Color.White.copy(alpha = 0.5f)
                     )
                 }
             }
         }
     }
 
-    // 동의 거부 시 표시되는 다이얼로그
+    // 뒤로가기/거부 시 표시되는 다이얼로그
     if (showDeclineDialog) {
         AlertDialog(
             onDismissRequest = { showDeclineDialog = false },
             title = {
                 Text(
-                    text = stringResource(R.string.accessibility_declined_title),
+                    text = TutorialAccessibilityStrings.declinedTitle(),
                     fontWeight = FontWeight.Bold
                 )
             },
             text = {
                 Text(
-                    text = stringResource(R.string.accessibility_declined_message),
+                    text = TutorialAccessibilityStrings.declinedMessage(),
                     fontSize = 14.sp,
                     lineHeight = 20.sp
                 )
@@ -1119,19 +1482,74 @@ fun AccessibilityConsentStep(
                 TextButton(
                     onClick = {
                         showDeclineDialog = false
-                        onDecline()  // 앱 선택 단계로 스킵
                     }
                 ) {
-                    Text(stringResource(R.string.accessibility_declined_understand))
-                }
-            },
-            dismissButton = {
-                TextButton(
-                    onClick = { showDeclineDialog = false }
-                ) {
-                    Text(stringResource(R.string.cancel))
+                    Text(TutorialAccessibilityStrings.understand())
                 }
             }
+        )
+    }
+}
+
+// 섹션 표시용 헬퍼 컴포저블
+@Composable
+private fun TutorialDisclosureSection(title: String, content: String) {
+    Column {
+        Text(
+            text = title,
+            fontSize = 12.sp,
+            fontWeight = FontWeight.Bold,
+            color = Color.White
+        )
+        Text(
+            text = content,
+            fontSize = 10.sp,
+            color = Color.White.copy(alpha = 0.8f),
+            lineHeight = 14.sp
+        )
+    }
+}
+
+// 체크박스 헬퍼 컴포저블
+@Composable
+private fun TutorialConsentCheckbox(
+    checked: Boolean,
+    onCheckedChange: (Boolean) -> Unit,
+    label: String
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(
+                if (checked) Color.White.copy(alpha = 0.15f) else Color.White.copy(alpha = 0.05f),
+                RoundedCornerShape(6.dp)
+            )
+            .border(
+                width = 1.dp,
+                color = if (checked) Color.White else Color.White.copy(alpha = 0.3f),
+                shape = RoundedCornerShape(6.dp)
+            )
+            .clickable { onCheckedChange(!checked) }
+            .padding(8.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Checkbox(
+            checked = checked,
+            onCheckedChange = onCheckedChange,
+            colors = CheckboxDefaults.colors(
+                checkedColor = Color.White,
+                uncheckedColor = Color.White.copy(alpha = 0.5f),
+                checkmarkColor = Color.Black
+            ),
+            modifier = Modifier.size(20.dp)
+        )
+        Spacer(modifier = Modifier.width(8.dp))
+        Text(
+            text = label,
+            fontSize = 11.sp,
+            fontWeight = FontWeight.Medium,
+            color = Color.White,
+            lineHeight = 14.sp
         )
     }
 }
@@ -1253,7 +1671,8 @@ fun AccessibilityStep(
                 Text(
                     text = stringResource(R.string.rebon_on_required),
                     fontSize = StandTypography.labelLarge,
-                    color = MockupColors.Red,
+                    color = MockupColors.TextSecondary,
+                    fontWeight = FontWeight.Bold,
                     textAlign = TextAlign.Center
                 )
             }

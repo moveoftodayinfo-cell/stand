@@ -45,6 +45,10 @@
 -keep class androidx.compose.** { *; }
 -dontwarn androidx.compose.**
 
+# Facebook SDK
+-keep class com.facebook.** { *; }
+-dontwarn com.facebook.**
+
 # 앱 모델 클래스 유지
 -keep class com.moveoftoday.walkorwait.** { *; }
 

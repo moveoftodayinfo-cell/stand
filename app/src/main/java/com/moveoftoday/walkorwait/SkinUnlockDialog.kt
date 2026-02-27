@@ -47,6 +47,70 @@ private object SkinUnlockStrings {
         "es" -> "Equipar"
         else -> "Equip"
     }
+
+    // 해금 조건 텍스트 다국어
+    fun getUnlockConditionText(condition: UnlockCondition): String {
+        return when (condition) {
+            is UnlockCondition.Default -> when (getLang()) {
+                "ko" -> "기본 제공"
+                "ja" -> "デフォルト"
+                "zh" -> "默认解锁"
+                "es" -> "Predeterminado"
+                else -> "Default"
+            }
+            is UnlockCondition.Steps -> when (getLang()) {
+                "ko" -> "총 ${condition.totalSteps}보 달성"
+                "ja" -> "合計${condition.totalSteps}歩達成"
+                "zh" -> "累计${condition.totalSteps}步"
+                "es" -> "${condition.totalSteps} pasos totales"
+                else -> "${condition.totalSteps} total steps"
+            }
+            is UnlockCondition.Streak -> when (getLang()) {
+                "ko" -> "${condition.days}일 연속 달성"
+                "ja" -> "${condition.days}日連続達成"
+                "zh" -> "连续${condition.days}天"
+                "es" -> "${condition.days} días seguidos"
+                else -> "${condition.days} day streak"
+            }
+            is UnlockCondition.Level -> when (getLang()) {
+                "ko" -> "레벨 ${condition.level} 달성"
+                "ja" -> "レベル${condition.level}達成"
+                "zh" -> "达到等级${condition.level}"
+                "es" -> "Nivel ${condition.level}"
+                else -> "Level ${condition.level}"
+            }
+            is UnlockCondition.Event -> when (getLang()) {
+                "ko" -> "이벤트 전용"
+                "ja" -> "イベント限定"
+                "zh" -> "活动限定"
+                "es" -> "Solo evento"
+                else -> "Event exclusive"
+            }
+            is UnlockCondition.ChallengeCount -> {
+                val category = localizeCategory(condition.category)
+                when (getLang()) {
+                    "ko" -> "$category ${condition.count}회 완료"
+                    "ja" -> "$category ${condition.count}回完了"
+                    "zh" -> "$category ${condition.count}次完成"
+                    "es" -> "$category ${condition.count}x"
+                    else -> "$category ${condition.count}x complete"
+                }
+            }
+        }
+    }
+
+    private fun localizeCategory(categoryName: String): String {
+        val lang = getLang()
+        // ChallengeCategory values are Korean strings: "독서", "명상", "공부", "운동", "웰니스"
+        return when (categoryName) {
+            "독서" -> when (lang) { "ko" -> "독서"; "ja" -> "読書"; "zh" -> "阅读"; "es" -> "Lectura"; else -> "Reading" }
+            "명상" -> when (lang) { "ko" -> "명상"; "ja" -> "瞑想"; "zh" -> "冥想"; "es" -> "Meditación"; else -> "Meditation" }
+            "공부" -> when (lang) { "ko" -> "공부"; "ja" -> "勉強"; "zh" -> "学习"; "es" -> "Estudio"; else -> "Study" }
+            "운동" -> when (lang) { "ko" -> "운동"; "ja" -> "運動"; "zh" -> "运动"; "es" -> "Ejercicio"; else -> "Exercise" }
+            "웰니스" -> when (lang) { "ko" -> "웰니스"; "ja" -> "ウェルネス"; "zh" -> "健康"; "es" -> "Bienestar"; else -> "Wellness" }
+            else -> categoryName
+        }
+    }
 }
 
 /**
@@ -122,7 +186,7 @@ fun SkinUnlockDialog(
                 text = skin.getLocalizedDisplayName(),
                 fontSize = 18.sp,
                 fontWeight = FontWeight.SemiBold,
-                color = Color(0xFF2196F3),
+                color = Color.Black,
                 textAlign = TextAlign.Center
             )
 
@@ -165,9 +229,9 @@ fun SkinUnlockDialog(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // 설명
+            // 설명 (해금 조건)
             Text(
-                text = skin.description,
+                text = SkinUnlockStrings.getUnlockConditionText(skin.unlockCondition),
                 fontSize = 14.sp,
                 color = Color.Gray,
                 textAlign = TextAlign.Center
@@ -208,7 +272,7 @@ fun SkinUnlockDialog(
                     modifier = Modifier.weight(1f),
                     shape = RoundedCornerShape(12.dp),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = Color(0xFF2196F3)
+                        containerColor = Color.Black
                     )
                 ) {
                     Text(

@@ -10,6 +10,36 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.moveoftoday.walkorwait.HapticManager
 import com.moveoftoday.walkorwait.PreferenceManager
+import java.util.Locale
+
+// 다국어 헬퍼 (레벨업 다이얼로그)
+private object LevelUpStrings {
+    private fun getLang(): String = Locale.getDefault().language
+
+    fun levelUp(): String = when (getLang()) {
+        "ko" -> "레벨업!"
+        "ja" -> "レベルアップ!"
+        "zh" -> "升级!"
+        "es" -> "¡Subida de nivel!"
+        else -> "Level Up!"
+    }
+
+    fun evolution(): String = when (getLang()) {
+        "ko" -> "진화!"
+        "ja" -> "進化!"
+        "zh" -> "进化!"
+        "es" -> "¡Evolución!"
+        else -> "Evolution!"
+    }
+
+    fun great(): String = when (getLang()) {
+        "ko" -> "좋아!"
+        "ja" -> "いいね!"
+        "zh" -> "太棒了!"
+        "es" -> "¡Genial!"
+        else -> "Great!"
+    }
+}
 
 /**
  * V2 펫 시스템 통합 헬퍼
@@ -250,7 +280,7 @@ fun LevelUpCelebrationDialog(
 
             // 레벨업 메시지
             androidx.compose.material3.Text(
-                text = if (isStageEvolution) "진화!" else "레벨업!",
+                text = if (isStageEvolution) LevelUpStrings.evolution() else LevelUpStrings.levelUp(),
                 fontSize = 24.sp,
                 fontWeight = androidx.compose.ui.text.font.FontWeight.Bold,
                 fontFamily = kenneyFont,
@@ -303,7 +333,7 @@ fun LevelUpCelebrationDialog(
                 )
             ) {
                 androidx.compose.material3.Text(
-                    text = "좋아!",
+                    text = LevelUpStrings.great(),
                     color = androidx.compose.ui.graphics.Color.White
                 )
             }

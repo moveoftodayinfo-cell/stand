@@ -765,7 +765,7 @@ fun SettingsPetScreen(
                         Spacer(modifier = Modifier.height(8.dp))
                         StatRow(SettingsPetStrings.totalExp(), "${petLevel.totalExp} EXP", kenneyFont)
                         Spacer(modifier = Modifier.height(8.dp))
-                        StatRow(SettingsPetStrings.currentPersonality(), petTypeV2?.personality?.description ?: "-", kenneyFont)
+                        StatRow(SettingsPetStrings.currentPersonality(), petTypeV2?.personality?.getLocalizedDescription() ?: "-", kenneyFont)
                     }
                 }
 
@@ -969,7 +969,7 @@ private fun PetChangeDialog(
                 OutlinedTextField(
                     value = petName,
                     onValueChange = { if (it.length <= 10) petName = it },
-                    label = { Text("펫 이름") },
+                    label = { Text(SettingsPetStrings.petName()) },
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth()
                 )
@@ -1759,8 +1759,8 @@ private fun SkinItemCompact(
             .alpha(if (isOwned) 1f else 0.5f)
             .padding(8.dp)
     ) {
-        // 펫 미리보기 (중앙 상단)
-        if (petTypeV2 != null && isOwned) {
+        // 펫 미리보기 (중앙 상단) - 보유 여부 상관없이 미리보기 표시
+        if (petTypeV2 != null) {
             val equipmentState = EquipmentState(
                 headId = null,
                 backgroundId = null,
@@ -1775,16 +1775,6 @@ private fun SkinItemCompact(
                 size = 72.dp,
                 monochrome = true,
                 showGlow = false,
-                modifier = Modifier
-                    .align(Alignment.Center)
-                    .offset(y = (-12).dp)
-            )
-        } else if (!isOwned) {
-            // 잠금 아이콘
-            Text(
-                text = "▣",
-                fontSize = 40.sp,
-                color = Color.Gray,
                 modifier = Modifier
                     .align(Alignment.Center)
                     .offset(y = (-12).dp)
@@ -2053,14 +2043,12 @@ private fun TitleSelectionSection(
                             .background(MockupColors.TextPrimary, RoundedCornerShape(8.dp))
                             .clickable {
                                 hapticManager.click()
-                                // MainActivity로 챌린지 화면 이동 요청
-                                val activity = context as? android.app.Activity
-                                activity?.let {
-                                    val intent = android.content.Intent("com.moveoftoday.walkorwait.NAVIGATE_TO_CHALLENGE")
-                                    context.sendBroadcast(intent)
-                                    // 또는 뒤로가기로 메인 화면 복귀
-                                    (context as? android.app.Activity)?.onBackPressed()
+                                // MainActivity로 챌린지 화면 이동 (Intent로 직접 이동)
+                                val intent = android.content.Intent(context, com.moveoftoday.walkorwait.MainActivity::class.java).apply {
+                                    flags = android.content.Intent.FLAG_ACTIVITY_CLEAR_TOP or android.content.Intent.FLAG_ACTIVITY_SINGLE_TOP
+                                    putExtra("navigate_to", "challenge")
                                 }
+                                context.startActivity(intent)
                             }
                             .padding(horizontal = 16.dp, vertical = 8.dp)
                     ) {

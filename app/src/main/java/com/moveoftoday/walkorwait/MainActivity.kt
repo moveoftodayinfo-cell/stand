@@ -7,7 +7,7 @@ import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
 import android.util.Log
-import androidx.activity.ComponentActivity
+import androidx.appcompat.app.AppCompatActivity
 import androidx.activity.compose.setContent
 import androidx.activity.SystemBarStyle
 import androidx.activity.enableEdgeToEdge
@@ -32,6 +32,8 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.Density
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -260,13 +262,14 @@ private object MainActivityStrings {
 }
 
 @AndroidEntryPoint
-class MainActivity : ComponentActivity() {
+class MainActivity : AppCompatActivity() {
     private val TAG = "MainActivity"
     private lateinit var stepSensorManager: StepSensorManager
     private lateinit var repository: UserDataRepository
     private lateinit var preferenceManager: PreferenceManager
     private lateinit var notificationHelper: NotificationHelper
     private var stepCount = mutableIntStateOf(0)
+    private var navigateToScreen = mutableStateOf<String?>(null)
 
     private val permissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
@@ -325,16 +328,33 @@ class MainActivity : ComponentActivity() {
                     android.graphics.Color.WHITE
                 )
             )
+            // Intent에서 navigate_to 파라미터 읽기
+            navigateToScreen.value = intent?.getStringExtra("navigate_to")
+
             setContent {
                 Log.d(TAG, "Inside setContent")
-                WalkorWaitTheme {
-                    Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                        WalkOrWaitScreen(
-                            steps = stepCount.intValue,
-                            preferenceManager = preferenceManager,
-                            stepSensorManager = stepSensorManager,
-                            modifier = Modifier.padding(innerPadding)
-                        )
+                val currentNavigateTo = navigateToScreen.value
+                // 시스템 글꼴 크기 무시 — fontScale 1f 고정 (픽셀아트 레이아웃 보호)
+                val density = LocalDensity.current
+                CompositionLocalProvider(
+                    LocalDensity provides Density(density.density, fontScale = 1f)
+                ) {
+                    WalkorWaitTheme {
+                        Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
+                            WalkOrWaitScreen(
+                                steps = stepCount.intValue,
+                                preferenceManager = preferenceManager,
+                                stepSensorManager = stepSensorManager,
+                                modifier = Modifier.padding(innerPadding),
+                                initialNavigateTo = currentNavigateTo
+                            )
+                        }
+                    }
+                }
+                // 네비게이션 처리 후 초기화
+                LaunchedEffect(currentNavigateTo) {
+                    if (currentNavigateTo != null) {
+                        navigateToScreen.value = null
                     }
                 }
             }
@@ -380,6 +400,10 @@ class MainActivity : ComponentActivity() {
         super.onNewIntent(intent)
         setIntent(intent)
         handleDeepLink(intent)
+        // navigate_to 처리 (챌린지 화면 이동 등)
+        intent.getStringExtra("navigate_to")?.let { target ->
+            navigateToScreen.value = target
+        }
     }
 
     /**
@@ -592,6 +616,9 @@ class MainActivity : ComponentActivity() {
     override fun onPause() {
         super.onPause()
         StepWidgetProvider.updateAllWidgets(this)
+        // 백그라운드 진입 시 Firebase 동기화 (경험치 등 로컬 데이터 업로드)
+        val app = applicationContext as WalkorWaitApp
+        app.userDataRepository.forceUploadLocalData()
     }
 
     override fun onDestroy() {
@@ -604,7 +631,8 @@ fun WalkOrWaitScreen(
     modifier: Modifier = Modifier,
     steps: Int = 0,
     preferenceManager: PreferenceManager? = null,
-    stepSensorManager: StepSensorManager? = null
+    stepSensorManager: StepSensorManager? = null,
+    initialNavigateTo: String? = null
 ) {
     val context = LocalContext.current
     val hapticManager = remember { HapticManager(context) }
@@ -1057,8 +1085,15 @@ fun WalkOrWaitScreen(
     var goal by remember { mutableIntStateOf(preferenceManager?.getGoal() ?: 8000) }
     var goalDisplay by remember { mutableDoubleStateOf(preferenceManager?.getGoalForDisplay() ?: 8000.0) } // 표시용
     var showSettingsScreen by remember { mutableStateOf(false) }
-    var showChallengeScreen by remember { mutableStateOf(false) }
+    var showChallengeScreen by remember { mutableStateOf(initialNavigateTo == "challenge") }
     var showNotificationPanel by remember { mutableStateOf(false) }
+
+    // initialNavigateTo 변경 시 반응 (onNewIntent로 새 intent가 올 때)
+    LaunchedEffect(initialNavigateTo) {
+        if (initialNavigateTo == "challenge") {
+            showChallengeScreen = true
+        }
+    }
 
     // 챌린지 관련 상태
     val challengeManager = remember { ChallengeManager.getInstance(context) }

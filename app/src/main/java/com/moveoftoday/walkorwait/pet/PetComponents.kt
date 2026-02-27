@@ -42,6 +42,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import java.io.IOException
+import java.util.Locale
 
 // Kenney Pixel Font
 @Composable
@@ -556,8 +557,15 @@ fun TalkInputArea(
                     contentAlignment = Alignment.CenterStart
                 ) {
                     if (value.isEmpty()) {
+                        val hint = when (Locale.getDefault().language) {
+                            "ko" -> "${petName}에게 말하기..."
+                            "ja" -> "${petName}に話しかける..."
+                            "zh" -> "对${petName}说话..."
+                            "es" -> "Hablar con $petName..."
+                            else -> "Talk to $petName..."
+                        }
                         Text(
-                            text = "${petName}에게 말하기...",
+                            text = hint,
                             fontSize = 16.sp,
                             color = MockupColors.TextMuted
                         )
@@ -809,11 +817,13 @@ fun TutorialStepLayout(
             Spacer(modifier = Modifier.height(16.dp))
         }
 
-        // Action button - 고정
-        MockupButton(
-            text = buttonText,
-            onClick = onButtonClick,
-            enabled = buttonEnabled
-        )
+        // Action button - 고정 (buttonText가 비어있으면 숨김)
+        if (buttonText.isNotEmpty()) {
+            MockupButton(
+                text = buttonText,
+                onClick = onButtonClick,
+                enabled = buttonEnabled
+            )
+        }
     }
 }

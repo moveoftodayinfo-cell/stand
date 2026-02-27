@@ -84,6 +84,7 @@ class UserDataRepository(
     private fun loadLocalData() {
         _userSettings.value = UserSettings(
             goal = preferenceManager.getGoal(),
+            goalUnit = preferenceManager.getGoalUnit(),
             deposit = preferenceManager.getDeposit(),
             controlStartDate = preferenceManager.getControlStartDate(),
             controlEndDate = preferenceManager.getControlEndDate(),
@@ -213,6 +214,9 @@ class UserDataRepository(
                     goal = userDoc.getLong("goal")?.toInt()
                         ?: oldSettingsDoc.getLong("goal")?.toInt()
                         ?: 8000,
+                    goalUnit = userDoc.getString("goalUnit")
+                        ?: oldSettingsDoc.getString("goalUnit")
+                        ?: "steps",
                     deposit = userDoc.getLong("deposit")?.toInt()
                         ?: oldSettingsDoc.getLong("deposit")?.toInt()
                         ?: 0,
@@ -423,6 +427,7 @@ class UserDataRepository(
      */
     private fun updateLocalSettings(settings: UserSettings, timestamp: Long) {
         preferenceManager.saveGoal(settings.goal)
+        preferenceManager.saveGoalUnit(settings.goalUnit)
         preferenceManager.saveDeposit(settings.deposit)
         preferenceManager.saveControlStartDate(settings.controlStartDate)
         preferenceManager.saveControlEndDate(settings.controlEndDate)
@@ -651,6 +656,7 @@ class UserDataRepository(
                     "consecutiveDays" to settings.consecutiveDays,
 
                     // 설정
+                    "goalUnit" to preferenceManager.getGoalUnit(),
                     "goal" to settings.goal,
                     "deposit" to settings.deposit,
                     "controlStartDate" to settings.controlStartDate,
@@ -1108,6 +1114,7 @@ class UserDataRepository(
  */
 data class UserSettings(
     val goal: Int,
+    val goalUnit: String = "steps",
     val deposit: Int,
     val controlStartDate: String,
     val controlEndDate: String,

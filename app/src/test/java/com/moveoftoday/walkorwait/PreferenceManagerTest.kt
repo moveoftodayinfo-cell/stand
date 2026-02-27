@@ -268,8 +268,9 @@ class PreferenceManagerTest {
     // ===== Health Connect 테스트 =====
 
     @Test
-    fun `Health Connect 기본값은 미사용`() {
-        assertFalse(preferenceManager.useHealthConnect())
+    fun `Health Connect 기본값은 사용`() {
+        // 기본값이 true로 변경됨 (센서 우선 사용 정책)
+        assertTrue(preferenceManager.useHealthConnect())
     }
 
     @Test

@@ -2,6 +2,7 @@ package com.moveoftoday.walkorwait
 
 import android.app.Application
 import android.util.Log
+import com.facebook.appevents.AppEventsLogger
 import com.google.firebase.auth.FirebaseAuth
 import dagger.hilt.android.HiltAndroidApp
 import kotlinx.coroutines.CoroutineScope
@@ -33,6 +34,11 @@ class WalkorWaitApp : Application() {
     override fun onCreate() {
         super.onCreate()
         Log.d(TAG, "🚀 Application started")
+
+        // Facebook SDK 활성화 (Meta 광고 전환 추적)
+        // SDK는 AutoInitEnabled=true로 자동 초기화됨
+        AppEventsLogger.activateApp(this)
+        Log.d(TAG, "Facebook SDK activated")
 
         // Analytics 초기화
         AnalyticsManager.initialize(this)

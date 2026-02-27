@@ -428,7 +428,17 @@ object SkinNameStrings {
         // 화이트 필터
         "white_filter" to mapOf("ko" to "화이트 필터", "ja" to "ホワイトフィルター", "zh" to "白色滤镜", "es" to "Filtro blanco", "en" to "White Filter"),
         // 블랙 필터
-        "black_filter" to mapOf("ko" to "블랙 필터", "ja" to "ブラックフィルター", "zh" to "黑色滤镜", "es" to "Filtro negro", "en" to "Black Filter")
+        "black_filter" to mapOf("ko" to "블랙 필터", "ja" to "ブラックフィルター", "zh" to "黑色滤镜", "es" to "Filtro negro", "en" to "Black Filter"),
+        // 옐로우 필터
+        "yellow_filter" to mapOf("ko" to "옐로우 필터", "ja" to "イエローフィルター", "zh" to "黄色滤镜", "es" to "Filtro amarillo", "en" to "Yellow Filter"),
+        // 네온
+        "neon" to mapOf("ko" to "네온", "ja" to "ネオン", "zh" to "霓虹", "es" to "Neón", "en" to "Neon"),
+        // 라임 필터
+        "lime_filter" to mapOf("ko" to "라임 필터", "ja" to "ライムフィルター", "zh" to "青柠滤镜", "es" to "Filtro lima", "en" to "Lime Filter"),
+        // 마젠타 필터
+        "magenta_filter" to mapOf("ko" to "마젠타 필터", "ja" to "マゼンタフィルター", "zh" to "洋红滤镜", "es" to "Filtro magenta", "en" to "Magenta Filter"),
+        // 틸 필터
+        "teal_filter" to mapOf("ko" to "틸 필터", "ja" to "ティールフィルター", "zh" to "青绿滤镜", "es" to "Filtro turquesa", "en" to "Teal Filter")
     )
 
     fun getName(skinId: String, lang: String): String? {

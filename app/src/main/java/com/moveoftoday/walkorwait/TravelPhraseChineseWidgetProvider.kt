@@ -12,6 +12,8 @@ import com.moveoftoday.walkorwait.pet.PetTypeV2
 
 /**
  * 중국어 여행 회화 위젯 (2x1)
+ * - 왼쪽: 시스템 언어로 된 문장
+ * - 오른쪽: 펫 + 중국어/로마자 발음 (클릭으로 전환)
  */
 class TravelPhraseChineseWidgetProvider : AppWidgetProvider() {
 
@@ -20,74 +22,12 @@ class TravelPhraseChineseWidgetProvider : AppWidgetProvider() {
         private const val PREFS_NAME = "TravelPhraseChineseWidget"
         private const val PREF_STATE = "click_state_"
         private const val PREF_PHRASE_INDEX = "phrase_index_"
+        private const val PREF_CATEGORY = "category_"
         private const val PREF_TAP_SHOWN_DATE = "tap_shown_date_"
 
-        // 여행 회화 데이터: (한국어, 중국어, 한글발음)
-        data class Phrase(
-            val korean: String,
-            val chinese: String,
-            val pronunciation: String
-        )
-
-        val phrases = listOf(
-            // 인사
-            Phrase("안녕하세요", "你好", "니하오"),
-            Phrase("감사합니다", "谢谢", "씨에씨에"),
-            Phrase("죄송합니다", "对不起", "뚜이부치"),
-            Phrase("실례합니다", "请问", "칭원"),
-            Phrase("안녕히 가세요", "再见", "짜이찌엔"),
-            Phrase("잘 부탁드립니다", "请多关照", "칭뚜오 꽌자오"),
-
-            // 길찾기
-            Phrase("역이 어디에요?", "车站在哪里?", "처잔 짜이나리?"),
-            Phrase("화장실이 어디에요?", "洗手间在哪里?", "시서우찌엔 짜이나리?"),
-            Phrase("여기가 어디에요?", "这里是哪里?", "쩌리 스나리?"),
-            Phrase("걸어서 갈 수 있어요?", "可以走着去吗?", "커이 저우저 취마?"),
-            Phrase("얼마나 걸려요?", "要多长时间?", "야오 뚜오창 스찌엔?"),
-
-            // 식당
-            Phrase("메뉴판 주세요", "请给我菜单", "칭게이워 차이단"),
-            Phrase("이거 주세요", "我要这个", "워야오 쩌거"),
-            Phrase("물 주세요", "请给我水", "칭게이워 쉐이"),
-            Phrase("계산서 주세요", "买单", "마이단"),
-            Phrase("맛있어요!", "很好吃!", "헌하오츠!"),
-            Phrase("포장해 주세요", "打包", "다바오"),
-            Phrase("추천해 주세요", "有什么推荐?", "요우션머 투이찌엔?"),
-            Phrase("예약했어요", "我预约了", "워 위위에러"),
-
-            // 쇼핑
-            Phrase("얼마예요?", "多少钱?", "뚜오샤오치엔?"),
-            Phrase("너무 비싸요", "太贵了", "타이꾸이러"),
-            Phrase("깎아 주세요", "便宜一点", "피엔이 이디엔"),
-            Phrase("카드 돼요?", "可以刷卡吗?", "커이 슈아카마?"),
-            Phrase("영수증 주세요", "请给我发票", "칭게이워 파피아오"),
-            Phrase("이거 입어봐도 돼요?", "可以试穿吗?", "커이 스촨마?"),
-
-            // 호텔
-            Phrase("체크인 하고 싶어요", "我要办理入住", "워야오 반리루주"),
-            Phrase("체크아웃 하고 싶어요", "我要退房", "워야오 투이팡"),
-            Phrase("와이파이 비밀번호가 뭐에요?", "WiFi密码是什么?", "와이파이 미마 스션머?"),
-            Phrase("방이 너무 추워요", "房间太冷了", "팡찌엔 타이렁러"),
-
-            // 교통
-            Phrase("택시 불러 주세요", "请帮我叫出租车", "칭방워 찌아오 추쭈처"),
-            Phrase("여기서 내려 주세요", "请在这里停车", "칭짜이 쩌리 팅처"),
-            Phrase("공항까지 가 주세요", "请去机场", "칭취 찌창"),
-            Phrase("표 한 장 주세요", "请给我一张票", "칭게이워 이장피아오"),
-
-            // 긴급
-            Phrase("도와주세요!", "救命!", "찌우밍!"),
-            Phrase("의사가 필요해요", "我需要医生", "워쉬야오 이셩"),
-            Phrase("경찰을 불러주세요", "请叫警察", "칭찌아오 찡차"),
-            Phrase("길을 잃었어요", "我迷路了", "워미루러"),
-
-            // 소통
-            Phrase("중국어 못해요", "我不会说中文", "워부후이 슈오 쭝원"),
-            Phrase("천천히 말해 주세요", "请说慢一点", "칭슈오 만이디엔"),
-            Phrase("다시 말해 주세요", "请再说一遍", "칭짜이 슈오이비엔"),
-            Phrase("모르겠어요", "我不懂", "워부똥"),
-            Phrase("적어 주세요", "请写下来", "칭씨에 시아라이")
-        )
+        // 학습 대상 언어
+        private const val TARGET_LANG = "zh"
+        private const val LANG_CODE = "中"
 
         fun updateAllWidgets(context: Context) {
             val appWidgetManager = AppWidgetManager.getInstance(context)
@@ -110,20 +50,33 @@ class TravelPhraseChineseWidgetProvider : AppWidgetProvider() {
 
             val state = prefs.getInt(PREF_STATE + appWidgetId, 0)
             val phraseIndex = prefs.getInt(PREF_PHRASE_INDEX + appWidgetId, 0)
+            val selectedCategory = prefs.getString(PREF_CATEGORY + appWidgetId, null)
 
-            val phrase = phrases[phraseIndex % phrases.size]
+            // TravelPhraseData에서 문장 가져오기
+            val allPhrases = TravelPhraseData.phrases
+            val filteredPhrases = if (selectedCategory != null) {
+                allPhrases.filter { it.category == selectedCategory }
+            } else {
+                allPhrases
+            }
+
+            val phrase = if (filteredPhrases.isNotEmpty()) {
+                filteredPhrases[phraseIndex % filteredPhrases.size]
+            } else {
+                allPhrases[0]
+            }
 
             val views = RemoteViews(context.packageName, R.layout.widget_travel_phrase)
 
-            // 한국어 문장
-            views.setTextViewText(R.id.korean_sentence, phrase.korean)
+            // 왼쪽: 시스템 언어로 된 문장
+            views.setTextViewText(R.id.korean_sentence, TravelPhraseData.getTranslation(phrase))
 
             // 오늘 날짜 확인
             val today = java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.getDefault()).format(java.util.Date())
             val tapShownDate = prefs.getString(PREF_TAP_SHOWN_DATE + appWidgetId, null)
             val showTapToday = (tapShownDate != today)
 
-            // 펫 아이콘 (랜덤 프레임)
+            // 펫 아이콘
             val petTypeV2 = prefManager.getPetTypeV2()
             val petBitmap = if (petTypeV2 != null) {
                 loadPetRandomFrame(context, petTypeV2, prefManager)
@@ -133,11 +86,11 @@ class TravelPhraseChineseWidgetProvider : AppWidgetProvider() {
                 views.setImageViewBitmap(R.id.pet_icon, petBitmap)
             }
 
-            // 오른쪽 영역 (상태에 따라)
+            // 오른쪽 영역
             when (state) {
                 0 -> {
                     if (showTapToday) {
-                        views.setTextViewText(R.id.lang_text, "中")
+                        views.setTextViewText(R.id.lang_text, LANG_CODE)
                         views.setViewVisibility(R.id.lang_text, View.VISIBLE)
                         views.setViewVisibility(R.id.pet_icon, View.VISIBLE)
                         views.setViewVisibility(R.id.rebon_text, View.VISIBLE)
@@ -150,18 +103,20 @@ class TravelPhraseChineseWidgetProvider : AppWidgetProvider() {
                     }
                 }
                 1 -> {
+                    // 중국어 표시
                     views.setViewVisibility(R.id.lang_text, View.GONE)
                     views.setViewVisibility(R.id.pet_icon, View.GONE)
                     views.setViewVisibility(R.id.rebon_text, View.GONE)
                     views.setViewVisibility(R.id.answer_text, View.VISIBLE)
-                    views.setTextViewText(R.id.answer_text, phrase.chinese)
+                    views.setTextViewText(R.id.answer_text, TravelPhraseData.getTranslation(phrase, TARGET_LANG))
                 }
                 2 -> {
+                    // 로마자 발음 (pinyin) 표시
                     views.setViewVisibility(R.id.lang_text, View.GONE)
                     views.setViewVisibility(R.id.pet_icon, View.GONE)
                     views.setViewVisibility(R.id.rebon_text, View.GONE)
                     views.setViewVisibility(R.id.answer_text, View.VISIBLE)
-                    views.setTextViewText(R.id.answer_text, phrase.pronunciation)
+                    views.setTextViewText(R.id.answer_text, TravelPhraseData.getRomanization(phrase, TARGET_LANG))
                 }
             }
 
@@ -178,7 +133,7 @@ class TravelPhraseChineseWidgetProvider : AppWidgetProvider() {
             )
             views.setOnClickPendingIntent(R.id.right_area, rightPendingIntent)
 
-            // 왼쪽 클릭 (앱 열기)
+            // 왼쪽 클릭
             val leftClickIntent = Intent(context, MainActivity::class.java).apply {
                 flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
             }
@@ -193,13 +148,8 @@ class TravelPhraseChineseWidgetProvider : AppWidgetProvider() {
             appWidgetManager.updateAppWidget(appWidgetId, views)
         }
 
-        /**
-         * 펫 랜덤 프레임 로드 (grayscale + 스킨)
-         */
         private fun loadPetRandomFrame(context: Context, petType: PetTypeV2, prefs: PreferenceManager): android.graphics.Bitmap? {
-            val stage = prefs.getEffectiveDisplayStage()  // 오버라이드 반영
-
-            // 스킨 가져오기
+            val stage = prefs.getEffectiveDisplayStage()
             val skinId = prefs.getPetSkin()
             val petSkin = com.moveoftoday.walkorwait.pet.DefaultSkins.getById(skinId)
 
@@ -212,7 +162,6 @@ class TravelPhraseChineseWidgetProvider : AppWidgetProvider() {
                 context.assets.open(assetPath).use { inputStream ->
                     BitmapFactory.decodeStream(inputStream)?.let { bitmap ->
                         var result = toGrayscale(bitmap)
-                        // 스킨 적용 (colorMatrix 방식)
                         petSkin?.colorMatrix?.let { matrix ->
                             result = applyColorMatrix(result, matrix)
                         }
@@ -224,9 +173,6 @@ class TravelPhraseChineseWidgetProvider : AppWidgetProvider() {
             }
         }
 
-        /**
-         * 비트맵을 grayscale로 변환
-         */
         private fun toGrayscale(original: android.graphics.Bitmap): android.graphics.Bitmap {
             val grayscale = android.graphics.Bitmap.createBitmap(original.width, original.height, android.graphics.Bitmap.Config.ARGB_8888)
             val canvas = android.graphics.Canvas(grayscale)
@@ -238,9 +184,6 @@ class TravelPhraseChineseWidgetProvider : AppWidgetProvider() {
             return grayscale
         }
 
-        /**
-         * ColorMatrix 적용 (스킨 컬러)
-         */
         private fun applyColorMatrix(original: android.graphics.Bitmap, matrix: FloatArray): android.graphics.Bitmap {
             val result = android.graphics.Bitmap.createBitmap(original.width, original.height, android.graphics.Bitmap.Config.ARGB_8888)
             val canvas = android.graphics.Canvas(result)
@@ -249,6 +192,18 @@ class TravelPhraseChineseWidgetProvider : AppWidgetProvider() {
             paint.colorFilter = android.graphics.ColorMatrixColorFilter(colorMatrix)
             canvas.drawBitmap(original, 0f, 0f, paint)
             return result
+        }
+
+        fun setCategory(context: Context, appWidgetId: Int, category: String?) {
+            val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            prefs.edit()
+                .putString(PREF_CATEGORY + appWidgetId, category)
+                .putInt(PREF_PHRASE_INDEX + appWidgetId, 0)
+                .putInt(PREF_STATE + appWidgetId, 0)
+                .apply()
+
+            val appWidgetManager = AppWidgetManager.getInstance(context)
+            updateWidget(context, appWidgetManager, appWidgetId)
         }
     }
 
@@ -273,9 +228,17 @@ class TravelPhraseChineseWidgetProvider : AppWidgetProvider() {
 
             if (appWidgetId != AppWidgetManager.INVALID_APPWIDGET_ID) {
                 val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+                val selectedCategory = prefs.getString(PREF_CATEGORY + appWidgetId, null)
 
                 var state = prefs.getInt(PREF_STATE + appWidgetId, 0)
                 var phraseIndex = prefs.getInt(PREF_PHRASE_INDEX + appWidgetId, 0)
+
+                val allPhrases = TravelPhraseData.phrases
+                val filteredPhrases = if (selectedCategory != null) {
+                    allPhrases.filter { it.category == selectedCategory }
+                } else {
+                    allPhrases
+                }
 
                 val previousState = state
                 state++
@@ -287,10 +250,10 @@ class TravelPhraseChineseWidgetProvider : AppWidgetProvider() {
 
                 if (state > 2) {
                     state = 0
-                    if (phrases.size > 1) {
+                    if (filteredPhrases.size > 1) {
                         var newIndex: Int
                         do {
-                            newIndex = (Math.random() * phrases.size).toInt()
+                            newIndex = (Math.random() * filteredPhrases.size).toInt()
                         } while (newIndex == phraseIndex)
                         phraseIndex = newIndex
                     }
@@ -313,6 +276,7 @@ class TravelPhraseChineseWidgetProvider : AppWidgetProvider() {
         for (appWidgetId in appWidgetIds) {
             editor.remove(PREF_STATE + appWidgetId)
             editor.remove(PREF_PHRASE_INDEX + appWidgetId)
+            editor.remove(PREF_CATEGORY + appWidgetId)
             editor.remove(PREF_TAP_SHOWN_DATE + appWidgetId)
         }
         editor.apply()

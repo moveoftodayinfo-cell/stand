@@ -3,7 +3,11 @@ package com.moveoftoday.walkorwait
 import android.content.Context
 import android.os.Bundle
 import android.util.Log
+import com.facebook.appevents.AppEventsConstants
+import com.facebook.appevents.AppEventsLogger
 import com.google.firebase.analytics.FirebaseAnalytics
+import java.math.BigDecimal
+import java.util.Currency
 
 /**
  * Firebase Analytics 이벤트 추적 관리
@@ -11,6 +15,7 @@ import com.google.firebase.analytics.FirebaseAnalytics
 object AnalyticsManager {
     private const val TAG = "AnalyticsManager"
     private var analytics: FirebaseAnalytics? = null
+    private var fbLogger: AppEventsLogger? = null
 
     fun initialize(context: Context) {
         analytics = FirebaseAnalytics.getInstance(context).apply {
@@ -23,7 +28,11 @@ object AnalyticsManager {
         // 광고 ID 수집 비활성화 (deprecated but still works)
         @Suppress("DEPRECATION")
         analytics?.setAnalyticsCollectionEnabled(true)
-        Log.d(TAG, "✅ Analytics initialized (AD_ID disabled)")
+
+        // Facebook AppEventsLogger 초기화
+        fbLogger = AppEventsLogger.newLogger(context)
+
+        Log.d(TAG, "Analytics initialized (Firebase + Facebook)")
     }
 
     // ========== 화면 조회 ==========
@@ -86,7 +95,9 @@ object AnalyticsManager {
 
     fun trackTutorialComplete() {
         analytics?.logEvent(FirebaseAnalytics.Event.TUTORIAL_COMPLETE, null)
-        Log.d(TAG, "✅ Tutorial complete")
+        // Facebook 전환 이벤트
+        fbLogger?.logEvent(AppEventsConstants.EVENT_NAME_COMPLETED_TUTORIAL)
+        Log.d(TAG, "Tutorial complete (Firebase + Facebook)")
     }
 
     fun trackPetSelected(petType: String) {
@@ -150,7 +161,12 @@ object AnalyticsManager {
             putString("source", source)  // "google_play" or "promo_code"
         }
         analytics?.logEvent("subscription_start", params)
-        Log.d(TAG, "💳 Subscription start: $source")
+        // Facebook 전환 이벤트
+        val fbParams = Bundle().apply {
+            putString(AppEventsConstants.EVENT_PARAM_ORDER_ID, source)
+        }
+        fbLogger?.logEvent(AppEventsConstants.EVENT_NAME_SUBSCRIBE, fbParams)
+        Log.d(TAG, "Subscription start: $source (Firebase + Facebook)")
     }
 
     fun trackPromoCodeUsed(codeType: String) {
@@ -168,7 +184,13 @@ object AnalyticsManager {
             putString(FirebaseAnalytics.Param.CURRENCY, "KRW")
         }
         analytics?.logEvent(FirebaseAnalytics.Event.PURCHASE, params)
-        Log.d(TAG, "💰 Purchase: $productId - ₩$price")
+        // Facebook 전환 이벤트 (금액 + 통화 포함)
+        val fbParams = Bundle().apply {
+            putString(AppEventsConstants.EVENT_PARAM_CONTENT_ID, productId)
+            putString(AppEventsConstants.EVENT_PARAM_CURRENCY, "KRW")
+        }
+        fbLogger?.logPurchase(BigDecimal.valueOf(price), Currency.getInstance("KRW"), fbParams)
+        Log.d(TAG, "Purchase: $productId - KRW $price (Firebase + Facebook)")
     }
 
     // ========== 챌린지 ==========

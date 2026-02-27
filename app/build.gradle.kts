@@ -10,6 +10,13 @@ plugins {
     alias(libs.plugins.hilt)
 }
 
+// 키스토어 설정 로드
+val keystorePropertiesFile = rootProject.file("keystore.properties")
+val keystoreProperties = Properties()
+if (keystorePropertiesFile.exists()) {
+    keystoreProperties.load(FileInputStream(keystorePropertiesFile))
+}
+
 android {
     namespace = "com.moveoftoday.walkorwait"
     compileSdk = 36
@@ -18,17 +25,22 @@ android {
         applicationId = "com.moveoftoday.walkorwait"
         minSdk = 26
         targetSdk = 36
-        versionCode = 75
-        versionName = "1.0.75"
+        versionCode = 82
+        versionName = "1.0.82"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-    }
 
-    // 키스토어 설정 로드
-    val keystorePropertiesFile = rootProject.file("keystore.properties")
-    val keystoreProperties = Properties()
-    if (keystorePropertiesFile.exists()) {
-        keystoreProperties.load(FileInputStream(keystorePropertiesFile))
+        // Facebook SDK
+        val fbAppId = if (keystorePropertiesFile.exists()) {
+            keystoreProperties["fbAppId"] as? String ?: ""
+        } else ""
+        val fbClientToken = if (keystorePropertiesFile.exists()) {
+            keystoreProperties["fbClientToken"] as? String ?: ""
+        } else ""
+        buildConfigField("String", "FB_APP_ID", "\"$fbAppId\"")
+        buildConfigField("String", "FB_CLIENT_TOKEN", "\"$fbClientToken\"")
+        manifestPlaceholders["fbAppId"] = fbAppId
+        manifestPlaceholders["fbClientToken"] = fbClientToken
     }
 
     signingConfigs {
@@ -108,6 +120,9 @@ dependencies {
 
     // Google Play Billing
     implementation(libs.billing)
+
+    // Facebook SDK (Meta Marketing API)
+    implementation(libs.facebook.android.sdk)
 
     // Health Connect (1.1.0-alpha11: 안정성 개선)
     implementation("androidx.health.connect:connect-client:1.1.0-alpha11")

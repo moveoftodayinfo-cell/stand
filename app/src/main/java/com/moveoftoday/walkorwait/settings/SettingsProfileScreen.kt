@@ -107,6 +107,14 @@ private object SettingsProfileStrings {
         else -> "Gift 1 month free to friend"
     }
 
+    fun inviteCodeAvailableIn3Days(): String = when (getLang()) {
+        "ko" -> "친구 초대 코드는 결제 후 3일 뒤에 활성화됩니다"
+        "ja" -> "招待コードは決済後3日後に有効になります"
+        "zh" -> "邀请码将在付款3天后激活"
+        "es" -> "El código de invitación se activa 3 días después del pago"
+        else -> "Invite code will be available 3 days after payment"
+    }
+
     fun codeExpiry(date: String): String = when (getLang()) {
         "ko" -> "코드 만료: $date"
         "ja" -> "コード有効期限: $date"
@@ -541,6 +549,27 @@ fun SettingsProfileScreen(
                 Spacer(modifier = Modifier.height(16.dp))
 
                 // ========== 친구 초대 ==========
+                if (isPaidDeposit && !isPromoFreeUser && !canShareByDate) {
+                    // 결제했지만 3일 미경과
+                    RetroSectionTitle(SettingsProfileStrings.inviteFriend(), kenneyFont)
+
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .border(3.dp, MockupColors.Border, RoundedCornerShape(12.dp))
+                            .background(MockupColors.CardBackground, RoundedCornerShape(12.dp))
+                            .padding(16.dp)
+                    ) {
+                        Text(
+                            text = SettingsProfileStrings.inviteCodeAvailableIn3Days(),
+                            fontSize = 13.sp,
+                            color = MockupColors.TextMuted
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(16.dp))
+                }
+
                 if (canShareInviteCode) {
                     val remainingInvites = maxInvites - inviteGuests.size
 
@@ -863,11 +892,11 @@ private fun LanguageSettingBox(
                                 .padding(vertical = 4.dp)
                                 .border(
                                     width = if (isSelected) 2.dp else 1.dp,
-                                    color = if (isSelected) MockupColors.Blue else MockupColors.Border,
+                                    color = if (isSelected) MockupColors.TextPrimary else MockupColors.Border,
                                     shape = RoundedCornerShape(8.dp)
                                 )
                                 .background(
-                                    if (isSelected) MockupColors.Blue.copy(alpha = 0.1f)
+                                    if (isSelected) MockupColors.TextPrimary.copy(alpha = 0.1f)
                                     else Color.Transparent,
                                     RoundedCornerShape(8.dp)
                                 )
@@ -896,14 +925,14 @@ private fun LanguageSettingBox(
                                     text = displayName,
                                     fontSize = 15.sp,
                                     fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
-                                    color = if (isSelected) MockupColors.Blue else MockupColors.TextPrimary
+                                    color = MockupColors.TextPrimary
                                 )
                                 if (isSelected) {
                                     Text(
                                         text = UnicodeSymbols.CHECK,
                                         fontSize = 16.sp,
                                         fontWeight = FontWeight.Bold,
-                                        color = MockupColors.Blue
+                                        color = MockupColors.TextPrimary
                                     )
                                 }
                             }

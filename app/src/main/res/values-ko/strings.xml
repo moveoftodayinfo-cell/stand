@@ -8,6 +8,14 @@
     <string name="widget_sudoku_description">간단한 스도쿠 퍼즐을 즐깁니다</string>
     <string name="widget_fasting_description">간헐적 단식 타이머를 표시합니다</string>
 
+    <!-- Travel Phrase Widget Names -->
+    <string name="widget_travel_english">여행 영어</string>
+    <string name="widget_travel_japanese">여행 일본어</string>
+    <string name="widget_travel_chinese">여행 중국어</string>
+    <string name="widget_travel_korean">한국어 배우기</string>
+    <string name="widget_travel_spanish">여행 스페인어</string>
+    <string name="widget_travel_hindi">여행 힌디어</string>
+
     <!-- Common -->
     <string name="start">시작</string>
     <string name="confirm">확인</string>
@@ -555,15 +563,16 @@
     <string name="seven_widgets">7종 위젯 제공</string>
 
     <!-- Accessibility Consent Dialog (CRITICAL for Google Play compliance) -->
-    <string name="accessibility_consent_title">앱 제어 권한 안내</string>
-    <string name="accessibility_consent_desc">rebon은 일일 걸음 목표를 달성하지 못했을 때 선택한 앱을 차단하기 위해 접근성 서비스를 사용합니다.\n\n이 권한은 오직 앱 차단 기능에만 사용되며, 개인정보를 수집하거나 전송하지 않습니다.\n\n언제든지 기기 설정에서 이 권한을 해제할 수 있습니다.</string>
-    <string name="accessibility_consent_feature_title">이 권한으로 가능한 기능:</string>
-    <string name="accessibility_consent_feature_1">• 차단된 앱 실행 감지</string>
-    <string name="accessibility_consent_feature_2">• 목표 달성 전까지 차단 화면 표시</string>
-    <string name="accessibility_consent_feature_3">• 목표 달성 시 자동으로 앱 잠금 해제</string>
+    <string name="accessibility_consent_title">앱 제어 권한 동의</string>
+    <string name="accessibility_consent_desc">rebon은 앱 차단 기능을 제공하기 위해 접근성 서비스 권한이 필요합니다.\n\n[왜 이 권한이 필요한가요?]\n안드로이드는 현재 실행 중인 앱을 감지할 수 있는 다른 API를 제공하지 않습니다. 접근성 서비스가 이 핵심 기능을 구현하는 유일한 방법입니다.\n\n[이 권한은 어떻게 사용되나요?]\nrebon은 오직 현재 화면에 표시된 앱만 확인합니다. 차단으로 설정한 앱을 열었을 때, 일일 걸음 목표가 아직 달성되지 않았다면 차단 화면을 표시합니다.\n\n[개인정보 보호]\n• 개인정보를 수집하지 않습니다\n• 외부 서버에 데이터를 저장하지 않습니다\n• 제3자와 데이터를 공유하지 않습니다\n• 모든 데이터는 기기에만 저장됩니다\n\n설정 > 접근성 > rebon에서 언제든지 이 권한을 해제할 수 있습니다.</string>
+    <string name="accessibility_consent_feature_title">기술적 세부사항:</string>
+    <string name="accessibility_consent_feature_1">• 현재 실행 중인 앱의 패키지명만 확인</string>
+    <string name="accessibility_consent_feature_2">• 사용자가 설정한 차단 앱 목록과 비교</string>
+    <string name="accessibility_consent_feature_3">• 목표 미달성 시 차단 화면 표시</string>
+    <string name="accessibility_consent_feature_4">• 목표 달성 시 자동으로 잠금 해제</string>
     <string name="accessibility_consent_agree">동의합니다</string>
     <string name="accessibility_consent_decline">동의하지 않습니다</string>
     <string name="accessibility_declined_title">앱을 사용할 수 없습니다</string>
-    <string name="accessibility_declined_message">rebon의 핵심 기능인 앱 차단을 위해 접근성 서비스 권한이 필요합니다.\n\n이 권한 없이는 앱의 주요 기능을 사용할 수 없습니다.</string>
+    <string name="accessibility_declined_message">rebon의 핵심 기능인 앱 차단을 위해 접근성 서비스 권한이 필요합니다.\n\n이것은 안드로이드에서 실행 중인 앱을 감지하는 유일한 방법입니다. 이 권한 없이는 앱 차단 기능이 작동하지 않습니다.\n\n개인정보가 걱정되신다면, rebon은 어떤 개인정보도 수집, 저장, 전송하지 않는다는 점을 알려드립니다.</string>
     <string name="accessibility_declined_understand">확인</string>
 </resources>

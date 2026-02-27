@@ -233,8 +233,8 @@ private fun SkinItem(
             .alpha(if (isOwned) 1f else 0.5f)
             .padding(8.dp)
     ) {
-        // 스킨 미리보기 (중앙 상단)
-        if (petTypeV2 != null && isOwned) {
+        // 스킨 미리보기 (중앙 상단) - 보유 여부 상관없이 미리보기 표시
+        if (petTypeV2 != null) {
             val equipmentState = EquipmentState(
                 headId = null,
                 backgroundId = null,
@@ -249,16 +249,6 @@ private fun SkinItem(
                 size = 72.dp,
                 monochrome = true,
                 showGlow = false,
-                modifier = Modifier
-                    .align(Alignment.Center)
-                    .offset(y = (-12).dp)
-            )
-        } else if (!isOwned) {
-            // 잠금 아이콘
-            Text(
-                text = "▣",
-                fontSize = 40.sp,
-                color = Color.Gray,
                 modifier = Modifier
                     .align(Alignment.Center)
                     .offset(y = (-12).dp)

@@ -8,6 +8,14 @@
     <string name="widget_sudoku_description">Disfruta de un sudoku sencillo</string>
     <string name="widget_fasting_description">Muestra el temporizador de ayuno intermitente</string>
 
+    <!-- Travel Phrase Widget Names -->
+    <string name="widget_travel_english">Inglés de Viaje</string>
+    <string name="widget_travel_japanese">Japonés de Viaje</string>
+    <string name="widget_travel_chinese">Chino de Viaje</string>
+    <string name="widget_travel_korean">Aprender Coreano</string>
+    <string name="widget_travel_spanish">Español de Viaje</string>
+    <string name="widget_travel_hindi">Hindi de Viaje</string>
+
     <!-- Common -->
     <string name="start">Iniciar</string>
     <string name="confirm">Aceptar</string>
@@ -555,15 +563,16 @@
     <string name="seven_widgets">7 tipos de widgets</string>
 
     <!-- Accessibility Consent Dialog (CRITICAL for Google Play compliance) -->
-    <string name="accessibility_consent_title">Permiso de Control de Apps</string>
-    <string name="accessibility_consent_desc">rebon usa el Servicio de Accesibilidad para bloquear las apps seleccionadas cuando no alcanzas tu meta diaria de pasos.\n\nEste permiso se usa SOLO para la función de bloqueo y NO recopila ni transmite datos personales.\n\nPuedes desactivar este permiso en cualquier momento en la configuración del dispositivo.</string>
-    <string name="accessibility_consent_feature_title">Lo que este permiso permite:</string>
-    <string name="accessibility_consent_feature_1">• Detectar cuando se abren apps bloqueadas</string>
-    <string name="accessibility_consent_feature_2">• Mostrar pantalla de bloqueo hasta lograr la meta</string>
-    <string name="accessibility_consent_feature_3">• Desbloquear apps automáticamente al lograr la meta</string>
+    <string name="accessibility_consent_title">Consentimiento de Permiso de Control</string>
+    <string name="accessibility_consent_desc">rebon requiere el permiso del Servicio de Accesibilidad para proporcionar la función de bloqueo de apps.\n\n[¿Por qué se necesita este permiso?]\nAndroid no proporciona otra API para detectar qué app está actualmente en primer plano. El Servicio de Accesibilidad es la ÚNICA forma de implementar esta funcionalidad principal.\n\n[¿Cómo se usa este permiso?]\nrebon SOLO monitorea qué app se muestra actualmente en pantalla. Cuando abres una app que seleccionaste para bloquear, y tu meta diaria de pasos aún no se ha logrado, rebon muestra una pantalla de bloqueo.\n\n[Privacidad de Datos]\n• NO se recopilan datos personales\n• NO se almacenan datos en servidores externos\n• NO se comparten datos con terceros\n• Todos los datos permanecen solo en tu dispositivo\n\nPuedes desactivar este permiso en cualquier momento en Ajustes > Accesibilidad > rebon.</string>
+    <string name="accessibility_consent_feature_title">Detalles Técnicos:</string>
+    <string name="accessibility_consent_feature_1">• Solo monitorea el nombre del paquete de la app en primer plano</string>
+    <string name="accessibility_consent_feature_2">• Compara con tu lista de apps bloqueadas</string>
+    <string name="accessibility_consent_feature_3">• Muestra pantalla de bloqueo si la meta no se logra</string>
+    <string name="accessibility_consent_feature_4">• Desbloquea automáticamente al lograr la meta</string>
     <string name="accessibility_consent_agree">Acepto</string>
     <string name="accessibility_consent_decline">No acepto</string>
     <string name="accessibility_declined_title">No Se Puede Usar la App</string>
-    <string name="accessibility_declined_message">El Servicio de Accesibilidad es necesario para la función principal de bloqueo de apps de rebon.\n\nSin este permiso, no puedes usar las funciones principales de la app.</string>
+    <string name="accessibility_declined_message">El Servicio de Accesibilidad es necesario para la función principal de bloqueo de apps de rebon.\n\nEsta es la única forma en que Android permite detectar apps en primer plano. Sin este permiso, la función de bloqueo no puede funcionar.\n\nSi te preocupa la privacidad, ten en cuenta que rebon NO recopila, almacena ni transmite ningún dato personal.</string>
     <string name="accessibility_declined_understand">OK</string>
 </resources>

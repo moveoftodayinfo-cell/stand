@@ -286,6 +286,54 @@ enum class PetTypeV2(
     fun getAnimationConfig(animationType: PetAnimationTypeV2): AnimationConfig {
         return defaultAnimationFrames[animationType] ?: AnimationConfig(4, 200)
     }
+
+    /**
+     * 다국어 펫 이름
+     */
+    fun getLocalizedDisplayName(): String = when (this) {
+        SHIBA -> when (getLang()) {
+            "ko" -> "멍이"
+            "ja" -> "シバ"
+            "zh" -> "柴犬"
+            "es" -> "Shiba"
+            else -> "Shiba"
+        }
+        CAT -> when (getLang()) {
+            "ko" -> "냥이"
+            "ja" -> "ネコ"
+            "zh" -> "喵喵"
+            "es" -> "Gato"
+            else -> "Cat"
+        }
+        PIG -> when (getLang()) {
+            "ko" -> "꿀꿀이"
+            "ja" -> "ブタ"
+            "zh" -> "小猪"
+            "es" -> "Cerdito"
+            else -> "Piggy"
+        }
+        RACCOON -> when (getLang()) {
+            "ko" -> "라쿤"
+            "ja" -> "ラクーン"
+            "zh" -> "浣熊"
+            "es" -> "Mapache"
+            else -> "Raccoon"
+        }
+        HAMSTER -> when (getLang()) {
+            "ko" -> "햄찌"
+            "ja" -> "ハムスター"
+            "zh" -> "仓鼠"
+            "es" -> "Hámster"
+            else -> "Hamster"
+        }
+        PENGUIN -> when (getLang()) {
+            "ko" -> "펭펭"
+            "ja" -> "ペンギン"
+            "zh" -> "企鹅"
+            "es" -> "Pingüino"
+            else -> "Penguin"
+        }
+    }
 }
 
 /**
@@ -305,7 +353,55 @@ enum class PetPersonalityV2(val description: String) {
     FOODIE("먹보/낙천가"),           // 돼지 - 행복하고 긍정적
     PLAYFUL("장난꾸러기"),           // 너구리 - 호기심 많고 장난스러움
     TIMID("소심/부지런"),            // 햄스터 - 조심스럽고 열심
-    CLUMSY("덤벙/순수")              // 펭귄 - 덤벙대지만 귀여움
+    CLUMSY("덤벙/순수");             // 펭귄 - 덤벙대지만 귀여움
+
+    /**
+     * 다국어 성격 설명
+     */
+    fun getLocalizedDescription(): String = when (this) {
+        LOYAL -> when (getLang()) {
+            "ko" -> "충성스러운 상남자"
+            "ja" -> "忠実なクールガイ"
+            "zh" -> "忠诚的酷哥"
+            "es" -> "Leal y genial"
+            else -> "Loyal & Cool"
+        }
+        TSUNDERE -> when (getLang()) {
+            "ko" -> "츤데레"
+            "ja" -> "ツンデレ"
+            "zh" -> "傲娇"
+            "es" -> "Tsundere"
+            else -> "Tsundere"
+        }
+        FOODIE -> when (getLang()) {
+            "ko" -> "먹보/낙천가"
+            "ja" -> "食いしん坊/楽天家"
+            "zh" -> "吃货/乐天派"
+            "es" -> "Glotón/Optimista"
+            else -> "Foodie/Optimist"
+        }
+        PLAYFUL -> when (getLang()) {
+            "ko" -> "장난꾸러기"
+            "ja" -> "いたずらっ子"
+            "zh" -> "淘气鬼"
+            "es" -> "Juguetón"
+            else -> "Playful"
+        }
+        TIMID -> when (getLang()) {
+            "ko" -> "소심/부지런"
+            "ja" -> "臆病/勤勉"
+            "zh" -> "胆小/勤快"
+            "es" -> "Tímido/Diligente"
+            else -> "Timid/Diligent"
+        }
+        CLUMSY -> when (getLang()) {
+            "ko" -> "덤벙/순수"
+            "ja" -> "おっちょこちょい/純粋"
+            "zh" -> "冒失/纯真"
+            "es" -> "Torpe/Puro"
+            else -> "Clumsy/Pure"
+        }
+    }
 }
 
 /**

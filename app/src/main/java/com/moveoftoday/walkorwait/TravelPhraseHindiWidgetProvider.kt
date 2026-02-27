@@ -11,29 +11,28 @@ import android.widget.RemoteViews
 import com.moveoftoday.walkorwait.pet.PetTypeV2
 
 /**
- * 영어 여행 회화 위젯 (2x1)
+ * 힌디어 여행 회화 위젯 (2x1)
  * - 왼쪽: 시스템 언어로 된 문장
- * - 오른쪽: 펫 + 영어/로마자 발음 (클릭으로 전환)
+ * - 오른쪽: 펫 + 힌디어/로마자 발음 (클릭으로 전환)
  */
-class TravelPhraseWidgetProvider : AppWidgetProvider() {
+class TravelPhraseHindiWidgetProvider : AppWidgetProvider() {
 
     companion object {
-        private const val ACTION_RIGHT_CLICK = "com.moveoftoday.walkorwait.TRAVEL_PHRASE_RIGHT_CLICK"
-        private const val ACTION_LEFT_CLICK = "com.moveoftoday.walkorwait.TRAVEL_PHRASE_LEFT_CLICK"
-        private const val PREFS_NAME = "TravelPhraseWidget"
+        private const val ACTION_RIGHT_CLICK = "com.moveoftoday.walkorwait.TRAVEL_PHRASE_HI_RIGHT_CLICK"
+        private const val PREFS_NAME = "TravelPhraseHindiWidget"
         private const val PREF_STATE = "click_state_"
         private const val PREF_PHRASE_INDEX = "phrase_index_"
         private const val PREF_CATEGORY = "category_"
         private const val PREF_TAP_SHOWN_DATE = "tap_shown_date_"
 
         // 학습 대상 언어
-        private const val TARGET_LANG = "en"
-        private const val LANG_CODE = "EN"
+        private const val TARGET_LANG = "hi"
+        private const val LANG_CODE = "HI"
 
         fun updateAllWidgets(context: Context) {
             val appWidgetManager = AppWidgetManager.getInstance(context)
             val appWidgetIds = appWidgetManager.getAppWidgetIds(
-                android.content.ComponentName(context, TravelPhraseWidgetProvider::class.java)
+                android.content.ComponentName(context, TravelPhraseHindiWidgetProvider::class.java)
             )
 
             for (appWidgetId in appWidgetIds) {
@@ -72,12 +71,12 @@ class TravelPhraseWidgetProvider : AppWidgetProvider() {
             // 왼쪽: 시스템 언어로 된 문장
             views.setTextViewText(R.id.korean_sentence, TravelPhraseData.getTranslation(phrase))
 
-            // 오늘 날짜 확인 (하루에 한 번만 lang/rebon 표시)
+            // 오늘 날짜 확인
             val today = java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.getDefault()).format(java.util.Date())
             val tapShownDate = prefs.getString(PREF_TAP_SHOWN_DATE + appWidgetId, null)
             val showTapToday = (tapShownDate != today)
 
-            // 펫 아이콘 (랜덤 프레임)
+            // 펫 아이콘
             val petTypeV2 = prefManager.getPetTypeV2()
             val petBitmap = if (petTypeV2 != null) {
                 loadPetRandomFrame(context, petTypeV2, prefManager)
@@ -87,10 +86,9 @@ class TravelPhraseWidgetProvider : AppWidgetProvider() {
                 views.setImageViewBitmap(R.id.pet_icon, petBitmap)
             }
 
-            // 오른쪽 영역 (상태에 따라)
+            // 오른쪽 영역
             when (state) {
                 0 -> {
-                    // 초기 상태
                     if (showTapToday) {
                         views.setTextViewText(R.id.lang_text, LANG_CODE)
                         views.setViewVisibility(R.id.lang_text, View.VISIBLE)
@@ -105,7 +103,7 @@ class TravelPhraseWidgetProvider : AppWidgetProvider() {
                     }
                 }
                 1 -> {
-                    // 영어 표시
+                    // 힌디어 표시
                     views.setViewVisibility(R.id.lang_text, View.GONE)
                     views.setViewVisibility(R.id.pet_icon, View.GONE)
                     views.setViewVisibility(R.id.rebon_text, View.GONE)
@@ -113,18 +111,17 @@ class TravelPhraseWidgetProvider : AppWidgetProvider() {
                     views.setTextViewText(R.id.answer_text, TravelPhraseData.getTranslation(phrase, TARGET_LANG))
                 }
                 2 -> {
-                    // 로마자 발음 표시 (영어는 이미 영어니까 없음 - 다른 언어 학습자를 위해)
+                    // 로마자 발음 표시
                     views.setViewVisibility(R.id.lang_text, View.GONE)
                     views.setViewVisibility(R.id.pet_icon, View.GONE)
                     views.setViewVisibility(R.id.rebon_text, View.GONE)
                     views.setViewVisibility(R.id.answer_text, View.VISIBLE)
-                    // 영어는 자체가 로마자이므로 그대로 표시
-                    views.setTextViewText(R.id.answer_text, TravelPhraseData.getTranslation(phrase, TARGET_LANG))
+                    views.setTextViewText(R.id.answer_text, TravelPhraseData.getRomanization(phrase, TARGET_LANG))
                 }
             }
 
-            // 오른쪽 클릭 (정답 보기)
-            val rightClickIntent = Intent(context, TravelPhraseWidgetProvider::class.java).apply {
+            // 오른쪽 클릭
+            val rightClickIntent = Intent(context, TravelPhraseHindiWidgetProvider::class.java).apply {
                 action = ACTION_RIGHT_CLICK
                 putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId)
             }
@@ -136,15 +133,13 @@ class TravelPhraseWidgetProvider : AppWidgetProvider() {
             )
             views.setOnClickPendingIntent(R.id.right_area, rightPendingIntent)
 
-            // 왼쪽 클릭 (앱 열기)
+            // 왼쪽 클릭
             val leftClickIntent = Intent(context, MainActivity::class.java).apply {
-                putExtra("open_travel_settings", true)
-                putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId)
                 flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
             }
             val leftPendingIntent = PendingIntent.getActivity(
                 context,
-                appWidgetId + 1000,
+                appWidgetId + 7000,
                 leftClickIntent,
                 PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
             )
@@ -153,12 +148,8 @@ class TravelPhraseWidgetProvider : AppWidgetProvider() {
             appWidgetManager.updateAppWidget(appWidgetId, views)
         }
 
-        /**
-         * 펫 랜덤 프레임 로드 (grayscale + 스킨)
-         */
         private fun loadPetRandomFrame(context: Context, petType: PetTypeV2, prefs: PreferenceManager): android.graphics.Bitmap? {
             val stage = prefs.getEffectiveDisplayStage()
-
             val skinId = prefs.getPetSkin()
             val petSkin = com.moveoftoday.walkorwait.pet.DefaultSkins.getById(skinId)
 
@@ -203,9 +194,6 @@ class TravelPhraseWidgetProvider : AppWidgetProvider() {
             return result
         }
 
-        /**
-         * 카테고리 설정
-         */
         fun setCategory(context: Context, appWidgetId: Int, category: String?) {
             val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
             prefs.edit()
@@ -255,14 +243,12 @@ class TravelPhraseWidgetProvider : AppWidgetProvider() {
                 val previousState = state
                 state++
 
-                // state 0 → 1 전환 시 오늘 날짜 저장
                 if (previousState == 0 && state == 1) {
                     val today = java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.getDefault()).format(java.util.Date())
                     prefs.edit().putString(PREF_TAP_SHOWN_DATE + appWidgetId, today).apply()
                 }
 
-                // 영어는 state 2에서 같은 내용이므로 1에서 바로 0으로
-                if (state > 1) {
+                if (state > 2) {
                     state = 0
                     if (filteredPhrases.size > 1) {
                         var newIndex: Int

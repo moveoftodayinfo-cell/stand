@@ -61,6 +61,13 @@
         android:theme="@style/Theme.WalkorWait"
         tools:targetApi="31">
 
+        <!-- Facebook SDK -->
+        <meta-data android:name="com.facebook.sdk.ApplicationId" android:value="${fbAppId}" />
+        <meta-data android:name="com.facebook.sdk.ClientToken" android:value="${fbClientToken}" />
+        <meta-data android:name="com.facebook.sdk.AutoInitEnabled" android:value="true" />
+        <meta-data android:name="com.facebook.sdk.AutoLogAppEventsEnabled" android:value="true" />
+        <meta-data android:name="com.facebook.sdk.AdvertiserIDCollectionEnabled" android:value="true" />
+
         <!-- 광고 ID 수집 (Firebase Analytics용) -->
         <meta-data
             android:name="google_analytics_adid_collection_enabled"
@@ -188,7 +195,7 @@
         <receiver
             android:name=".TravelPhraseWidgetProvider"
             android:exported="true"
-            android:label="여행 영어">
+            android:label="@string/widget_travel_english">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
             </intent-filter>
@@ -201,7 +208,7 @@
         <receiver
             android:name=".TravelPhraseJapaneseWidgetProvider"
             android:exported="true"
-            android:label="여행 일본어">
+            android:label="@string/widget_travel_japanese">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
             </intent-filter>
@@ -214,7 +221,7 @@
         <receiver
             android:name=".TravelPhraseChineseWidgetProvider"
             android:exported="true"
-            android:label="여행 중국어">
+            android:label="@string/widget_travel_chinese">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
             </intent-filter>
@@ -227,13 +234,39 @@
         <receiver
             android:name=".TravelPhraseKoreanWidgetProvider"
             android:exported="true"
-            android:label="Learn Korean">
+            android:label="@string/widget_travel_korean">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
             </intent-filter>
             <meta-data
                 android:name="android.appwidget.provider"
                 android:resource="@xml/widget_travel_phrase_kr_info" />
+        </receiver>
+
+        <!-- 여행 회화 위젯 (스페인어) -->
+        <receiver
+            android:name=".TravelPhraseSpanishWidgetProvider"
+            android:exported="true"
+            android:label="@string/widget_travel_spanish">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_travel_phrase_es_info" />
+        </receiver>
+
+        <!-- 여행 회화 위젯 (힌디어) -->
+        <receiver
+            android:name=".TravelPhraseHindiWidgetProvider"
+            android:exported="true"
+            android:label="@string/widget_travel_hindi">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_travel_phrase_hi_info" />
         </receiver>
 
         <!-- 간헐적 단식 위젯 -->

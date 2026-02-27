@@ -8,6 +8,14 @@
     <string name="widget_sudoku_description">簡単な数独パズルを楽しみます</string>
     <string name="widget_fasting_description">断続的断食タイマーを表示します</string>
 
+    <!-- Travel Phrase Widget Names -->
+    <string name="widget_travel_english">旅行英語</string>
+    <string name="widget_travel_japanese">旅行日本語</string>
+    <string name="widget_travel_chinese">旅行中国語</string>
+    <string name="widget_travel_korean">韓国語を学ぶ</string>
+    <string name="widget_travel_spanish">旅行スペイン語</string>
+    <string name="widget_travel_hindi">旅行ヒンディー語</string>
+
     <!-- Common -->
     <string name="start">スタート</string>
     <string name="confirm">確認</string>
@@ -555,15 +563,16 @@
     <string name="seven_widgets">7種類のウィジェット</string>
 
     <!-- Accessibility Consent Dialog (CRITICAL for Google Play compliance) -->
-    <string name="accessibility_consent_title">アプリ制御権限について</string>
-    <string name="accessibility_consent_desc">rebonは、1日の歩数目標が達成されていない時に選択したアプリをブロックするためにアクセシビリティサービスを使用します。\n\nこの権限はアプリブロック機能にのみ使用され、個人情報の収集や送信は行いません。\n\nいつでも端末の設定からこの権限を無効にできます。</string>
-    <string name="accessibility_consent_feature_title">この権限で可能な機能：</string>
-    <string name="accessibility_consent_feature_1">• ブロックされたアプリの起動を検出</string>
-    <string name="accessibility_consent_feature_2">• 目標達成まで画面をブロック表示</string>
-    <string name="accessibility_consent_feature_3">• 目標達成時に自動でアプリのロック解除</string>
+    <string name="accessibility_consent_title">アプリ制御権限への同意</string>
+    <string name="accessibility_consent_desc">rebonはアプリブロック機能を提供するためにアクセシビリティサービス権限が必要です。\n\n[なぜこの権限が必要ですか？]\nAndroidは現在実行中のアプリを検出する他のAPIを提供していません。アクセシビリティサービスがこのコア機能を実装する唯一の方法です。\n\n[この権限はどのように使用されますか？]\nrebonは画面に表示されているアプリのみを確認します。ブロック設定したアプリを開いた時、1日の歩数目標がまだ達成されていない場合、ブロック画面を表示します。\n\n[プライバシー保護]\n• 個人情報を収集しません\n• 外部サーバーにデータを保存しません\n• 第三者とデータを共有しません\n• すべてのデータは端末にのみ保存されます\n\n設定 > ユーザー補助 > rebonでいつでもこの権限を無効にできます。</string>
+    <string name="accessibility_consent_feature_title">技術的詳細：</string>
+    <string name="accessibility_consent_feature_1">• 現在実行中のアプリのパッケージ名のみ確認</string>
+    <string name="accessibility_consent_feature_2">• ユーザーが設定したブロックアプリリストと比較</string>
+    <string name="accessibility_consent_feature_3">• 目標未達成時にブロック画面を表示</string>
+    <string name="accessibility_consent_feature_4">• 目標達成時に自動でロック解除</string>
     <string name="accessibility_consent_agree">同意する</string>
     <string name="accessibility_consent_decline">同意しない</string>
     <string name="accessibility_declined_title">アプリを使用できません</string>
-    <string name="accessibility_declined_message">rebonのコア機能であるアプリブロックには、アクセシビリティサービスが必要です。\n\nこの権限がないと、アプリの主要機能を使用できません。</string>
+    <string name="accessibility_declined_message">rebonのコア機能であるアプリブロックには、アクセシビリティサービスが必要です。\n\nこれはAndroidで実行中のアプリを検出する唯一の方法です。この権限がないと、アプリブロック機能は動作しません。\n\nプライバシーが心配な場合、rebonは個人情報を収集、保存、送信しないことをお知らせします。</string>
     <string name="accessibility_declined_understand">確認</string>
 </resources>

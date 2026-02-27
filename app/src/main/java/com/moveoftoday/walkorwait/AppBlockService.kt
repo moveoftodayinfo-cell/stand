@@ -157,11 +157,12 @@ class AppBlockService : AccessibilityService() {
 
             val goal = prefs.getGoal()
             val currentProgress = prefs.getCurrentProgress()
+            val tutorialGoalAchieved = prefs.isTutorialGoalAchieved()
 
-            Log.d(TAG, "Tutorial - Progress: $currentProgress / Goal: $goal")
+            Log.d(TAG, "Tutorial - Progress: $currentProgress / Goal: $goal, Flag: $tutorialGoalAchieved")
 
-            // 목표 달성했으면 차단 안함
-            if (currentProgress >= goal) {
+            // 튜토리얼 목표 달성 플래그 또는 현재 걸음수로 체크
+            if (tutorialGoalAchieved || currentProgress >= goal) {
                 Log.d(TAG, "🎓 Tutorial - Goal achieved! No blocking")
                 return
             }
