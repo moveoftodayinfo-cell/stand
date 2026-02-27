@@ -43,7 +43,7 @@
                 android:layout_height="wrap_content"
                 android:text="23°"
                 android:textColor="#222222"
-                android:textSize="13sp"
+                android:textSize="13dp"
                 android:textStyle="bold" />
         </LinearLayout>
 
@@ -53,7 +53,7 @@
             android:layout_height="wrap_content"
             android:text="Now"
             android:textColor="#888888"
-            android:textSize="11sp" />
+            android:textSize="11dp" />
     </LinearLayout>
 
     <!-- Slot 1 -->
@@ -79,7 +79,7 @@
                 android:layout_height="wrap_content"
                 android:text="☀&#xFE0E;"
                 android:textColor="#888888"
-                android:textSize="24sp" />
+                android:textSize="24dp" />
 
             <TextView
                 android:id="@+id/weather_temp_1"
@@ -87,7 +87,7 @@
                 android:layout_height="wrap_content"
                 android:text="21°"
                 android:textColor="#222222"
-                android:textSize="13sp"
+                android:textSize="13dp"
                 android:textStyle="bold" />
         </LinearLayout>
 
@@ -97,7 +97,7 @@
             android:layout_height="wrap_content"
             android:text="3AM"
             android:textColor="#888888"
-            android:textSize="11sp" />
+            android:textSize="11dp" />
     </LinearLayout>
 
     <!-- Slot 2 -->
@@ -123,7 +123,7 @@
                 android:layout_height="wrap_content"
                 android:text="☁&#xFE0E;"
                 android:textColor="#888888"
-                android:textSize="24sp" />
+                android:textSize="24dp" />
 
             <TextView
                 android:id="@+id/weather_temp_2"
@@ -131,7 +131,7 @@
                 android:layout_height="wrap_content"
                 android:text="19°"
                 android:textColor="#222222"
-                android:textSize="13sp"
+                android:textSize="13dp"
                 android:textStyle="bold" />
         </LinearLayout>
 
@@ -141,7 +141,7 @@
             android:layout_height="wrap_content"
             android:text="6AM"
             android:textColor="#888888"
-            android:textSize="11sp" />
+            android:textSize="11dp" />
     </LinearLayout>
 
     <!-- Slot 3 -->
@@ -167,7 +167,7 @@
                 android:layout_height="wrap_content"
                 android:text="☂&#xFE0E;"
                 android:textColor="#888888"
-                android:textSize="24sp" />
+                android:textSize="24dp" />
 
             <TextView
                 android:id="@+id/weather_temp_3"
@@ -175,7 +175,7 @@
                 android:layout_height="wrap_content"
                 android:text="18°"
                 android:textColor="#222222"
-                android:textSize="13sp"
+                android:textSize="13dp"
                 android:textStyle="bold" />
         </LinearLayout>
 
@@ -185,7 +185,7 @@
             android:layout_height="wrap_content"
             android:text="9AM"
             android:textColor="#888888"
-            android:textSize="11sp" />
+            android:textSize="11dp" />
     </LinearLayout>
 
     <!-- 중앙: 앱 로고 + rebon + location -->
@@ -216,7 +216,7 @@
                 android:layout_height="wrap_content"
                 android:text="rebon"
                 android:textColor="#222222"
-                android:textSize="13sp"
+                android:textSize="13dp"
                 android:textStyle="bold" />
         </LinearLayout>
 
@@ -226,7 +226,7 @@
             android:layout_height="wrap_content"
             android:text="Seoul"
             android:textColor="#666666"
-            android:textSize="11sp" />
+            android:textSize="11dp" />
     </LinearLayout>
 
     <!-- Slot 4 -->
@@ -252,7 +252,7 @@
                 android:layout_height="wrap_content"
                 android:text="☀&#xFE0E;"
                 android:textColor="#888888"
-                android:textSize="24sp" />
+                android:textSize="24dp" />
 
             <TextView
                 android:id="@+id/weather_temp_4"
@@ -260,7 +260,7 @@
                 android:layout_height="wrap_content"
                 android:text="22°"
                 android:textColor="#222222"
-                android:textSize="13sp"
+                android:textSize="13dp"
                 android:textStyle="bold" />
         </LinearLayout>
 
@@ -270,7 +270,7 @@
             android:layout_height="wrap_content"
             android:text="12PM"
             android:textColor="#888888"
-            android:textSize="11sp" />
+            android:textSize="11dp" />
     </LinearLayout>
 
     <!-- Slot 5 -->
@@ -296,7 +296,7 @@
                 android:layout_height="wrap_content"
                 android:text="☀&#xFE0E;"
                 android:textColor="#888888"
-                android:textSize="24sp" />
+                android:textSize="24dp" />
 
             <TextView
                 android:id="@+id/weather_temp_5"
@@ -304,7 +304,7 @@
                 android:layout_height="wrap_content"
                 android:text="25°"
                 android:textColor="#222222"
-                android:textSize="13sp"
+                android:textSize="13dp"
                 android:textStyle="bold" />
         </LinearLayout>
 
@@ -314,7 +314,7 @@
             android:layout_height="wrap_content"
             android:text="3PM"
             android:textColor="#888888"
-            android:textSize="11sp" />
+            android:textSize="11dp" />
     </LinearLayout>
 
     <!-- Slot 6 -->
@@ -340,7 +340,7 @@
                 android:layout_height="wrap_content"
                 android:text="☾&#xFE0E;"
                 android:textColor="#888888"
-                android:textSize="24sp" />
+                android:textSize="24dp" />
 
             <TextView
                 android:id="@+id/weather_temp_6"
@@ -348,7 +348,7 @@
                 android:layout_height="wrap_content"
                 android:text="20°"
                 android:textColor="#222222"
-                android:textSize="13sp"
+                android:textSize="13dp"
                 android:textStyle="bold" />
         </LinearLayout>
 
@@ -358,7 +358,7 @@
             android:layout_height="wrap_content"
             android:text="6PM"
             android:textColor="#888888"
-            android:textSize="11sp" />
+            android:textSize="11dp" />
     </LinearLayout>
 
 </LinearLayout>

@@ -4,7 +4,9 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@drawable/widget_background"
-    android:padding="8dp"
+    android:paddingHorizontal="8dp"
+    android:paddingTop="4dp"
+    android:paddingBottom="6dp"
     android:orientation="vertical">
 
     <!-- Header: Streak + Title -->
@@ -28,7 +30,7 @@
             android:layout_height="wrap_content"
             android:text="3 연속"
             android:textColor="#222222"
-            android:textSize="10sp"
+            android:textSize="10dp"
             android:textStyle="bold"
             android:layout_marginStart="2dp" />
 
@@ -42,34 +44,26 @@
             android:id="@+id/widget_title"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginEnd="8dp"
             android:text="rebon"
             android:textColor="#222222"
-            android:textSize="11sp"
+            android:textSize="11dp"
             android:textStyle="bold" />
     </LinearLayout>
 
-    <!-- Divider 1 -->
-    <FrameLayout
-        android:layout_width="match_parent"
-        android:layout_height="1dp"
-        android:layout_marginTop="6dp"
-        android:layout_marginBottom="6dp"
-        android:background="#CCCCCC" />
-
-    <!-- Pet Icon + Speech Bubble (중앙 영역 - 확장) -->
+    <!-- Pet Icon + Speech Bubble (중앙 영역, paddingBottom으로 위쪽 편향) -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
+        android:paddingBottom="10dp"
         android:orientation="horizontal"
         android:gravity="center_vertical">
 
-        <!-- Pet Icon (no emotion symbol for 2x1) -->
+        <!-- Pet Icon -->
         <ImageView
             android:id="@+id/widget_pet_icon"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
             android:scaleType="fitCenter"
             android:src="@drawable/ic_pet_placeholder"
             android:contentDescription="pet" />
@@ -80,29 +74,28 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:layout_marginStart="6dp"
+            android:layout_marginStart="4dp"
             android:text="산책하자..."
             android:textColor="#222222"
-            android:textSize="10sp"
+            android:textSize="10dp"
             android:background="@drawable/widget_speech_bubble_simple"
-            android:paddingLeft="10dp"
-            android:paddingRight="10dp"
-            android:paddingTop="6dp"
-            android:paddingBottom="6dp"
+            android:paddingLeft="8dp"
+            android:paddingRight="8dp"
+            android:paddingTop="5dp"
+            android:paddingBottom="5dp"
             android:gravity="center"
             android:maxLines="1"
             android:ellipsize="end" />
     </LinearLayout>
 
-    <!-- Divider 2 -->
+    <!-- Divider -->
     <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="1dp"
-        android:layout_marginTop="4dp"
-        android:layout_marginBottom="4dp"
+        android:layout_marginBottom="3dp"
         android:background="#CCCCCC" />
 
-    <!-- Bottom: Steps + Progress (하단 고정) -->
+    <!-- Bottom: Steps + Progress -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -116,7 +109,7 @@
             android:layout_height="wrap_content"
             android:text="0/8,000"
             android:textColor="#666666"
-            android:textSize="9sp"
+            android:textSize="9dp"
             android:textStyle="bold" />
 
         <!-- Progress Bar -->
@@ -139,7 +132,7 @@
             android:layout_height="wrap_content"
             android:text="0%"
             android:textColor="#222222"
-            android:textSize="9sp"
+            android:textSize="9dp"
             android:textStyle="bold" />
     </LinearLayout>
 

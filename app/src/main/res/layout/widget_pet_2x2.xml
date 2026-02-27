@@ -29,7 +29,7 @@
             android:layout_height="wrap_content"
             android:text="3 연속"
             android:textColor="#222222"
-            android:textSize="12sp"
+            android:textSize="12dp"
             android:textStyle="bold"
             android:layout_marginStart="3dp" />
 
@@ -45,7 +45,7 @@
             android:layout_height="wrap_content"
             android:text="rebon"
             android:textColor="#222222"
-            android:textSize="16sp"
+            android:textSize="16dp"
             android:textStyle="bold" />
     </LinearLayout>
 
@@ -65,7 +65,7 @@
             android:layout_marginTop="7dp"
             android:text="산책하자!"
             android:textColor="#222222"
-            android:textSize="9sp"
+            android:textSize="9dp"
             android:background="@drawable/widget_speech_bubble_down"
             android:paddingLeft="8dp"
             android:paddingRight="8dp"
@@ -95,7 +95,7 @@
             android:layout_marginBottom="8dp"
             android:text="zzZ"
             android:textColor="#222222"
-            android:textSize="10sp"
+            android:textSize="10dp"
             android:textStyle="bold"
             android:fontFamily="sans-serif" />
 
@@ -108,7 +108,7 @@
             android:layout_marginBottom="2dp"
             android:text="멍멍이"
             android:textColor="#666666"
-            android:textSize="10sp" />
+            android:textSize="10dp" />
     </FrameLayout>
 
     <!-- Bottom: Steps + Progress -->
@@ -125,7 +125,7 @@
             android:layout_height="wrap_content"
             android:text="8,234 / 10,000 보"
             android:textColor="#666666"
-            android:textSize="11sp"
+            android:textSize="11dp"
             android:textStyle="bold"
             android:gravity="center"
             android:layout_marginBottom="5dp" />
@@ -156,7 +156,7 @@
                 android:layout_marginStart="8dp"
                 android:text="82%"
                 android:textColor="#222222"
-                android:textSize="12sp"
+                android:textSize="12dp"
                 android:textStyle="bold"
                 android:minWidth="32dp"
                 android:gravity="end" />

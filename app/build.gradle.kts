@@ -25,8 +25,8 @@ android {
         applicationId = "com.moveoftoday.walkorwait"
         minSdk = 26
         targetSdk = 36
-        versionCode = 84
-        versionName = "1.0.84"
+        versionCode = 85
+        versionName = "1.0.85"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 

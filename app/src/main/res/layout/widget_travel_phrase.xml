@@ -23,7 +23,7 @@
             android:layout_height="wrap_content"
             android:text="안녕하세요"
             android:textColor="#222222"
-            android:textSize="14sp"
+            android:textSize="14dp"
             android:textStyle="bold"
             android:maxLines="2" />
 
@@ -53,7 +53,7 @@
             android:layout_height="wrap_content"
             android:text="EN"
             android:textColor="#555555"
-            android:textSize="11sp"
+            android:textSize="11dp"
             android:textStyle="bold" />
 
         <!-- 펫 아이콘 -->
@@ -71,7 +71,7 @@
             android:layout_height="wrap_content"
             android:text="rebon"
             android:textColor="#888888"
-            android:textSize="9sp" />
+            android:textSize="9dp" />
 
         <!-- 정답 텍스트 -->
         <TextView
@@ -80,7 +80,7 @@
             android:layout_height="wrap_content"
             android:text=""
             android:textColor="#555555"
-            android:textSize="11sp"
+            android:textSize="11dp"
             android:gravity="center"
             android:maxLines="2" />
 

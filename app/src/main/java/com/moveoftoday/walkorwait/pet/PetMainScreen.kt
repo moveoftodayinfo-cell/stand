@@ -12,7 +12,9 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.IconButton
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -923,6 +925,15 @@ fun PetMainScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
+        // 스크롤 가능한 영역: 목표 진행중 ~ 주간 그래프 (작은 화면에서 버튼 잘림 방지)
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(1f)
+                .verticalScroll(rememberScrollState()),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+
         // 3. 달성률 표시 (컴팩트 레이아웃)
         // 통합 레이아웃: 자유시간/제어시간 동일한 구조
         Column(
@@ -1044,9 +1055,10 @@ fun PetMainScreen(
             isFreeTime = isFreeTime
         )
 
-        Spacer(modifier = Modifier.weight(1f))
+        Spacer(modifier = Modifier.height(12.dp))
+        } // end scrollable content
 
-        // 5. Action Button - 챌린지 하러가기 (큰 CTA 버튼)
+        // 5. Action Button - 챌린지 하러가기 (큰 CTA 버튼, 하단 고정)
         MockupButton(
             text = stringResource(R.string.go_to_challenge),
             onClick = {
