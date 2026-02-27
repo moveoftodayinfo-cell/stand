@@ -11,6 +11,8 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.GenericShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -799,16 +801,17 @@ fun TutorialStepLayout(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Middle content - 변경 가능
+        // Middle content - 스크롤 가능 (작은 화면 대응)
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .weight(1f),
+                .weight(1f)
+                .verticalScroll(rememberScrollState()),
             horizontalAlignment = Alignment.CenterHorizontally,
             content = middleContent
         )
 
-        // Navigation dots (optional)
+        // Navigation dots (optional) - 버튼 위
         if (showNavigationDots) {
             TutorialNavigationDots(
                 currentStep = currentDotStep,

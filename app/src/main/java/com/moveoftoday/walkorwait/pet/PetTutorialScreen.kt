@@ -3334,16 +3334,16 @@ private fun AccessibilityConsentStep(
         buttonText = "",  // 버튼을 content 영역에 직접 배치 (빈 문자열이면 TutorialStepLayout 버튼 숨김)
         onButtonClick = { },
         buttonEnabled = false,
-        showNavigationDots = true,
+        showNavigationDots = false,  // 도트를 middleContent 안에서 직접 배치
         currentDotStep = dotStep,
         totalDotSteps = totalDots
     ) {
-        // 공개 문구 박스 (Google 권장 형식 - 핵심 내용 바로 표시)
+        // 공개 문구 박스 (Google 권장 형식 - 모노톤)
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(Color(0xFFFFF9E6), RoundedCornerShape(12.dp))
-                .border(2.dp, Color(0xFFFFB800), RoundedCornerShape(12.dp))
+                .background(Color(0xFFF5F5F5), RoundedCornerShape(12.dp))
+                .border(2.dp, MockupColors.Border, RoundedCornerShape(12.dp))
                 .padding(12.dp)
         ) {
             // Google 권장 형식 공개 문구
@@ -3469,8 +3469,15 @@ private fun AccessibilityConsentStep(
             )
         }
 
+        // 네비게이션 도트 (버튼 위에 배치)
+        Spacer(modifier = Modifier.height(12.dp))
+        TutorialNavigationDots(
+            currentStep = dotStep,
+            totalSteps = totalDots
+        )
+
         // 버튼 2개 (Google Play 정책: 동의/거부 버튼 2개 필수)
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(12.dp))
         Row(
             modifier = Modifier
                 .fillMaxWidth()
