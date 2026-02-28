@@ -97,6 +97,103 @@ import android.util.Log
 private object PetTutorialStrings {
     private fun getLang(): String = java.util.Locale.getDefault().language
 
+    // ========== SurveyStep ==========
+    fun surveyScreenTimeQuestion(): String = when (getLang()) {
+        "ko" -> "하루에 스마트폰을\n얼마나 사용하시나요?"
+        "ja" -> "1日にスマートフォンを\nどれくらい使いますか？"
+        "zh" -> "每天使用手机\n多长时间？"
+        "es" -> "¿Cuánto usas\nel teléfono al día?"
+        else -> "How much do you use\nyour phone per day?"
+    }
+
+    fun surveyScreenTimeSubtitle(): String = when (getLang()) {
+        "ko" -> "스크린타임 = 하루 중 핸드폰을 사용하는 총 시간"
+        "ja" -> "スクリーンタイム = 1日のスマホ使用合計時間"
+        "zh" -> "屏幕时间 = 一天中使用手机的总时间"
+        "es" -> "Tiempo de pantalla = tiempo total de uso del teléfono al día"
+        else -> "Screen time = total time spent on your phone per day"
+    }
+
+    fun surveyScreenTimeOption1(): String = when (getLang()) {
+        "ko" -> "2시간 이하"
+        "ja" -> "2時間以下"
+        "zh" -> "2小时以下"
+        "es" -> "2 horas o menos"
+        else -> "2 hours or less"
+    }
+
+    fun surveyScreenTimeOption2(): String = when (getLang()) {
+        "ko" -> "3~4시간"
+        "ja" -> "3〜4時間"
+        "zh" -> "3~4小时"
+        "es" -> "3-4 horas"
+        else -> "3-4 hours"
+    }
+
+    fun surveyScreenTimeOption3(): String = when (getLang()) {
+        "ko" -> "5~6시간"
+        "ja" -> "5〜6時間"
+        "zh" -> "5~6小时"
+        "es" -> "5-6 horas"
+        else -> "5-6 hours"
+    }
+
+    fun surveyScreenTimeOption4(): String = when (getLang()) {
+        "ko" -> "7시간 이상"
+        "ja" -> "7時間以上"
+        "zh" -> "7小时以上"
+        "es" -> "7 horas o más"
+        else -> "7+ hours"
+    }
+
+    fun surveyWillpowerQuestion(): String = when (getLang()) {
+        "ko" -> "스마트폰 사용을 줄이려고\n시도해본 적 있나요?"
+        "ja" -> "スマホの使用時間を\n減らそうとしたことはありますか？"
+        "zh" -> "你是否尝试过\n减少手机使用时间？"
+        "es" -> "¿Has intentado reducir\nel uso del teléfono?"
+        else -> "Have you ever tried to\nreduce phone usage?"
+    }
+
+    fun surveyWillpowerOption1(): String = when (getLang()) {
+        "ko" -> "있다, 실패했다"
+        "ja" -> "ある、失敗した"
+        "zh" -> "试过，失败了"
+        "es" -> "Sí, fracasé"
+        else -> "Yes, I failed"
+    }
+
+    fun surveyWillpowerOption2(): String = when (getLang()) {
+        "ko" -> "있다, 성공했다"
+        "ja" -> "ある、成功した"
+        "zh" -> "试过，成功了"
+        "es" -> "Sí, tuve éxito"
+        else -> "Yes, I succeeded"
+    }
+
+    fun surveyWillpowerOption3(): String = when (getLang()) {
+        "ko" -> "시도해본 적 없다"
+        "ja" -> "試したことがない"
+        "zh" -> "从未尝试过"
+        "es" -> "Nunca lo intenté"
+        else -> "Never tried"
+    }
+
+    fun surveyResultMessage(): String = when (getLang()) {
+        "ko" -> "비슷한 고민을 가진 유저의 87%가\nrebon으로 스크린타임을 절반으로 줄였습니다"
+        "ja" -> "同じ悩みを持つユーザーの87%が\nrebonでスクリーンタイムを半分に減らしました"
+        "zh" -> "有类似困扰的用户中87%\n通过rebon将屏幕时间减半"
+        "es" -> "El 87% de usuarios con la misma preocupación\nredujeron su tiempo de pantalla a la mitad con rebon"
+        else -> "87% of users with similar concerns\ncut their screen time in half with rebon"
+    }
+
+    fun surveyStartButton(): String = when (getLang()) {
+        "ko" -> "시작하기"
+        "ja" -> "始める"
+        "zh" -> "开始"
+        "es" -> "Empezar"
+        else -> "Get Started"
+    }
+
     // ========== GoogleSignInStep ==========
     fun loggingIn(): String = when (getLang()) {
         "ko" -> "로그인 중..."
@@ -1112,29 +1209,27 @@ private object AccessibilityConsentStrings {
 }
 
 /**
- * Complete Pet Onboarding Flow - 17 Steps:
+ * Complete Pet Onboarding Flow - 19 Steps:
  *
- * NO DOTS (0-3):
- * 0. Google Sign-In (데이터 백업) - 기존 데이터 있으면 메인으로 스킵
- * 1. Pet Selection
- * 2. Pet Name Input
- * 3. Tutorial All-in-One (함께 할 것 설명)
+ * NO DOTS (0-5):
+ * 0. Survey Screen Time (설문 1: 스크린타임) ← NEW
+ * 1. Survey Willpower (설문 2: 줄이려는 시도 + 결과) ← NEW
+ * 2. Google Sign-In (데이터 백업) - 기존 데이터 있으면 메인으로 스킵
+ * 3. Pet Selection
+ * 4. Pet Name Input
+ * 5. Tutorial All-in-One (함께 할 것 설명)
  *
- * WITH DOTS (4-15, 10 dots total):
- * 4. Permission Settings (권한 설정) - dot 0
- * 5. Fitness App Connection (피트니스 연결) - dot 1
- * 6. Accessibility (접근성 권한) - dot 2
- * 7. App Selection (앱 선택) - dot 3
- * 8. Test Blocking (차단 테스트) - dot 4
- * 9. Goal Input (목표 입력) - dot 5
- * 10. Walking Test (걷기 테스트) - dot 6
- * 11. How It Works (사용법 설명 - 11+12 통합) - dot 7
- * [12-14 SKIPPED: 기본값 사용 (월~금, 전체 시간대)]
- * 16. Widget Setup (위젯 설정) - dot 8
- * 15. Payment (결제) - dot 9 (마지막)
- *
- * NO DOTS (16):
- * 16. Widget Setup (위젯 설정)
+ * WITH DOTS (6-18, 10 dots total):
+ * 6. Permission Settings (권한 설정) - dot 0
+ * 7. Accessibility (접근성 권한) - dot 1
+ * 9. App Selection (앱 선택) - dot 2
+ * 10. Test Blocking (차단 테스트) - dot 3
+ * 11. Goal Input (목표 입력) - dot 4
+ * 12. Walking Test (걷기 테스트) - dot 5
+ * 13. How It Works (사용법 설명) - dot 6
+ * [14-16 SKIPPED: 기본값 사용 (월~금, 전체 시간대)]
+ * 18. Widget Setup (위젯 설정) - dot 8
+ * 17. Payment (결제) - dot 9 (마지막)
  */
 @Composable
 fun PetOnboardingScreen(
@@ -1156,16 +1251,16 @@ fun PetOnboardingScreen(
     // 저장된 단계 불러오기 (펫 정보가 있어야만 복원)
     val savedStep = remember {
         val step = prefManager.getTutorialCurrentStep()
-        // 펫 정보가 필요한 단계(4 이상)인데 펫 정보가 없으면 0으로 리셋
-        // Step 0: Google Sign-In, Step 1-2: Pet setup, Step 3: Tutorial + Google login, Step 4+: Main tutorial
-        if (step >= 4 && savedPetType == null) 0 else step
+        // 펫 정보가 필요한 단계(6 이상)인데 펫 정보가 없으면 0으로 리셋
+        // Step 0-1: Survey, Step 2: Google Sign-In, Step 3-4: Pet setup, Step 5: Tutorial, Step 6+: Main tutorial
+        if (step >= 6 && savedPetType == null) 0 else step
     }
 
     var currentStep by rememberSaveable { mutableIntStateOf(savedStep) }
     // PreferenceManager와 동기화 (recomposition 시 항상 최신 값 사용)
     val currentSavedPetType = prefManager.getPetTypeV2()
     var selectedPetType by remember(currentSavedPetType) { mutableStateOf(currentSavedPetType) }
-    var petName by remember { mutableStateOf(if (savedStep > 1 && savedPetName.isNotBlank()) savedPetName else "") }
+    var petName by remember { mutableStateOf(if (savedStep > 3 && savedPetName.isNotBlank()) savedPetName else "") }
 
     // 단계 변경 시 저장 및 Analytics 추적
     LaunchedEffect(currentStep) {
@@ -1182,19 +1277,19 @@ fun PetOnboardingScreen(
     DisposableEffect(Unit) {
         onDispose {
             // 튜토리얼 완료 전에 이탈한 경우 추적
-            if (currentStep < 16) {
+            if (currentStep < 18) {
                 AnalyticsManager.trackTutorialExit(currentStep)
             }
         }
     }
 
-    // 네비게이션 닷 계산 (Step 4-16는 닷 표시, 10개) - Step 12-14 스킵, 위젯(16)→결제(15) 순서
-    val showDots = currentStep in 4..16
+    // 네비게이션 닷 계산 (Step 6-18는 닷 표시, 10개) - Step 14-16 스킵, 위젯(18)→결제(17) 순서
+    val showDots = currentStep in 6..18
     val dotStep = if (showDots) {
         when {
-            currentStep == 16 -> 8  // 위젯 (dot 8)
-            currentStep == 15 -> 9  // 결제 (dot 9, 마지막)
-            else -> currentStep - 4
+            currentStep == 18 -> 8  // 위젯 (dot 8)
+            currentStep == 17 -> 9  // 결제 (dot 9, 마지막)
+            else -> currentStep - 6
         }
     } else 0
     val totalDots = 10
@@ -1208,13 +1303,30 @@ fun PetOnboardingScreen(
             .background(MockupColors.Background)
     ) {
         when (currentStep) {
-            // === NO DOTS (0) - Google 로그인 (필수) ===
-            0 -> GoogleSignInStep(
+            // === NO DOTS (0-1) - 설문조사 ===
+            0 -> SurveyScreenTimeStep(
+                hapticManager = hapticManager,
+                onNext = {
+                    hapticManager?.click()
+                    currentStep = 1
+                }
+            )
+
+            1 -> SurveyWillpowerStep(
+                hapticManager = hapticManager,
+                onNext = {
+                    hapticManager?.click()
+                    currentStep = 2
+                }
+            )
+
+            // === NO DOTS (2) - Google 로그인 (필수) ===
+            2 -> GoogleSignInStep(
                 hapticManager = hapticManager,
                 onNext = {
                     // 신규 사용자: 펫 선택으로
                     hapticManager?.click()
-                    currentStep = 1
+                    currentStep = 3
                 },
                 onDataRestored = {
                     // 기존 사용자: 튜토리얼 스킵하고 메인으로
@@ -1223,8 +1335,8 @@ fun PetOnboardingScreen(
                 }
             )
 
-            // === NO DOTS (1-3) ===
-            1 -> PetSelectionStep(
+            // === NO DOTS (3-5) ===
+            3 -> PetSelectionStep(
                 selectedPet = selectedPetType,
                 onPetSelected = {
                     selectedPetType = it
@@ -1237,11 +1349,11 @@ fun PetOnboardingScreen(
                 },
                 onNext = {
                     hapticManager?.click()
-                    currentStep = 2
+                    currentStep = 4
                 },
                 hapticManager = hapticManager
             )
-            2 -> if (currentSelectedPetType != null) PetNameInputStep(
+            4 -> if (currentSelectedPetType != null) PetNameInputStep(
                 petType = currentSelectedPetType,
                 currentName = petName,
                 onNameChanged = {
@@ -1251,23 +1363,23 @@ fun PetOnboardingScreen(
                 },
                 onNext = {
                     hapticManager?.click()
-                    currentStep = 3  // 튜토리얼 + 구글 로그인으로
+                    currentStep = 5  // 튜토리얼 안내로
                 },
                 hapticManager = hapticManager
             )
 
-            // === NO DOTS (3) - 튜토리얼 안내 (Google 로그인은 step 0에서 완료) ===
-            3 -> if (currentSelectedPetType != null) TutorialAllInOneStep(
+            // === NO DOTS (5) - 튜토리얼 안내 (Google 로그인은 step 2에서 완료) ===
+            5 -> if (currentSelectedPetType != null) TutorialAllInOneStep(
                 petType = currentSelectedPetType,
                 petName = petName,
                 hapticManager = hapticManager,
                 onNext = {
-                    currentStep = 4
+                    currentStep = 6
                 }
             )
 
-            // === WITH DOTS (4-15) ===
-            4 -> if (currentSelectedPetType != null) PermissionSettingsStep(
+            // === WITH DOTS (6-18) ===
+            6 -> if (currentSelectedPetType != null) PermissionSettingsStep(
                 petType = currentSelectedPetType,
                 petName = petName,
                 dotStep = dotStep,
@@ -1275,14 +1387,14 @@ fun PetOnboardingScreen(
                 hapticManager = hapticManager,
                 onNext = {
                     hapticManager?.click()
-                    currentStep = 5  // AccessibilityConsentStep로 이동
+                    currentStep = 7  // AccessibilityConsentStep로 이동
                 }
             )
-            // Step 5: 접근성 권한 동의 + 설정 (Google Play 정책 준수)
+            // Step 7: 접근성 권한 동의 + 설정 (Google Play 정책 준수)
             // - 4개 체크박스로 명시적 동의
             // - 동의 후 바로 시스템 접근성 설정으로 이동
             // - 접근성 활성화 확인 후 자동으로 다음 단계로
-            5 -> if (currentSelectedPetType != null) AccessibilityConsentStep(
+            7 -> if (currentSelectedPetType != null) AccessibilityConsentStep(
                 petType = currentSelectedPetType,
                 petName = petName,
                 dotStep = dotStep,
@@ -1290,37 +1402,11 @@ fun PetOnboardingScreen(
                 hapticManager = hapticManager,
                 onAgree = {
                     hapticManager?.click()
-                    currentStep = 7  // 접근성 활성화 확인 후 앱 선택으로 바로 이동
+                    currentStep = 9  // 접근성 활성화 확인 후 앱 선택으로 바로 이동
                 }
             )
-            // Step 6: 제거됨 (Step 5에서 동의 + 설정 + 확인 모두 처리)
-            7 -> if (currentSelectedPetType != null) AppSelectionStep(
-                petType = currentSelectedPetType,
-                petName = petName,
-                dotStep = dotStep,
-                totalDots = totalDots,
-                preferenceManager = prefManager,
-                hapticManager = hapticManager,
-                onNext = {
-                    hapticManager?.click()
-                    currentStep = 8
-                }
-            )
-            8 -> if (currentSelectedPetType != null) TestBlockingStep(
-                petType = currentSelectedPetType,
-                petName = petName,
-                dotStep = dotStep,
-                totalDots = totalDots,
-                preferenceManager = prefManager,
-                hapticManager = hapticManager,
-                onNext = {
-                    hapticManager?.click()
-                    // 차단 테스트 상태 클리어
-                    prefManager.clearBlockingTestStarted()
-                    currentStep = 9
-                }
-            )
-            9 -> if (currentSelectedPetType != null) GoalInputStep(
+            // Step 8: 제거됨 (Step 7에서 동의 + 설정 + 확인 모두 처리)
+            9 -> if (currentSelectedPetType != null) AppSelectionStep(
                 petType = currentSelectedPetType,
                 petName = petName,
                 dotStep = dotStep,
@@ -1332,7 +1418,7 @@ fun PetOnboardingScreen(
                     currentStep = 10
                 }
             )
-            10 -> if (currentSelectedPetType != null) WalkingTestStep(
+            10 -> if (currentSelectedPetType != null) TestBlockingStep(
                 petType = currentSelectedPetType,
                 petName = petName,
                 dotStep = dotStep,
@@ -1341,10 +1427,36 @@ fun PetOnboardingScreen(
                 hapticManager = hapticManager,
                 onNext = {
                     hapticManager?.click()
+                    // 차단 테스트 상태 클리어
+                    prefManager.clearBlockingTestStarted()
                     currentStep = 11
                 }
             )
-            11 -> if (currentSelectedPetType != null) HowItWorksStep(
+            11 -> if (currentSelectedPetType != null) GoalInputStep(
+                petType = currentSelectedPetType,
+                petName = petName,
+                dotStep = dotStep,
+                totalDots = totalDots,
+                preferenceManager = prefManager,
+                hapticManager = hapticManager,
+                onNext = {
+                    hapticManager?.click()
+                    currentStep = 12
+                }
+            )
+            12 -> if (currentSelectedPetType != null) WalkingTestStep(
+                petType = currentSelectedPetType,
+                petName = petName,
+                dotStep = dotStep,
+                totalDots = totalDots,
+                preferenceManager = prefManager,
+                hapticManager = hapticManager,
+                onNext = {
+                    hapticManager?.click()
+                    currentStep = 13
+                }
+            )
+            13 -> if (currentSelectedPetType != null) HowItWorksStep(
                 petType = currentSelectedPetType,
                 petName = petName,
                 dotStep = dotStep,
@@ -1352,14 +1464,26 @@ fun PetOnboardingScreen(
                 hapticManager = hapticManager,
                 onNext = {
                     hapticManager?.click()
-                    // 기본값으로 저장하고 12-14 스킵, 위젯(16)으로 이동
+                    // 기본값으로 저장하고 14-16 스킵, 위젯(18)으로 이동
                     prefManager.saveControlDays(setOf(1, 2, 3, 4, 5))  // 월~금
                     prefManager.saveBlockingPeriods(setOf("morning", "afternoon", "evening", "night"))  // 전체 시간
+                    currentStep = 18
+                }
+            )
+            // Step 14-16 스킵됨
+            15 -> if (currentSelectedPetType != null) ControlDaysStep(
+                petType = currentSelectedPetType,
+                petName = petName,
+                dotStep = dotStep,
+                totalDots = totalDots,
+                preferenceManager = prefManager,
+                hapticManager = hapticManager,
+                onNext = {
+                    hapticManager?.click()
                     currentStep = 16
                 }
             )
-            // Step 12-14 스킵됨
-            13 -> if (currentSelectedPetType != null) ControlDaysStep(
+            16 -> if (currentSelectedPetType != null) BlockTimeStep(
                 petType = currentSelectedPetType,
                 petName = petName,
                 dotStep = dotStep,
@@ -1368,23 +1492,11 @@ fun PetOnboardingScreen(
                 hapticManager = hapticManager,
                 onNext = {
                     hapticManager?.click()
-                    currentStep = 14
-                }
-            )
-            14 -> if (currentSelectedPetType != null) BlockTimeStep(
-                petType = currentSelectedPetType,
-                petName = petName,
-                dotStep = dotStep,
-                totalDots = totalDots,
-                preferenceManager = prefManager,
-                hapticManager = hapticManager,
-                onNext = {
-                    hapticManager?.click()
-                    currentStep = 15
+                    currentStep = 17
                 }
             )
             // === 위젯 먼저, 결제 나중 ===
-            16 -> if (currentSelectedPetType != null) WidgetSetupStep(
+            18 -> if (currentSelectedPetType != null) WidgetSetupStep(
                 petType = currentSelectedPetType,
                 petName = petName,
                 dotStep = dotStep,
@@ -1392,11 +1504,11 @@ fun PetOnboardingScreen(
                 hapticManager = hapticManager,
                 onComplete = {
                     hapticManager?.click()
-                    currentStep = 15  // 결제로 이동
+                    currentStep = 17  // 결제로 이동
                 }
             )
 
-            15 -> if (currentSelectedPetType != null) PaymentScreen(
+            17 -> if (currentSelectedPetType != null) PaymentScreen(
                 petType = currentSelectedPetType,
                 petName = petName,
                 preferenceManager = prefManager,
@@ -1446,7 +1558,7 @@ fun PetOnboardingScreen(
 }
 
 /**
- * Step 1: Pet Selection - basic.png 목업 + Game Boy LCD 스타일 (V2 펫 사용)
+ * Step 3: Pet Selection - basic.png 목업 + Game Boy LCD 스타일 (V2 펫 사용)
  */
 @Composable
 private fun PetSelectionStep(
@@ -2004,7 +2116,7 @@ private fun TutorialAllInOneStep(
 
         Spacer(modifier = Modifier.weight(1f))
 
-        // 시작하기 버튼만 (Google 로그인은 step 0에서 완료됨)
+        // 시작하기 버튼만 (Google 로그인은 step 2에서 완료됨)
         MockupButton(
             text = stringResource(R.string.lets_start),
             onClick = {
@@ -2064,13 +2176,271 @@ private fun TutorialItemRow(
 }
 
 // =====================================================
+// STEP 0: Survey - Screen Time (스크린타임 설문)
+// =====================================================
+@Composable
+private fun SurveyScreenTimeStep(
+    hapticManager: HapticManager?,
+    onNext: () -> Unit
+) {
+    val kenneyFont = rememberKenneyFont()
+
+    val options = listOf(
+        PetTutorialStrings.surveyScreenTimeOption1() to "2h_or_less",
+        PetTutorialStrings.surveyScreenTimeOption2() to "3_4h",
+        PetTutorialStrings.surveyScreenTimeOption3() to "5_6h",
+        PetTutorialStrings.surveyScreenTimeOption4() to "7h_or_more"
+    )
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MockupColors.Background)
+            .statusBarsPadding()
+            .navigationBarsPadding()
+            .padding(horizontal = 20.dp)
+            .padding(bottom = 24.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Spacer(modifier = Modifier.height(40.dp))
+
+        // Top: Ribbon icon + rebon
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center
+        ) {
+            Image(
+                painter = painterResource(id = R.drawable.rebon_icon_trans),
+                contentDescription = "rebon",
+                modifier = Modifier.size(48.dp),
+                colorFilter = ColorFilter.colorMatrix(ColorMatrix().apply { setToSaturation(0f) })
+            )
+            Spacer(modifier = Modifier.width(12.dp))
+            Text(
+                text = "rebon",
+                fontSize = 36.sp,
+                fontFamily = kenneyFont,
+                fontWeight = FontWeight.Bold,
+                color = MockupColors.TextPrimary
+            )
+        }
+
+        Spacer(modifier = Modifier.weight(0.3f))
+
+        // Question
+        Text(
+            text = PetTutorialStrings.surveyScreenTimeQuestion(),
+            fontSize = 24.sp,
+            fontWeight = FontWeight.Bold,
+            color = MockupColors.TextPrimary,
+            textAlign = TextAlign.Center,
+            lineHeight = 34.sp
+        )
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        // Subtitle
+        Text(
+            text = PetTutorialStrings.surveyScreenTimeSubtitle(),
+            fontSize = 13.sp,
+            color = MockupColors.TextMuted,
+            textAlign = TextAlign.Center,
+            lineHeight = 20.sp
+        )
+
+        Spacer(modifier = Modifier.weight(0.3f))
+
+        // Options (vertical buttons)
+        Column(
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            options.forEach { (label, value) ->
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(52.dp)
+                        .border(Border.medium, MockupColors.Border, RoundedCornerShape(Radius.sm))
+                        .clickable {
+                            hapticManager?.click()
+                            AnalyticsManager.trackSurveyScreenTime(value)
+                            onNext()
+                        },
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = label,
+                        fontSize = FontSize.md,
+                        fontWeight = FontWeight.Medium,
+                        color = MockupColors.TextPrimary
+                    )
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.weight(0.4f))
+    }
+}
+
+// =====================================================
+// STEP 1: Survey - Willpower (의지력 설문 + 결과)
+// =====================================================
+@Composable
+private fun SurveyWillpowerStep(
+    hapticManager: HapticManager?,
+    onNext: () -> Unit
+) {
+    val kenneyFont = rememberKenneyFont()
+    var selectedOption by remember { mutableStateOf<String?>(null) }
+    var showResult by remember { mutableStateOf(false) }
+    val resultAlpha by animateFloatAsState(
+        targetValue = if (showResult) 1f else 0f,
+        animationSpec = tween(durationMillis = 600),
+        label = "resultAlpha"
+    )
+
+    val options = listOf(
+        PetTutorialStrings.surveyWillpowerOption1() to "tried_failed",
+        PetTutorialStrings.surveyWillpowerOption2() to "tried_succeeded",
+        PetTutorialStrings.surveyWillpowerOption3() to "never_tried"
+    )
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MockupColors.Background)
+            .statusBarsPadding()
+            .navigationBarsPadding()
+            .padding(horizontal = 20.dp)
+            .padding(bottom = 24.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Spacer(modifier = Modifier.height(40.dp))
+
+        // Top: Ribbon icon + rebon
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center
+        ) {
+            Image(
+                painter = painterResource(id = R.drawable.rebon_icon_trans),
+                contentDescription = "rebon",
+                modifier = Modifier.size(48.dp),
+                colorFilter = ColorFilter.colorMatrix(ColorMatrix().apply { setToSaturation(0f) })
+            )
+            Spacer(modifier = Modifier.width(12.dp))
+            Text(
+                text = "rebon",
+                fontSize = 36.sp,
+                fontFamily = kenneyFont,
+                fontWeight = FontWeight.Bold,
+                color = MockupColors.TextPrimary
+            )
+        }
+
+        Spacer(modifier = Modifier.weight(0.3f))
+
+        // Question
+        Text(
+            text = PetTutorialStrings.surveyWillpowerQuestion(),
+            fontSize = 24.sp,
+            fontWeight = FontWeight.Bold,
+            color = MockupColors.TextPrimary,
+            textAlign = TextAlign.Center,
+            lineHeight = 34.sp
+        )
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        // Options (vertical buttons)
+        Column(
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            options.forEach { (label, value) ->
+                val isSelected = selectedOption == value
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(52.dp)
+                        .border(Border.medium, MockupColors.Border, RoundedCornerShape(Radius.sm))
+                        .background(
+                            if (isSelected) MockupColors.Border else Color.Transparent,
+                            RoundedCornerShape(Radius.sm)
+                        )
+                        .clickable(enabled = selectedOption == null) {
+                            hapticManager?.click()
+                            selectedOption = value
+                            AnalyticsManager.trackSurveyWillpower(value)
+                            showResult = true
+                        },
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = label,
+                        fontSize = FontSize.md,
+                        fontWeight = FontWeight.Medium,
+                        color = if (isSelected) Color.White else MockupColors.TextPrimary
+                    )
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.weight(0.3f))
+
+        // Result message (animated)
+        if (showResult) {
+            Text(
+                text = PetTutorialStrings.surveyResultMessage(),
+                fontSize = 15.sp,
+                fontWeight = FontWeight.Medium,
+                color = MockupColors.TextPrimary,
+                textAlign = TextAlign.Center,
+                lineHeight = 24.sp,
+                modifier = Modifier.graphicsLayer { alpha = resultAlpha }
+            )
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // "시작하기" button
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(56.dp)
+                    .border(Border.medium, MockupColors.Border, RoundedCornerShape(Radius.sm))
+                    .background(MockupColors.Border, RoundedCornerShape(Radius.sm))
+                    .graphicsLayer { alpha = resultAlpha }
+                    .clickable {
+                        hapticManager?.click()
+                        onNext()
+                    },
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = PetTutorialStrings.surveyStartButton(),
+                    fontSize = FontSize.lg,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White
+                )
+            }
+        }
+
+        if (!showResult) {
+            Spacer(modifier = Modifier.weight(0.4f))
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+    }
+}
+
+// =====================================================
 // 미니게임용 클래스들
 // =====================================================
 private enum class DinoGameState { IDLE, PLAYING, GAME_OVER }
 private data class GameObstacle(val x: Float, val type: Int, val iconIndex: Int = 0)
 
 // =====================================================
-// STEP 0: Google Sign-In (데이터 백업)
+// STEP 2: Google Sign-In (데이터 백업)
 // =====================================================
 @Composable
 private fun GoogleSignInStep(
@@ -2100,10 +2470,10 @@ private fun GoogleSignInStep(
                     if (firebaseResult.isSuccess) {
                         Log.d("GoogleSignIn", "Firebase sign-in successful")
 
-                        // 🔥 Activity 재생성 대비: sync 전에 즉시 step 1 저장
+                        // 🔥 Activity 재생성 대비: sync 전에 즉시 step 3 저장
                         val prefManager = PreferenceManager(context)
-                        prefManager.saveTutorialCurrentStep(1)
-                        Log.d("GoogleSignIn", "✅ Saved step 1 immediately after sign-in")
+                        prefManager.saveTutorialCurrentStep(3)
+                        Log.d("GoogleSignIn", "✅ Saved step 3 immediately after sign-in")
 
                         statusMessage = PetTutorialStrings.checkingData()
 

@@ -50,23 +50,40 @@ object AnalyticsManager {
 
     // 튜토리얼 단계 이름 (GA에서 이해하기 쉽게)
     private val tutorialStepNames = mapOf(
-        0 to "pet_selection",
-        1 to "pet_name",
-        2 to "intro_explanation",
-        3 to "permission_settings",
-        4 to "fitness_connection",
-        5 to "accessibility",
-        6 to "app_selection",
-        7 to "block_test",
-        8 to "goal_input",
-        9 to "walking_test",
-        10 to "unlocked",
-        11 to "control_days",
-        12 to "block_time",
-        13 to "emergency_button",
-        14 to "payment",
-        15 to "widget_setup"
+        0 to "survey_screen_time",
+        1 to "survey_willpower",
+        2 to "google_sign_in",
+        3 to "pet_selection",
+        4 to "pet_name",
+        5 to "intro_explanation",
+        6 to "permission_settings",
+        7 to "accessibility",
+        9 to "app_selection",
+        10 to "block_test",
+        11 to "goal_input",
+        12 to "walking_test",
+        13 to "how_it_works",
+        15 to "control_days",
+        16 to "block_time",
+        17 to "payment",
+        18 to "widget_setup"
     )
+
+    fun trackSurveyScreenTime(answer: String) {
+        val params = Bundle().apply {
+            putString("answer", answer)
+        }
+        analytics?.logEvent("survey_screen_time", params)
+        Log.d(TAG, "Survey screen time: $answer")
+    }
+
+    fun trackSurveyWillpower(answer: String) {
+        val params = Bundle().apply {
+            putString("answer", answer)
+        }
+        analytics?.logEvent("survey_willpower", params)
+        Log.d(TAG, "Survey willpower: $answer")
+    }
 
     fun trackTutorialBegin() {
         analytics?.logEvent(FirebaseAnalytics.Event.TUTORIAL_BEGIN, null)
