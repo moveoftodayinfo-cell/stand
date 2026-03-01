@@ -3020,6 +3020,7 @@ private fun GoogleSignInStep(
         Spacer(modifier = Modifier.height(40.dp))
 
         // Top: Ribbon icon + rebon (scale + fade in)
+        @OptIn(ExperimentalFoundationApi::class)
         Row(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Center,
@@ -6422,7 +6423,10 @@ fun PaymentScreen(
                                     goal = preferenceManager.getGoal(),
                                     controlDays = selectedDays.toList(),
                                     purchase = purchase,
-                                    isYearly = selectedPlan == BillingManager.SubscriptionType.YEARLY
+                                    isYearly = selectedPlan == BillingManager.SubscriptionType.YEARLY,
+                                    actualPrice = billingManager?.lastPurchaseFormattedPrice,
+                                    priceCurrencyCode = billingManager?.lastPurchaseCurrencyCode,
+                                    priceAmountMicros = billingManager?.lastPurchasePriceMicros
                                 )
                                 if (result.isSuccess) {
                                     // 연간/월간에 따른 가격 저장

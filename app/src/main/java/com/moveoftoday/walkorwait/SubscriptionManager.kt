@@ -30,6 +30,9 @@ data class SubscriptionData(
     val isActive: Boolean = false,
     val userType: String = "PAID", // PAID, GUEST
     val price: Int = SubscriptionModel.MONTHLY_PRICE,
+    val actualPrice: String? = null, // Google Play 실제 청구 가격 (예: "₩39,000", "$26.99")
+    val priceCurrencyCode: String? = null, // 통화 코드 (예: "KRW", "USD")
+    val priceAmountMicros: Long? = null, // 마이크로 단위 가격 (예: 39000000000)
     val purchaseToken: String? = null,
     val orderId: String? = null,
     val totalDays: Int = 0,
@@ -109,7 +112,10 @@ class SubscriptionManager(private val context: Context) {
         goal: Int,
         controlDays: List<Int>,
         purchase: Purchase,
-        isYearly: Boolean = false
+        isYearly: Boolean = false,
+        actualPrice: String? = null,
+        priceCurrencyCode: String? = null,
+        priceAmountMicros: Long? = null
     ): Result<SubscriptionData> {
         val userId = getCurrentUserId() ?: return Result.failure(Exception("User not logged in"))
         val monthId = getMonthId()
@@ -135,6 +141,9 @@ class SubscriptionManager(private val context: Context) {
                 isActive = true,
                 userType = "PAID",
                 price = if (isYearly) 39000 else SubscriptionModel.MONTHLY_PRICE,
+                actualPrice = actualPrice,
+                priceCurrencyCode = priceCurrencyCode,
+                priceAmountMicros = priceAmountMicros,
                 purchaseToken = purchase.purchaseToken,
                 orderId = purchase.orderId,
                 totalDays = 0,
@@ -613,6 +622,9 @@ class SubscriptionManager(private val context: Context) {
             "isActive" to isActive,
             "userType" to userType,
             "price" to price,
+            "actualPrice" to actualPrice,
+            "priceCurrencyCode" to priceCurrencyCode,
+            "priceAmountMicros" to priceAmountMicros,
             "purchaseToken" to purchaseToken,
             "orderId" to orderId,
             "totalDays" to totalDays,

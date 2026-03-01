@@ -302,6 +302,14 @@ class BillingManager(
     // 대기 중인 구독 타입 저장
     private var pendingSubscriptionType: SubscriptionType = SubscriptionType.MONTHLY
 
+    // 마지막 결제의 실제 가격 정보 (Google Play에서 받은 값)
+    var lastPurchaseFormattedPrice: String? = null
+        private set
+    var lastPurchaseCurrencyCode: String? = null
+        private set
+    var lastPurchasePriceMicros: Long? = null
+        private set
+
     enum class SubscriptionType {
         MONTHLY,  // 월간: 3,900원/월
         YEARLY    // 연간: 39,000원/년 (2개월 무료)
@@ -422,6 +430,13 @@ class BillingManager(
                 }
 
                 Log.d(TAG, "🎫 Using basePlan: $targetBasePlan, offerToken: $offerToken")
+
+                // 실제 가격 정보 캐시 (Firestore 저장용)
+                val pricingPhase = targetOffer?.pricingPhases?.pricingPhaseList?.lastOrNull()
+                lastPurchaseFormattedPrice = pricingPhase?.formattedPrice
+                lastPurchaseCurrencyCode = pricingPhase?.priceCurrencyCode
+                lastPurchasePriceMicros = pricingPhase?.priceAmountMicros
+                Log.d(TAG, "💰 Actual price: $lastPurchaseFormattedPrice ($lastPurchaseCurrencyCode, ${lastPurchasePriceMicros}μ)")
 
                 val productDetailsParamsList = listOf(
                     BillingFlowParams.ProductDetailsParams.newBuilder()
