@@ -25,6 +25,7 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.moveoftoday.walkorwait.pet.MockupColors
 import com.moveoftoday.walkorwait.pet.rememberKenneyFont
+import java.util.Locale
 
 /**
  * 서버 제어 공지 다이얼로그
@@ -191,7 +192,14 @@ fun AnnouncementDialog(
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         Text(
-                            text = "오늘 그만보기",
+                            text = when (Locale.getDefault().language) {
+                                "ko" -> "오늘 그만보기"
+                                "ja" -> "今日は表示しない"
+                                "zh" -> "今天不再显示"
+                                "es" -> "No mostrar hoy"
+                                "hi" -> "आज दोबारा न दिखाएं"
+                                else -> "Don't show today"
+                            },
                             fontSize = 14.sp,
                             color = MockupColors.TextMuted
                         )

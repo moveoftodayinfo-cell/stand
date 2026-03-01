@@ -31,7 +31,7 @@ import java.util.Locale
  *         └── dismissible: Boolean (닫기 가능 여부)
  *
  * 다국어 필드 우선순위: {field}_{lang} → {field}_en → {field} (레거시 호환)
- * 지원 언어: ko, en, ja, zh, es, pt
+ * 지원 언어: ko, en, ja, zh, es, hi
  */
 class AnnouncementManager(private val context: Context) {
     private val TAG = "AnnouncementManager"
