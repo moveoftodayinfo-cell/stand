@@ -1650,82 +1650,91 @@ private fun PetSelectionStep(
             }
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Text(
-            text = stringResource(R.string.choose_your_friend),
-            fontSize = 22.sp,
-            fontFamily = kenneyFont,
-            fontWeight = FontWeight.Bold,
-            color = MockupColors.TextPrimary
-        )
-
-        Spacer(modifier = Modifier.height(12.dp))
-
-        // Pet selection grid - 3x2
+        // 중간 영역: 펫 선택 그리드 + 설명 (스크롤 가능)
+        val scrollState = rememberScrollState()
         Column(
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+            modifier = Modifier
+                .weight(1f)
+                .verticalScroll(scrollState),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Row 1 (SHIBA, CAT, PIG)
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                modifier = Modifier.fillMaxWidth()
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Text(
+                text = stringResource(R.string.choose_your_friend),
+                fontSize = 22.sp,
+                fontFamily = kenneyFont,
+                fontWeight = FontWeight.Bold,
+                color = MockupColors.TextPrimary
+            )
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            // Pet selection grid - 3x2
+            Column(
+                verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                PetTypeV2.entries.take(3).forEach { petType ->
-                    SmallPetCardV2(
-                        petType = petType,
-                        isSelected = selectedPet == petType,
-                        onClick = {
-                            hapticManager?.lightClick()
-                            onPetSelected(petType)
-                        },
-                        modifier = Modifier.weight(1f)
-                    )
+                // Row 1 (SHIBA, CAT, PIG)
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    PetTypeV2.entries.take(3).forEach { petType ->
+                        SmallPetCardV2(
+                            petType = petType,
+                            isSelected = selectedPet == petType,
+                            onClick = {
+                                hapticManager?.lightClick()
+                                onPetSelected(petType)
+                            },
+                            modifier = Modifier.weight(1f)
+                        )
+                    }
+                }
+                // Row 2 (RACCOON, HAMSTER, PENGUIN)
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    PetTypeV2.entries.drop(3).take(3).forEach { petType ->
+                        SmallPetCardV2(
+                            petType = petType,
+                            isSelected = selectedPet == petType,
+                            onClick = {
+                                hapticManager?.lightClick()
+                                onPetSelected(petType)
+                            },
+                            modifier = Modifier.weight(1f)
+                        )
+                    }
                 }
             }
-            // Row 2 (RACCOON, HAMSTER, PENGUIN)
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                PetTypeV2.entries.drop(3).take(3).forEach { petType ->
-                    SmallPetCardV2(
-                        petType = petType,
-                        isSelected = selectedPet == petType,
-                        onClick = {
-                            hapticManager?.lightClick()
-                            onPetSelected(petType)
-                        },
-                        modifier = Modifier.weight(1f)
-                    )
-                }
+
+            // 선택된 펫 특징 설명
+            if (selectedPet != null) {
+                Spacer(modifier = Modifier.height(20.dp))
+                Text(
+                    text = stringResource(R.string.friend_characteristics),
+                    fontSize = 15.sp,
+                    color = MockupColors.TextMuted,
+                    textAlign = TextAlign.Center,
+                    textDecoration = androidx.compose.ui.text.style.TextDecoration.Underline,
+                    modifier = Modifier.fillMaxWidth()
+                )
+                Spacer(modifier = Modifier.height(6.dp))
+                Text(
+                    text = getPetDescriptionV2(selectedPet),
+                    fontSize = 16.sp,
+                    color = MockupColors.TextSecondary,
+                    textAlign = TextAlign.Center,
+                    lineHeight = 24.sp,
+                    modifier = Modifier.fillMaxWidth()
+                )
             }
+            Spacer(modifier = Modifier.height(16.dp))
         }
 
-        // 선택된 펫 특징 설명 (3줄) - 선택창과 버튼 정중앙
-        Spacer(modifier = Modifier.weight(1f))
-        if (selectedPet != null) {
-            Text(
-                text = stringResource(R.string.friend_characteristics),
-                fontSize = 18.sp,
-                color = MockupColors.TextMuted,
-                textAlign = TextAlign.Center,
-                textDecoration = androidx.compose.ui.text.style.TextDecoration.Underline,
-                modifier = Modifier.fillMaxWidth()
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                text = getPetDescriptionV2(selectedPet),
-                fontSize = 21.sp,
-                color = MockupColors.TextSecondary,
-                textAlign = TextAlign.Center,
-                lineHeight = 30.sp,
-                modifier = Modifier.fillMaxWidth()
-            )
-        }
-        Spacer(modifier = Modifier.weight(1f))
-
-        // Button
+        // Button - 하단 고정
         MockupButton(
             text = stringResource(R.string.this_friend),
             onClick = onNext,
@@ -1924,65 +1933,71 @@ private fun PetNameInputStep(
             }
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // Instruction text - 고정
-        Text(
-            text = stringResource(R.string.give_me_name),
-            fontSize = 20.sp,
-            fontWeight = FontWeight.Bold,
-            color = MockupColors.TextPrimary
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // Name input field
-        OutlinedTextField(
-            value = currentName,
-            onValueChange = { if (it.length <= 8) onNameChanged(it) },
+        // 중간 영역: 이름 입력 (스크롤 가능)
+        Column(
             modifier = Modifier
-                .fillMaxWidth()
-                .focusRequester(focusRequester),
-            placeholder = {
-                Box(
-                    modifier = Modifier.fillMaxWidth(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        text = stringResource(R.string.within_8_chars),
-                        color = MockupColors.TextMuted,
-                        fontSize = 20.sp,
-                        textAlign = TextAlign.Center
-                    )
-                }
-            },
-            singleLine = true,
-            textStyle = androidx.compose.ui.text.TextStyle(
-                fontSize = 24.sp,
+                .weight(1f)
+                .verticalScroll(rememberScrollState()),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Instruction text
+            Text(
+                text = stringResource(R.string.give_me_name),
+                fontSize = 20.sp,
                 fontWeight = FontWeight.Bold,
-                textAlign = TextAlign.Center,
                 color = MockupColors.TextPrimary
-            ),
-            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
-            keyboardActions = KeyboardActions(
-                onDone = {
-                    focusManager.clearFocus()
-                    if (currentName.isNotBlank()) onNext()
-                }
-            ),
-            shape = RoundedCornerShape(12.dp),
-            colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor = MockupColors.Border,
-                unfocusedBorderColor = MockupColors.Border,
-                cursorColor = MockupColors.TextPrimary,
-                focusedContainerColor = Color.White,
-                unfocusedContainerColor = Color.White
             )
-        )
 
-        Spacer(modifier = Modifier.weight(1f))
+            Spacer(modifier = Modifier.height(16.dp))
 
-        // Action button - 고정
+            // Name input field
+            OutlinedTextField(
+                value = currentName,
+                onValueChange = { if (it.length <= 8) onNameChanged(it) },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .focusRequester(focusRequester),
+                placeholder = {
+                    Box(
+                        modifier = Modifier.fillMaxWidth(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = stringResource(R.string.within_8_chars),
+                            color = MockupColors.TextMuted,
+                            fontSize = 20.sp,
+                            textAlign = TextAlign.Center
+                        )
+                    }
+                },
+                singleLine = true,
+                textStyle = androidx.compose.ui.text.TextStyle(
+                    fontSize = 24.sp,
+                    fontWeight = FontWeight.Bold,
+                    textAlign = TextAlign.Center,
+                    color = MockupColors.TextPrimary
+                ),
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+                keyboardActions = KeyboardActions(
+                    onDone = {
+                        focusManager.clearFocus()
+                        if (currentName.isNotBlank()) onNext()
+                    }
+                ),
+                shape = RoundedCornerShape(12.dp),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = MockupColors.Border,
+                    unfocusedBorderColor = MockupColors.Border,
+                    cursorColor = MockupColors.TextPrimary,
+                    focusedContainerColor = Color.White,
+                    unfocusedContainerColor = Color.White
+                )
+            )
+        }
+
+        // Action button - 하단 고정
         MockupButton(
             text = stringResource(R.string.okay_lets_go),
             onClick = {
@@ -2080,43 +2095,50 @@ private fun TutorialAllInOneStep(
             }
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // Instruction text - 고정
-        Text(
-            text = stringResource(R.string.what_to_do_with, petName),
-            fontSize = 20.sp,
-            fontWeight = FontWeight.Bold,
-            color = MockupColors.TextPrimary
-        )
-
-        Spacer(modifier = Modifier.height(20.dp))
-
-        // 3가지 튜토리얼 항목
+        // 중간 영역: 설명 (스크롤 가능)
         Column(
-            modifier = Modifier.fillMaxWidth(),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+            modifier = Modifier
+                .weight(1f)
+                .verticalScroll(rememberScrollState()),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            TutorialItemRow(
-                iconName = "icon_target",
-                title = stringResource(R.string.tutorial_goal_title),
-                description = stringResource(R.string.tutorial_goal_desc)
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Instruction text
+            Text(
+                text = stringResource(R.string.what_to_do_with, petName),
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Bold,
+                color = MockupColors.TextPrimary
             )
-            TutorialItemRow(
-                iconName = "icon_boots",
-                title = stringResource(R.string.tutorial_achieve_title),
-                description = stringResource(R.string.tutorial_achieve_desc)
-            )
-            TutorialItemRow(
-                iconName = "icon_lock",
-                title = stringResource(R.string.tutorial_control_title),
-                description = stringResource(R.string.tutorial_control_desc)
-            )
+
+            Spacer(modifier = Modifier.height(20.dp))
+
+            // 3가지 튜토리얼 항목
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                TutorialItemRow(
+                    iconName = "icon_target",
+                    title = stringResource(R.string.tutorial_goal_title),
+                    description = stringResource(R.string.tutorial_goal_desc)
+                )
+                TutorialItemRow(
+                    iconName = "icon_boots",
+                    title = stringResource(R.string.tutorial_achieve_title),
+                    description = stringResource(R.string.tutorial_achieve_desc)
+                )
+                TutorialItemRow(
+                    iconName = "icon_lock",
+                    title = stringResource(R.string.tutorial_control_title),
+                    description = stringResource(R.string.tutorial_control_desc)
+                )
+            }
+            Spacer(modifier = Modifier.height(16.dp))
         }
 
-        Spacer(modifier = Modifier.weight(1f))
-
-        // 시작하기 버튼만 (Google 로그인은 step 2에서 완료됨)
+        // 시작하기 버튼 - 하단 고정
         MockupButton(
             text = stringResource(R.string.lets_start),
             onClick = {
@@ -2183,7 +2205,33 @@ private fun SurveyScreenTimeStep(
     hapticManager: HapticManager?,
     onNext: () -> Unit
 ) {
+    val context = LocalContext.current
     val kenneyFont = rememberKenneyFont()
+
+    // Entrance animations
+    var animationStarted by remember { mutableStateOf(false) }
+    LaunchedEffect(Unit) { animationStarted = true }
+
+    val logoAlpha by animateFloatAsState(
+        targetValue = if (animationStarted) 1f else 0f,
+        animationSpec = tween(durationMillis = 500),
+        label = "logoAlpha"
+    )
+    val logoScale by animateFloatAsState(
+        targetValue = if (animationStarted) 1f else 0.6f,
+        animationSpec = tween(durationMillis = 500, easing = FastOutSlowInEasing),
+        label = "logoScale"
+    )
+    val questionAlpha by animateFloatAsState(
+        targetValue = if (animationStarted) 1f else 0f,
+        animationSpec = tween(durationMillis = 500, delayMillis = 250),
+        label = "questionAlpha"
+    )
+    val questionOffsetY by animateFloatAsState(
+        targetValue = if (animationStarted) 0f else 30f,
+        animationSpec = tween(durationMillis = 500, delayMillis = 250, easing = FastOutSlowInEasing),
+        label = "questionOffsetY"
+    )
 
     val options = listOf(
         PetTutorialStrings.surveyScreenTimeOption1() to "2h_or_less",
@@ -2204,10 +2252,15 @@ private fun SurveyScreenTimeStep(
     ) {
         Spacer(modifier = Modifier.height(40.dp))
 
-        // Top: Ribbon icon + rebon
+        // Top: Ribbon icon + rebon (scale + fade in)
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.Center
+            horizontalArrangement = Arrangement.Center,
+            modifier = Modifier.graphicsLayer {
+                alpha = logoAlpha
+                scaleX = logoScale
+                scaleY = logoScale
+            }
         ) {
             Image(
                 painter = painterResource(id = R.drawable.rebon_icon_trans),
@@ -2227,43 +2280,65 @@ private fun SurveyScreenTimeStep(
 
         Spacer(modifier = Modifier.weight(0.3f))
 
-        // Question
-        Text(
-            text = PetTutorialStrings.surveyScreenTimeQuestion(),
-            fontSize = 24.sp,
-            fontWeight = FontWeight.Bold,
-            color = MockupColors.TextPrimary,
-            textAlign = TextAlign.Center,
-            lineHeight = 34.sp
-        )
+        // Question (slide up + fade in)
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = Modifier.graphicsLayer {
+                alpha = questionAlpha
+                translationY = questionOffsetY * density
+            }
+        ) {
+            Text(
+                text = PetTutorialStrings.surveyScreenTimeQuestion(),
+                fontSize = 24.sp,
+                fontWeight = FontWeight.Bold,
+                color = MockupColors.TextPrimary,
+                textAlign = TextAlign.Center,
+                lineHeight = 34.sp
+            )
 
-        Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(12.dp))
 
-        // Subtitle
-        Text(
-            text = PetTutorialStrings.surveyScreenTimeSubtitle(),
-            fontSize = 13.sp,
-            color = MockupColors.TextMuted,
-            textAlign = TextAlign.Center,
-            lineHeight = 20.sp
-        )
+            Text(
+                text = PetTutorialStrings.surveyScreenTimeSubtitle(),
+                fontSize = 13.sp,
+                color = MockupColors.TextMuted,
+                textAlign = TextAlign.Center,
+                lineHeight = 20.sp
+            )
+        }
 
         Spacer(modifier = Modifier.weight(0.3f))
 
-        // Options (vertical buttons)
+        // Options (staggered slide up + fade in)
         Column(
             verticalArrangement = Arrangement.spacedBy(12.dp),
             modifier = Modifier.fillMaxWidth()
         ) {
-            options.forEach { (label, value) ->
+            options.forEachIndexed { index, (label, value) ->
+                val optionAlpha by animateFloatAsState(
+                    targetValue = if (animationStarted) 1f else 0f,
+                    animationSpec = tween(durationMillis = 400, delayMillis = 450 + index * 80),
+                    label = "optionAlpha$index"
+                )
+                val optionOffsetY by animateFloatAsState(
+                    targetValue = if (animationStarted) 0f else 20f,
+                    animationSpec = tween(durationMillis = 400, delayMillis = 450 + index * 80, easing = FastOutSlowInEasing),
+                    label = "optionOffsetY$index"
+                )
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(52.dp)
+                        .graphicsLayer {
+                            alpha = optionAlpha
+                            translationY = optionOffsetY * density
+                        }
                         .border(Border.medium, MockupColors.Border, RoundedCornerShape(Radius.sm))
                         .clickable {
                             hapticManager?.click()
                             AnalyticsManager.trackSurveyScreenTime(value)
+                            PreferenceManager(context).saveSurveyScreenTime(value)
                             onNext()
                         },
                     contentAlignment = Alignment.Center
@@ -2290,13 +2365,56 @@ private fun SurveyWillpowerStep(
     hapticManager: HapticManager?,
     onNext: () -> Unit
 ) {
+    val context = LocalContext.current
     val kenneyFont = rememberKenneyFont()
     var selectedOption by remember { mutableStateOf<String?>(null) }
     var showResult by remember { mutableStateOf(false) }
+
+    // Entrance animations
+    var animationStarted by remember { mutableStateOf(false) }
+    LaunchedEffect(Unit) { animationStarted = true }
+
+    val logoAlpha by animateFloatAsState(
+        targetValue = if (animationStarted) 1f else 0f,
+        animationSpec = tween(durationMillis = 500),
+        label = "logoAlpha"
+    )
+    val logoScale by animateFloatAsState(
+        targetValue = if (animationStarted) 1f else 0.6f,
+        animationSpec = tween(durationMillis = 500, easing = FastOutSlowInEasing),
+        label = "logoScale"
+    )
+    val questionAlpha by animateFloatAsState(
+        targetValue = if (animationStarted) 1f else 0f,
+        animationSpec = tween(durationMillis = 500, delayMillis = 200),
+        label = "questionAlpha"
+    )
+    val questionOffsetY by animateFloatAsState(
+        targetValue = if (animationStarted) 0f else 30f,
+        animationSpec = tween(durationMillis = 500, delayMillis = 200, easing = FastOutSlowInEasing),
+        label = "questionOffsetY"
+    )
+
+    // Result animations (after selection)
     val resultAlpha by animateFloatAsState(
         targetValue = if (showResult) 1f else 0f,
-        animationSpec = tween(durationMillis = 600),
+        animationSpec = tween(durationMillis = 600, delayMillis = 300),
         label = "resultAlpha"
+    )
+    val resultOffsetY by animateFloatAsState(
+        targetValue = if (showResult) 0f else 25f,
+        animationSpec = tween(durationMillis = 600, delayMillis = 300, easing = FastOutSlowInEasing),
+        label = "resultOffsetY"
+    )
+    val buttonAlpha by animateFloatAsState(
+        targetValue = if (showResult) 1f else 0f,
+        animationSpec = tween(durationMillis = 500, delayMillis = 600),
+        label = "buttonAlpha"
+    )
+    val buttonOffsetY by animateFloatAsState(
+        targetValue = if (showResult) 0f else 20f,
+        animationSpec = tween(durationMillis = 500, delayMillis = 600, easing = FastOutSlowInEasing),
+        label = "buttonOffsetY"
     )
 
     val options = listOf(
@@ -2317,10 +2435,15 @@ private fun SurveyWillpowerStep(
     ) {
         Spacer(modifier = Modifier.height(40.dp))
 
-        // Top: Ribbon icon + rebon
+        // Top: Ribbon icon + rebon (scale + fade in)
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.Center
+            horizontalArrangement = Arrangement.Center,
+            modifier = Modifier.graphicsLayer {
+                alpha = logoAlpha
+                scaleX = logoScale
+                scaleY = logoScale
+            }
         ) {
             Image(
                 painter = painterResource(id = R.drawable.rebon_icon_trans),
@@ -2340,29 +2463,59 @@ private fun SurveyWillpowerStep(
 
         Spacer(modifier = Modifier.weight(0.3f))
 
-        // Question
+        // Question (slide up + fade in)
         Text(
             text = PetTutorialStrings.surveyWillpowerQuestion(),
             fontSize = 24.sp,
             fontWeight = FontWeight.Bold,
             color = MockupColors.TextPrimary,
             textAlign = TextAlign.Center,
-            lineHeight = 34.sp
+            lineHeight = 34.sp,
+            modifier = Modifier.graphicsLayer {
+                alpha = questionAlpha
+                translationY = questionOffsetY * density
+            }
         )
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        // Options (vertical buttons)
+        // Options (staggered entrance + selection animation)
         Column(
             verticalArrangement = Arrangement.spacedBy(12.dp),
             modifier = Modifier.fillMaxWidth()
         ) {
-            options.forEach { (label, value) ->
+            options.forEachIndexed { index, (label, value) ->
                 val isSelected = selectedOption == value
+                val isNotSelected = selectedOption != null && !isSelected
+                val optionAlpha by animateFloatAsState(
+                    targetValue = when {
+                        !animationStarted -> 0f
+                        isNotSelected -> 0.4f
+                        else -> 1f
+                    },
+                    animationSpec = tween(durationMillis = 400, delayMillis = if (animationStarted && selectedOption == null) 350 + index * 80 else 0),
+                    label = "optionAlpha$index"
+                )
+                val optionOffsetY by animateFloatAsState(
+                    targetValue = if (animationStarted) 0f else 20f,
+                    animationSpec = tween(durationMillis = 400, delayMillis = 350 + index * 80, easing = FastOutSlowInEasing),
+                    label = "optionOffsetY$index"
+                )
+                val optionScale by animateFloatAsState(
+                    targetValue = if (isSelected) 1.03f else 1f,
+                    animationSpec = spring(dampingRatio = 0.5f, stiffness = 300f),
+                    label = "optionScale$index"
+                )
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(52.dp)
+                        .graphicsLayer {
+                            alpha = optionAlpha
+                            translationY = optionOffsetY * density
+                            scaleX = optionScale
+                            scaleY = optionScale
+                        }
                         .border(Border.medium, MockupColors.Border, RoundedCornerShape(Radius.sm))
                         .background(
                             if (isSelected) MockupColors.Border else Color.Transparent,
@@ -2372,6 +2525,7 @@ private fun SurveyWillpowerStep(
                             hapticManager?.click()
                             selectedOption = value
                             AnalyticsManager.trackSurveyWillpower(value)
+                            PreferenceManager(context).saveSurveyWillpower(value)
                             showResult = true
                         },
                     contentAlignment = Alignment.Center
@@ -2388,7 +2542,7 @@ private fun SurveyWillpowerStep(
 
         Spacer(modifier = Modifier.weight(0.3f))
 
-        // Result message (animated)
+        // Result message (slide up + fade in after selection)
         if (showResult) {
             Text(
                 text = PetTutorialStrings.surveyResultMessage(),
@@ -2397,20 +2551,26 @@ private fun SurveyWillpowerStep(
                 color = MockupColors.TextPrimary,
                 textAlign = TextAlign.Center,
                 lineHeight = 24.sp,
-                modifier = Modifier.graphicsLayer { alpha = resultAlpha }
+                modifier = Modifier.graphicsLayer {
+                    alpha = resultAlpha
+                    translationY = resultOffsetY * density
+                }
             )
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // "시작하기" button
+            // "시작하기" button (slide up + fade in, delayed)
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(56.dp)
+                    .height(48.dp)
+                    .graphicsLayer {
+                        alpha = buttonAlpha
+                        translationY = buttonOffsetY * density
+                    }
                     .border(Border.medium, MockupColors.Border, RoundedCornerShape(Radius.sm))
                     .background(MockupColors.Border, RoundedCornerShape(Radius.sm))
-                    .graphicsLayer { alpha = resultAlpha }
-                    .clickable {
+                    .clickable(enabled = buttonAlpha > 0.9f) {
                         hapticManager?.click()
                         onNext()
                     },
@@ -2457,6 +2617,46 @@ private fun GoogleSignInStep(
     var errorMessage by remember { mutableStateOf<String?>(null) }
     var isSignedIn by remember { mutableStateOf(false) }
     var statusMessage by remember { mutableStateOf<String?>(null) }
+
+    // Entrance animations
+    var animationStarted by remember { mutableStateOf(false) }
+    LaunchedEffect(Unit) { animationStarted = true }
+
+    val logoAlpha by animateFloatAsState(
+        targetValue = if (animationStarted) 1f else 0f,
+        animationSpec = tween(durationMillis = 600),
+        label = "gsLogoAlpha"
+    )
+    val logoScale by animateFloatAsState(
+        targetValue = if (animationStarted) 1f else 0.5f,
+        animationSpec = tween(durationMillis = 700, easing = FastOutSlowInEasing),
+        label = "gsLogoScale"
+    )
+    val titleAlpha by animateFloatAsState(
+        targetValue = if (animationStarted) 1f else 0f,
+        animationSpec = tween(durationMillis = 500, delayMillis = 300),
+        label = "gsTitleAlpha"
+    )
+    val titleOffsetY by animateFloatAsState(
+        targetValue = if (animationStarted) 0f else 40f,
+        animationSpec = tween(durationMillis = 600, delayMillis = 300, easing = FastOutSlowInEasing),
+        label = "gsTitleOffsetY"
+    )
+    val gameAreaAlpha by animateFloatAsState(
+        targetValue = if (animationStarted) 1f else 0f,
+        animationSpec = tween(durationMillis = 500, delayMillis = 550),
+        label = "gsGameAlpha"
+    )
+    val buttonAlpha by animateFloatAsState(
+        targetValue = if (animationStarted) 1f else 0f,
+        animationSpec = tween(durationMillis = 500, delayMillis = 700),
+        label = "gsButtonAlpha"
+    )
+    val buttonOffsetY by animateFloatAsState(
+        targetValue = if (animationStarted) 0f else 30f,
+        animationSpec = tween(durationMillis = 500, delayMillis = 700, easing = FastOutSlowInEasing),
+        label = "gsButtonOffsetY"
+    )
 
     // Google Sign-In 함수 (Credential Manager 사용)
     fun performGoogleSignIn() {
@@ -2819,10 +3019,27 @@ private fun GoogleSignInStep(
     ) {
         Spacer(modifier = Modifier.height(40.dp))
 
-        // Top: Ribbon icon + rebon
+        // Top: Ribbon icon + rebon (scale + fade in)
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.Center
+            horizontalArrangement = Arrangement.Center,
+            modifier = Modifier
+                .graphicsLayer {
+                    alpha = logoAlpha
+                    scaleX = logoScale
+                    scaleY = logoScale
+                }
+                .then(
+                    if (BuildConfig.DEBUG) Modifier.combinedClickable(
+                        onClick = {},
+                        onLongClick = {
+                            if (!isLoading && !isSignedIn) {
+                                hapticManager?.click()
+                                onNext()
+                            }
+                        }
+                    ) else Modifier
+                )
         ) {
             // Ribbon icon (grayscale) - from drawable
             Image(
@@ -2843,7 +3060,7 @@ private fun GoogleSignInStep(
 
         Spacer(modifier = Modifier.weight(0.3f))
 
-        // Main text
+        // Main text (slide up + fade in)
         Text(
             text = buildAnnotatedString {
                 withStyle(
@@ -2859,28 +3076,37 @@ private fun GoogleSignInStep(
             fontWeight = FontWeight.Bold,
             color = MockupColors.TextPrimary,
             textAlign = TextAlign.Center,
-            lineHeight = 38.sp
+            lineHeight = 38.sp,
+            modifier = Modifier.graphicsLayer {
+                alpha = titleAlpha
+                translationY = titleOffsetY * density.density
+            }
         )
 
         Spacer(modifier = Modifier.height(20.dp))
 
-        // Sub text
+        // Sub text (slide up + fade in with title)
         Text(
             text = stringResource(R.string.login_subtitle),
             fontSize = 14.sp,
             color = MockupColors.TextSecondary,
             textAlign = TextAlign.Center,
-            lineHeight = 22.sp
+            lineHeight = 22.sp,
+            modifier = Modifier.graphicsLayer {
+                alpha = titleAlpha
+                translationY = titleOffsetY * density.density
+            }
         )
 
         Spacer(modifier = Modifier.height(40.dp))
 
-        // ===== 미니게임 영역 =====
+        // ===== 미니게임 영역 (fade in) =====
         Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(200.dp)
                 .background(Color.White)
+                .graphicsLayer { alpha = gameAreaAlpha }
                 .clickable {
                     when (gameState) {
                         DinoGameState.IDLE -> startGame()
@@ -3193,15 +3419,19 @@ private fun GoogleSignInStep(
             Spacer(modifier = Modifier.height(12.dp))
         }
 
-        // Google 로그인 버튼 (필수) - 다마고치 스타일
+        // Google 로그인 버튼 (필수) - 다마고치 스타일 (slide up + fade in)
         if (!isSignedIn) {
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(56.dp)
+                    .height(48.dp)
+                    .graphicsLayer {
+                        alpha = buttonAlpha
+                        translationY = buttonOffsetY * density.density
+                    }
                     .border(Border.medium, MockupColors.Border, RoundedCornerShape(Radius.sm))
                     .background(MockupColors.Border, RoundedCornerShape(Radius.sm))
-                    .clickable(enabled = !isLoading) {
+                    .clickable(enabled = !isLoading && buttonAlpha > 0.9f) {
                         hapticManager?.click()
                         errorMessage = null
                         performGoogleSignIn()
@@ -3241,7 +3471,7 @@ private fun GoogleSignInStep(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(56.dp)
+                    .height(48.dp)
                     .border(Border.medium, MockupColors.Blue, RoundedCornerShape(Radius.sm))
                     .background(MockupColors.Blue, RoundedCornerShape(Radius.sm)),
                 contentAlignment = Alignment.Center
@@ -3275,29 +3505,6 @@ private fun GoogleSignInStep(
             }
         }
 
-        // Debug 모드에서만 표시되는 테스트 버튼
-        if (BuildConfig.DEBUG && !isSignedIn) {
-            Spacer(modifier = Modifier.height(12.dp))
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(48.dp)
-                    .background(Color(0xFFFF6B6B), RoundedCornerShape(12.dp))
-                    .clickable(enabled = !isLoading) {
-                        hapticManager?.click()
-                        // 로그인 없이 바로 펫 선택으로 진행
-                        onNext()
-                    },
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = stringResource(R.string.debug_test_without_login),
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color.White
-                )
-            }
-        }
     }
 }
 
@@ -6730,7 +6937,7 @@ fun PaymentScreen(
             },
             modifier = Modifier
                 .fillMaxWidth()
-                .height(56.dp)
+                .height(48.dp)
                 .graphicsLayer {
                     this.scaleX = if (!isProcessing) pulseScale else 1f
                     this.scaleY = if (!isProcessing) pulseScale else 1f

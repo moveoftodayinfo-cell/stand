@@ -12,7 +12,9 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -1233,196 +1235,203 @@ fun RealGoalSetupScreen(
             }
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // 3. Instruction - 22sp
-        Text(
-            text = RealGoalStrings.dailyGoalSetting(),
-            fontSize = 22.sp,
-            fontFamily = kenneyFont,
-            fontWeight = FontWeight.Bold,
-            color = MockupColors.TextPrimary
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // 4. Middle Content - 걸음수/km 선택 + 슬라이더
+        // 중간 영역: 목표 설정 (스크롤 가능)
         Column(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .weight(1f)
+                .verticalScroll(rememberScrollState()),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // 단위 선택 버튼
-            Row(
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // 3. Instruction - 22sp
+            Text(
+                text = RealGoalStrings.dailyGoalSetting(),
+                fontSize = 22.sp,
+                fontFamily = kenneyFont,
+                fontWeight = FontWeight.Bold,
+                color = MockupColors.TextPrimary
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // 4. Middle Content - 걸음수/km 선택 + 슬라이더
+            Column(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                // 걸음 수 버튼
-                Button(
-                    onClick = {
-                        hapticManager?.click()
-                        selectedUnit = "steps"
-                    },
-                    modifier = Modifier.weight(1f),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = if (selectedUnit == "steps") MockupColors.Border else Color(0xFFE0E0E0),
-                        contentColor = if (selectedUnit == "steps") Color.White else MockupColors.TextSecondary
-                    ),
-                    shape = RoundedCornerShape(12.dp)
+                // 단위 선택 버튼
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    Text(RealGoalStrings.steps(), fontWeight = FontWeight.Bold)
-                }
-
-                // km 버튼
-                Button(
-                    onClick = {
-                        hapticManager?.click()
-                        selectedUnit = "km"
-                    },
-                    modifier = Modifier.weight(1f),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = if (selectedUnit == "km") MockupColors.Border else Color(0xFFE0E0E0),
-                        contentColor = if (selectedUnit == "km") Color.White else MockupColors.TextSecondary
-                    ),
-                    shape = RoundedCornerShape(12.dp)
-                ) {
-                    Text(RealGoalStrings.distanceKm(), fontWeight = FontWeight.Bold)
-                }
-            }
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            // 현재 값 표시 영역 (높이 고정 - 탭 전환 시 레이아웃 일관성)
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(110.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text(
-                        text = if (selectedUnit == "km") {
-                            if (kotlin.math.abs(displayKm - 42.195f) < 0.2f) "42.195 km"
-                            else if (kotlin.math.abs(displayKm - 21.1f) < 0.2f) "21.1 km"
-                            else String.format("%.1f km", displayKm)
-                        } else {
-                            RealGoalStrings.stepsFormat(goalSteps.toInt())
+                    // 걸음 수 버튼
+                    Button(
+                        onClick = {
+                            hapticManager?.click()
+                            selectedUnit = "steps"
                         },
-                        fontSize = 48.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = MockupColors.TextPrimary
+                        modifier = Modifier.weight(1f),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = if (selectedUnit == "steps") MockupColors.Border else Color(0xFFE0E0E0),
+                            contentColor = if (selectedUnit == "steps") Color.White else MockupColors.TextSecondary
+                        ),
+                        shape = RoundedCornerShape(12.dp)
+                    ) {
+                        Text(RealGoalStrings.steps(), fontWeight = FontWeight.Bold)
+                    }
+
+                    // km 버튼
+                    Button(
+                        onClick = {
+                            hapticManager?.click()
+                            selectedUnit = "km"
+                        },
+                        modifier = Modifier.weight(1f),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = if (selectedUnit == "km") MockupColors.Border else Color(0xFFE0E0E0),
+                            contentColor = if (selectedUnit == "km") Color.White else MockupColors.TextSecondary
+                        ),
+                        shape = RoundedCornerShape(12.dp)
+                    ) {
+                        Text(RealGoalStrings.distanceKm(), fontWeight = FontWeight.Bold)
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                // 현재 값 표시 영역 (높이 고정 - 탭 전환 시 레이아웃 일관성)
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(110.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text(
+                            text = if (selectedUnit == "km") {
+                                if (kotlin.math.abs(displayKm - 42.195f) < 0.2f) "42.195 km"
+                                else if (kotlin.math.abs(displayKm - 21.1f) < 0.2f) "21.1 km"
+                                else String.format("%.1f km", displayKm)
+                            } else {
+                                RealGoalStrings.stepsFormat(goalSteps.toInt())
+                            },
+                            fontSize = 48.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = MockupColors.TextPrimary
+                        )
+
+                        // 환산 값 표시
+                        Text(
+                            text = if (selectedUnit == "km") {
+                                RealGoalStrings.aboutSteps(goalSteps.toInt())
+                            } else {
+                                RealGoalStrings.aboutKm(displayKm)
+                            },
+                            fontSize = 14.sp,
+                            color = MockupColors.TextMuted
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                // 슬라이더 (goalSteps 기준으로 통일 - 모드 전환 시 위치 유지)
+                Slider(
+                    value = goalSteps,
+                    onValueChange = { newValue ->
+                        hapticManager?.lightClick()
+                        if (selectedUnit == "km") {
+                            // km 모드: 0.5km 단위로 반올림 (1300보 * 0.5 = 650보 단위)
+                            val kmStep = 650f
+                            goalSteps = (kotlin.math.round(newValue / kmStep) * kmStep).coerceIn(stepsRange)
+                            // 특별값 (하프/풀마라톤) 근처면 스냅
+                            val currentKm = goalSteps / 1300f
+                            if (kotlin.math.abs(currentKm - 21.1f) < 0.3f) {
+                                goalSteps = 21.1f * 1300f
+                            } else if (kotlin.math.abs(currentKm - 42.195f) < 0.3f) {
+                                goalSteps = 42.195f * 1300f
+                            }
+                        } else {
+                            // 걸음 수 모드: 100보 단위로 반올림
+                            goalSteps = (kotlin.math.round(newValue / stepsStep) * stepsStep).coerceIn(stepsRange)
+                        }
+                    },
+                    valueRange = stepsRange,
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = SliderDefaults.colors(
+                        thumbColor = MockupColors.Border,
+                        activeTrackColor = MockupColors.Border,
+                        inactiveTrackColor = Color(0xFFE0E0E0)
                     )
+                )
 
-                    // 환산 값 표시
+                // 범위 표시
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
                     Text(
-                        text = if (selectedUnit == "km") {
-                            RealGoalStrings.aboutSteps(goalSteps.toInt())
-                        } else {
-                            RealGoalStrings.aboutKm(displayKm)
-                        },
-                        fontSize = 14.sp,
+                        text = if (selectedUnit == "km") "0.5km" else RealGoalStrings.minSteps(),
+                        fontSize = 12.sp,
+                        color = MockupColors.TextMuted
+                    )
+                    Text(
+                        text = if (selectedUnit == "km") "42.195km" else RealGoalStrings.maxSteps(),
+                        fontSize = 12.sp,
                         color = MockupColors.TextMuted
                     )
                 }
-            }
 
-            Spacer(modifier = Modifier.height(8.dp))
-
-            // 슬라이더 (goalSteps 기준으로 통일 - 모드 전환 시 위치 유지)
-            Slider(
-                value = goalSteps,
-                onValueChange = { newValue ->
-                    hapticManager?.lightClick()
+                // 퀵 선택 버튼 영역 (높이 고정 - 레이아웃 밀림 방지)
+                Spacer(modifier = Modifier.height(12.dp))
+                Box(modifier = Modifier.height(36.dp)) {
                     if (selectedUnit == "km") {
-                        // km 모드: 0.5km 단위로 반올림 (1300보 * 0.5 = 650보 단위)
-                        val kmStep = 650f
-                        goalSteps = (kotlin.math.round(newValue / kmStep) * kmStep).coerceIn(stepsRange)
-                        // 특별값 (하프/풀마라톤) 근처면 스냅
-                        val currentKm = goalSteps / 1300f
-                        if (kotlin.math.abs(currentKm - 21.1f) < 0.3f) {
-                            goalSteps = 21.1f * 1300f
-                        } else if (kotlin.math.abs(currentKm - 42.195f) < 0.3f) {
-                            goalSteps = 42.195f * 1300f
-                        }
-                    } else {
-                        // 걸음 수 모드: 100보 단위로 반올림
-                        goalSteps = (kotlin.math.round(newValue / stepsStep) * stepsStep).coerceIn(stepsRange)
-                    }
-                },
-                valueRange = stepsRange,
-                modifier = Modifier.fillMaxWidth(),
-                colors = SliderDefaults.colors(
-                    thumbColor = MockupColors.Border,
-                    activeTrackColor = MockupColors.Border,
-                    inactiveTrackColor = Color(0xFFE0E0E0)
-                )
-            )
-
-            // 범위 표시
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Text(
-                    text = if (selectedUnit == "km") "0.5km" else RealGoalStrings.minSteps(),
-                    fontSize = 12.sp,
-                    color = MockupColors.TextMuted
-                )
-                Text(
-                    text = if (selectedUnit == "km") "42.195km" else RealGoalStrings.maxSteps(),
-                    fontSize = 12.sp,
-                    color = MockupColors.TextMuted
-                )
-            }
-
-            // 퀵 선택 버튼 영역 (높이 고정 - 레이아웃 밀림 방지)
-            Spacer(modifier = Modifier.height(12.dp))
-            Box(modifier = Modifier.height(36.dp)) {
-                if (selectedUnit == "km") {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        // 하프마라톤
-                        Button(
-                            onClick = {
-                                hapticManager?.click()
-                                goalSteps = 21.1f * 1300f
-                            },
-                            modifier = Modifier.weight(1f),
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = if (kotlin.math.abs(displayKm - 21.1f) < 0.2f) Color(0xFF4CAF50) else Color(0xFFE0E0E0),
-                                contentColor = if (kotlin.math.abs(displayKm - 21.1f) < 0.2f) Color.White else MockupColors.TextSecondary
-                            ),
-                            shape = RoundedCornerShape(8.dp),
-                            contentPadding = PaddingValues(8.dp)
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
-                            Text(RealGoalStrings.halfBtn(), fontSize = 12.sp, fontWeight = FontWeight.Bold)
-                        }
+                            // 하프마라톤
+                            Button(
+                                onClick = {
+                                    hapticManager?.click()
+                                    goalSteps = 21.1f * 1300f
+                                },
+                                modifier = Modifier.weight(1f),
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = if (kotlin.math.abs(displayKm - 21.1f) < 0.2f) Color(0xFF4CAF50) else Color(0xFFE0E0E0),
+                                    contentColor = if (kotlin.math.abs(displayKm - 21.1f) < 0.2f) Color.White else MockupColors.TextSecondary
+                                ),
+                                shape = RoundedCornerShape(8.dp),
+                                contentPadding = PaddingValues(8.dp)
+                            ) {
+                                Text(RealGoalStrings.halfBtn(), fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                            }
 
-                        // 풀마라톤
-                        Button(
-                            onClick = {
-                                hapticManager?.click()
-                                goalSteps = 42.195f * 1300f
-                            },
-                            modifier = Modifier.weight(1f),
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = if (kotlin.math.abs(displayKm - 42.195f) < 0.2f) Color(0xFF4CAF50) else Color(0xFFE0E0E0),
-                                contentColor = if (kotlin.math.abs(displayKm - 42.195f) < 0.2f) Color.White else MockupColors.TextSecondary
-                            ),
-                            shape = RoundedCornerShape(8.dp),
-                            contentPadding = PaddingValues(8.dp)
-                        ) {
-                            Text(RealGoalStrings.fullBtn(), fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                            // 풀마라톤
+                            Button(
+                                onClick = {
+                                    hapticManager?.click()
+                                    goalSteps = 42.195f * 1300f
+                                },
+                                modifier = Modifier.weight(1f),
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = if (kotlin.math.abs(displayKm - 42.195f) < 0.2f) Color(0xFF4CAF50) else Color(0xFFE0E0E0),
+                                    contentColor = if (kotlin.math.abs(displayKm - 42.195f) < 0.2f) Color.White else MockupColors.TextSecondary
+                                ),
+                                shape = RoundedCornerShape(8.dp),
+                                contentPadding = PaddingValues(8.dp)
+                            ) {
+                                Text(RealGoalStrings.fullBtn(), fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                            }
                         }
                     }
                 }
             }
+            Spacer(modifier = Modifier.height(16.dp))
         }
 
-        Spacer(modifier = Modifier.weight(1f))
-
-        // 5. Action Button
+        // 5. Action Button - 하단 고정
         MockupButton(
             text = RealGoalStrings.start(),
             onClick = {

@@ -25,8 +25,8 @@ android {
         applicationId = "com.moveoftoday.walkorwait"
         minSdk = 26
         targetSdk = 36
-        versionCode = 85
-        versionName = "1.0.85"
+        versionCode = 86
+        versionName = "1.0.86"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
@@ -120,6 +120,9 @@ dependencies {
 
     // Google Play Billing
     implementation(libs.billing)
+
+    // Google Play In-App Review
+    implementation("com.google.android.play:review-ktx:2.0.2")
 
     // Facebook SDK (Meta Marketing API)
     implementation(libs.facebook.android.sdk)

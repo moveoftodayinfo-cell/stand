@@ -1329,6 +1329,25 @@ fun WalkOrWaitScreen(
                     if (currentStreak > 0) {
                         AnalyticsManager.trackStreakMilestone(currentStreak)
                     }
+
+                    // 생애 첫 걷기 목표 달성 시 앱 리뷰 요청
+                    if (streakResult.streak == 1 && preferenceManager.hasRequestedReview() == false) {
+                        try {
+                            val activity = context as? android.app.Activity
+                            if (activity != null) {
+                                val reviewManager = com.google.android.play.core.review.ReviewManagerFactory.create(context)
+                                val reviewFlow = reviewManager.requestReviewFlow()
+                                reviewFlow.addOnCompleteListener { task ->
+                                    if (task.isSuccessful) {
+                                        reviewManager.launchReviewFlow(activity, task.result)
+                                    }
+                                }
+                            }
+                        } catch (e: Exception) {
+                            android.util.Log.e("MainActivity", "Review request failed: ${e.message}")
+                        }
+                        preferenceManager.setReviewRequested()
+                    }
                 }
             } else if (isNowAchieved) {
                 preferenceManager?.recordTodaySuccess()  // 자유시간 포함 달성일수 기록

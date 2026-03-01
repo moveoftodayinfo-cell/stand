@@ -1119,6 +1119,24 @@ class PreferenceManager(context: Context) {
         prefs.edit().remove("tutorial_current_step").apply()
     }
 
+    // ===== 온보딩 설문 응답 =====
+
+    fun saveSurveyScreenTime(answer: String) {
+        prefs.edit().putString("survey_screen_time", answer).apply()
+    }
+
+    fun getSurveyScreenTime(): String? {
+        return prefs.getString("survey_screen_time", null)
+    }
+
+    fun saveSurveyWillpower(answer: String) {
+        prefs.edit().putString("survey_willpower", answer).apply()
+    }
+
+    fun getSurveyWillpower(): String? {
+        return prefs.getString("survey_willpower", null)
+    }
+
     // ===== 펫 스타일 설정 플로우 추적 =====
 
     // 권한 설정 완료 여부
@@ -2520,5 +2538,25 @@ class PreferenceManager(context: Context) {
      */
     fun getAppLanguage(): String {
         return prefs.getString("app_language", "system") ?: "system"
+    }
+
+    // ========== 앱 리뷰 요청 ==========
+
+    fun hasRequestedReview(): Boolean {
+        return prefs.getBoolean("has_requested_review", false)
+    }
+
+    fun setReviewRequested() {
+        prefs.edit().putBoolean("has_requested_review", true).apply()
+    }
+
+    // ========== 잠금화면 알림 ==========
+
+    fun isLockscreenNotificationEnabled(): Boolean {
+        return prefs.getBoolean("lockscreen_notification_enabled", true)
+    }
+
+    fun setLockscreenNotificationEnabled(enabled: Boolean) {
+        prefs.edit().putBoolean("lockscreen_notification_enabled", enabled).apply()
     }
 }

@@ -290,6 +290,32 @@ fun PetMainScreen(
         }
     }
 
+    // 생애 첫 챌린지 완료 시 앱 리뷰 요청
+    val shouldRequestReview by challengeManager.shouldRequestReview.collectAsState()
+
+    LaunchedEffect(shouldRequestReview) {
+        if (shouldRequestReview) {
+            try {
+                delay(2000) // 축하 메시지 표시 후 자연스럽게 리뷰 팝업
+                val activity = context as? android.app.Activity
+                if (activity != null) {
+                    val manager = com.google.android.play.core.review.ReviewManagerFactory.create(context)
+                    val reviewInfo = manager.requestReviewFlow()
+                    reviewInfo.addOnCompleteListener { task ->
+                        if (task.isSuccessful) {
+                            manager.launchReviewFlow(activity, task.result)
+                        }
+                    }
+                }
+            } catch (e: Exception) {
+                android.util.Log.e("PetMainScreen", "Review request failed: ${e.message}")
+            } finally {
+                preferenceManager.setReviewRequested()
+                challengeManager.clearReviewRequest()
+            }
+        }
+    }
+
     // 챌린지 실패 시 펫 응원 메시지
     LaunchedEffect(justEndedChallenge) {
         justEndedChallenge?.let { challenge ->
@@ -1065,7 +1091,7 @@ fun PetMainScreen(
                 hapticManager?.click()
                 onChallengeClick()
             },
-            height = 56.dp
+            height = 48.dp
         )
 
         Spacer(modifier = Modifier.height(8.dp))

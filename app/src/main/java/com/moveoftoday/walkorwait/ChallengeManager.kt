@@ -239,6 +239,14 @@ class ChallengeManager private constructor(private val context: Context) {
         _justUnlockedSkin.value = null
     }
 
+    // 생애 첫 챌린지 완료 시 앱 리뷰 요청 트리거
+    private val _shouldRequestReview = MutableStateFlow(false)
+    val shouldRequestReview: StateFlow<Boolean> = _shouldRequestReview.asStateFlow()
+
+    fun clearReviewRequest() {
+        _shouldRequestReview.value = false
+    }
+
     // 모든 챌린지 목록
     val allChallenges: List<Challenge> = listOf(
         // 독서
@@ -619,6 +627,13 @@ class ChallengeManager private constructor(private val context: Context) {
         // 칭호 획득 (처음 완료 시)
         val isFirstCompletion = !_unlockedTitles.value.contains(type)
         unlockTitle(type)
+
+        // 생애 첫 챌린지 완료 시 앱 리뷰 요청 트리거
+        if (isFirstCompletion && _unlockedTitles.value.size <= 1) {
+            if (!prefManager.hasRequestedReview()) {
+                _shouldRequestReview.value = true
+            }
+        }
 
         // Firebase에 챌린지 완료 기록 저장
         scope.launch {
