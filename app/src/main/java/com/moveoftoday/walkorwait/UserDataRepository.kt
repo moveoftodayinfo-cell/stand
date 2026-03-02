@@ -649,6 +649,7 @@ class UserDataRepository(
 
                     // 진행 상태
                     "tutorialCompleted" to settings.tutorialCompleted,
+                    "tutorialLastStep" to preferenceManager.getTutorialCurrentStep(),
                     "paidDeposit" to settings.paidDeposit,
                     "streak" to settings.streak,
                     "lastAchievedDate" to settings.lastAchievedDate,
@@ -685,7 +686,11 @@ class UserDataRepository(
                     "equipmentHeadId" to preferenceManager.getEquipmentState().headId,
                     "equipmentBackgroundId" to preferenceManager.getEquipmentState().backgroundId,
                     "equipmentColorId" to preferenceManager.getEquipmentState().colorId,
-                    "unlockedSkins" to preferenceManager.getOwnedSkins().toList()
+                    "unlockedSkins" to preferenceManager.getOwnedSkins().toList(),
+
+                    // 온보딩 설문 응답 (분석용)
+                    "surveyScreenTime" to preferenceManager.getSurveyScreenTime(),
+                    "surveyWillpower" to preferenceManager.getSurveyWillpower()
                 )
 
                 firestore.collection("users")
