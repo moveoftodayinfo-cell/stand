@@ -89,7 +89,7 @@ object AppUtils {
             }
             .map { appInfo ->
                 val originalAppName = packageManager.getApplicationLabel(appInfo).toString()
-                val appName = getKoreanAppName(originalAppName)
+                val appName = if (java.util.Locale.getDefault().language == "ko") getKoreanAppName(originalAppName) else originalAppName
                 val icon = try {
                     packageManager.getApplicationIcon(appInfo).toBitmap().asImageBitmap()
                 } catch (e: Exception) {

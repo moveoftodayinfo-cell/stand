@@ -628,23 +628,41 @@ private object PetTutorialStrings {
     }
 
     fun startForFree(): String = when (getLang()) {
-        "ko" -> "3일 무료 체험 시작"
-        "ja" -> "3日間無料お試し"
-        "zh" -> "3天免费试用"
-        "es" -> "3 días gratis"
-        else -> "Start 3-Day Free Trial"
+        "ko" -> "7일 무료 체험 시작"
+        "ja" -> "7日間無料お試し"
+        "zh" -> "7天免费试用"
+        "es" -> "7 días gratis"
+        else -> "Start 7-Day Free Trial"
     }
 
     fun trialSubtitle(isYearly: Boolean, yearlyPriceStr: String?, monthlyPriceStr: String?): String {
-        val yearly = yearlyPriceStr ?: "$26.99"
-        val monthly = monthlyPriceStr ?: "$2.49"
+        val yearly = yearlyPriceStr ?: "..."
+        val monthly = monthlyPriceStr ?: "..."
         return when (getLang()) {
-            "ko" -> if (isYearly) "3일 후 연 $yearly" else "3일 후 월 $monthly"
-            "ja" -> if (isYearly) "3日後に年額$yearly" else "3日後に月額$monthly"
-            "zh" -> if (isYearly) "3天后年费$yearly" else "3天后月费$monthly"
+            "ko" -> if (isYearly) "7일 후 연 $yearly" else "7일 후 월 $monthly"
+            "ja" -> if (isYearly) "7日後に年額$yearly" else "7日後に月額$monthly"
+            "zh" -> if (isYearly) "7天后年费$yearly" else "7天后月费$monthly"
             "es" -> if (isYearly) "Después $yearly/año" else "Después $monthly/mes"
             else -> if (isYearly) "Then $yearly/year" else "Then $monthly/month"
         }
+    }
+
+    fun cancelAnytime(): String = when (getLang()) {
+        "ko" -> "언제든 Google Play 설정에서 취소 가능"
+        "ja" -> "Google Playの設定からいつでもキャンセル可能"
+        "zh" -> "随时可在Google Play设置中取消"
+        "es" -> "Cancela en cualquier momento desde Google Play"
+        "hi" -> "Google Play सेटिंग्स से कभी भी रद्द करें"
+        else -> "Cancel anytime in Google Play settings"
+    }
+
+    fun subscriptionRequired(): String = when (getLang()) {
+        "ko" -> "앱 사용을 위해 구독이 필요합니다"
+        "ja" -> "アプリの利用にはサブスクリプションが必要です"
+        "zh" -> "使用此应用需要订阅"
+        "es" -> "Se requiere suscripción para usar la app"
+        "hi" -> "ऐप का उपयोग करने के लिए सदस्यता आवश्यक है"
+        else -> "Subscription required to use this app"
     }
 
     fun restartAgain(): String = when (getLang()) {
@@ -6363,7 +6381,7 @@ fun PaymentScreen(
         else -> PetTutorialStrings.startForFree()
     }
 
-    // 3일 무료 체험 후 가격 안내 (isYearly 체크)
+    // 7일 무료 체험 후 가격 안내 (isYearly 체크)
     val isYearlyPlan = selectedPlan == BillingManager.SubscriptionType.YEARLY
     val trialSubtitle = if (!isPromoFree && !isReturningUser) {
         PetTutorialStrings.trialSubtitle(isYearlyPlan, yearlyPrice, monthlyPrice)
@@ -6397,7 +6415,7 @@ fun PaymentScreen(
                     val pastDate = java.util.Calendar.getInstance()
                     pastDate.add(java.util.Calendar.DAY_OF_MONTH, -10)
                     preferenceManager.saveTrialStartDate(sdf.format(pastDate.time))
-                    pastDate.add(java.util.Calendar.DAY_OF_MONTH, 3)
+                    pastDate.add(java.util.Calendar.DAY_OF_MONTH, 7)
                     preferenceManager.saveTrialEndDate(sdf.format(pastDate.time))
 
                     isProcessing = false
@@ -6441,7 +6459,7 @@ fun PaymentScreen(
                                     val pastDate = java.util.Calendar.getInstance()
                                     pastDate.add(java.util.Calendar.DAY_OF_MONTH, -10)
                                     preferenceManager.saveTrialStartDate(sdf.format(pastDate.time))
-                                    pastDate.add(java.util.Calendar.DAY_OF_MONTH, 3)
+                                    pastDate.add(java.util.Calendar.DAY_OF_MONTH, 7)
                                     preferenceManager.saveTrialEndDate(sdf.format(pastDate.time))
 
                                     isProcessing = false
@@ -6513,7 +6531,7 @@ fun PaymentScreen(
                         val pastDate = java.util.Calendar.getInstance()
                         pastDate.add(java.util.Calendar.DAY_OF_MONTH, -10)
                         preferenceManager.saveTrialStartDate(sdf.format(pastDate.time))
-                        pastDate.add(java.util.Calendar.DAY_OF_MONTH, 3)
+                        pastDate.add(java.util.Calendar.DAY_OF_MONTH, 7)
                         preferenceManager.saveTrialEndDate(sdf.format(pastDate.time))
                         preferenceManager.saveTodaySteps(0)
                         hapticManager?.success()
@@ -6524,6 +6542,16 @@ fun PaymentScreen(
         )
 
         Spacer(modifier = Modifier.height(2.dp))
+
+        // 구독 필요 안내
+        Text(
+            text = PetTutorialStrings.subscriptionRequired(),
+            fontSize = 12.sp,
+            color = MockupColors.TextSecondary,
+            textAlign = TextAlign.Center
+        )
+
+        Spacer(modifier = Modifier.height(4.dp))
 
         // 헤드라인 - 변화 강조
         Text(
@@ -6695,7 +6723,7 @@ fun PaymentScreen(
                             verticalAlignment = Alignment.Bottom
                         ) {
                             Text(
-                                text = if (isYearly) (yearlyPrice ?: "$26.99") else (monthlyPrice ?: "$2.49"),
+                                text = if (isYearly) (yearlyPrice ?: "...") else (monthlyPrice ?: "..."),
                                 fontSize = 24.sp,
                                 fontFamily = kenneyFont,
                                 fontWeight = FontWeight.Bold,
@@ -6967,7 +6995,7 @@ fun PaymentScreen(
             }
         }
 
-        // 3일 무료 체험 후 가격 안내
+        // 7일 무료 체험 후 가격 안내
         if (trialSubtitle != null) {
             Spacer(modifier = Modifier.height(8.dp))
             Text(
@@ -6976,10 +7004,10 @@ fun PaymentScreen(
                 color = MockupColors.TextSecondary,
                 textAlign = TextAlign.Center
             )
-            // 슬로건: 10센트로 인생을 바꿔보세요
+            // 취소 안내
             Spacer(modifier = Modifier.height(4.dp))
             Text(
-                text = PetTutorialStrings.changYourLifeSlogan(dailyPrice),
+                text = PetTutorialStrings.cancelAnytime(),
                 fontSize = 11.sp,
                 color = MockupColors.TextMuted,
                 textAlign = TextAlign.Center
